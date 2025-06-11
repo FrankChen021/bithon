@@ -17,6 +17,7 @@
 package org.bithon.server.metric.expression.plan;
 
 import org.bithon.component.commons.expression.ArithmeticExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
@@ -28,10 +29,13 @@ import org.bithon.server.datasource.query.plan.logical.BinaryOp;
 import org.bithon.server.datasource.query.plan.logical.ILogicalPlan;
 import org.bithon.server.datasource.query.plan.logical.LogicalAggregate;
 import org.bithon.server.datasource.query.plan.logical.LogicalBinaryOp;
+import org.bithon.server.datasource.query.plan.logical.LogicalFilter;
 import org.bithon.server.datasource.query.plan.logical.LogicalScalar;
 import org.bithon.server.datasource.query.plan.logical.LogicalTableScan;
+import org.bithon.server.datasource.query.plan.logical.PredicateEnum;
 import org.bithon.server.metric.expression.ast.IMetricExpressionVisitor;
 import org.bithon.server.metric.expression.ast.MetricAggregateExpression;
+import org.bithon.server.metric.expression.ast.MetricExpectedExpression;
 import org.bithon.server.metric.expression.ast.MetricSelectExpression;
 
 import java.util.ArrayList;
@@ -93,6 +97,29 @@ public class LogicalPlanBuilder implements IMetricExpressionVisitor<ILogicalPlan
             op,
             expression.getRhs().accept(this)
         );
+    }
+
+    @Override
+    public ILogicalPlan visit(ConditionalExpression expression) {
+        PredicateEnum predicate = switch(expression.getType()) {
+            case "<" -> PredicateEnum.LT;
+            case "<=" -> PredicateEnum.LTE;
+            case ">" -> PredicateEnum.GT;
+            case ">=" -> PredicateEnum.GTE;
+            case "=" -> PredicateEnum.EQ;
+            case "!=", "<>" -> PredicateEnum.NE;
+            default -> throw new IllegalArgumentException("Unsupported predicate type: " + expression.getType());
+        };
+        return new LogicalFilter(
+            expression.getLhs().accept(this),
+            predicate,
+            expression.getRhs().accept(this)
+        );
+    }
+
+    @Override
+    public ILogicalPlan visit(MetricExpectedExpression expression) {
+        return new LogicalScalar(expression.getExpected());
     }
 
     @Override

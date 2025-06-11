@@ -19,6 +19,7 @@ package org.bithon.server.datasource.query.plan.physical;
 
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.HumanReadableDuration;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.result.PipelineQueryResult;
 
@@ -96,17 +97,10 @@ public class MetricQueryStep implements IPhysicalPlan {
             return false;
         }
 
-        /*
-        if (interval.getBucketCount() != null && interval.getBucketCount() == 1) {
-            // ONLY one bucket is requested, the result set is a scalar
-            return true;
-        }
-
-        TimeSpan start = interval.getStartISO8601();
-        TimeSpan end = interval.getEndISO8601();
-        long intervalLength = (end.getMilliseconds() - start.getMilliseconds()) / 1000;=
-        return interval.getStep() != null && interval.getStep() == intervalLength;*/
-        return true;
+        TimeSpan start = interval.getStartTime();
+        TimeSpan end = interval.getEndTime();
+        long intervalLength = (end.getMilliseconds() - start.getMilliseconds()) / 1000;
+        return interval.getStep() != null && interval.getStep().getSeconds() == intervalLength;
     }
 
     @Override
@@ -120,7 +114,6 @@ public class MetricQueryStep implements IPhysicalPlan {
             synchronized (this) {
                 if (cachedResponse == null) {
                     cachedResponse = CompletableFuture.supplyAsync(() -> {
-                        return null;
                         /*try {
 
                             QueryRequest queryRequest = QueryRequest.builder()
@@ -151,6 +144,7 @@ public class MetricQueryStep implements IPhysicalPlan {
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }*/
+                        return null;
                     });
                 }
             }

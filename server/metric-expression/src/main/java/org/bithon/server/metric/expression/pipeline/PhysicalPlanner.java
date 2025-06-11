@@ -182,7 +182,25 @@ public class PhysicalPlanner {
 
         @Override
         public IPhysicalPlan visitFilter(LogicalFilter filter) {
-            return null;
+            switch(filter.op()) {
+                case LT:
+                    return new FilterStep.LT(filter.left().accept(this),
+                                             (Number) ((LogicalScalar) filter.right()).literal().getValue());
+                case LTE:
+                    return new FilterStep.LTE(filter.left().accept(this),
+                                              (Number) ((LogicalScalar) filter.right()).literal().getValue());
+                case GT:
+                    return new FilterStep.GT(filter.left().accept(this),
+                                             (Number) ((LogicalScalar) filter.right()).literal().getValue());
+                case GTE:
+                    return new FilterStep.GTE(filter.left().accept(this),
+                                              (Number) ((LogicalScalar) filter.right()).literal().getValue());
+                case NE:
+                    return new FilterStep.NE(filter.left().accept(this),
+                                             (Number) ((LogicalScalar) filter.right()).literal().getValue());
+                default:
+                    throw new UnsupportedOperationException("Unsupported filter operation: " + filter.op());
+            }
         }
     }
 

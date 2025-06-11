@@ -20,6 +20,16 @@ package org.bithon.server.metric.expression.pipeline.step;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.datasource.DefaultSchema;
+import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.ISchemaProvider;
+import org.bithon.server.datasource.TimestampSpec;
+import org.bithon.server.datasource.column.ExpressionColumn;
+import org.bithon.server.datasource.column.aggregatable.last.AggregateLongLastColumn;
+import org.bithon.server.datasource.column.aggregatable.sum.AggregateLongSumColumn;
+import org.bithon.server.datasource.query.IDataSourceReader;
+import org.bithon.server.datasource.query.plan.logical.LogicalAggregate;
+import org.bithon.server.datasource.query.plan.logical.LogicalTableScan;
 import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
 import org.bithon.server.datasource.query.result.Column;
 import org.bithon.server.datasource.query.result.ColumnarTable;
@@ -27,6 +37,7 @@ import org.bithon.server.datasource.query.result.DoubleColumn;
 import org.bithon.server.datasource.query.result.LongColumn;
 import org.bithon.server.datasource.query.result.PipelineQueryResult;
 import org.bithon.server.datasource.query.result.StringColumn;
+import org.bithon.server.datasource.store.IDataStoreSpec;
 import org.bithon.server.metric.expression.pipeline.PhysicalPlanner;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
@@ -36,393 +47,554 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 4/4/25 9:27 pm
  */
 @SuppressWarnings("PointlessArithmeticExpression")
 public class ArithmeticStepTest {
+
+    private ISchema schema;
+    private ISchemaProvider schemaProvider;
     private IDataSourceApi dataSourceApi;
+    private IDataSourceReader dataSourceReader;
 
     @BeforeEach
     public void setUpClass() {
         dataSourceApi = Mockito.mock(IDataSourceApi.class);
+        dataSourceReader = Mockito.mock(IDataSourceReader.class);
+        schema = new DefaultSchema("bithon-jvm-metrics",
+                                   "bithon-jvm-metrics",
+                                   new TimestampSpec("timestamp"),
+                                   Arrays.asList(new org.bithon.server.datasource.column.StringColumn("appName", "appName"),
+                                                 new org.bithon.server.datasource.column.StringColumn("instance", "instance")),
+                                   Arrays.asList(new AggregateLongSumColumn("responseTime", "responseTime"),
+                                                 new AggregateLongSumColumn("totalCount", "totalCount"),
+                                                 new AggregateLongSumColumn("count4xx", "count4xx"),
+                                                 new AggregateLongSumColumn("count5xx", "count5xx"),
+                                                 new AggregateLongLastColumn("activeThreads", "activeThreads"),
+                                                 new AggregateLongLastColumn("totalThreads", "totalThreads"),
+                                                 new ExpressionColumn("avgResponseTime",
+                                                                      null,
+                                                                      "sum(responseTime) / sum(totalCount)",
+                                                                      "double")
+                                   ),
+                                   null,
+                                   new IDataStoreSpec() {
+                                       @Override
+                                       public String getStore() {
+                                           return "bithon_jvm_metrics";
+                                       }
+
+                                       @Override
+                                       public void setSchema(ISchema schema) {
+
+                                       }
+
+                                       @Override
+                                       public boolean isInternal() {
+                                           return false;
+                                       }
+
+                                       @Override
+                                       public IDataSourceReader createReader() {
+                                           return dataSourceReader;
+                                       }
+                                   },
+                                   null,
+                                   null);
+        this.schemaProvider = name -> schema;
+    }
+
+    static class MockReadStep implements IPhysicalPlan {
+        private final PipelineQueryResult result;
+        private final boolean isScalar;
+
+        MockReadStep(PipelineQueryResult result) {
+            this.result = result;
+            this.isScalar = false;
+        }
+
+        MockReadStep(PipelineQueryResult result, boolean isScalar) {
+            this.result = result;
+            this.isScalar = isScalar;
+        }
+
+        @Override
+        public boolean isScalar() {
+            return this.isScalar;
+        }
+
+        @Override
+        public boolean canPushDownAggregate(LogicalAggregate aggregate) {
+            return true;
+        }
+
+        @Override
+        public IPhysicalPlan pushDownAggregate(LogicalAggregate aggregate) {
+            return this;
+        }
+
+        @Override
+        public CompletableFuture<PipelineQueryResult> execute() {
+            return CompletableFuture.completedFuture(this.result);
+        }
     }
 
     @Test
     public void test_ScalarOverLiteral_Add_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
-                                            LongColumn.of("activeThreads", 1)));
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(1)
+                                                               .table(ColumnarTable.of(LongColumn.of("_timestamp", 1),
+                                                                                       LongColumn.of("activeThreads", 1)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
         PipelineQueryResult response = evaluator.execute().get();
 
-        Column valueCol = response.getTable().getColumn("value");
+        Column valueCol = response.getTable().getColumn("activeThreads");
         Assertions.assertEquals(6, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
     public void test_ScalarOverLiteral_Add_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
-                                            LongColumn.of("activeThreads", 1)));
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(1)
+                                                               .table(ColumnarTable.of(LongColumn.of("_timestamp", 1),
+                                                                                       LongColumn.of("activeThreads", 1)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 3.3");
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 3.3");
         PipelineQueryResult response = evaluator.execute().get();
 
-        Column valueCol = response.getTable().getColumn("value");
+        Column valueCol = response.getTable().getColumn("activeThreads");
         Assertions.assertEquals(4.3, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
     public void test_ScalarOverLiteral_Add_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
-                                            DoubleColumn.of("activeThreads", 3.7)));
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(1)
+                                                               .table(ColumnarTable.of(LongColumn.of("_timestamp", 1),
+                                                                                       DoubleColumn.of("activeThreads", 3.7)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
         PipelineQueryResult response = evaluator.execute().get();
 
-        Column valueCol = response.getTable().getColumn("value");
+        Column valueCol = response.getTable().getColumn("activeThreads");
         Assertions.assertEquals(8.7, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
     public void test_ScalarOverLiteral_Add_Double_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
-                                            DoubleColumn.of("activeThreads", 10.5)));
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(1)
+                                                               .table(ColumnarTable.of(LongColumn.of("_timestamp", 1),
+                                                                                       DoubleColumn.of("activeThreads", 10.5)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 2.2");
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 2.2");
         PipelineQueryResult response = evaluator.execute().get();
 
-        Column valueCol = response.getTable().getColumn("value");
+        Column valueCol = response.getTable().getColumn("activeThreads");
         Assertions.assertEquals(12.7, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
     public void test_ScalarOverSizeLiteral_Add_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
-                                            LongColumn.of("activeThreads", 1)));
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(1)
+                                                               .table(ColumnarTable.of(LongColumn.of("_timestamp", 1),
+                                                                                       LongColumn.of("activeThreads", 1)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5Mi");
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5Mi");
         PipelineQueryResult response = evaluator.execute().get();
 
-        Column valueCol = response.getTable().getColumn("value");
+        Column valueCol = response.getTable().getColumn("activeThreads");
         Assertions.assertEquals(HumanReadableNumber.of("5Mi").longValue() + 1, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
     public void test_ScalarOverPercentageLiteral_Add_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
-                                            LongColumn.of("activeThreads", 1)));
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(1)
+                                                               .table(ColumnarTable.of(LongColumn.of("_timestamp", 1),
+                                                                                       LongColumn.of("activeThreads", 1)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 90%");
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 90%");
         PipelineQueryResult response = evaluator.execute().get();
 
-        Column valueCol = response.getTable().getColumn("value");
+        Column valueCol = response.getTable().getColumn("activeThreads");
         Assertions.assertEquals(1.9, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
     public void test_ScalarOverDurationLiteral_Add_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
-                                            LongColumn.of("activeThreads", 1)));
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(1)
+                                                               .table(ColumnarTable.of(LongColumn.of("_timestamp", 1),
+                                                                                       LongColumn.of("activeThreads", 1)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 1h");
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 1h");
         PipelineQueryResult response = evaluator.execute().get();
 
-        Column valueCol = response.getTable().getColumn("value");
+        Column valueCol = response.getTable().getColumn("activeThreads");
         Assertions.assertEquals(3601, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
     public void test_ScalarOverLiteral_Sub_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
-                                            LongColumn.of("activeThreads", 1)));
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(1)
+                                                               .table(ColumnarTable.of(LongColumn.of("_timestamp", 1),
+                                                                                       LongColumn.of("activeThreads", 1)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 5");
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 5");
         PipelineQueryResult response = evaluator.execute().get();
 
-        Column valueCol = response.getTable().getColumn("value");
+        Column valueCol = response.getTable().getColumn("activeThreads");
         Assertions.assertEquals(-4, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
     public void test_ScalarOverLiteral_Sub_Double_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
-                                            DoubleColumn.of("activeThreads", 10.5)));
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(1)
+                                                               .table(ColumnarTable.of(LongColumn.of("_timestamp", 1),
+                                                                                       DoubleColumn.of("activeThreads", 10.5)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 2.2");
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 2.2");
         PipelineQueryResult response = evaluator.execute().get();
 
-        Column valueCol = response.getTable().getColumn("value");
+        Column valueCol = response.getTable().getColumn("activeThreads");
         Assertions.assertEquals(8.3, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
     public void test_ScalarOverLiteral_Mul_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
-                                            LongColumn.of("activeThreads", 1)));
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(1)
+                                                               .table(ColumnarTable.of(LongColumn.of("_timestamp", 1),
+                                                                                       LongColumn.of("activeThreads", 1)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
         PipelineQueryResult response = evaluator.execute().get();
 
-        Column valueCol = response.getTable().getColumn("value");
+        Column valueCol = response.getTable().getColumn("activeThreads");
         Assertions.assertEquals(5, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
     public void test_ScalarOverLiteral_Mul_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
-                                            DoubleColumn.of("activeThreads", 5.5)));
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(1)
+                                                               .table(ColumnarTable.of(LongColumn.of("_timestamp", 1),
+                                                                                       DoubleColumn.of("activeThreads", 5.5)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
         PipelineQueryResult response = evaluator.execute().get();
 
-        Column valueCol = response.getTable().getColumn("value");
+        Column valueCol = response.getTable().getColumn("activeThreads");
         Assertions.assertEquals(27.5, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
     public void test_ScalarOverLiteral_Mul_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
-                                            LongColumn.of("activeThreads", 1)));
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(1)
+                                                               .table(ColumnarTable.of(LongColumn.of("_timestamp", 1),
+                                                                                       LongColumn.of("activeThreads", 1)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5.5");
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5.5");
         PipelineQueryResult response = evaluator.execute().get();
 
-        Column valueCol = response.getTable().getColumn("value");
+        Column valueCol = response.getTable().getColumn("activeThreads");
         Assertions.assertEquals(5.5, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
     public void test_ScalarOverLiteral_Mul_Double_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
-                                            DoubleColumn.of("activeThreads", 3.5)));
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(1)
+                                                               .table(ColumnarTable.of(LongColumn.of("_timestamp", 1),
+                                                                                       DoubleColumn.of("activeThreads", 3.5)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 3");
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 3");
         PipelineQueryResult response = evaluator.execute().get();
 
-        Column valueCol = response.getTable().getColumn("value");
+        Column valueCol = response.getTable().getColumn("activeThreads");
         Assertions.assertEquals(10.5, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
     public void test_ScalarOverLiteral_Div_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
-                                            LongColumn.of("activeThreads", 10)));
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(1)
+                                                               .table(ColumnarTable.of(LongColumn.of("_timestamp", 1),
+                                                                                       LongColumn.of("activeThreads", 10)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 5");
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 5");
         PipelineQueryResult response = evaluator.execute().get();
 
-        Column valueCol = response.getTable().getColumn("value");
+        Column valueCol = response.getTable().getColumn("activeThreads");
         Assertions.assertEquals(2, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
     public void test_ScalarOverLiteral_Div_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
-                                            DoubleColumn.of("activeThreads", 10)));
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(1)
+                                                               .table(ColumnarTable.of(LongColumn.of("_timestamp", 1),
+                                                                                       DoubleColumn.of("activeThreads", 10)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 20");
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 20");
         PipelineQueryResult response = evaluator.execute().get();
 
-        Column valueCol = response.getTable().getColumn("value");
+        Column valueCol = response.getTable().getColumn("activeThreads");
         Assertions.assertEquals(0.5, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
     public void test_ScalarOverLiteral_Div_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
-                                            LongColumn.of("activeThreads", 10)));
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(1)
+                                                               .table(ColumnarTable.of(LongColumn.of("_timestamp", 1),
+                                                                                       LongColumn.of("activeThreads", 10)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 20.0");
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 20.0");
         PipelineQueryResult response = evaluator.execute().get();
 
-        Column valueCol = response.getTable().getColumn("value");
+        Column valueCol = response.getTable().getColumn("activeThreads");
         Assertions.assertEquals(0.5, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
     public void test_ScalarOverLiteral_Div_Double_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
-                                            DoubleColumn.of("activeThreads", 10.5)));
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(1)
+                                                               .table(ColumnarTable.of(LongColumn.of("_timestamp", 1),
+                                                                                       DoubleColumn.of("activeThreads", 10.5)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 3.0");
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 3.0");
         PipelineQueryResult response = evaluator.execute().get();
 
-        Column valueCol = response.getTable().getColumn("value");
+        Column valueCol = response.getTable().getColumn("activeThreads");
         Assertions.assertEquals(3.5, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
     public void test_VectorOverLiteral_Add_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenAnswer((answer) -> {
-                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
-
-                   String metric = request.getFields().get(0).getName();
-                   if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           LongColumn.of("activeThreads", 5, 20, 25)
-                       );
-                   }
-                   if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("totalThreads", 5)
-                       );
-                   }
-                   throw new IllegalArgumentException("Invalid metric: " + metric);
-               });
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp", "appName"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(3)
+                                                               .table(ColumnarTable.of(
+                                                                   LongColumn.of("_timestamp", 1, 2, 3),
+                                                                   StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                   LongColumn.of("activeThreads", 5, 20, 25)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "+"
-                                                          + "5");
+                                                 .timeSeries("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                             + "+"
+                                                             + "5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column values = response.getTable().getColumn("activeThreads");
@@ -440,38 +612,28 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverLiteral_Sub_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenAnswer((answer) -> {
-                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
-
-                   String metric = request.getFields().get(0).getName();
-                   if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           LongColumn.of("activeThreads", 5, 20, 25)
-                       );
-                   }
-                   if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("totalThreads", 5)
-                       );
-                   }
-                   throw new IllegalArgumentException("Invalid metric: " + metric);
-               });
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp", "appName"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(3)
+                                                               .table(ColumnarTable.of(
+                                                                   LongColumn.of("_timestamp", 1, 2, 3),
+                                                                   StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                   LongColumn.of("activeThreads", 5, 20, 25)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "-"
-                                                          + " 5");
+                                                 .timeSeries("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                             + "-"
+                                                             + " 5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column values = response.getTable().getColumn("activeThreads");
@@ -489,38 +651,28 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverLiteral_Mul_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenAnswer((answer) -> {
-                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
-
-                   String metric = request.getFields().get(0).getName();
-                   if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           LongColumn.of("activeThreads", 5, 20, 25)
-                       );
-                   }
-                   if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("totalThreads", 5)
-                       );
-                   }
-                   throw new IllegalArgumentException("Invalid metric: " + metric);
-               });
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp", "appName"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(3)
+                                                               .table(ColumnarTable.of(
+                                                                   LongColumn.of("_timestamp", 1, 2, 3),
+                                                                   StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                   LongColumn.of("activeThreads", 5, 20, 25)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "*"
-                                                          + "5");
+                                                 .timeSeries("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                             + "*"
+                                                             + "5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column values = response.getTable().getColumn("activeThreads");
@@ -538,38 +690,28 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverLiteral_Div_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-               .thenAnswer((answer) -> {
-                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
-
-                   String metric = request.getFields().get(0).getName();
-                   if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           LongColumn.of("activeThreads", 5, 24, 25)
-                       );
-                   }
-                   if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("totalThreads", 5)
-                       );
-                   }
-                   throw new IllegalArgumentException("Invalid metric: " + metric);
-               });
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
+               .thenReturn(new MockReadStep(PipelineQueryResult.builder()
+                                                               .keyColumns(List.of("_timestamp", "appName"))
+                                                               .valColumns(List.of("activeThreads"))
+                                                               .rows(3)
+                                                               .table(ColumnarTable.of(
+                                                                   LongColumn.of("_timestamp", 1, 2, 3),
+                                                                   StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                   LongColumn.of("activeThreads", 5, 24, 25)))
+                                                               .build()));
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "/"
-                                                          + "5");
+                                                 .timeSeries("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                             + "/"
+                                                             + "5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column values = response.getTable().getColumn("activeThreads");
@@ -587,35 +729,47 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_ScalarOverScalar_Add_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
-                   String metric = request.getFields().get(0).getName();
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("activeThreads", 1)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      LongColumn.of("activeThreads", 1)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("totalThreads", 11)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      LongColumn.of("totalThreads", 11)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -626,37 +780,48 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_ScalarOverScalar_Sub_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("activeThreads", 1)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      LongColumn.of("activeThreads", 1)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("totalThreads", 11)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      LongColumn.of("totalThreads", 11)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -667,35 +832,47 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_ScalarOverScalar_Mul_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
-                   String metric = request.getFields().get(0).getName();
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("activeThreads", 2)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      LongColumn.of("activeThreads", 2)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("totalThreads", 11)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      LongColumn.of("totalThreads", 11)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -706,35 +883,47 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_ScalarOverScalar_Div_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
-                   String metric = request.getFields().get(0).getName();
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("activeThreads", 55)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      LongColumn.of("activeThreads", 55)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("totalThreads", 11)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      LongColumn.of("totalThreads", 11)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -745,37 +934,48 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_ScalarOverVector_Add_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("activeThreads", 3)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      LongColumn.of("activeThreads", 3)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           LongColumn.of("totalThreads", 5, 6, 7)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      LongColumn.of("totalThreads", 5, 6, 7)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -795,38 +995,49 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_ScalarOverVector_Sub_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("activeThreads", 3)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      LongColumn.of("activeThreads", 3)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           LongColumn.of("totalThreads", 5, 6, 7)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      LongColumn.of("totalThreads", 5, 6, 7)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -846,38 +1057,49 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_ScalarOverVector_Mul_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("activeThreads", 3)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      LongColumn.of("activeThreads", 3)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           LongColumn.of("totalThreads", 5, 6, 7)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      LongColumn.of("totalThreads", 5, 6, 7)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -897,38 +1119,49 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_ScalarOverVector_Div_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("activeThreads", 100)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      LongColumn.of("activeThreads", 100)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           LongColumn.of("totalThreads", 5, 20, 25)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      LongColumn.of("totalThreads", 5, 20, 25)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -948,38 +1181,49 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_ScalarOverVector_Div_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           DoubleColumn.of("activeThreads", 10)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      DoubleColumn.of("activeThreads", 10)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           DoubleColumn.of("totalThreads", 5, 20, 25)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      DoubleColumn.of("totalThreads", 5, 20, 25)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -999,38 +1243,49 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_ScalarOverVector_Div_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           DoubleColumn.of("activeThreads", 10)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      DoubleColumn.of("activeThreads", 10)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           DoubleColumn.of("totalThreads", 5, 20, 25)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      DoubleColumn.of("totalThreads", 5, 20, 25)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1050,36 +1305,49 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverScalar_Add_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
-                   String metric = request.getFields().get(0).getName();
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           LongColumn.of("activeThreads", 5, 20, 25)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      LongColumn.of("activeThreads", 5, 20, 25)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("totalThreads", 5)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      LongColumn.of("totalThreads", 5)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
+
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1099,36 +1367,48 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverScalar_Add_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
-                   String metric = request.getFields().get(0).getName();
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           LongColumn.of("activeThreads", 5, 20, 25)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      LongColumn.of("activeThreads", 5, 20, 25)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           DoubleColumn.of("totalThreads", 5.7)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      DoubleColumn.of("totalThreads", 5.7)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1148,36 +1428,48 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverScalar_Add_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
-                   String metric = request.getFields().get(0).getName();
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           DoubleColumn.of("activeThreads", 5.5, 20.6, 25.7)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      DoubleColumn.of("activeThreads", 5.5, 20.6, 25.7)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("totalThreads", 5)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      LongColumn.of("totalThreads", 5)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1197,36 +1489,48 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverScalar_Sub_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
-                   String metric = request.getFields().get(0).getName();
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           LongColumn.of("activeThreads", 3, 4, 5)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      LongColumn.of("activeThreads", 3, 4, 5)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("totalThreads", 5)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      LongColumn.of("totalThreads", 5)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1246,36 +1550,48 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverScalar_Sub_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
-                   String metric = request.getFields().get(0).getName();
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           LongColumn.of("activeThreads", 3, 4, 5)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      LongColumn.of("activeThreads", 3, 4, 5)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           DoubleColumn.of("totalThreads", 5.5)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      DoubleColumn.of("totalThreads", 5.5)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1295,36 +1611,48 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverScalar_Sub_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
-                   String metric = request.getFields().get(0).getName();
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           DoubleColumn.of("activeThreads", 3.5, 4.5, 5.5)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      DoubleColumn.of("activeThreads", 3.5, 4.5, 5.5)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("totalThreads", 5)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      LongColumn.of("totalThreads", 5)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1344,36 +1672,48 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverScalar_Mul_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
-                   String metric = request.getFields().get(0).getName();
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           LongColumn.of("activeThreads", 3, 4, 5)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      LongColumn.of("activeThreads", 3, 4, 5)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("totalThreads", 3)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      LongColumn.of("totalThreads", 3)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1393,36 +1733,48 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverScalar_Mul_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
-                   String metric = request.getFields().get(0).getName();
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           LongColumn.of("activeThreads", 3, 4, 5)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      LongColumn.of("activeThreads", 3, 4, 5)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           DoubleColumn.of("totalThreads", 3.5)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      DoubleColumn.of("totalThreads", 3.5)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1442,36 +1794,48 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverScalar_Mul_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
-                   String metric = request.getFields().get(0).getName();
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           DoubleColumn.of("activeThreads", 3.5, 4.5, 5.5)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      DoubleColumn.of("activeThreads", 3.5, 4.5, 5.5)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("totalThreads", 3)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      LongColumn.of("totalThreads", 3)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1491,37 +1855,49 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverScalar_Div_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
-                   String metric = request.getFields().get(0).getName();
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           LongColumn.of("activeThreads", 55, 60, 77)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      LongColumn.of("activeThreads", 55, 60, 77)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("totalThreads", 11)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      LongColumn.of("totalThreads", 11)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1541,37 +1917,49 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverScalar_Div_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
-                   String metric = request.getFields().get(0).getName();
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           LongColumn.of("activeThreads", 20, 25, 50)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      LongColumn.of("activeThreads", 20, 25, 50)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           DoubleColumn.of("totalThreads", 50.0)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      DoubleColumn.of("totalThreads", 50.0)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1591,37 +1979,49 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverScalar_Div_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
-                   String metric = request.getFields().get(0).getName();
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           DoubleColumn.of("activeThreads", 20, 25, 50)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      DoubleColumn.of("activeThreads", 20, 25, 50)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1),
-                           LongColumn.of("totalThreads", 50)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(1)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1),
+                                                                      LongColumn.of("totalThreads", 50)
+                                                                  ))
+                                                                  .build(),
+                                               true);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1641,39 +2041,50 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverVector_Add_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app1"),
-                           LongColumn.of("activeThreads", 1, 5, 9)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app1"),
+                                                                      LongColumn.of("activeThreads", 1, 5, 9)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app4"),
-                           LongColumn.of("totalThreads", 21, 32, 43)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app4"),
+                                                                      LongColumn.of("totalThreads", 21, 32, 43)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1692,39 +2103,50 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverVector_Add_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app1"),
-                           LongColumn.of("activeThreads", 1, 5, 9)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app1"),
+                                                                      LongColumn.of("activeThreads", 1, 5, 9)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app4"),
-                           DoubleColumn.of("totalThreads", 21.5, 32.6, 43.7)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app4"),
+                                                                      DoubleColumn.of("totalThreads", 21.5, 32.6, 43.7)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1743,40 +2165,51 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverVector_Add_Double_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app1"),
-                           DoubleColumn.of("activeThreads", 1.1, 5.2, 9.3)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app1"),
+                                                                      DoubleColumn.of("activeThreads", 1.1, 5.2, 9.3)
+                                                                  ))
+                                                                  .build(),
+                                               false);
 
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app4"),
-                           DoubleColumn.of("totalThreads", 21.5, 32.6, 43.7)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app4"),
+                                                                      DoubleColumn.of("totalThreads", 21.5, 32.6, 43.7)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1795,39 +2228,50 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverVector_Sub_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app1"),
-                           LongColumn.of("activeThreads", 1, 5, 9)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app1"),
+                                                                      LongColumn.of("activeThreads", 1, 5, 9)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app4"),
-                           LongColumn.of("totalThreads", 21, 32, 43)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app4"),
+                                                                      LongColumn.of("totalThreads", 21, 32, 43)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1846,39 +2290,50 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverVector_Sub_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app1"),
-                           LongColumn.of("activeThreads", 1, 5, 9)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app1"),
+                                                                      LongColumn.of("activeThreads", 1, 5, 9)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app4"),
-                           DoubleColumn.of("totalThreads", 21.1, 32.2, 43.3)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app4"),
+                                                                      DoubleColumn.of("totalThreads", 21.1, 32.2, 43.3)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1897,39 +2352,50 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverVector_Sub_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app1"),
-                           DoubleColumn.of("activeThreads", 1.1, 5.5, 9.9)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app1"),
+                                                                      DoubleColumn.of("activeThreads", 1.1, 5.5, 9.9)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app4"),
-                           LongColumn.of("totalThreads", 21, 32, 43)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app4"),
+                                                                      LongColumn.of("totalThreads", 21, 32, 43)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1948,39 +2414,50 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverVector_Sub_Double_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app1"),
-                           DoubleColumn.of("activeThreads", 1.4, 5.5, 9.6)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app1"),
+                                                                      DoubleColumn.of("activeThreads", 1.4, 5.5, 9.6)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app4"),
-                           DoubleColumn.of("totalThreads", 21.1, 32.2, 43.3)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app4"),
+                                                                      DoubleColumn.of("totalThreads", 21.1, 32.2, 43.3)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1999,39 +2476,50 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverVector_Mul_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app1"),
-                           LongColumn.of("activeThreads", 1, 5, 9)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app1"),
+                                                                      LongColumn.of("activeThreads", 1, 5, 9)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app4"),
-                           LongColumn.of("totalThreads", 21, 32, 43)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app4"),
+                                                                      LongColumn.of("totalThreads", 21, 32, 43)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2050,39 +2538,50 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverVector_Mul_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app1"),
-                           LongColumn.of("activeThreads", 1, 5, 9)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app1"),
+                                                                      LongColumn.of("activeThreads", 1, 5, 9)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app4"),
-                           DoubleColumn.of("totalThreads", 21.2, 32.3, 43.3)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app4"),
+                                                                      DoubleColumn.of("totalThreads", 21.2, 32.3, 43.3)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2101,39 +2600,50 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverVector_Mul_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app1"),
-                           DoubleColumn.of("activeThreads", 1.1, 5.2, 9.3)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app1"),
+                                                                      DoubleColumn.of("activeThreads", 1.1, 5.2, 9.3)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app4"),
-                           LongColumn.of("totalThreads", 21, 32, 43)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app4"),
+                                                                      LongColumn.of("totalThreads", 21, 32, 43)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2152,40 +2662,51 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverVector_Mul_Double_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app1"),
-                           DoubleColumn.of("activeThreads", 1.1, 5.2, 9.3)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app1"),
+                                                                      DoubleColumn.of("activeThreads", 1.1, 5.2, 9.3)
+                                                                  ))
+                                                                  .build(),
+                                               false);
 
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app4"),
-                           DoubleColumn.of("totalThreads", 21.1, 32.2, 43.3)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app4"),
+                                                                      DoubleColumn.of("totalThreads", 21.1, 32.2, 43.3)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2204,39 +2725,50 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverVector_Div_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app1"),
-                           LongColumn.of("activeThreads", 50, 100, 200)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app1"),
+                                                                      LongColumn.of("activeThreads", 50, 100, 200)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app4"),
-                           LongColumn.of("totalThreads", 25, 50, 100)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app4"),
+                                                                      LongColumn.of("totalThreads", 25, 50, 100)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2255,39 +2787,50 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverVector_Div_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app1"),
-                           LongColumn.of("activeThreads", 50, 100, 200)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app1"),
+                                                                      LongColumn.of("activeThreads", 50, 100, 200)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app4"),
-                           DoubleColumn.of("totalThreads", 25.5, 50.6, 100.6)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app4"),
+                                                                      DoubleColumn.of("totalThreads", 25.5, 50.6, 100.6)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2306,39 +2849,50 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverVector_Div_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app1"),
-                           DoubleColumn.of("activeThreads", 12, 25, 200)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app1"),
+                                                                      DoubleColumn.of("activeThreads", 12, 25, 200)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app4"),
-                           LongColumn.of("totalThreads", 25, 50, 100)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app4"),
+                                                                      LongColumn.of("totalThreads", 25, 50, 100)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2357,39 +2911,50 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverVector_Div_Double_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app1"),
-                           DoubleColumn.of("activeThreads", 12.1, 25.2, 200.3)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app1"),
+                                                                      DoubleColumn.of("activeThreads", 12.1, 25.2, 200.3)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app2", "app3", "app4"),
-                           DoubleColumn.of("totalThreads", 25.6, 50.7, 100.8)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app2", "app3", "app4"),
+                                                                      DoubleColumn.of("totalThreads", 25.6, 50.7, 100.8)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2408,39 +2973,50 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_VectorOverVector_NoIntersection() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           DoubleColumn.of("activeThreads", 12.1, 25.2, 200.3)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      DoubleColumn.of("activeThreads", 12.1, 25.2, 200.3)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app4", "app5", "app6"),
-                           DoubleColumn.of("totalThreads", 25.6, 50.7, 100.8)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app4", "app5", "app6"),
+                                                                      DoubleColumn.of("totalThreads", 25.6, 50.7, 100.8)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2459,47 +3035,64 @@ public class ArithmeticStepTest {
      */
     @Test
     public void test_VectorOverVector_NoIntersection_2() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           DoubleColumn.of("activeThreads", 12.1, 25.2, 200.3)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      DoubleColumn.of("activeThreads", 12.1, 25.2, 200.3)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 4, 5, 6),
-                           StringColumn.of("appName", "app4", "app5", "app6"),
-                           DoubleColumn.of("totalThreads", 25.6, 50.7, 100.8)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 4, 5, 6),
+                                                                      StringColumn.of("appName", "app4", "app5", "app6"),
+                                                                      DoubleColumn.of("totalThreads", 25.6, 50.7, 100.8)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    if ("newThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 6, 7),
-                           StringColumn.of("appName", "app6", "app7"),
-                           DoubleColumn.of("newThreads", 106, 107)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("newThreads"))
+                                                                  .rows(2)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 6, 7),
+                                                                      StringColumn.of("appName", "app6", "app7"),
+                                                                      DoubleColumn.of("newThreads", 106, 107)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
@@ -2520,47 +3113,64 @@ public class ArithmeticStepTest {
      */
     @Test
     public void test_VectorOverVector_NoIntersection_3() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           DoubleColumn.of("activeThreads", 12.1, 25.2, 200.3)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      DoubleColumn.of("activeThreads", 12.1, 25.2, 200.3)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 3, 4),
-                           StringColumn.of("appName", "app3", "app4"),
-                           DoubleColumn.of("totalThreads", 25.6, 50.7)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(2)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 3, 4),
+                                                                      StringColumn.of("appName", "app3", "app4"),
+                                                                      DoubleColumn.of("totalThreads", 25.6, 50.7)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    if ("newThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 6, 7),
-                           StringColumn.of("appName", "app6", "app7"),
-                           DoubleColumn.of("newThreads", 106, 107)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("newThreads"))
+                                                                  .rows(2)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 6, 7),
+                                                                      StringColumn.of("appName", "app6", "app7"),
+                                                                      DoubleColumn.of("newThreads", 106, 107)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
@@ -2577,46 +3187,63 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_MultipleExpressions() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   String metric = answer.getArgument(0, QueryRequest.class)
-                                         .getFields()
-                                         .get(0).getName();
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
+                   String metric = tableScan.selectorList().get(0).getOutputName();
                    if ("activeThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           DoubleColumn.of("activeThreads", 3, 4, 5)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      DoubleColumn.of("activeThreads", 3, 4, 5)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    if ("totalThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 2, 3, 4),
-                           StringColumn.of("appName", "app2", "app3", "app4"),
-                           DoubleColumn.of("totalThreads", 25, 26, 27)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("totalThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 2, 3, 4),
+                                                                      StringColumn.of("appName", "app2", "app3", "app4"),
+                                                                      DoubleColumn.of("totalThreads", 25, 26, 27)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
                    if ("newThreads".equals(metric)) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 3, 4, 5),
-                           StringColumn.of("appName", "app3", "app4", "app5"),
-                           DoubleColumn.of("newThreads", 35, 36, 37)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("newThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 3, 4, 5),
+                                                                      StringColumn.of("appName", "app3", "app4", "app5"),
+                                                                      DoubleColumn.of("newThreads", 35, 36, 37)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
+                                                 .schemaProvider(this.schemaProvider)
                                                  .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
                                                  // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
+                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
                                                           + "/ "
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
                                                           + "* "
@@ -2693,13 +3320,19 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_FilterStep_Double_GT() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   return ColumnarTable.of(
-                       LongColumn.of("_timestamp", 1, 2, 3),
-                       StringColumn.of("appName", "app1", "app2", "app3"),
-                       DoubleColumn.of("activeThreads", 3, 4, 5)
-                   );
+                   return new MockReadStep(PipelineQueryResult.builder()
+                                                              .keyColumns(List.of("_timestamp", "appName"))
+                                                              .valColumns(List.of("activeThreads"))
+                                                              .rows(3)
+                                                              .table(ColumnarTable.of(
+                                                                  LongColumn.of("_timestamp", 1, 2, 3),
+                                                                  StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                  DoubleColumn.of("activeThreads", 3, 4, 5)
+                                                              ))
+                                                              .build(),
+                                           false);
                });
 
         //
@@ -2707,14 +3340,14 @@ public class ArithmeticStepTest {
         //
         {
             IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                     .dataSourceApi(dataSourceApi)
+                                                     .schemaProvider(this.schemaProvider)
                                                      .interval(IntervalRequest.builder()
                                                                               .bucketCount(1)
                                                                               .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                               .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                               .build())
                                                      // BY is given so that it produces a vector
-                                                     .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 2");
+                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 2");
             PipelineQueryResult response = evaluator.execute().get();
 
             // all 3 records satisfy the filter condition
@@ -2735,14 +3368,14 @@ public class ArithmeticStepTest {
         //
         {
             IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                     .dataSourceApi(dataSourceApi)
+                                                     .schemaProvider(this.schemaProvider)
                                                      .interval(IntervalRequest.builder()
                                                                               .bucketCount(1)
                                                                               .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                               .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                               .build())
                                                      // BY is given so that it produces a vector
-                                                     .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 3");
+                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 3");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(2, response.getRows());
@@ -2759,14 +3392,14 @@ public class ArithmeticStepTest {
         //
         {
             IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                     .dataSourceApi(dataSourceApi)
+                                                     .schemaProvider(this.schemaProvider)
                                                      .interval(IntervalRequest.builder()
                                                                               .bucketCount(1)
                                                                               .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                               .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                               .build())
                                                      // BY is given so that it produces a vector
-                                                     .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 4");
+                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 4");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(1, response.getRows());
@@ -2783,14 +3416,14 @@ public class ArithmeticStepTest {
         //
         {
             IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                     .dataSourceApi(dataSourceApi)
+                                                     .schemaProvider(this.schemaProvider)
                                                      .interval(IntervalRequest.builder()
                                                                               .bucketCount(1)
                                                                               .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                               .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                               .build())
                                                      // BY is given so that it produces a vector
-                                                     .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 5");
+                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 5");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(0, response.getRows());
@@ -2803,13 +3436,19 @@ public class ArithmeticStepTest {
 
     @Test
     public void test_FilterStep_Double_GTE() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   return ColumnarTable.of(
-                       LongColumn.of("_timestamp", 1, 2, 3),
-                       StringColumn.of("appName", "app1", "app2", "app3"),
-                       DoubleColumn.of("activeThreads", 3, 4, 5)
-                   );
+                   return new MockReadStep(PipelineQueryResult.builder()
+                                                              .keyColumns(List.of("_timestamp", "appName"))
+                                                              .valColumns(List.of("activeThreads"))
+                                                              .rows(3)
+                                                              .table(ColumnarTable.of(
+                                                                  LongColumn.of("_timestamp", 1, 2, 3),
+                                                                  StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                  DoubleColumn.of("activeThreads", 3, 4, 5)
+                                                              ))
+                                                              .build(),
+                                           false);
                });
 
         //
@@ -2817,13 +3456,13 @@ public class ArithmeticStepTest {
         //
         {
             IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                     .dataSourceApi(dataSourceApi)
+                                                     .schemaProvider(this.schemaProvider)
                                                      .interval(IntervalRequest.builder()
                                                                               .bucketCount(1)
                                                                               .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                               .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                               .build())
-                                                     .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 2");
+                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 2");
             PipelineQueryResult response = evaluator.execute().get();
 
             // all 3 records satisfy the filter condition
@@ -2842,13 +3481,13 @@ public class ArithmeticStepTest {
         //
         {
             IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                     .dataSourceApi(dataSourceApi)
+                                                     .schemaProvider(this.schemaProvider)
                                                      .interval(IntervalRequest.builder()
                                                                               .bucketCount(1)
                                                                               .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                               .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                               .build())
-                                                     .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 3");
+                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 3");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(3, response.getRows());
@@ -2866,14 +3505,14 @@ public class ArithmeticStepTest {
         //
         {
             IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                     .dataSourceApi(dataSourceApi)
+                                                     .schemaProvider(this.schemaProvider)
                                                      .interval(IntervalRequest.builder()
                                                                               .bucketCount(1)
                                                                               .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                               .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                               .build())
                                                      // BY is given so that it produces a vector
-                                                     .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 4");
+                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 4");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(2, response.getRows());
@@ -2890,14 +3529,14 @@ public class ArithmeticStepTest {
         //
         {
             IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                     .dataSourceApi(dataSourceApi)
+                                                     .schemaProvider(this.schemaProvider)
                                                      .interval(IntervalRequest.builder()
                                                                               .bucketCount(1)
                                                                               .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                               .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                               .build())
                                                      // BY is given so that it produces a vector
-                                                     .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 5");
+                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 5");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(1, response.getRows());
@@ -2913,13 +3552,13 @@ public class ArithmeticStepTest {
         //
         {
             IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                     .dataSourceApi(dataSourceApi)
+                                                     .schemaProvider(this.schemaProvider)
                                                      .interval(IntervalRequest.builder()
                                                                               .bucketCount(1)
                                                                               .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                               .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                               .build())
-                                                     .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 6");
+                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 6");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(0, response.getRows());
