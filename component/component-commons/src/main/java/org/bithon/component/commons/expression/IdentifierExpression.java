@@ -115,4 +115,20 @@ public class IdentifierExpression implements IExpression {
     public String toString() {
         return identifier;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof IdentifierExpression)) {
+            return false;
+        }
+        IdentifierExpression that = (IdentifierExpression) obj;
+        return this.identifier.equals(that.identifier) &&
+               ((this.qualifier == null && that.qualifier == null) ||
+                (this.qualifier != null && this.qualifier.equals(that.qualifier))) &&
+               ((this.dataType == null && that.dataType == null) ||
+                (this.dataType != null && this.dataType.equals(that.dataType)));
+    }
 }

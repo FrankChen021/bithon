@@ -149,7 +149,7 @@ public class JdbcPhysicalPlannerTest {
                                     JdbcReadStep
                                         SELECT sum("totalCount") AS "totalCount"
                                         FROM "bithon_jvm_metrics"
-                                        WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND (("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky'))
+                                        WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
                                     """,
                                 physicalPlan.serializeToText());
     }
@@ -169,7 +169,7 @@ public class JdbcPhysicalPlannerTest {
                                         SELECT "appName",
                                                sum("totalCount") AS "totalCount"
                                         FROM "bithon_jvm_metrics"
-                                        WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND (("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky'))
+                                        WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
                                         GROUP BY "appName"
                                     """,
                                 physicalPlan.serializeToText());
@@ -193,7 +193,7 @@ public class JdbcPhysicalPlannerTest {
                                                "appName",
                                                sum("totalCount") AS "totalCount"
                                         FROM "bithon_jvm_metrics"
-                                        WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND (("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky'))
+                                        WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
                                         GROUP BY "appName", "_timestamp"
                                     """,
                                 physicalPlan.serializeToText());
@@ -218,7 +218,7 @@ public class JdbcPhysicalPlannerTest {
                                           SELECT "appName",
                                                  FIRST_VALUE("totalCount") OVER (PARTITION BY (UNIX_TIMESTAMP("timestamp") / 600) * 600 ORDER BY "timestamp" ASC) AS "totalCount"
                                           FROM "bithon_jvm_metrics"
-                                          WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND (("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky'))
+                                          WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
                                         )
                                         GROUP BY "appName", "totalCount"
                                     """,
@@ -234,19 +234,18 @@ public class JdbcPhysicalPlannerTest {
                               TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")),
                   logicalPlan);
 
-        // TODO: Remove duplicate timestamp filter
         Assertions.assertEquals("""
                                     AddStep, Result Column: value, Retained Columns: []
                                         lhs:\s
                                             JdbcReadStep
                                                 SELECT sum("count4xx") AS "count4xx"
                                                 FROM "bithon_jvm_metrics"
-                                                WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND (("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky'))
+                                                WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
                                         rhs:\s
                                             JdbcReadStep
                                                 SELECT sum("count5xx") AS "count5xx"
                                                 FROM "bithon_jvm_metrics"
-                                                WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND (("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky'))
+                                                WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
                                     """,
                                 physicalPlan.serializeToText());
     }
@@ -260,14 +259,13 @@ public class JdbcPhysicalPlannerTest {
                               TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")),
                   logicalPlan);
 
-        // TODO: Remove duplicate timestamp filter
         Assertions.assertEquals("""
                                     AddStep, Result Column: value, Retained Columns: []
                                         lhs:\s
                                             JdbcReadStep
                                                 SELECT sum("count4xx") AS "count4xx"
                                                 FROM "bithon_jvm_metrics"
-                                                WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND (("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky'))
+                                                WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
                                         rhs:\s
                                             5
                                     """,

@@ -62,4 +62,18 @@ public abstract class BinaryExpression implements IExpression {
     public void serializeToText(ExpressionSerializer serializer) {
         serializer.serialize(this);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof BinaryExpression)) {
+            return false;
+        }
+        BinaryExpression that = (BinaryExpression) obj;
+        return this.type.equals(that.type) &&
+               this.lhs.equals(that.lhs) &&
+               this.rhs.equals(that.rhs);
+    }
 }
