@@ -28,9 +28,9 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
 import org.bithon.server.datasource.query.result.Column;
 import org.bithon.server.datasource.query.result.PipelineQueryResult;
-import org.bithon.server.metric.expression.pipeline.PhysicalPlanner;
+import org.bithon.server.metric.expression.plan.MetricExpressionPhysicalPlanner;
+import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
-import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryResponse;
 import org.bithon.server.web.service.datasource.api.TimeSeriesMetric;
@@ -56,10 +56,10 @@ import java.util.Map;
 @RestController
 @Conditional(WebServiceModuleEnabler.class)
 public class MetricQueryApi {
-    private final IDataSourceApi dataSourceApi;
+    private final SchemaManager schemaManager;
 
-    public MetricQueryApi(IDataSourceApi dataSourceApi) {
-        this.dataSourceApi = dataSourceApi;
+    public MetricQueryApi(SchemaManager schemaManager) {
+        this.schemaManager = schemaManager;
     }
 
     @Data
@@ -87,11 +87,11 @@ public class MetricQueryApi {
     @Experimental
     @PostMapping("/api/metric/timeseries")
     public QueryResponse<?> timeSeries(@Validated @RequestBody MetricQueryRequest request) throws Exception {
-        IPhysicalPlan pipeline = PhysicalPlanner.builder()
-                                                .dataSourceApi(dataSourceApi)
-                                                .interval(request.getInterval())
-                                                .condition(request.getCondition())
-                                                .build(request.getExpression());
+        IPhysicalPlan pipeline = MetricExpressionPhysicalPlanner.builder()
+                                                                .schemaProvider(this.schemaManager)
+                                                                .interval(request.getInterval())
+                                                                .condition(request.getCondition())
+                                                                .build(request.getExpression());
 
         Duration step = request.getInterval().calculateStep();
         TimeSpan start = request.getInterval().getStartISO8601();

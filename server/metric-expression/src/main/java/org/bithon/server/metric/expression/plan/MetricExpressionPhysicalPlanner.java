@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.pipeline;
+package org.bithon.server.metric.expression.plan;
 
 
 import org.bithon.component.commons.expression.ArithmeticExpression;
@@ -45,8 +45,6 @@ import org.bithon.server.metric.expression.ast.MetricExpectedExpression;
 import org.bithon.server.metric.expression.ast.MetricExpressionASTBuilder;
 import org.bithon.server.metric.expression.ast.MetricExpressionOptimizer;
 import org.bithon.server.metric.expression.ast.PredicateEnum;
-import org.bithon.server.metric.expression.plan.LogicalPlanBuilder;
-import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
@@ -58,39 +56,33 @@ import java.util.stream.Stream;
  * @author frank.chen021@outlook.com
  * @date 4/4/25 3:53 pm
  */
-public class PhysicalPlanner {
+public class MetricExpressionPhysicalPlanner {
 
-    private IDataSourceApi dataSourceApi;
     private IntervalRequest intervalRequest;
     private String condition;
-    private QueryPipelineBuilderSettings settings = QueryPipelineBuilderSettings.DEFAULT;
+    private MetricExpressionPlannerSettings settings = MetricExpressionPlannerSettings.DEFAULT;
     private ISchemaProvider schemaProvider;
 
-    public static PhysicalPlanner builder() {
-        return new PhysicalPlanner();
+    public static MetricExpressionPhysicalPlanner builder() {
+        return new MetricExpressionPhysicalPlanner();
     }
 
-    public PhysicalPlanner dataSourceApi(IDataSourceApi dataSourceApi) {
-        this.dataSourceApi = dataSourceApi;
-        return this;
-    }
-
-    public PhysicalPlanner interval(IntervalRequest intervalRequest) {
+    public MetricExpressionPhysicalPlanner interval(IntervalRequest intervalRequest) {
         this.intervalRequest = intervalRequest;
         return this;
     }
 
-    public PhysicalPlanner condition(String condition) {
+    public MetricExpressionPhysicalPlanner condition(String condition) {
         this.condition = condition;
         return this;
     }
 
-    public PhysicalPlanner settings(QueryPipelineBuilderSettings settings) {
+    public MetricExpressionPhysicalPlanner settings(MetricExpressionPlannerSettings settings) {
         this.settings = settings;
         return this;
     }
 
-    public PhysicalPlanner schemaProvider(ISchemaProvider schemaProvider) {
+    public MetricExpressionPhysicalPlanner schemaProvider(ISchemaProvider schemaProvider) {
         this.schemaProvider = schemaProvider;
         return this;
     }
@@ -112,7 +104,7 @@ public class PhysicalPlanner {
         // The optimization is applied here so that the above parse can be tested separately
         expr = MetricExpressionOptimizer.optimize(expr);
 
-        ILogicalPlan logicalPlan = expr.accept(new LogicalPlanBuilder(schemaProvider));
+        ILogicalPlan logicalPlan = expr.accept(new MetricExpressionLogicalPlanner(schemaProvider));
         return logicalPlan.accept(new PhysicalPlanImpl(Interval.of(this.intervalRequest.getStartISO8601(),
                                                                    this.intervalRequest.getEndISO8601(),
                                                                    this.intervalRequest.calculateStep(),
@@ -126,7 +118,7 @@ public class PhysicalPlanner {
         // The optimization is applied here so that the above parse can be tested separately
         expr = MetricExpressionOptimizer.optimize(expr);
 
-        ILogicalPlan logicalPlan = expr.accept(new LogicalPlanBuilder(schemaProvider));
+        ILogicalPlan logicalPlan = expr.accept(new MetricExpressionLogicalPlanner(schemaProvider));
         return logicalPlan.accept(new PhysicalPlanImpl(Interval.of(this.intervalRequest.getStartISO8601(),
                                                                    this.intervalRequest.getEndISO8601(),
                                                                    null,
@@ -182,7 +174,7 @@ public class PhysicalPlanner {
 
         @Override
         public IPhysicalPlan visitFilter(LogicalFilter filter) {
-            switch(filter.op()) {
+            switch (filter.op()) {
                 case LT:
                     return new FilterStep.LT(filter.left().accept(this),
                                              (Number) ((LogicalScalar) filter.right()).literal().getValue());
@@ -317,8 +309,7 @@ public class PhysicalPlanner {
                 case "-" -> new ArithmeticStep.Sub(expression.getLhs().accept(this), expression.getRhs().accept(this));
                 case "*" -> new ArithmeticStep.Mul(expression.getLhs().accept(this), expression.getRhs().accept(this));
                 case "/" -> new ArithmeticStep.Div(expression.getLhs().accept(this), expression.getRhs().accept(this));
-                default ->
-                    throw new UnsupportedOperationException("Unsupported arithmetic expression: " + expression.getType());
+                default -> throw new UnsupportedOperationException("Unsupported arithmetic expression: " + expression.getType());
             };
         }
 

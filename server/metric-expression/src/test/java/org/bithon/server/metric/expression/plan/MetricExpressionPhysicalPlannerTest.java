@@ -14,8 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.pipeline.step;
-
+package org.bithon.server.metric.expression.plan;
 
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadableNumber;
@@ -38,7 +37,6 @@ import org.bithon.server.datasource.query.result.LongColumn;
 import org.bithon.server.datasource.query.result.PipelineQueryResult;
 import org.bithon.server.datasource.query.result.StringColumn;
 import org.bithon.server.datasource.store.IDataStoreSpec;
-import org.bithon.server.metric.expression.pipeline.PhysicalPlanner;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
@@ -56,7 +54,7 @@ import java.util.concurrent.CompletableFuture;
  * @date 4/4/25 9:27 pm
  */
 @SuppressWarnings("PointlessArithmeticExpression")
-public class ArithmeticStepTest {
+public class MetricExpressionPhysicalPlannerTest {
 
     private ISchema schema;
     private ISchemaProvider schemaProvider;
@@ -146,7 +144,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverLiteral_Add_Long_Long() throws Exception {
+    public void test_Arithmetic_ScalarOverLiteral_Add_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp"))
@@ -156,15 +154,14 @@ public class ArithmeticStepTest {
                                                                                        LongColumn.of("activeThreads", 1)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("activeThreads");
@@ -172,7 +169,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverLiteral_Add_Long_Double() throws Exception {
+    public void test_Arithmetic_ScalarOverLiteral_Add_Long_Double() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp"))
@@ -182,14 +179,14 @@ public class ArithmeticStepTest {
                                                                                        LongColumn.of("activeThreads", 1)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 3.3");
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 3.3");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("activeThreads");
@@ -197,7 +194,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverLiteral_Add_Double_Long() throws Exception {
+    public void test_Arithmetic_ScalarOverLiteral_Add_Double_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp"))
@@ -207,14 +204,14 @@ public class ArithmeticStepTest {
                                                                                        DoubleColumn.of("activeThreads", 3.7)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("activeThreads");
@@ -222,7 +219,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverLiteral_Add_Double_Double() throws Exception {
+    public void test_Arithmetic_ScalarOverLiteral_Add_Double_Double() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp"))
@@ -232,14 +229,14 @@ public class ArithmeticStepTest {
                                                                                        DoubleColumn.of("activeThreads", 10.5)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 2.2");
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 2.2");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("activeThreads");
@@ -247,7 +244,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverSizeLiteral_Add_Long_Long() throws Exception {
+    public void test_Arithmetic_ScalarOverSizeLiteral_Add_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp"))
@@ -257,14 +254,14 @@ public class ArithmeticStepTest {
                                                                                        LongColumn.of("activeThreads", 1)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5Mi");
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5Mi");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("activeThreads");
@@ -272,7 +269,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverPercentageLiteral_Add_Long_Long() throws Exception {
+    public void test_Arithmetic_ScalarOverPercentageLiteral_Add_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp"))
@@ -282,14 +279,14 @@ public class ArithmeticStepTest {
                                                                                        LongColumn.of("activeThreads", 1)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 90%");
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 90%");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("activeThreads");
@@ -297,7 +294,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverDurationLiteral_Add_Long_Long() throws Exception {
+    public void test_Arithmetic_ScalarOverDurationLiteral_Add_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp"))
@@ -307,14 +304,14 @@ public class ArithmeticStepTest {
                                                                                        LongColumn.of("activeThreads", 1)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 1h");
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 1h");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("activeThreads");
@@ -322,7 +319,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverLiteral_Sub_Long_Long() throws Exception {
+    public void test_Arithmetic_ScalarOverLiteral_Sub_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp"))
@@ -332,14 +329,14 @@ public class ArithmeticStepTest {
                                                                                        LongColumn.of("activeThreads", 1)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 5");
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("activeThreads");
@@ -347,7 +344,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverLiteral_Sub_Double_Double() throws Exception {
+    public void test_Arithmetic_ScalarOverLiteral_Sub_Double_Double() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp"))
@@ -357,14 +354,14 @@ public class ArithmeticStepTest {
                                                                                        DoubleColumn.of("activeThreads", 10.5)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 2.2");
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 2.2");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("activeThreads");
@@ -372,7 +369,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverLiteral_Mul_Long_Long() throws Exception {
+    public void test_Arithmetic_ScalarOverLiteral_Mul_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp"))
@@ -382,14 +379,14 @@ public class ArithmeticStepTest {
                                                                                        LongColumn.of("activeThreads", 1)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("activeThreads");
@@ -397,7 +394,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverLiteral_Mul_Double_Long() throws Exception {
+    public void test_Arithmetic_ScalarOverLiteral_Mul_Double_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp"))
@@ -407,14 +404,14 @@ public class ArithmeticStepTest {
                                                                                        DoubleColumn.of("activeThreads", 5.5)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("activeThreads");
@@ -422,7 +419,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverLiteral_Mul_Long_Double() throws Exception {
+    public void test_Arithmetic_ScalarOverLiteral_Mul_Long_Double() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp"))
@@ -432,14 +429,14 @@ public class ArithmeticStepTest {
                                                                                        LongColumn.of("activeThreads", 1)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5.5");
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5.5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("activeThreads");
@@ -447,7 +444,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverLiteral_Mul_Double_Double() throws Exception {
+    public void test_Arithmetic_ScalarOverLiteral_Mul_Double_Double() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp"))
@@ -457,14 +454,14 @@ public class ArithmeticStepTest {
                                                                                        DoubleColumn.of("activeThreads", 3.5)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 3");
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 3");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("activeThreads");
@@ -472,7 +469,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverLiteral_Div_Long_Long() throws Exception {
+    public void test_Arithmetic_ScalarOverLiteral_Div_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp"))
@@ -482,14 +479,14 @@ public class ArithmeticStepTest {
                                                                                        LongColumn.of("activeThreads", 10)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 5");
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("activeThreads");
@@ -497,7 +494,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverLiteral_Div_Double_Long() throws Exception {
+    public void test_Arithmetic_ScalarOverLiteral_Div_Double_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp"))
@@ -507,14 +504,14 @@ public class ArithmeticStepTest {
                                                                                        DoubleColumn.of("activeThreads", 10)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 20");
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 20");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("activeThreads");
@@ -522,7 +519,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverLiteral_Div_Long_Double() throws Exception {
+    public void test_Arithmetic_ScalarOverLiteral_Div_Long_Double() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp"))
@@ -532,14 +529,14 @@ public class ArithmeticStepTest {
                                                                                        LongColumn.of("activeThreads", 10)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 20.0");
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 20.0");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("activeThreads");
@@ -547,7 +544,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverLiteral_Div_Double_Double() throws Exception {
+    public void test_Arithmetic_ScalarOverLiteral_Div_Double_Double() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp"))
@@ -557,14 +554,14 @@ public class ArithmeticStepTest {
                                                                                        DoubleColumn.of("activeThreads", 10.5)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 3.0");
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 3.0");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("activeThreads");
@@ -572,7 +569,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverLiteral_Add_Long_Long() throws Exception {
+    public void test_Arithmetic_VectorOverLiteral_Add_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp", "appName"))
@@ -584,15 +581,15 @@ public class ArithmeticStepTest {
                                                                    LongColumn.of("activeThreads", 5, 20, 25)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .timeSeries("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .timeSeries("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                              + "+"
                                                              + "5");
         PipelineQueryResult response = evaluator.execute().get();
@@ -611,7 +608,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverLiteral_Sub_Long_Long() throws Exception {
+    public void test_Arithmetic_VectorOverLiteral_Sub_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp", "appName"))
@@ -623,15 +620,15 @@ public class ArithmeticStepTest {
                                                                    LongColumn.of("activeThreads", 5, 20, 25)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .timeSeries("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .timeSeries("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                              + "-"
                                                              + " 5");
         PipelineQueryResult response = evaluator.execute().get();
@@ -650,7 +647,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverLiteral_Mul_Long_Long() throws Exception {
+    public void test_Arithmetic_VectorOverLiteral_Mul_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp", "appName"))
@@ -662,15 +659,15 @@ public class ArithmeticStepTest {
                                                                    LongColumn.of("activeThreads", 5, 20, 25)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .timeSeries("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .timeSeries("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                              + "*"
                                                              + "5");
         PipelineQueryResult response = evaluator.execute().get();
@@ -689,7 +686,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverLiteral_Div_Long_Long() throws Exception {
+    public void test_Arithmetic_VectorOverLiteral_Div_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenReturn(new MockReadStep(PipelineQueryResult.builder()
                                                                .keyColumns(List.of("_timestamp", "appName"))
@@ -701,15 +698,15 @@ public class ArithmeticStepTest {
                                                                    LongColumn.of("activeThreads", 5, 24, 25)))
                                                                .build()));
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .timeSeries("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .timeSeries("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                              + "/"
                                                              + "5");
         PipelineQueryResult response = evaluator.execute().get();
@@ -728,7 +725,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverScalar_Add_Long_Long() throws Exception {
+    public void test_Arithmetic_ScalarOverScalar_Add_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -761,15 +758,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -779,7 +776,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverScalar_Sub_Long_Long() throws Exception {
+    public void test_Arithmetic_ScalarOverScalar_Sub_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -813,15 +810,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -831,7 +828,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverScalar_Mul_Long_Long() throws Exception {
+    public void test_Arithmetic_ScalarOverScalar_Mul_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -864,15 +861,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -882,7 +879,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverScalar_Div_Long_Long() throws Exception {
+    public void test_Arithmetic_ScalarOverScalar_Div_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -915,15 +912,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -933,7 +930,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverVector_Add_Long_Long() throws Exception {
+    public void test_Arithmetic_ScalarOverVector_Add_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -967,15 +964,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -994,7 +991,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverVector_Sub_Long_Long() throws Exception {
+    public void test_Arithmetic_ScalarOverVector_Sub_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -1029,15 +1026,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1056,7 +1053,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverVector_Mul_Long_Long() throws Exception {
+    public void test_Arithmetic_ScalarOverVector_Mul_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -1091,15 +1088,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1118,7 +1115,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverVector_Div_Long_Long() throws Exception {
+    public void test_Arithmetic_ScalarOverVector_Div_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -1153,15 +1150,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1180,7 +1177,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverVector_Div_Long_Double() throws Exception {
+    public void test_Arithmetic_ScalarOverVector_Div_Long_Double() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -1215,15 +1212,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1242,7 +1239,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_ScalarOverVector_Div_Double_Long() throws Exception {
+    public void test_Arithmetic_ScalarOverVector_Div_Double_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -1277,15 +1274,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1304,7 +1301,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverScalar_Add_Long_Long() throws Exception {
+    public void test_Arithmetic_VectorOverScalar_Add_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -1339,15 +1336,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1366,7 +1363,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverScalar_Add_Long_Double() throws Exception {
+    public void test_Arithmetic_VectorOverScalar_Add_Long_Double() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -1400,15 +1397,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1427,7 +1424,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverScalar_Add_Double_Long() throws Exception {
+    public void test_Arithmetic_VectorOverScalar_Add_Double_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -1461,15 +1458,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1488,7 +1485,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverScalar_Sub_Long_Long() throws Exception {
+    public void test_Arithmetic_VectorOverScalar_Sub_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -1522,15 +1519,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1549,7 +1546,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverScalar_Sub_Long_Double() throws Exception {
+    public void test_Arithmetic_VectorOverScalar_Sub_Long_Double() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -1583,15 +1580,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1610,7 +1607,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverScalar_Sub_Double_Long() throws Exception {
+    public void test_Arithmetic_VectorOverScalar_Sub_Double_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -1644,15 +1641,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1671,7 +1668,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverScalar_Mul_Long_Long() throws Exception {
+    public void test_Arithmetic_VectorOverScalar_Mul_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -1705,15 +1702,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1732,7 +1729,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverScalar_Mul_Long_Double() throws Exception {
+    public void test_Arithmetic_VectorOverScalar_Mul_Long_Double() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -1766,15 +1763,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1793,7 +1790,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverScalar_Mul_Double_Long() throws Exception {
+    public void test_Arithmetic_VectorOverScalar_Mul_Double_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -1827,15 +1824,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1854,7 +1851,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverScalar_Div_Long_Long() throws Exception {
+    public void test_Arithmetic_VectorOverScalar_Div_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -1889,15 +1886,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1916,7 +1913,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverScalar_Div_Long_Double() throws Exception {
+    public void test_Arithmetic_VectorOverScalar_Div_Long_Double() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -1951,15 +1948,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1978,7 +1975,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverScalar_Div_Double_Long() throws Exception {
+    public void test_Arithmetic_VectorOverScalar_Div_Double_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -2013,15 +2010,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2040,7 +2037,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverVector_Add_Long_Long() throws Exception {
+    public void test_Arithmetic_VectorOverVector_Add_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -2076,15 +2073,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2102,7 +2099,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverVector_Add_Long_Double() throws Exception {
+    public void test_Arithmetic_VectorOverVector_Add_Long_Double() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -2138,15 +2135,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2164,7 +2161,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverVector_Add_Double_Double() throws Exception {
+    public void test_Arithmetic_VectorOverVector_Add_Double_Double() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -2201,15 +2198,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2227,7 +2224,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverVector_Sub_Long_Long() throws Exception {
+    public void test_Arithmetic_VectorOverVector_Sub_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -2263,15 +2260,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2289,7 +2286,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverVector_Sub_Long_Double() throws Exception {
+    public void test_Arithmetic_VectorOverVector_Sub_Long_Double() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -2325,15 +2322,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2351,7 +2348,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverVector_Sub_Double_Long() throws Exception {
+    public void test_Arithmetic_VectorOverVector_Sub_Double_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -2387,15 +2384,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2413,7 +2410,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverVector_Sub_Double_Double() throws Exception {
+    public void test_Arithmetic_VectorOverVector_Sub_Double_Double() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -2449,15 +2446,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2475,7 +2472,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverVector_Mul_Long_Long() throws Exception {
+    public void test_Arithmetic_VectorOverVector_Mul_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -2511,15 +2508,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2537,7 +2534,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverVector_Mul_Long_Double() throws Exception {
+    public void test_Arithmetic_VectorOverVector_Mul_Long_Double() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -2573,15 +2570,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2599,7 +2596,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverVector_Mul_Double_Long() throws Exception {
+    public void test_Arithmetic_VectorOverVector_Mul_Double_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -2635,15 +2632,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2661,7 +2658,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverVector_Mul_Double_Double() throws Exception {
+    public void test_Arithmetic_VectorOverVector_Mul_Double_Double() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -2698,15 +2695,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2724,7 +2721,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverVector_Div_Long_Long() throws Exception {
+    public void test_Arithmetic_VectorOverVector_Div_Long_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -2760,15 +2757,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2786,7 +2783,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverVector_Div_Long_Double() throws Exception {
+    public void test_Arithmetic_VectorOverVector_Div_Long_Double() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -2822,15 +2819,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2848,7 +2845,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverVector_Div_Double_Long() throws Exception {
+    public void test_Arithmetic_VectorOverVector_Div_Double_Long() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -2884,15 +2881,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2910,7 +2907,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverVector_Div_Double_Double() throws Exception {
+    public void test_Arithmetic_VectorOverVector_Div_Double_Double() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -2946,15 +2943,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2972,7 +2969,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_VectorOverVector_NoIntersection() throws Exception {
+    public void test_Arithmetic_VectorOverVector_NoIntersection() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -3008,15 +3005,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -3034,7 +3031,7 @@ public class ArithmeticStepTest {
      * 1 and 2 have no intersection
      */
     @Test
-    public void test_VectorOverVector_NoIntersection_2() throws Exception {
+    public void test_Arithmetic_VectorOverVector_NoIntersection_2() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -3084,15 +3081,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
@@ -3112,7 +3109,7 @@ public class ArithmeticStepTest {
      * 1 and 2 have intersection while 2 and 3 has no intersection
      */
     @Test
-    public void test_VectorOverVector_NoIntersection_3() throws Exception {
+    public void test_Arithmetic_VectorOverVector_NoIntersection_3() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -3162,15 +3159,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
@@ -3186,7 +3183,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_MultipleExpressions() throws Exception {
+    public void test_Arithmetic_MultipleExpressions() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
                    LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
@@ -3235,15 +3232,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .schemaProvider(this.schemaProvider)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
+                                                                 // BY is given so that it produces a vector
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
                                                           + "/ "
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
                                                           + "* "
@@ -3262,7 +3259,7 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_RelativeComparison() throws Exception {
+    public void test_Arithmetic_RelativeComparison() throws Exception {
         Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest req = answer.getArgument(0, QueryRequest.class);
@@ -3284,15 +3281,14 @@ public class ArithmeticStepTest {
 
                });
 
-        IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                 .dataSourceApi(dataSourceApi)
-                                                 .interval(IntervalRequest.builder()
+        IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .interval(IntervalRequest.builder()
                                                                           .bucketCount(1)
                                                                           .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                           .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                           .build())
-                                                 // BY is given so that it produces a vector
-                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) > -5%[-1d]");
+                                                                 // BY is given so that it produces a vector
+                                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) > -5%[-1d]");
         PipelineQueryResult response = evaluator.execute()
                                                 .get();
         Assertions.assertEquals(2, response.getRows());
@@ -3319,35 +3315,33 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_FilterStep_Double_GT() throws Exception {
+    public void test_Arithmetic_FilterStep_Double_GT() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
-               .thenAnswer((answer) -> {
-                   return new MockReadStep(PipelineQueryResult.builder()
-                                                              .keyColumns(List.of("_timestamp", "appName"))
-                                                              .valColumns(List.of("activeThreads"))
-                                                              .rows(3)
-                                                              .table(ColumnarTable.of(
-                                                                  LongColumn.of("_timestamp", 1, 2, 3),
-                                                                  StringColumn.of("appName", "app1", "app2", "app3"),
-                                                                  DoubleColumn.of("activeThreads", 3, 4, 5)
-                                                              ))
-                                                              .build(),
-                                           false);
-               });
+               .thenAnswer((answer) -> new MockReadStep(PipelineQueryResult.builder()
+                                                                           .keyColumns(List.of("_timestamp", "appName"))
+                                                                           .valColumns(List.of("activeThreads"))
+                                                                           .rows(3)
+                                                                           .table(ColumnarTable.of(
+                                                                               LongColumn.of("_timestamp", 1, 2, 3),
+                                                                               StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                               DoubleColumn.of("activeThreads", 3, 4, 5)
+                                                                           ))
+                                                                           .build(),
+                                                        false));
 
         //
         // Case 1, > 2
         //
         {
-            IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                     .schemaProvider(this.schemaProvider)
-                                                     .interval(IntervalRequest.builder()
+            IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                     .schemaProvider(this.schemaProvider)
+                                                                     .interval(IntervalRequest.builder()
                                                                               .bucketCount(1)
                                                                               .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                               .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                               .build())
-                                                     // BY is given so that it produces a vector
-                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 2");
+                                                                     // BY is given so that it produces a vector
+                                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 2");
             PipelineQueryResult response = evaluator.execute().get();
 
             // all 3 records satisfy the filter condition
@@ -3367,15 +3361,15 @@ public class ArithmeticStepTest {
         // Case 2, > 3, two rows satisfy the filter condition
         //
         {
-            IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                     .schemaProvider(this.schemaProvider)
-                                                     .interval(IntervalRequest.builder()
+            IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                     .schemaProvider(this.schemaProvider)
+                                                                     .interval(IntervalRequest.builder()
                                                                               .bucketCount(1)
                                                                               .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                               .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                               .build())
-                                                     // BY is given so that it produces a vector
-                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 3");
+                                                                     // BY is given so that it produces a vector
+                                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 3");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(2, response.getRows());
@@ -3391,15 +3385,15 @@ public class ArithmeticStepTest {
         // Case 3, > 4, 1 rows satisfies the filter condition
         //
         {
-            IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                     .schemaProvider(this.schemaProvider)
-                                                     .interval(IntervalRequest.builder()
+            IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                     .schemaProvider(this.schemaProvider)
+                                                                     .interval(IntervalRequest.builder()
                                                                               .bucketCount(1)
                                                                               .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                               .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                               .build())
-                                                     // BY is given so that it produces a vector
-                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 4");
+                                                                     // BY is given so that it produces a vector
+                                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 4");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(1, response.getRows());
@@ -3415,15 +3409,15 @@ public class ArithmeticStepTest {
         // Case 4, > 5, 0 rows satisfies the filter condition
         //
         {
-            IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                     .schemaProvider(this.schemaProvider)
-                                                     .interval(IntervalRequest.builder()
+            IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                     .schemaProvider(this.schemaProvider)
+                                                                     .interval(IntervalRequest.builder()
                                                                               .bucketCount(1)
                                                                               .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                               .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                               .build())
-                                                     // BY is given so that it produces a vector
-                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 5");
+                                                                     // BY is given so that it produces a vector
+                                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 5");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(0, response.getRows());
@@ -3435,34 +3429,32 @@ public class ArithmeticStepTest {
     }
 
     @Test
-    public void test_FilterStep_Double_GTE() throws Exception {
+    public void test_Arithmetic_FilterStep_Double_GTE() throws Exception {
         Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
-               .thenAnswer((answer) -> {
-                   return new MockReadStep(PipelineQueryResult.builder()
-                                                              .keyColumns(List.of("_timestamp", "appName"))
-                                                              .valColumns(List.of("activeThreads"))
-                                                              .rows(3)
-                                                              .table(ColumnarTable.of(
-                                                                  LongColumn.of("_timestamp", 1, 2, 3),
-                                                                  StringColumn.of("appName", "app1", "app2", "app3"),
-                                                                  DoubleColumn.of("activeThreads", 3, 4, 5)
-                                                              ))
-                                                              .build(),
-                                           false);
-               });
+               .thenAnswer((answer) -> new MockReadStep(PipelineQueryResult.builder()
+                                                                           .keyColumns(List.of("_timestamp", "appName"))
+                                                                           .valColumns(List.of("activeThreads"))
+                                                                           .rows(3)
+                                                                           .table(ColumnarTable.of(
+                                                                               LongColumn.of("_timestamp", 1, 2, 3),
+                                                                               StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                               DoubleColumn.of("activeThreads", 3, 4, 5)
+                                                                           ))
+                                                                           .build(),
+                                                        false));
 
         //
         // Case 1, >= 2, all 3 rows satisfy the filter condition
         //
         {
-            IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                     .schemaProvider(this.schemaProvider)
-                                                     .interval(IntervalRequest.builder()
+            IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                     .schemaProvider(this.schemaProvider)
+                                                                     .interval(IntervalRequest.builder()
                                                                               .bucketCount(1)
                                                                               .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                               .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                               .build())
-                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 2");
+                                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 2");
             PipelineQueryResult response = evaluator.execute().get();
 
             // all 3 records satisfy the filter condition
@@ -3480,14 +3472,14 @@ public class ArithmeticStepTest {
         // Case 2, >= 3, all 3 rows satisfy the filter condition
         //
         {
-            IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                     .schemaProvider(this.schemaProvider)
-                                                     .interval(IntervalRequest.builder()
+            IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                     .schemaProvider(this.schemaProvider)
+                                                                     .interval(IntervalRequest.builder()
                                                                               .bucketCount(1)
                                                                               .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                               .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                               .build())
-                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 3");
+                                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 3");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(3, response.getRows());
@@ -3504,15 +3496,15 @@ public class ArithmeticStepTest {
         // Case 3, >= 4, 2 rows satisfies the filter condition
         //
         {
-            IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                     .schemaProvider(this.schemaProvider)
-                                                     .interval(IntervalRequest.builder()
+            IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                     .schemaProvider(this.schemaProvider)
+                                                                     .interval(IntervalRequest.builder()
                                                                               .bucketCount(1)
                                                                               .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                               .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                               .build())
-                                                     // BY is given so that it produces a vector
-                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 4");
+                                                                     // BY is given so that it produces a vector
+                                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 4");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(2, response.getRows());
@@ -3528,15 +3520,15 @@ public class ArithmeticStepTest {
         // Case 4, >= 5, some rows satisfy the filter condition
         //
         {
-            IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                     .schemaProvider(this.schemaProvider)
-                                                     .interval(IntervalRequest.builder()
+            IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                     .schemaProvider(this.schemaProvider)
+                                                                     .interval(IntervalRequest.builder()
                                                                               .bucketCount(1)
                                                                               .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                               .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                               .build())
-                                                     // BY is given so that it produces a vector
-                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 5");
+                                                                     // BY is given so that it produces a vector
+                                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 5");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(1, response.getRows());
@@ -3551,14 +3543,14 @@ public class ArithmeticStepTest {
         // Case 5, >= 6, 0 rows satisfies the filter condition
         //
         {
-            IPhysicalPlan evaluator = PhysicalPlanner.builder()
-                                                     .schemaProvider(this.schemaProvider)
-                                                     .interval(IntervalRequest.builder()
+            IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                     .schemaProvider(this.schemaProvider)
+                                                                     .interval(IntervalRequest.builder()
                                                                               .bucketCount(1)
                                                                               .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                               .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                               .build())
-                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 6");
+                                                                     .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 6");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(0, response.getRows());

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.pipeline;
+package org.bithon.server.metric.expression.plan;
 
 import lombok.Data;
 
@@ -23,8 +23,8 @@ import lombok.Data;
  * @date 2025/6/4 21:47
  */
 @Data
-public class QueryPipelineBuilderSettings {
-    public static final QueryPipelineBuilderSettings DEFAULT = new QueryPipelineBuilderSettings();
+public class MetricExpressionPlannerSettings {
+    public static final MetricExpressionPlannerSettings DEFAULT = new MetricExpressionPlannerSettings();
 
     private boolean pushdownPostFilter = false;
     private boolean pushdownArithmetic = false;

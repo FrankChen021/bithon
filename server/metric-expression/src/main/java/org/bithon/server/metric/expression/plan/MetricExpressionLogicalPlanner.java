@@ -45,10 +45,10 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2025/6/4 23:43
  */
-public class LogicalPlanBuilder implements IMetricExpressionVisitor<ILogicalPlan> {
+public class MetricExpressionLogicalPlanner implements IMetricExpressionVisitor<ILogicalPlan> {
     private final ISchemaProvider schemaProvider;
 
-    public LogicalPlanBuilder(ISchemaProvider schemaProvider) {
+    public MetricExpressionLogicalPlanner(ISchemaProvider schemaProvider) {
         this.schemaProvider = schemaProvider;
     }
 
@@ -101,7 +101,7 @@ public class LogicalPlanBuilder implements IMetricExpressionVisitor<ILogicalPlan
 
     @Override
     public ILogicalPlan visit(ConditionalExpression expression) {
-        PredicateEnum predicate = switch(expression.getType()) {
+        PredicateEnum predicate = switch (expression.getType()) {
             case "<" -> PredicateEnum.LT;
             case "<=" -> PredicateEnum.LTE;
             case ">" -> PredicateEnum.GT;

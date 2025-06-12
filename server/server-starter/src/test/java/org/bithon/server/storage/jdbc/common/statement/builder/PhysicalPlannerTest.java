@@ -34,7 +34,7 @@ import org.bithon.server.datasource.reader.clickhouse.AggregateFunctionColumn;
 import org.bithon.server.datasource.reader.h2.H2SqlDialect;
 import org.bithon.server.datasource.reader.jdbc.JdbcDataSourceReader;
 import org.bithon.server.datasource.store.IDataStoreSpec;
-import org.bithon.server.metric.expression.pipeline.PhysicalPlanner;
+import org.bithon.server.metric.expression.plan.MetricExpressionPhysicalPlanner;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -100,13 +100,13 @@ public class PhysicalPlannerTest {
 
     @Test
     public void testTableScanPlan() {
-        IPhysicalPlan physicalPlan = PhysicalPlanner.builder()
-                                                    .schemaProvider(schemaProvider)
-                                                    .interval(IntervalRequest.builder()
+        IPhysicalPlan physicalPlan = MetricExpressionPhysicalPlanner.builder()
+                                                                    .schemaProvider(schemaProvider)
+                                                                    .interval(IntervalRequest.builder()
                                                                              .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
                                                                              .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
                                                                              .build())
-                                                    .timeSeries("bithon-jvm-metrics.totalCount");
+                                                                    .timeSeries("bithon-jvm-metrics.totalCount");
 
         Assertions.assertEquals("""
                                 JdbcReadStep
@@ -119,13 +119,13 @@ public class PhysicalPlannerTest {
 
     @Test
     public void testTableScanPlanWithFilter() {
-        IPhysicalPlan physicalPlan = PhysicalPlanner.builder()
-                                                    .schemaProvider(schemaProvider)
-                                                    .interval(IntervalRequest.builder()
+        IPhysicalPlan physicalPlan = MetricExpressionPhysicalPlanner.builder()
+                                                                    .schemaProvider(schemaProvider)
+                                                                    .interval(IntervalRequest.builder()
                                                                              .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
                                                                              .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
                                                                              .build())
-                                                    .timeSeries("bithon-jvm-metrics.totalCount{appName=\"jacky\"}");
+                                                                    .timeSeries("bithon-jvm-metrics.totalCount{appName=\"jacky\"}");
 
         Assertions.assertEquals("""
                                 JdbcReadStep
@@ -141,13 +141,13 @@ public class PhysicalPlannerTest {
         String expr = """
                       sum(bithon-jvm-metrics.totalCount{appName="jacky"})
                       """;
-        IPhysicalPlan physicalPlan = PhysicalPlanner.builder()
-                                                    .schemaProvider(schemaProvider)
-                                                    .interval(IntervalRequest.builder()
+        IPhysicalPlan physicalPlan = MetricExpressionPhysicalPlanner.builder()
+                                                                    .schemaProvider(schemaProvider)
+                                                                    .interval(IntervalRequest.builder()
                                                                              .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
                                                                              .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
                                                                              .build())
-                                                    .groupBy(expr);
+                                                                    .groupBy(expr);
 
         Assertions.assertEquals("""
                                 JdbcReadStep
@@ -163,14 +163,14 @@ public class PhysicalPlannerTest {
         String expr = """
                       sum(bithon-jvm-metrics.totalCount{appName="jacky"}) by (appName)
                       """;
-        IPhysicalPlan physicalPlan = PhysicalPlanner.builder()
-                                                    .schemaProvider(schemaProvider)
-                                                    .interval(IntervalRequest.builder()
+        IPhysicalPlan physicalPlan = MetricExpressionPhysicalPlanner.builder()
+                                                                    .schemaProvider(schemaProvider)
+                                                                    .interval(IntervalRequest.builder()
                                                                              .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
                                                                              .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
                                                                              .step(60)
                                                                              .build())
-                                                    .groupBy(expr);
+                                                                    .groupBy(expr);
         Assertions.assertEquals("""
                                 JdbcReadStep
                                     SELECT "appName",
@@ -187,14 +187,14 @@ public class PhysicalPlannerTest {
         String expr = """
                       sum(bithon-jvm-metrics.totalCount{appName="jacky"}) by (appName)
                       """;
-        IPhysicalPlan physicalPlan = PhysicalPlanner.builder()
-                                                    .schemaProvider(schemaProvider)
-                                                    .interval(IntervalRequest.builder()
+        IPhysicalPlan physicalPlan = MetricExpressionPhysicalPlanner.builder()
+                                                                    .schemaProvider(schemaProvider)
+                                                                    .interval(IntervalRequest.builder()
                                                                              .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
                                                                              .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
                                                                              .step(10)
                                                                              .build())
-                                                    .timeSeries(expr);
+                                                                    .timeSeries(expr);
 
         Assertions.assertEquals("""
                                 JdbcReadStep
@@ -214,13 +214,13 @@ public class PhysicalPlannerTest {
                       last(bithon-jvm-metrics.totalCount{appName="jacky"}) by (appName)
                       """;
 
-        IPhysicalPlan physicalPlan = PhysicalPlanner.builder()
-                                                    .schemaProvider(schemaProvider)
-                                                    .interval(IntervalRequest.builder()
+        IPhysicalPlan physicalPlan = MetricExpressionPhysicalPlanner.builder()
+                                                                    .schemaProvider(schemaProvider)
+                                                                    .interval(IntervalRequest.builder()
                                                                              .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
                                                                              .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
                                                                              .build())
-                                                    .groupBy(expr);
+                                                                    .groupBy(expr);
 
         Assertions.assertEquals("""
                                 JdbcReadStep
@@ -246,13 +246,13 @@ public class PhysicalPlannerTest {
                       sum(bithon-jvm-metrics.count5xx{appName="jacky"})
                       """;
 
-        IPhysicalPlan physicalPlan = PhysicalPlanner.builder()
-                                                    .schemaProvider(schemaProvider)
-                                                    .interval(IntervalRequest.builder()
+        IPhysicalPlan physicalPlan = MetricExpressionPhysicalPlanner.builder()
+                                                                    .schemaProvider(schemaProvider)
+                                                                    .interval(IntervalRequest.builder()
                                                                              .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
                                                                              .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
                                                                              .build())
-                                                    .groupBy(expr);
+                                                                    .groupBy(expr);
 
         Assertions.assertEquals("""
                                 AddStep, Result Column: value, Retained Columns: []
@@ -278,13 +278,13 @@ public class PhysicalPlannerTest {
                       5
                       """;
 
-        IPhysicalPlan physicalPlan = PhysicalPlanner.builder()
-                                                    .schemaProvider(schemaProvider)
-                                                    .interval(IntervalRequest.builder()
+        IPhysicalPlan physicalPlan = MetricExpressionPhysicalPlanner.builder()
+                                                                    .schemaProvider(schemaProvider)
+                                                                    .interval(IntervalRequest.builder()
                                                                              .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
                                                                              .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
                                                                              .build())
-                                                    .groupBy(expr);
+                                                                    .groupBy(expr);
 
         Assertions.assertEquals("""
                                 AddStep, Result Column: value, Retained Columns: []
