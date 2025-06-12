@@ -26,6 +26,7 @@ import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
+import org.bithon.server.datasource.query.plan.physical.SlidingWindowAggregationStep;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByClause;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;

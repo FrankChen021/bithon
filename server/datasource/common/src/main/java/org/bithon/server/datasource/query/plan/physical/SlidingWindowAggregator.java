@@ -14,9 +14,8 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.reader.jdbc.pipeline;
+package org.bithon.server.datasource.query.plan.physical;
 
-import org.bithon.server.datasource.query.plan.physical.CompositeKey;
 import org.bithon.server.datasource.query.result.Column;
 import org.bithon.server.datasource.query.result.ColumnarTable;
 

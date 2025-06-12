@@ -14,13 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.reader.jdbc.pipeline;
+package org.bithon.server.datasource.query.plan.physical;
 
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.datasource.TimestampSpec;
 import org.bithon.server.datasource.query.Interval;
-import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
 import org.bithon.server.datasource.query.result.Column;
 import org.bithon.server.datasource.query.result.ColumnarTable;
 import org.bithon.server.datasource.query.result.PipelineQueryResult;

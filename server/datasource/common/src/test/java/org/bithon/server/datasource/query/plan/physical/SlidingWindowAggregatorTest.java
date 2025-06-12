@@ -14,12 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.reader.jdbc;
+package org.bithon.server.datasource.query.plan.physical;
 
 
 import org.bithon.server.datasource.query.result.Column;
 import org.bithon.server.datasource.query.result.ColumnarTable;
-import org.bithon.server.datasource.reader.jdbc.pipeline.SlidingWindowAggregator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
