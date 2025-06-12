@@ -39,7 +39,6 @@ import org.bithon.server.datasource.query.result.StringColumn;
 import org.bithon.server.datasource.store.IDataStoreSpec;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
-import org.bithon.server.web.service.datasource.api.QueryRequest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

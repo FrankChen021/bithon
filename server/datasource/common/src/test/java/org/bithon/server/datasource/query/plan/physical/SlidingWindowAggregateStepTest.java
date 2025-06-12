@@ -29,7 +29,7 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 5/5/25 3:03 pm
  */
-public class SlidingWindowAggregatorTest {
+public class SlidingWindowAggregateStepTest {
 
     @Test
     void testAggregate_NoGroup_OneRow() {
@@ -43,7 +43,7 @@ public class SlidingWindowAggregatorTest {
         // Add rows using addRow
         table.addRow(1L, 10.0);
 
-        table = SlidingWindowAggregator.aggregate(table, "_timestamp", List.of(), Duration.ofSeconds(2), List.of("value"));
+        table = SlidingWindowAggregateStep.doAggregate(table, "_timestamp", List.of(), Duration.ofSeconds(2), List.of("value"));
         Column agg = table.getColumn("value");
 
         Assertions.assertEquals(1, table.rowCount());
@@ -64,7 +64,7 @@ public class SlidingWindowAggregatorTest {
         table.addRow(2L, 20.0);
         table.addRow(3L, 30.0);
 
-        table = SlidingWindowAggregator.aggregate(table, "_timestamp", List.of(), Duration.ofSeconds(2), List.of("value"));
+        table = SlidingWindowAggregateStep.doAggregate(table, "_timestamp", List.of(), Duration.ofSeconds(2), List.of("value"));
         Column agg = table.getColumn("value");
 
         Assertions.assertEquals(3, table.rowCount());
@@ -89,7 +89,7 @@ public class SlidingWindowAggregatorTest {
         table.addRow(2L, 20.0, "A");
         table.addRow(3L, 30.0, "A");
 
-        table = SlidingWindowAggregator.aggregate(table, "_timestamp", List.of("group"), Duration.ofSeconds(2), List.of("value"));
+        table = SlidingWindowAggregateStep.doAggregate(table, "_timestamp", List.of("group"), Duration.ofSeconds(2), List.of("value"));
         Column agg = table.getColumn("value");
 
         Assertions.assertEquals(3, table.rowCount());
@@ -117,7 +117,7 @@ public class SlidingWindowAggregatorTest {
         table.addRow(2L, 200.0, "B");
         table.addRow(3L, 300.0, "B");
 
-        table = SlidingWindowAggregator.aggregate(table, "_timestamp", List.of("group"), Duration.ofSeconds(2), List.of("value"));
+        table = SlidingWindowAggregateStep.doAggregate(table, "_timestamp", List.of("group"), Duration.ofSeconds(2), List.of("value"));
         Column agg = table.getColumn("value");
 
         Assertions.assertEquals(6, table.rowCount());
@@ -145,7 +145,7 @@ public class SlidingWindowAggregatorTest {
         table.addRow(5L, 2.0, "A");
         table.addRow(10L, 3.0, "A");
 
-        table = SlidingWindowAggregator.aggregate(table, "_timestamp", List.of("group"), Duration.ofSeconds(3), List.of("value"));
+        table = SlidingWindowAggregateStep.doAggregate(table, "_timestamp", List.of("group"), Duration.ofSeconds(3), List.of("value"));
         Column agg = table.getColumn("value");
 
         Assertions.assertEquals(3, table.rowCount());
@@ -171,7 +171,7 @@ public class SlidingWindowAggregatorTest {
         table.addRow(4L, 3.0, "A");
         table.addRow(6L, 4.0, "A");
 
-        table = SlidingWindowAggregator.aggregate(table, "_timestamp", List.of("group"), Duration.ofSeconds(3), List.of("value"));
+        table = SlidingWindowAggregateStep.doAggregate(table, "_timestamp", List.of("group"), Duration.ofSeconds(3), List.of("value"));
         Column agg = table.getColumn("value");
 
         Assertions.assertEquals(4, table.rowCount());
@@ -206,11 +206,11 @@ public class SlidingWindowAggregatorTest {
         table.addRow(2L, 15.0, 150.0, "B");
 
 
-        table = SlidingWindowAggregator.aggregate(table,
-                                                  "_timestamp",
-                                                  List.of("group"),
-                                                  Duration.ofSeconds(2),
-                                                  List.of("value1", "value2"));
+        table = SlidingWindowAggregateStep.doAggregate(table,
+                                                       "_timestamp",
+                                                       List.of("group"),
+                                                       Duration.ofSeconds(2),
+                                                       List.of("value1", "value2"));
 
         Column agg1 = table.getColumn("value1");
         Column agg2 = table.getColumn("value2");

@@ -26,7 +26,7 @@ import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
-import org.bithon.server.datasource.query.plan.physical.SlidingWindowAggregationStep;
+import org.bithon.server.datasource.query.plan.physical.SlidingWindowAggregateStep;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByClause;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
@@ -139,12 +139,12 @@ public class JdbcPipelineBuilder {
                                                   Collections.emptyList()
         );
 
-        return new SlidingWindowAggregationStep(orderBy.getIdentifier(),
-                                                keys,
-                                                inputColumns,
-                                                outputColumns,
-                                                Duration.ofSeconds(window.getValue()),
-                                                this.interval,
-                                                readStep);
+        return new SlidingWindowAggregateStep(orderBy.getIdentifier(),
+                                              keys,
+                                              inputColumns,
+                                              outputColumns,
+                                              Duration.ofSeconds(window.getValue()),
+                                              this.interval,
+                                              readStep);
     }
 }
