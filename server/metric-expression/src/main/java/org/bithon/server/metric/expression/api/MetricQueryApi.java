@@ -91,7 +91,7 @@ public class MetricQueryApi {
                                                                 .schemaProvider(this.schemaManager)
                                                                 .interval(request.getInterval())
                                                                 .condition(request.getCondition())
-                                                                .build(request.getExpression());
+                                                                .timeSeries(request.getExpression());
 
         Duration step = request.getInterval().calculateStep();
         TimeSpan start = request.getInterval().getStartISO8601();

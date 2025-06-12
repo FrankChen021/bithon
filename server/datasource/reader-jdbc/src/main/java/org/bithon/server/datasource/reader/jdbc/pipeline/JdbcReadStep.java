@@ -20,8 +20,10 @@ package org.bithon.server.datasource.reader.jdbc.pipeline;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.TimestampSpec;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
@@ -38,6 +40,7 @@ import org.jooq.Cursor;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -56,12 +59,17 @@ public class JdbcReadStep implements IPhysicalPlan {
     private final ISqlDialect sqlDialect;
     private final ISchema schema;
     private final Interval interval;
+    private final List<String> keyColumns;
+    private final List<String> valColumns;
+    private final HumanReadableDuration offset;
 
     public JdbcReadStep(DSLContext dslContext,
                         ISchema schema,
                         ISqlDialect sqlDialect,
                         SelectStatement selectStatement,
-                        Interval interval
+                        Interval interval,
+                        List<String> keyColumns,
+                        List<String> valueColumns
     ) {
         this.dslContext = dslContext;
         this.schema = schema;
@@ -69,6 +77,43 @@ public class JdbcReadStep implements IPhysicalPlan {
         this.interval = interval;
         this.sqlDialect = sqlDialect;
         this.sql = selectStatement.toSQL(sqlDialect);
+        this.keyColumns = keyColumns;
+        this.valColumns = valueColumns;
+        this.offset = null;
+    }
+
+    public JdbcReadStep(DSLContext dslContext,
+                        ISchema schema,
+                        ISqlDialect sqlDialect,
+                        SelectStatement selectStatement,
+                        Interval interval,
+                        List<String> keyColumns,
+                        List<String> valueColumns,
+                        HumanReadableDuration offset
+    ) {
+        this.dslContext = dslContext;
+        this.schema = schema;
+        this.selectStatement = selectStatement;
+        this.interval = interval;
+        this.sqlDialect = sqlDialect;
+        this.sql = selectStatement.toSQL(sqlDialect);
+        this.keyColumns = keyColumns;
+        this.valColumns = valueColumns;
+        this.offset = offset;
+    }
+
+    @Override
+    public IPhysicalPlan offset(HumanReadableDuration offset) {
+        return new JdbcReadStep(
+            this.dslContext,
+            this.schema,
+            this.sqlDialect,
+            this.selectStatement,
+            this.interval,
+            this.keyColumns,
+            this.valColumns,
+            this.offset
+        );
     }
 
     @Override
@@ -106,7 +151,20 @@ public class JdbcReadStep implements IPhysicalPlan {
                                         .filter(LogicalExpression.create(LogicalExpression.AND.OP, selectStatement.getWhere().getExpressions()))
                                         .groupBy(aggregate.groupBy())
                                         .build();
-        return new JdbcReadStep(dslContext, schema, sqlDialect, select, interval);
+
+        List<String> keys = new ArrayList<>(aggregate.groupBy());
+        if (interval.getStep() != null) {
+            // a time series query
+            keys.add(TimestampSpec.COLUMN_ALIAS);
+        }
+
+        return new JdbcReadStep(dslContext,
+                                schema,
+                                sqlDialect,
+                                select,
+                                interval,
+                                keys,
+                                List.of(aggregate.field().getName()));
     }
 
     @Override
@@ -114,7 +172,7 @@ public class JdbcReadStep implements IPhysicalPlan {
         return CompletableFuture.supplyAsync(() -> {
             ColumnarTable resultTable = new ColumnarTable();
             for (Selector selector : selectStatement.getSelectorList().getSelectors()) {
-                resultTable.addColumn(Column.create(selector.getOutputName(), selector.getDataType(), 1024));
+                resultTable.addColumn(Column.create(selector.getOutputName(), selector.getDataType(), 256));
             }
             List<Column> resultColumns = resultTable.getColumns();
 
@@ -127,7 +185,10 @@ public class JdbcReadStep implements IPhysicalPlan {
                     }
                 }
                 return PipelineQueryResult.builder()
+                                          .rows(resultTable.rowCount())
                                           .table(resultTable)
+                                          .keyColumns(this.keyColumns)
+                                          .valColumns(this.valColumns)
                                           .build();
             }
         });

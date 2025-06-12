@@ -111,15 +111,29 @@ public class MetricExpressionPhysicalPlannerTest {
     static class MockReadStep implements IPhysicalPlan {
         private final PipelineQueryResult result;
         private final boolean isScalar;
+        private final HumanReadableDuration offset;
 
         MockReadStep(PipelineQueryResult result) {
             this.result = result;
             this.isScalar = false;
+            this.offset = null;
         }
 
         MockReadStep(PipelineQueryResult result, boolean isScalar) {
             this.result = result;
             this.isScalar = isScalar;
+            this.offset = null;
+        }
+
+        MockReadStep(PipelineQueryResult result, boolean isScalar, HumanReadableDuration offset) {
+            this.result = result;
+            this.isScalar = isScalar;
+            this.offset = offset;
+        }
+
+        @Override
+        public IPhysicalPlan offset(HumanReadableDuration offset) {
+            return new MockReadStep(result, isScalar, offset);
         }
 
         @Override
@@ -157,10 +171,10 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -182,10 +196,10 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 3.3");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -207,10 +221,10 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -232,10 +246,10 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 2.2");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -257,10 +271,10 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5Mi");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -282,10 +296,10 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 90%");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -307,10 +321,10 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 1h");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -332,10 +346,10 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 5");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -357,10 +371,10 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 2.2");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -382,10 +396,10 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -407,10 +421,10 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -432,10 +446,10 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5.5");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -457,10 +471,10 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 3");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -482,10 +496,10 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 5");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -507,10 +521,10 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 20");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -532,10 +546,10 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 20.0");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -557,10 +571,10 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 3.0");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -584,14 +598,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .timeSeries("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                             + "+"
-                                                             + "5");
+                                                                             + "+"
+                                                                             + "5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column values = response.getTable().getColumn("activeThreads");
@@ -623,14 +637,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .timeSeries("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                             + "-"
-                                                             + " 5");
+                                                                             + "-"
+                                                                             + " 5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column values = response.getTable().getColumn("activeThreads");
@@ -662,14 +676,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .timeSeries("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                             + "*"
-                                                             + "5");
+                                                                             + "*"
+                                                                             + "5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column values = response.getTable().getColumn("activeThreads");
@@ -701,14 +715,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .timeSeries("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                             + "/"
-                                                             + "5");
+                                                                             + "/"
+                                                                             + "5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column values = response.getTable().getColumn("activeThreads");
@@ -761,14 +775,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
-                                                          + "+"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
+                                                                          + "+"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valCol = response.getTable().getColumn("value");
@@ -813,14 +827,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
-                                                          + "-"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
+                                                                          + "-"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valCol = response.getTable().getColumn("value");
@@ -864,14 +878,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
-                                                          + "*"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
+                                                                          + "*"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valCol = response.getTable().getColumn("value");
@@ -915,14 +929,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
-                                                          + "/"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
+                                                                          + "/"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column values = response.getTable().getColumn("value");
@@ -967,14 +981,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
-                                                          + "+"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+                                                                          + "+"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valCol = response.getTable().getColumn("totalThreads");
@@ -1029,14 +1043,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
-                                                          + "-"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+                                                                          + "-"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valCol = response.getTable().getColumn("totalThreads");
@@ -1091,14 +1105,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
-                                                          + "*"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
+                                                                          + "*"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valCol = response.getTable().getColumn("totalThreads");
@@ -1153,14 +1167,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
-                                                          + "/"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
+                                                                          + "/"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valCol = response.getTable().getColumn("totalThreads");
@@ -1215,14 +1229,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
-                                                          + "/"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
+                                                                          + "/"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valCol = response.getTable().getColumn("totalThreads");
@@ -1277,14 +1291,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
-                                                          + "/"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
+                                                                          + "/"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valCol = response.getTable().getColumn("totalThreads");
@@ -1339,14 +1353,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "+"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
+                                                                          + "+"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column values = response.getTable().getColumn("activeThreads");
@@ -1400,14 +1414,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "+"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
+                                                                          + "+"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column values = response.getTable().getColumn("activeThreads");
@@ -1461,14 +1475,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "+"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
+                                                                          + "+"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column values = response.getTable().getColumn("activeThreads");
@@ -1522,14 +1536,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "-"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
+                                                                          + "-"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column values = response.getTable().getColumn("activeThreads");
@@ -1583,14 +1597,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "-"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
+                                                                          + "-"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column values = response.getTable().getColumn("activeThreads");
@@ -1644,14 +1658,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "-"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
+                                                                          + "-"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column values = response.getTable().getColumn("activeThreads");
@@ -1705,14 +1719,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "*"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
+                                                                          + "*"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valCol = response.getTable().getColumn("activeThreads");
@@ -1766,14 +1780,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "*"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
+                                                                          + "*"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valCol = response.getTable().getColumn("activeThreads");
@@ -1827,14 +1841,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "*"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
+                                                                          + "*"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valCol = response.getTable().getColumn("activeThreads");
@@ -1889,14 +1903,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "/"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
+                                                                          + "/"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valCol = response.getTable().getColumn("activeThreads");
@@ -1951,14 +1965,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "/"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
+                                                                          + "/"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valCol = response.getTable().getColumn("activeThreads");
@@ -2013,14 +2027,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "/"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
+                                                                          + "/"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valCol = response.getTable().getColumn("activeThreads");
@@ -2076,14 +2090,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "+"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+                                                                          + "+"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         // Only the overlapped series will be returned
@@ -2138,14 +2152,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "+"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+                                                                          + "+"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         // Only the overlapped series will be returned
@@ -2201,14 +2215,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "+"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+                                                                          + "+"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         // Only the overlapped series will be returned
@@ -2263,14 +2277,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "-"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+                                                                          + "-"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         // Only the overlapped series will be returned
@@ -2325,14 +2339,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "-"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+                                                                          + "-"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         // Only the overlapped series will be returned
@@ -2387,14 +2401,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "-"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+                                                                          + "-"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         // Only the overlapped series will be returned
@@ -2449,14 +2463,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "-"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+                                                                          + "-"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         // Only the overlapped series will be returned
@@ -2511,14 +2525,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "*"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+                                                                          + "*"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         // Only the overlapped series will be returned
@@ -2573,14 +2587,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "*"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+                                                                          + "*"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         // Only the overlapped series will be returned
@@ -2635,14 +2649,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "*"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+                                                                          + "*"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         // Only the overlapped series will be returned
@@ -2698,14 +2712,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "*"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+                                                                          + "*"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         // Only the overlapped series will be returned
@@ -2760,14 +2774,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "/"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+                                                                          + "/"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         // Only the overlapped series will be returned
@@ -2822,14 +2836,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "/"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+                                                                          + "/"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         // Only the overlapped series will be returned
@@ -2884,14 +2898,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "/"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+                                                                          + "/"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         // Only the overlapped series will be returned
@@ -2946,14 +2960,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "/"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+                                                                          + "/"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         // Only the overlapped series will be returned
@@ -3008,14 +3022,14 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "/"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+                                                                          + "/"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         // Only the overlapped series will be returned
@@ -3084,16 +3098,16 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "/"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "+"
-                                                          + "avg(jvm-metrics.newThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+                                                                          + "/"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                          + "+"
+                                                                          + "avg(jvm-metrics.newThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         // Only the overlapped series will be returned
@@ -3162,16 +3176,16 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "/"
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-                                                          + "+"
-                                                          + "avg(jvm-metrics.newThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+                                                                          + "/"
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                                          + "+"
+                                                                          + "avg(jvm-metrics.newThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
 
         // Only the overlapped series will be returned
@@ -3235,17 +3249,17 @@ public class MetricExpressionPhysicalPlannerTest {
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                  .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
                                                                  .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
-                                                          + "/ "
-                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
-                                                          + "* "
-                                                          + "avg(jvm-metrics.newThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
-                                                          + "+ 5");
+                                                                          + "/ "
+                                                                          + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
+                                                                          + "* "
+                                                                          + "avg(jvm-metrics.newThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
+                                                                          + "+ 5");
         PipelineQueryResult response = evaluator.execute().get();
 
         // Only the overlapped series will be returned
@@ -3260,35 +3274,48 @@ public class MetricExpressionPhysicalPlannerTest {
 
     @Test
     public void test_Arithmetic_RelativeComparison() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceReader.plan(Mockito.any(), Mockito.any()))
                .thenAnswer((answer) -> {
-                   QueryRequest req = answer.getArgument(0, QueryRequest.class);
+                   LogicalTableScan tableScan = answer.getArgument(0, LogicalTableScan.class);
 
-                   HumanReadableDuration offset = req.getOffset();
+                   HumanReadableDuration offset = tableScan.offset();
                    if (offset == null) {
-                       return ColumnarTable.of(
-                           LongColumn.of("_timestamp", 1, 2, 3),
-                           StringColumn.of("appName", "app1", "app2", "app3"),
-                           DoubleColumn.of("activeThreads", 3, 4, 5)
-                       );
+                       return new MockReadStep(PipelineQueryResult.builder()
+                                                                  .keyColumns(List.of("_timestamp", "appName"))
+                                                                  .valColumns(List.of("activeThreads"))
+                                                                  .rows(3)
+                                                                  .table(ColumnarTable.of(
+                                                                      LongColumn.of("_timestamp", 1, 2, 3),
+                                                                      StringColumn.of("appName", "app1", "app2", "app3"),
+                                                                      DoubleColumn.of("activeThreads", 3, 4, 5)
+                                                                  ))
+                                                                  .build(),
+                                               false);
                    }
 
-                   return ColumnarTable.of(
-                       LongColumn.of("_timestamp", 2, 3, 4),
-                       StringColumn.of("appName", "app2", "app3", "app4"),
-                       DoubleColumn.of("-1d", 21, 22, 23)
-                   );
-
+                   return new MockReadStep(PipelineQueryResult.builder()
+                                                              .keyColumns(List.of("_timestamp", "appName"))
+                                                              .valColumns(List.of("-1d"))
+                                                              .rows(3)
+                                                              .table(ColumnarTable.of(
+                                                                  LongColumn.of("_timestamp", 2, 3, 4),
+                                                                  StringColumn.of("appName", "app2", "app3", "app4"),
+                                                                  DoubleColumn.of("-1d", 21, 22, 23)
+                                                              ))
+                                                              .build(),
+                                           false);
                });
 
         IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
+                                                                 .schemaProvider(this.schemaProvider)
                                                                  .interval(IntervalRequest.builder()
-                                                                          .bucketCount(1)
-                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                          .build())
+                                                                                          .bucketCount(1)
+                                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                          .build())
                                                                  // BY is given so that it produces a vector
-                                                                 .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) > -5%[-1d]");
+                                                                 .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) > -5%[-1d]");
+
         PipelineQueryResult response = evaluator.execute()
                                                 .get();
         Assertions.assertEquals(2, response.getRows());
@@ -3336,10 +3363,10 @@ public class MetricExpressionPhysicalPlannerTest {
             IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                      .schemaProvider(this.schemaProvider)
                                                                      .interval(IntervalRequest.builder()
-                                                                              .bucketCount(1)
-                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                              .build())
+                                                                                              .bucketCount(1)
+                                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                              .build())
                                                                      // BY is given so that it produces a vector
                                                                      .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 2");
             PipelineQueryResult response = evaluator.execute().get();
@@ -3364,10 +3391,10 @@ public class MetricExpressionPhysicalPlannerTest {
             IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                      .schemaProvider(this.schemaProvider)
                                                                      .interval(IntervalRequest.builder()
-                                                                              .bucketCount(1)
-                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                              .build())
+                                                                                              .bucketCount(1)
+                                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                              .build())
                                                                      // BY is given so that it produces a vector
                                                                      .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 3");
             PipelineQueryResult response = evaluator.execute().get();
@@ -3388,10 +3415,10 @@ public class MetricExpressionPhysicalPlannerTest {
             IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                      .schemaProvider(this.schemaProvider)
                                                                      .interval(IntervalRequest.builder()
-                                                                              .bucketCount(1)
-                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                              .build())
+                                                                                              .bucketCount(1)
+                                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                              .build())
                                                                      // BY is given so that it produces a vector
                                                                      .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 4");
             PipelineQueryResult response = evaluator.execute().get();
@@ -3412,10 +3439,10 @@ public class MetricExpressionPhysicalPlannerTest {
             IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                      .schemaProvider(this.schemaProvider)
                                                                      .interval(IntervalRequest.builder()
-                                                                              .bucketCount(1)
-                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                              .build())
+                                                                                              .bucketCount(1)
+                                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                              .build())
                                                                      // BY is given so that it produces a vector
                                                                      .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 5");
             PipelineQueryResult response = evaluator.execute().get();
@@ -3450,10 +3477,10 @@ public class MetricExpressionPhysicalPlannerTest {
             IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                      .schemaProvider(this.schemaProvider)
                                                                      .interval(IntervalRequest.builder()
-                                                                              .bucketCount(1)
-                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                              .build())
+                                                                                              .bucketCount(1)
+                                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                              .build())
                                                                      .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 2");
             PipelineQueryResult response = evaluator.execute().get();
 
@@ -3475,10 +3502,10 @@ public class MetricExpressionPhysicalPlannerTest {
             IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                      .schemaProvider(this.schemaProvider)
                                                                      .interval(IntervalRequest.builder()
-                                                                              .bucketCount(1)
-                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                              .build())
+                                                                                              .bucketCount(1)
+                                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                              .build())
                                                                      .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 3");
             PipelineQueryResult response = evaluator.execute().get();
 
@@ -3499,10 +3526,10 @@ public class MetricExpressionPhysicalPlannerTest {
             IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                      .schemaProvider(this.schemaProvider)
                                                                      .interval(IntervalRequest.builder()
-                                                                              .bucketCount(1)
-                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                              .build())
+                                                                                              .bucketCount(1)
+                                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                              .build())
                                                                      // BY is given so that it produces a vector
                                                                      .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 4");
             PipelineQueryResult response = evaluator.execute().get();
@@ -3523,10 +3550,10 @@ public class MetricExpressionPhysicalPlannerTest {
             IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                      .schemaProvider(this.schemaProvider)
                                                                      .interval(IntervalRequest.builder()
-                                                                              .bucketCount(1)
-                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                              .build())
+                                                                                              .bucketCount(1)
+                                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                              .build())
                                                                      // BY is given so that it produces a vector
                                                                      .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 5");
             PipelineQueryResult response = evaluator.execute().get();
@@ -3546,10 +3573,10 @@ public class MetricExpressionPhysicalPlannerTest {
             IPhysicalPlan evaluator = MetricExpressionPhysicalPlanner.builder()
                                                                      .schemaProvider(this.schemaProvider)
                                                                      .interval(IntervalRequest.builder()
-                                                                              .bucketCount(1)
-                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                              .build())
+                                                                                              .bucketCount(1)
+                                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                              .build())
                                                                      .groupBy("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 6");
             PipelineQueryResult response = evaluator.execute().get();
 

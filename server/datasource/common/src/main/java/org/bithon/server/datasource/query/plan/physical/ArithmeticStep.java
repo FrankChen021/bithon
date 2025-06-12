@@ -63,8 +63,8 @@ public abstract class ArithmeticStep implements IPhysicalPlan {
         public Sub(IPhysicalPlan left,
                    IPhysicalPlan right,
                    String resultColumn,
-                   String... sourceColumns) {
-            super(left, right, resultColumn, sourceColumns);
+                   boolean retainAll) {
+            super(left, right, resultColumn);
         }
 
         @Override
@@ -92,8 +92,8 @@ public abstract class ArithmeticStep implements IPhysicalPlan {
         public Div(IPhysicalPlan left,
                    IPhysicalPlan right,
                    String resultColumn,
-                   String... sourceColumns) {
-            super(left, right, resultColumn, sourceColumns);
+                   boolean retainAll) {
+            super(left, right, resultColumn);
         }
 
         @Override

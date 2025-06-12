@@ -54,6 +54,7 @@ import org.springframework.boot.autoconfigure.jooq.ExceptionTranslatorExecuteLis
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqProperties;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -132,7 +133,9 @@ public class JdbcDataSourceReader implements IDataSourceReader {
             tableScan.table(),
             sqlDialect,
             selectStatement,
-            interval
+            interval,
+            tableScan.selectorList().stream().map(Selector::getOutputName).collect(Collectors.toList()),
+            Collections.emptyList()
         );
     }
 

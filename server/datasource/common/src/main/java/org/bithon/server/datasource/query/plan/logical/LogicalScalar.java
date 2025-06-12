@@ -16,13 +16,22 @@
 
 package org.bithon.server.datasource.query.plan.logical;
 
+import jakarta.annotation.Nullable;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2025/6/4 23:33
  */
-public record LogicalScalar(LiteralExpression<?> literal) implements ILogicalPlan {
+public record LogicalScalar(
+    LiteralExpression<?> literal,
+    @Nullable HumanReadableDuration offset
+) implements ILogicalPlan {
+
+    public LogicalScalar(LiteralExpression<?> literal) {
+        this(literal, null);
+    }
 
     @Override
     public <T> T accept(ILogicalPlanVisitor<T> visitor) {

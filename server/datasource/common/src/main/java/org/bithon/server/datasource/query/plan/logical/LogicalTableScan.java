@@ -16,7 +16,9 @@
 
 package org.bithon.server.datasource.query.plan.logical;
 
+import jakarta.annotation.Nullable;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.query.ast.Selector;
 
@@ -29,7 +31,8 @@ import java.util.List;
 public record LogicalTableScan(
     ISchema table,
     List<Selector> selectorList,
-    IExpression filter // = filters like {job="abc"}
+    IExpression filter,
+    @Nullable HumanReadableDuration offset
 ) implements ILogicalPlan {
 
     @Override

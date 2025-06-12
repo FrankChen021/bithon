@@ -60,7 +60,8 @@ public class MetricExpressionLogicalPlanner implements IMetricExpressionVisitor<
         return new LogicalTableScan(
             schema,
             List.of(new Selector(expression.getMetric(), expression.getMetric(), expression.getDataType())),
-            expression.getLabelSelectorExpression()
+            expression.getLabelSelectorExpression(),
+            null
         );
     }
 
@@ -76,7 +77,8 @@ public class MetricExpressionLogicalPlanner implements IMetricExpressionVisitor<
                                  List.of(new Selector(expression.getMetric().getName(),
                                                       expression.getMetric().getName(),
                                                       expression.getDataType())),
-                                 expression.getLabelSelectorExpression()),
+                                 expression.getLabelSelectorExpression(),
+                                 expression.getOffset()),
             col,
             CollectionUtils.isEmpty(expression.getGroupBy()) ? new ArrayList<>() : new ArrayList<>(expression.getGroupBy()),
             new ArrayList<>()
@@ -110,6 +112,7 @@ public class MetricExpressionLogicalPlanner implements IMetricExpressionVisitor<
             case "!=", "<>" -> PredicateEnum.NE;
             default -> throw new IllegalArgumentException("Unsupported predicate type: " + expression.getType());
         };
+
         return new LogicalFilter(
             expression.getLhs().accept(this),
             predicate,
@@ -119,7 +122,7 @@ public class MetricExpressionLogicalPlanner implements IMetricExpressionVisitor<
 
     @Override
     public ILogicalPlan visit(MetricExpectedExpression expression) {
-        return new LogicalScalar(expression.getExpected());
+        return new LogicalScalar(expression.getExpected(), expression.getOffset());
     }
 
     @Override

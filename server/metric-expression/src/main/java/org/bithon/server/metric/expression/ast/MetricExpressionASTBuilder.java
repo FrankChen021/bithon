@@ -35,6 +35,7 @@ import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.antlr4.SyntaxErrorListener;
 import org.bithon.server.metric.expression.MetricExpressionBaseVisitor;
@@ -222,6 +223,9 @@ public class MetricExpressionASTBuilder {
             HumanReadableDuration offset = null;
             MetricExpressionParser.DurationExpressionContext offsetParseContext = expectedExpression.durationExpression();
             if (offsetParseContext != null) {
+                Preconditions.checkIfTrue(lhs instanceof MetricSelectExpression || lhs instanceof MetricAggregateExpression,
+                                          "The offset expression '%s' is only supported for metric select/aggregate expression.", offsetParseContext.getText());
+
                 offset = offsetParseContext.accept(new DurationExpressionBuilder());
                 if (!offset.isNegative()) {
                     throw new InvalidExpressionException("The value in the offset expression '%s' must be negative.", offsetParseContext.getText());
@@ -405,8 +409,7 @@ public class MetricExpressionASTBuilder {
             return switch (tokenType) {
                 case MetricExpressionParser.DECIMAL_LITERAL -> LiteralExpression.ofDecimal(parseDecimal(text));
                 case MetricExpressionParser.INTEGER_LITERAL -> LiteralExpression.ofLong(Integer.parseInt(text));
-                case MetricExpressionParser.PERCENTAGE_LITERAL ->
-                    LiteralExpression.of(new HumanReadablePercentage(text));
+                case MetricExpressionParser.PERCENTAGE_LITERAL -> LiteralExpression.of(new HumanReadablePercentage(text));
                 case MetricExpressionParser.STRING_LITERAL -> {
                     String input = text;
                     if (!input.isEmpty()) {

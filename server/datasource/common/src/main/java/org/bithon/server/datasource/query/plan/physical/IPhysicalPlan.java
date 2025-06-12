@@ -17,7 +17,9 @@
 package org.bithon.server.datasource.query.plan.physical;
 
 
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.datasource.query.plan.logical.LogicalAggregate;
+import org.bithon.server.datasource.query.plan.logical.LogicalFilter;
 import org.bithon.server.datasource.query.result.PipelineQueryResult;
 
 import java.util.concurrent.CompletableFuture;
@@ -36,6 +38,21 @@ public interface IPhysicalPlan {
         throw new UnsupportedOperationException("Cannot push down aggregate: " + aggregate);
     }
 
+    default boolean canPushDownFilter() {
+        return false;
+    }
+
+    default IPhysicalPlan pushDownFilter(LogicalFilter filter) {
+        throw new UnsupportedOperationException("Cannot push down filter: " + filter);
+    }
+
+    /**
+     * Mutate the plan to apply an offset.
+     * @param offset can't be null
+     */
+    default IPhysicalPlan offset(HumanReadableDuration offset) {
+        throw new UnsupportedOperationException("Cannot apply offset: " + offset + " to type " + this.getClass().getSimpleName());
+    }
 
     boolean isScalar();
 

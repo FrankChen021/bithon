@@ -99,18 +99,24 @@ public class JdbcPipelineBuilder {
         }
 
         if (windowFunctionSelectors.isEmpty()) {
-            return new JdbcReadStep(dslContext, schema, dialect, selectStatement, this.interval);
+            return new JdbcReadStep(dslContext,
+                                    schema,
+                                    dialect,
+                                    selectStatement,
+                                    this.interval,
+                                    // TODO: Fixme: inputColumns and outputColumns are empty, should we throw an exception?
+                                    Collections.emptyList(),
+                                    Collections.emptyList());
         }
 
         WindowFunctionExpression windowFunctionExpression = (WindowFunctionExpression) ((ExpressionNode) windowFunctionSelectors.get(0).getSelectExpression()).getParsedExpression();
         LiteralExpression.LongLiteral window = (LiteralExpression.LongLiteral) windowFunctionExpression.getFrame().getStart();
         IdentifierExpression orderBy = (IdentifierExpression) windowFunctionExpression.getOrderBy()[0].getName();
 
-        List<String> keys = CollectionUtils.isEmpty(windowFunctionExpression.getPartitionBy()) ?
-            Collections.emptyList()
-            : Arrays.stream(windowFunctionExpression.getPartitionBy())
-                    .map((expr) -> ((IdentifierExpression) expr).getIdentifier())
-                    .toList();
+        List<String> keys = CollectionUtils.isEmpty(windowFunctionExpression.getPartitionBy()) ? Collections.emptyList()
+                                                                                               : Arrays.stream(windowFunctionExpression.getPartitionBy())
+                                                                                                       .map((expr) -> ((IdentifierExpression) expr).getIdentifier())
+                                                                                                       .toList();
 
         SelectStatement subQuery = (SelectStatement) selectStatement.getFrom().getExpression();
 
@@ -126,7 +132,10 @@ public class JdbcPipelineBuilder {
                                                   schema,
                                                   dialect,
                                                   subQuery,
-                                                  interval
+                                                  interval,
+                                                  // TODO: Fixme: inputColumns and outputColumns are empty, should we throw an exception?
+                                                  Collections.emptyList(),
+                                                  Collections.emptyList()
         );
 
         return new SlidingWindowAggregationStep(orderBy.getIdentifier(),

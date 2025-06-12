@@ -90,6 +90,15 @@ public abstract class FilterStep implements IPhysicalPlan {
                      });
     }
 
+    @Override
+    public void serializer(PhysicalPlanSerializer serializer) {
+        serializer.append("ComparisonStep: ");
+        serializer.append(this.getClass().getSimpleName());
+        serializer.append("\n");
+        serializer.append("    ", "lhs: ").append("      ", source.serializeToText());
+        serializer.append("    ", "rhs: ").append("      ", expected.toString()).append("\n");
+    }
+
     protected abstract boolean filter(long actual, long expected);
 
     protected abstract boolean filter(double actual, double expected);

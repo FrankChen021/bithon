@@ -23,6 +23,7 @@ import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.ISchemaProvider;
 import org.bithon.server.datasource.query.IDataSourceReader;
@@ -58,7 +59,7 @@ import java.util.stream.Stream;
  */
 public class MetricExpressionPhysicalPlanner {
 
-    private IntervalRequest intervalRequest;
+    private IntervalRequest interval;
     private String condition;
     private MetricExpressionPlannerSettings settings = MetricExpressionPlannerSettings.DEFAULT;
     private ISchemaProvider schemaProvider;
@@ -67,8 +68,8 @@ public class MetricExpressionPhysicalPlanner {
         return new MetricExpressionPhysicalPlanner();
     }
 
-    public MetricExpressionPhysicalPlanner interval(IntervalRequest intervalRequest) {
-        this.intervalRequest = intervalRequest;
+    public MetricExpressionPhysicalPlanner interval(IntervalRequest interval) {
+        this.interval = interval;
         return this;
     }
 
@@ -87,17 +88,9 @@ public class MetricExpressionPhysicalPlanner {
         return this;
     }
 
-    public IPhysicalPlan build(String expression) {
-        IExpression expr = MetricExpressionASTBuilder.parse(expression);
-
-        // Apply optimization like constant folding on parsed expression
-        // The optimization is applied here so that the above parse can be tested separately
-        expr = MetricExpressionOptimizer.optimize(expr);
-
-        return this.build(expr);
-    }
-
     public IPhysicalPlan timeSeries(String expression) {
+        Preconditions.checkNotNull(this.interval, "interval of MetricExpressionPhysicalPlanner can't be null");
+
         IExpression expr = MetricExpressionASTBuilder.parse(expression);
 
         // Apply optimization like constant folding on parsed expression
@@ -105,9 +98,9 @@ public class MetricExpressionPhysicalPlanner {
         expr = MetricExpressionOptimizer.optimize(expr);
 
         ILogicalPlan logicalPlan = expr.accept(new MetricExpressionLogicalPlanner(schemaProvider));
-        return logicalPlan.accept(new PhysicalPlanImpl(Interval.of(this.intervalRequest.getStartISO8601(),
-                                                                   this.intervalRequest.getEndISO8601(),
-                                                                   this.intervalRequest.calculateStep(),
+        return logicalPlan.accept(new PhysicalPlanImpl(Interval.of(this.interval.getStartISO8601(),
+                                                                   this.interval.getEndISO8601(),
+                                                                   this.interval.calculateStep(),
                                                                    new IdentifierExpression("timestamp"))));
     }
 
@@ -119,8 +112,8 @@ public class MetricExpressionPhysicalPlanner {
         expr = MetricExpressionOptimizer.optimize(expr);
 
         ILogicalPlan logicalPlan = expr.accept(new MetricExpressionLogicalPlanner(schemaProvider));
-        return logicalPlan.accept(new PhysicalPlanImpl(Interval.of(this.intervalRequest.getStartISO8601(),
-                                                                   this.intervalRequest.getEndISO8601(),
+        return logicalPlan.accept(new PhysicalPlanImpl(Interval.of(this.interval.getStartISO8601(),
+                                                                   this.interval.getEndISO8601(),
                                                                    null,
                                                                    new IdentifierExpression("timestamp"))));
     }
@@ -174,30 +167,48 @@ public class MetricExpressionPhysicalPlanner {
 
         @Override
         public IPhysicalPlan visitFilter(LogicalFilter filter) {
-            switch (filter.op()) {
-                case LT:
-                    return new FilterStep.LT(filter.left().accept(this),
-                                             (Number) ((LogicalScalar) filter.right()).literal().getValue());
-                case LTE:
-                    return new FilterStep.LTE(filter.left().accept(this),
-                                              (Number) ((LogicalScalar) filter.right()).literal().getValue());
-                case GT:
-                    return new FilterStep.GT(filter.left().accept(this),
-                                             (Number) ((LogicalScalar) filter.right()).literal().getValue());
-                case GTE:
-                    return new FilterStep.GTE(filter.left().accept(this),
-                                              (Number) ((LogicalScalar) filter.right()).literal().getValue());
-                case NE:
-                    return new FilterStep.NE(filter.left().accept(this),
-                                             (Number) ((LogicalScalar) filter.right()).literal().getValue());
-                default:
-                    throw new UnsupportedOperationException("Unsupported filter operation: " + filter.op());
-            }
-        }
-    }
+            IPhysicalPlan curr = filter.left().accept(this);
 
-    public IPhysicalPlan build(IExpression expression) {
-        return expression.accept(new Builder());
+            if (filter.right() instanceof LogicalScalar scalar) {
+                if (scalar.offset() != null) {
+                    // AST level ensures that the left side is a MetricAggregateExpression/MetricSelectExpression
+
+                    IPhysicalPlan base = curr.offset(scalar.offset());
+
+                    // convert to expression as: (current - base) / base
+                    curr = new ArithmeticStep.Div(
+                        new ArithmeticStep.Sub(
+                            curr,
+                            base,
+                            // result column name
+                            "diff",
+
+                            // Retain all value columns in the result set
+                            true
+                        ),
+                        base,
+                        "delta",
+
+                        // Keep the current and base columns in the result set
+                        true
+                    );
+                }
+            }
+
+            return switch (filter.op()) {
+                case LT -> new FilterStep.LT(curr,
+                                             (Number) ((LogicalScalar) filter.right()).literal().getValue());
+                case LTE -> new FilterStep.LTE(curr,
+                                               (Number) ((LogicalScalar) filter.right()).literal().getValue());
+                case GT -> new FilterStep.GT(curr,
+                                             (Number) ((LogicalScalar) filter.right()).literal().getValue());
+                case GTE -> new FilterStep.GTE(curr,
+                                               (Number) ((LogicalScalar) filter.right()).literal().getValue());
+                case NE -> new FilterStep.NE(curr,
+                                             (Number) ((LogicalScalar) filter.right()).literal().getValue());
+                default -> throw new UnsupportedOperationException("Unsupported filter operation: " + filter.op());
+            };
+        }
     }
 
     private class Builder implements IMetricExpressionVisitor<IPhysicalPlan> {
@@ -245,13 +256,14 @@ public class MetricExpressionPhysicalPlanner {
                         "diff",
 
                         // Returns 'curr' as well as the computed result set
-                        metricField.getName()
+                        true
                     ),
                     base,
                     "delta",
 
                     // Keep the current and base columns in the result set
-                    metricField.getName(), expression.getOffset().toString()
+                    //metricField.getName(), expression.getOffset().toString()
+                    true
                 );
             } else {
                 return MetricQueryStep.builder()
@@ -296,9 +308,9 @@ public class MetricExpressionPhysicalPlanner {
 
         @Override
         public IPhysicalPlan visit(LiteralExpression<?> expression) {
-            return new LiteralQueryStep(expression, Interval.of(intervalRequest.getStartISO8601(),
-                                                                intervalRequest.getEndISO8601(),
-                                                                intervalRequest.calculateStep(),
+            return new LiteralQueryStep(expression, Interval.of(interval.getStartISO8601(),
+                                                                interval.getEndISO8601(),
+                                                                interval.calculateStep(),
                                                                 null));
         }
 

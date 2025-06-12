@@ -103,17 +103,17 @@ public class PhysicalPlannerTest {
         IPhysicalPlan physicalPlan = MetricExpressionPhysicalPlanner.builder()
                                                                     .schemaProvider(schemaProvider)
                                                                     .interval(IntervalRequest.builder()
-                                                                             .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
-                                                                             .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
-                                                                             .build())
+                                                                                             .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                                             .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                                             .build())
                                                                     .timeSeries("bithon-jvm-metrics.totalCount");
 
         Assertions.assertEquals("""
-                                JdbcReadStep
-                                    SELECT "totalCount" AS "totalCount"
-                                    FROM "bithon-jvm-metrics" AS "bithon-jvm-metrics"
-                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
-                                """,
+                                    JdbcReadStep
+                                        SELECT "totalCount" AS "totalCount"
+                                        FROM "bithon-jvm-metrics" AS "bithon-jvm-metrics"
+                                        WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
+                                    """,
                                 physicalPlan.serializeToText());
     }
 
@@ -122,180 +122,210 @@ public class PhysicalPlannerTest {
         IPhysicalPlan physicalPlan = MetricExpressionPhysicalPlanner.builder()
                                                                     .schemaProvider(schemaProvider)
                                                                     .interval(IntervalRequest.builder()
-                                                                             .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
-                                                                             .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
-                                                                             .build())
+                                                                                             .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                                             .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                                             .build())
                                                                     .timeSeries("bithon-jvm-metrics.totalCount{appName=\"jacky\"}");
 
         Assertions.assertEquals("""
-                                JdbcReadStep
-                                    SELECT "totalCount" AS "totalCount"
-                                    FROM "bithon-jvm-metrics" AS "bithon-jvm-metrics"
-                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("appName" = 'jacky')
-                                """,
+                                    JdbcReadStep
+                                        SELECT "totalCount" AS "totalCount"
+                                        FROM "bithon-jvm-metrics" AS "bithon-jvm-metrics"
+                                        WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("appName" = 'jacky')
+                                    """,
                                 physicalPlan.serializeToText());
     }
 
     @Test
     public void test_SumAggregate() {
         String expr = """
-                      sum(bithon-jvm-metrics.totalCount{appName="jacky"})
-                      """;
+            sum(bithon-jvm-metrics.totalCount{appName="jacky"})
+            """;
         IPhysicalPlan physicalPlan = MetricExpressionPhysicalPlanner.builder()
                                                                     .schemaProvider(schemaProvider)
                                                                     .interval(IntervalRequest.builder()
-                                                                             .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
-                                                                             .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
-                                                                             .build())
+                                                                                             .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                                             .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                                             .build())
                                                                     .groupBy(expr);
 
         Assertions.assertEquals("""
-                                JdbcReadStep
-                                    SELECT sum("totalCount") AS "totalCount"
-                                    FROM "bithon_jvm_metrics"
-                                    WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
-                                """,
+                                    JdbcReadStep
+                                        SELECT sum("totalCount") AS "totalCount"
+                                        FROM "bithon_jvm_metrics"
+                                        WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
+                                    """,
                                 physicalPlan.serializeToText());
     }
 
     @Test
     public void test_SumAggregate_GroupBy() {
         String expr = """
-                      sum(bithon-jvm-metrics.totalCount{appName="jacky"}) by (appName)
-                      """;
+            sum(bithon-jvm-metrics.totalCount{appName="jacky"}) by (appName)
+            """;
         IPhysicalPlan physicalPlan = MetricExpressionPhysicalPlanner.builder()
                                                                     .schemaProvider(schemaProvider)
                                                                     .interval(IntervalRequest.builder()
-                                                                             .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
-                                                                             .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
-                                                                             .step(60)
-                                                                             .build())
+                                                                                             .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                                             .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                                             .step(60)
+                                                                                             .build())
                                                                     .groupBy(expr);
         Assertions.assertEquals("""
-                                JdbcReadStep
-                                    SELECT "appName",
-                                           sum("totalCount") AS "totalCount"
-                                    FROM "bithon_jvm_metrics"
-                                    WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
-                                    GROUP BY "appName"
-                                """,
+                                    JdbcReadStep
+                                        SELECT "appName",
+                                               sum("totalCount") AS "totalCount"
+                                        FROM "bithon_jvm_metrics"
+                                        WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
+                                        GROUP BY "appName"
+                                    """,
                                 physicalPlan.serializeToText());
     }
 
     @Test
     public void test_SumAggregate_GroupBy_TimeSeries() {
         String expr = """
-                      sum(bithon-jvm-metrics.totalCount{appName="jacky"}) by (appName)
-                      """;
+            sum(bithon-jvm-metrics.totalCount{appName="jacky"}) by (appName)
+            """;
         IPhysicalPlan physicalPlan = MetricExpressionPhysicalPlanner.builder()
                                                                     .schemaProvider(schemaProvider)
                                                                     .interval(IntervalRequest.builder()
-                                                                             .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
-                                                                             .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
-                                                                             .step(10)
-                                                                             .build())
+                                                                                             .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                                             .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                                             .step(10)
+                                                                                             .build())
                                                                     .timeSeries(expr);
 
         Assertions.assertEquals("""
-                                JdbcReadStep
-                                    SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
-                                           "appName",
-                                           sum("totalCount") AS "totalCount"
-                                    FROM "bithon_jvm_metrics"
-                                    WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
-                                    GROUP BY "appName", "_timestamp"
-                                """,
+                                    JdbcReadStep
+                                        SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
+                                               "appName",
+                                               sum("totalCount") AS "totalCount"
+                                        FROM "bithon_jvm_metrics"
+                                        WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
+                                        GROUP BY "appName", "_timestamp"
+                                    """,
                                 physicalPlan.serializeToText());
     }
 
     @Test
     public void test_LastAggregate() {
         String expr = """
-                      last(bithon-jvm-metrics.totalCount{appName="jacky"}) by (appName)
-                      """;
+            last(bithon-jvm-metrics.totalCount{appName="jacky"}) by (appName)
+            """;
 
         IPhysicalPlan physicalPlan = MetricExpressionPhysicalPlanner.builder()
                                                                     .schemaProvider(schemaProvider)
                                                                     .interval(IntervalRequest.builder()
-                                                                             .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
-                                                                             .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
-                                                                             .build())
+                                                                                             .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                                             .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                                             .build())
                                                                     .groupBy(expr);
 
         Assertions.assertEquals("""
-                                JdbcReadStep
-                                    SELECT "appName",
-                                           "totalCount"
-                                    FROM
-                                    (
-                                      SELECT "appName",
-                                             FIRST_VALUE("totalCount") OVER (PARTITION BY (UNIX_TIMESTAMP("timestamp") / 600) * 600 ORDER BY "timestamp" ASC) AS "totalCount"
-                                      FROM "bithon_jvm_metrics"
-                                      WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
-                                    )
-                                    GROUP BY "appName", "totalCount"
-                                """,
+                                    JdbcReadStep
+                                        SELECT "appName",
+                                               "totalCount"
+                                        FROM
+                                        (
+                                          SELECT "appName",
+                                                 FIRST_VALUE("totalCount") OVER (PARTITION BY (UNIX_TIMESTAMP("timestamp") / 600) * 600 ORDER BY "timestamp" ASC) AS "totalCount"
+                                          FROM "bithon_jvm_metrics"
+                                          WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
+                                        )
+                                        GROUP BY "appName", "totalCount"
+                                    """,
                                 physicalPlan.serializeToText());
     }
 
     @Test
     public void test_Arithmetic_TwoExpressions() {
         String expr = """
-                      sum(bithon-jvm-metrics.count4xx{appName="jacky"})
-                      +
-                      sum(bithon-jvm-metrics.count5xx{appName="jacky"})
-                      """;
+            sum(bithon-jvm-metrics.count4xx{appName="jacky"})
+            +
+            sum(bithon-jvm-metrics.count5xx{appName="jacky"})
+            """;
 
         IPhysicalPlan physicalPlan = MetricExpressionPhysicalPlanner.builder()
                                                                     .schemaProvider(schemaProvider)
                                                                     .interval(IntervalRequest.builder()
-                                                                             .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
-                                                                             .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
-                                                                             .build())
+                                                                                             .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                                             .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                                             .build())
                                                                     .groupBy(expr);
 
         Assertions.assertEquals("""
-                                AddStep, Result Column: value, Retained Columns: []
-                                    lhs:\s
-                                        JdbcReadStep
-                                            SELECT sum("count4xx") AS "count4xx"
-                                            FROM "bithon_jvm_metrics"
-                                            WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
-                                    rhs:\s
-                                        JdbcReadStep
-                                            SELECT sum("count5xx") AS "count5xx"
-                                            FROM "bithon_jvm_metrics"
-                                            WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
-                                """,
+                                    AddStep, Result Column: value, Retained Columns: []
+                                        lhs:\s
+                                            JdbcReadStep
+                                                SELECT sum("count4xx") AS "count4xx"
+                                                FROM "bithon_jvm_metrics"
+                                                WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
+                                        rhs:\s
+                                            JdbcReadStep
+                                                SELECT sum("count5xx") AS "count5xx"
+                                                FROM "bithon_jvm_metrics"
+                                                WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
+                                    """,
                                 physicalPlan.serializeToText());
     }
 
     @Test
     public void test_Arithmetic_WithLiteral() {
         String expr = """
-                      sum(bithon-jvm-metrics.count4xx{appName="jacky"})
-                      +
-                      5
-                      """;
+            sum(bithon-jvm-metrics.count4xx{appName="jacky"})
+            +
+            5
+            """;
 
         IPhysicalPlan physicalPlan = MetricExpressionPhysicalPlanner.builder()
                                                                     .schemaProvider(schemaProvider)
                                                                     .interval(IntervalRequest.builder()
-                                                                             .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
-                                                                             .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
-                                                                             .build())
+                                                                                             .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                                             .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                                             .build())
                                                                     .groupBy(expr);
 
         Assertions.assertEquals("""
-                                AddStep, Result Column: value, Retained Columns: []
-                                    lhs:\s
-                                        JdbcReadStep
-                                            SELECT sum("count4xx") AS "count4xx"
-                                            FROM "bithon_jvm_metrics"
-                                            WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
-                                    rhs:\s
-                                        5
-                                """,
+                                    AddStep, Result Column: value, Retained Columns: []
+                                        lhs:\s
+                                            JdbcReadStep
+                                                SELECT sum("count4xx") AS "count4xx"
+                                                FROM "bithon_jvm_metrics"
+                                                WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
+                                        rhs:\s
+                                            5
+                                    """,
+                                physicalPlan.serializeToText());
+    }
+
+    @Test
+    public void test_RelativeComparison() {
+        String expr = """
+            sum(bithon-jvm-metrics.count4xx{appName="jacky"})
+            >
+            30%[-1d]
+            """;
+
+        IPhysicalPlan physicalPlan = MetricExpressionPhysicalPlanner.builder()
+                                                                    .schemaProvider(schemaProvider)
+                                                                    .interval(IntervalRequest.builder()
+                                                                                             .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                                             .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                                             .build())
+                                                                    .groupBy(expr);
+
+        Assertions.assertEquals("""
+                                    ComparisonStep: GT
+                                        lhs:\s
+                                          JdbcReadStep
+                                              SELECT sum("count4xx") AS "count4xx"
+                                              FROM "bithon_jvm_metrics"
+                                              WHERE ("bithon_jvm_metrics"."timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("bithon_jvm_metrics"."timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'jacky')
+                                        rhs:\s
+                                          30%
+
+                                    """,
                                 physicalPlan.serializeToText());
     }
 }
