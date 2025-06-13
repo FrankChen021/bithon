@@ -50,12 +50,12 @@ public class MetricExpressionOptimizerTest {
 
     @Test
     public void test_Optimize_ConstantFolding_2() {
-        String expression = "1 + sum(dataSource.metric) + 2 + 3 + 4";
+        String expression = "1 + sum(dataSource.metric) + 2 * 3 + 4";
         IExpression ast = MetricExpressionASTBuilder.parse(expression);
-        Assertions.assertEquals("(((1 + sum(dataSource.metric)) + 2) + 3) + 4", ast.serializeToText());
+        Assertions.assertEquals("((1 + sum(dataSource.metric)) + (2 * 3)) + 4", ast.serializeToText());
 
         ast = MetricExpressionOptimizer.optimize(ast);
-        Assertions.assertEquals("sum(dataSource.metric) + 10", ast.serializeToText());
+        Assertions.assertEquals("sum(dataSource.metric) + 11", ast.serializeToText());
     }
 
     @Test

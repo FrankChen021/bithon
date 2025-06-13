@@ -86,6 +86,10 @@ public class SelectorList implements IASTNode {
         return selector;
     }
 
+    public void addAll(List<Selector> columns) {
+        selectors.addAll(columns);
+    }
+
     public int size() {
         return selectors.size();
     }

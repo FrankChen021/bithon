@@ -44,7 +44,7 @@ import org.bithon.server.commons.antlr4.SyntaxErrorListener;
 import org.bithon.server.metric.expression.MetricExpressionBaseVisitor;
 import org.bithon.server.metric.expression.MetricExpressionLexer;
 import org.bithon.server.metric.expression.MetricExpressionParser;
-import org.bithon.server.metric.expression.ast.MetricExpression;
+import org.bithon.server.metric.expression.ast.MetricAggregateExpression;
 import org.bithon.server.metric.expression.ast.MetricExpressionASTBuilder;
 
 import java.util.List;
@@ -88,8 +88,8 @@ public class AlertExpressionASTParser {
 
         @Override
         public IExpression visitAtomicAlertExpression(MetricExpressionParser.AtomicAlertExpressionContext ctx) {
-            IExpression expression = MetricExpressionASTBuilder.build(ctx.metricExpression());
-            if (!(expression instanceof MetricExpression metricExpression)) {
+            IExpression expression = MetricExpressionASTBuilder.toAST(ctx.metricExpression());
+            if (!(expression instanceof MetricAggregateExpression metricExpression)) {
                 throw new InvalidExpressionException("Complex expression is not supported now.");
             }
 
@@ -148,7 +148,7 @@ public class AlertExpressionASTParser {
         }
     }
 
-    private static IMetricEvaluator createMetricEvaluator(MetricExpression metricExpression) {
+    private static IMetricEvaluator createMetricEvaluator(MetricAggregateExpression metricExpression) {
         LiteralExpression<?> expected = metricExpression.getExpected();
         HumanReadableDuration offset = metricExpression.getOffset();
 

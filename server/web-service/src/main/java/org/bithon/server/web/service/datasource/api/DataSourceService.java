@@ -24,7 +24,7 @@ import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
-import org.bithon.server.datasource.query.pipeline.ColumnarTable;
+import org.bithon.server.datasource.query.result.ColumnarTable;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.context.annotation.Conditional;

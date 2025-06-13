@@ -32,8 +32,8 @@ import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
-import org.bithon.server.datasource.query.pipeline.Column;
-import org.bithon.server.datasource.query.pipeline.ColumnarTable;
+import org.bithon.server.datasource.query.result.Column;
+import org.bithon.server.datasource.query.result.ColumnarTable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 

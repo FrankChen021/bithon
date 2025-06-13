@@ -111,7 +111,7 @@ public abstract class LiteralExpression<T> implements IExpression {
     }
 
     /**
-     * NOTE: do not change the method name since it's used in the ExpressionDeserializer}
+     * NOTE: do not change the method name since it's used in the ExpressionDeserializer
      */
     public T getValue() {
         return value;
@@ -160,6 +160,18 @@ public abstract class LiteralExpression<T> implements IExpression {
     @Override
     public void serializeToText(ExpressionSerializer serializer) {
         serializer.serialize(this);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof LiteralExpression)) {
+            return false;
+        }
+        LiteralExpression<?> that = (LiteralExpression<?>) obj;
+        return this.getDataType() == that.getDataType() && this.value.equals(that.value);
     }
 
     public abstract boolean canNegate();
@@ -244,7 +256,7 @@ public abstract class LiteralExpression<T> implements IExpression {
                     return this;
 
                 case DOUBLE:
-                    return new LiteralExpression.DoubleLiteral(((Number) value).doubleValue());
+                    return new LiteralExpression.DoubleLiteral(value.doubleValue());
 
                 case BOOLEAN:
                     return new LiteralExpression.BooleanLiteral(value != 0);
@@ -291,13 +303,13 @@ public abstract class LiteralExpression<T> implements IExpression {
                     return new LiteralExpression.StringLiteral(value.toString());
 
                 case LONG:
-                    return new LiteralExpression.LongLiteral(((Number) value).longValue());
+                    return new LiteralExpression.LongLiteral(value.longValue());
 
                 case DOUBLE:
                     return this;
 
                 case BOOLEAN:
-                    return new LiteralExpression.BooleanLiteral(((Number) value).doubleValue() != 0);
+                    return new LiteralExpression.BooleanLiteral(value != 0);
 
                 default:
                     throw new UnsupportedOperationException("Can't cast a boolean value into type of " + targetType);
@@ -336,13 +348,13 @@ public abstract class LiteralExpression<T> implements IExpression {
                     return new LiteralExpression.StringLiteral(value.toString());
 
                 case LONG:
-                    return new LiteralExpression.LongLiteral(((Number) value).longValue());
+                    return new LiteralExpression.LongLiteral(value.longValue());
 
                 case DOUBLE:
                     return new LiteralExpression.DoubleLiteral(value.doubleValue());
 
                 case BOOLEAN:
-                    return new LiteralExpression.BooleanLiteral(((Number) value).doubleValue() != 0);
+                    return new LiteralExpression.BooleanLiteral(value.doubleValue() != 0);
 
                 default:
                     throw new UnsupportedOperationException("Can't cast a boolean value into type of " + targetType);

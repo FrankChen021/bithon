@@ -74,5 +74,10 @@ public class QueryRequest {
     @Nullable
     private HumanReadableDuration offset;
 
+    /**
+     * filter expression applied after query aggregation
+     */
+    private String postFilterExpression;
+
     private Query.ResultFormat resultFormat;
 }

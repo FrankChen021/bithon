@@ -18,6 +18,7 @@ package org.bithon.server.datasource.reader.jdbc.statement.ast;
 
 import lombok.Getter;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.server.datasource.query.ast.IASTNode;
 
 import java.util.ArrayList;
@@ -33,21 +34,42 @@ public class WhereClause implements IASTNode {
     private final List<IExpression> expressions = new ArrayList<>();
 
     public WhereClause and(IExpression expression) {
-        if (expression != null) {
+        if (expression == null) {
+            return this;
+        }
+
+        if (expression instanceof LogicalExpression.AND andExpression) {
+            // Flatten the AND expression
+            for (IExpression expr : andExpression.getOperands()) {
+                addExpression(expr);
+            }
+        } else {
             expressions.add(expression);
         }
         return this;
     }
 
     public WhereClause and(IExpression... expressions) {
-        if (expressions != null) {
-            for (IExpression expression : expressions) {
-                if (expression != null) {
-                    this.expressions.add(expression);
-                }
+        if (expressions == null) {
+            return this;
+        }
+
+        for (IExpression expression : expressions) {
+            if (expression == null) {
+                continue;
             }
+
+            addExpression(expression);
         }
         return this;
+    }
+
+    private void addExpression(IExpression expr) {
+        // Check if the expression already exists in the list
+        if (this.expressions.stream().anyMatch(e -> e.equals(expr))) {
+            return;
+        }
+        this.expressions.add(expr);
     }
 
     public boolean isEmpty() {

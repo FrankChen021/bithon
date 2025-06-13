@@ -22,6 +22,7 @@ import org.bithon.component.commons.concurrency.ScheduledExecutorServiceFactory;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.ISchemaProvider;
 import org.bithon.server.datasource.SchemaException;
 import org.springframework.context.SmartLifecycle;
 
@@ -40,7 +41,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2020-08-21 15:13:41
  */
 @Slf4j
-public class SchemaManager implements SmartLifecycle {
+public class SchemaManager implements SmartLifecycle, ISchemaProvider {
     private final List<ISchemaChangedListener> listeners = Collections.synchronizedList(new ArrayList<>());
     private final ISchemaStorage schemaStorage;
     private ScheduledExecutorService loaderScheduler;

@@ -9,12 +9,19 @@ alertExpression
 
 // sum by (a,b,c) (metric {})
 metricExpression
-  : aggregatorExpression LEFT_PARENTHESIS metricQNameExpression labelExpression? RIGHT_PARENTHESIS durationExpression? groupByExpression? #metricAggregationExpression
-  | metricExpression metricPredicateExpression metricExpectedExpression #metricFilterExpression
-  | metricExpression (MUL|DIV) metricExpression       #arithmeticExpression
+  : metricExpression (MUL|DIV) metricExpression       #arithmeticExpression
   | metricExpression (ADD|SUB) metricExpression       #arithmeticExpression
   | '(' metricExpression ')'                          #parenthesisMetricExpression
-  | numberLiteralExpression #metricLiteralExpression // This allows to use literal expression in arithmetic expression
+  | numberLiteralExpression                           #metricLiteralExpression // This allows to use literal expression in arithmetic expression
+  | metricSelectExpressionDecl                        #metricSelectExpression
+  | metricExpression metricPredicateExpression metricExpectedExpression #metricFilterExpression
+    // Legacy metric aggregation expression
+  | aggregatorExpression LEFT_PARENTHESIS metricSelectExpressionDecl RIGHT_PARENTHESIS durationExpression? groupByExpression? #metricAggregationExpression
+  | IDENTIFIER LEFT_PARENTHESIS metricExpression (',' metricExpression)* RIGHT_PARENTHESIS #functionCallExpression
+  ;
+
+metricSelectExpressionDecl
+  : metricQNameExpression labelExpression? durationExpression?
   ;
 
 aggregatorExpression

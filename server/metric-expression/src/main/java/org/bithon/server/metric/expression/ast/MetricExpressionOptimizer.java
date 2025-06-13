@@ -31,14 +31,23 @@ public class MetricExpressionOptimizer {
         implements IMetricExpressionVisitor<IExpression> {
 
         @Override
-        public IExpression visit(MetricExpression expression) {
+        public IExpression visit(MetricAggregateExpression expression) {
+            return expression;
+        }
+
+        @Override
+        public IExpression visit(MetricSelectExpression expression) {
+            return expression;
+        }
+
+        @Override
+        public IExpression visit(MetricExpectedExpression expression) {
             return expression;
         }
     }
 
     public static IExpression optimize(IExpression expression) {
-        return expression.accept(new ExtendedConstantFoldingOptimizer());
+        return expression.accept(new ExtendedConstantFoldingOptimizer())
+            ;
     }
-
-
 }

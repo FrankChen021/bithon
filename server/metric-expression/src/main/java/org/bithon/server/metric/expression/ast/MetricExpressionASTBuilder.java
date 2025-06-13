@@ -25,6 +25,7 @@ import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
+import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
@@ -34,6 +35,7 @@ import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.antlr4.SyntaxErrorListener;
 import org.bithon.server.metric.expression.MetricExpressionBaseVisitor;
@@ -87,10 +89,10 @@ public class MetricExpressionASTBuilder {
                                                     "Unexpected token");
         }
 
-        return build(ctx);
+        return toAST(ctx);
     }
 
-    public static IExpression build(MetricExpressionParser.MetricExpressionContext metricExpression) {
+    public static IExpression toAST(MetricExpressionParser.MetricExpressionContext metricExpression) {
         return metricExpression.accept(new BuilderImpl());
     }
 
@@ -125,17 +127,52 @@ public class MetricExpressionASTBuilder {
 
         @Override
         public IExpression visitMetricAggregationExpression(MetricExpressionParser.MetricAggregationExpressionContext ctx) {
+            String aggregatorText = ctx.aggregatorExpression().getText().toLowerCase(Locale.ENGLISH);
+            AggregatorEnum aggregator = AggregatorEnum.fromString(aggregatorText);
+            if (aggregator == null) {
+                return new FunctionExpression(aggregatorText, ctx.metricSelectExpressionDecl().accept(this));
+            }
+
+            MetricSelectExpression metricSelectExpression = (MetricSelectExpression) ctx.metricSelectExpressionDecl().accept(this);
+            HumanReadableDuration duration = null;
+            MetricExpressionParser.DurationExpressionContext windowExpressionCtx = ctx.durationExpression();
+            if (windowExpressionCtx != null) {
+                duration = windowExpressionCtx.accept(new DurationExpressionBuilder());
+                if (duration.isNegative()) {
+                    throw new InvalidExpressionException(StringUtils.format("The integer literal in duration expression '%s' must be greater than zero", windowExpressionCtx.getText()));
+                }
+                if (duration.isZero()) {
+                    throw new InvalidExpressionException(StringUtils.format("The integer literal in duration expression '%s' must be greater than zero", windowExpressionCtx.getText()));
+                }
+            }
+
+            Set<String> groupBy = null;
+            MetricExpressionParser.GroupByExpressionContext groupByExpression = ctx.groupByExpression();
+            if (groupByExpression != null) {
+                groupBy = groupByExpression.IDENTIFIER()
+                                           .stream()
+                                           .map((identifier) -> identifier.getSymbol().getText())
+                                           // Use LinkedHashSet to retain the order of given GROUP-BY fields
+                                           .collect(Collectors.toCollection(LinkedHashSet::new));
+            }
+
+            MetricAggregateExpression expression = new MetricAggregateExpression();
+            expression.setFrom(metricSelectExpression.getFrom());
+            expression.setLabelSelectorExpression(metricSelectExpression.getLabelSelectorExpression());
+
+            // For 'count' aggregator, use the 'count' as output column instead of using the column name as output name
+            expression.setMetric(new QueryField(aggregator.equals(AggregatorEnum.count) ? "count" : metricSelectExpression.getMetric(), metricSelectExpression.getMetric(), aggregator.name()));
+            expression.setGroupBy(groupBy);
+            expression.setWindow(duration == null ? metricSelectExpression.getWindow() : duration);
+
+            return expression;
+        }
+
+        @Override
+        public IExpression visitMetricSelectExpressionDecl(MetricExpressionParser.MetricSelectExpressionDeclContext ctx) {
             String[] names = ctx.metricQNameExpression().getText().split("\\.");
             String from = names[0];
             String metric = names[1];
-
-            String aggregatorText = ctx.aggregatorExpression().getText().toLowerCase(Locale.ENGLISH);
-            AggregatorEnum aggregator;
-            try {
-                aggregator = AggregatorEnum.valueOf(aggregatorText);
-            } catch (RuntimeException ignored) {
-                throw new InvalidExpressionException(StringUtils.format("The aggregator [%s] in the expression is not supported", aggregatorText));
-            }
 
             HumanReadableDuration duration = null;
             MetricExpressionParser.DurationExpressionContext windowExpressionCtx = ctx.durationExpression();
@@ -164,69 +201,64 @@ public class MetricExpressionASTBuilder {
                 }
             }
 
-            Set<String> groupBy = null;
-            MetricExpressionParser.GroupByExpressionContext groupByExpression = ctx.groupByExpression();
-            if (groupByExpression != null) {
-                groupBy = groupByExpression.IDENTIFIER()
-                                           .stream()
-                                           .map((identifier) -> identifier.getSymbol().getText())
-                                           // Use LinkedHashSet to retain the order of given GROUP-BY fields
-                                           .collect(Collectors.toCollection(LinkedHashSet::new));
-            }
-
-            MetricExpression expression = new MetricExpression();
+            MetricSelectExpression expression = new MetricSelectExpression();
             expression.setFrom(from);
             expression.setLabelSelectorExpression(whereExpression);
-
-            // For 'count' aggregator, use the 'count' as output column instead of using the column name as output name
-            expression.setMetric(new QueryField(aggregator.equals(AggregatorEnum.count) ? "count" : metric, metric, aggregator.name()));
-            expression.setGroupBy(groupBy);
+            expression.setMetric(metric);
             expression.setWindow(duration);
-
             return expression;
         }
 
         @Override
         public IExpression visitMetricFilterExpression(MetricExpressionParser.MetricFilterExpressionContext ctx) {
-            IExpression expression = ctx.metricExpression().accept(this);
-            if (!(expression instanceof MetricExpression metricExpression)) {
-                throw new InvalidExpressionException("The metric filter expression must be a metric expression");
-            }
+            IExpression lhs = ctx.metricExpression().accept(this);
 
             //
             // Metric Predicate
             //
             MetricExpressionParser.MetricPredicateExpressionContext predicateExpression = ctx.metricPredicateExpression();
-            if (predicateExpression != null) {
-                MetricExpressionParser.MetricExpectedExpressionContext expectedExpression = ctx.metricExpectedExpression();
-                LiteralExpression<?> expected = (LiteralExpression<?>) expectedExpression.literalExpression().accept(new LiteralExpressionBuilder());
+            MetricExpressionParser.MetricExpectedExpressionContext expectedExpression = ctx.metricExpectedExpression();
+            LiteralExpression<?> expected = (LiteralExpression<?>) expectedExpression.literalExpression().accept(new LiteralExpressionBuilder());
 
-                HumanReadableDuration offset = null;
-                MetricExpressionParser.DurationExpressionContext offsetParseContext = expectedExpression.durationExpression();
-                if (offsetParseContext != null) {
-                    offset = offsetParseContext.accept(new DurationExpressionBuilder());
-                    if (!offset.isNegative()) {
-                        throw new InvalidExpressionException("The value in the offset expression '%s' must be negative.", offsetParseContext.getText());
-                    }
+            HumanReadableDuration offset = null;
+            MetricExpressionParser.DurationExpressionContext offsetParseContext = expectedExpression.durationExpression();
+            if (offsetParseContext != null) {
+                Preconditions.checkIfTrue(lhs instanceof MetricSelectExpression || lhs instanceof MetricAggregateExpression,
+                                          "The offset expression '%s' is only supported for metric select/aggregate expression.", offsetParseContext.getText());
 
-                    if (offset.isZero()) {
-                        throw new InvalidExpressionException("The value in the offset express '%s' can't be zero.", offsetParseContext.getText());
-                    }
-
-                    if (!(expected instanceof LiteralExpression.ReadablePercentageLiteral)) {
-                        throw new InvalidExpressionException("The absolute value in the offset expression '%s' is not supported. ONLY percentage is supported now.", expectedExpression.literalExpression().getText());
-                    }
+                offset = offsetParseContext.accept(new DurationExpressionBuilder());
+                if (!offset.isNegative()) {
+                    throw new InvalidExpressionException("The value in the offset expression '%s' must be negative.", offsetParseContext.getText());
                 }
 
-                PredicateEnum predicate = getPredicate(predicateExpression.getChild(TerminalNode.class, 0).getSymbol().getType(),
-                                                       expected,
-                                                       offset);
+                if (offset.isZero()) {
+                    throw new InvalidExpressionException("The value in the offset express '%s' can't be zero.", offsetParseContext.getText());
+                }
 
-                metricExpression.setPredicate(predicate);
-                metricExpression.setExpected(expected);
-                metricExpression.setOffset(offset);
+                if (!(expected instanceof LiteralExpression.ReadablePercentageLiteral)) {
+                    throw new InvalidExpressionException("The absolute value in the offset expression '%s' is not supported. ONLY percentage is supported now.", expectedExpression.literalExpression().getText());
+                }
             }
-            return metricExpression;
+
+            PredicateEnum predicate = getPredicate(predicateExpression.getChild(TerminalNode.class, 0).getSymbol().getType(),
+                                                   expected,
+                                                   offset);
+
+            return predicate.createComparisonExpression(lhs, MetricExpectedExpression.builder()
+                                                                                     .expected(expected)
+                                                                                     .offset(offset)
+                                                                                     .build());
+        }
+
+        @Override
+        public IExpression visitFunctionCallExpression(MetricExpressionParser.FunctionCallExpressionContext ctx) {
+            String function = ctx.IDENTIFIER().getSymbol().getText();
+            IExpression[] arguments = ctx.metricExpression()
+                                         .stream()
+                                         .map((metricExpression) -> metricExpression.accept(this))
+                                         .toList()
+                                         .toArray(new IExpression[0]);
+            return new FunctionExpression(function, arguments);
         }
 
         private static PredicateEnum getPredicate(int predicateToken,

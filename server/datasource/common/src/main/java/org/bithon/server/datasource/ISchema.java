@@ -64,6 +64,4 @@ public interface ISchema {
     }
 
     Period getTtl();
-
-
 }

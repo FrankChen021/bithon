@@ -31,11 +31,13 @@ import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ast.Selector;
-import org.bithon.server.datasource.query.pipeline.ColumnarTable;
-import org.bithon.server.datasource.query.pipeline.IQueryStep;
+import org.bithon.server.datasource.query.plan.logical.LogicalTableScan;
+import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
+import org.bithon.server.datasource.query.result.ColumnarTable;
 import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.pipeline.JdbcPipelineBuilder;
+import org.bithon.server.datasource.reader.jdbc.pipeline.JdbcReadStep;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.LimitClause;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByClause;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
@@ -52,6 +54,7 @@ import org.springframework.boot.autoconfigure.jooq.ExceptionTranslatorExecuteLis
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqProperties;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -115,6 +118,28 @@ public class JdbcDataSourceReader implements IDataSourceReader {
     }
 
     @Override
+    public IPhysicalPlan plan(LogicalTableScan tableScan, Interval interval) {
+        SelectStatement selectStatement = new SelectStatement();
+        selectStatement.getFrom().setExpression(new TableIdentifier(tableScan.table().getName()));
+        selectStatement.getFrom().setAlias(tableScan.table().getName());
+        selectStatement.getWhere().and(
+            new ComparisonExpression.GTE(interval.getTimestampColumn(), sqlDialect.toISO8601TimestampExpression(interval.getStartTime())),
+            new ComparisonExpression.LT(interval.getTimestampColumn(), sqlDialect.toISO8601TimestampExpression(interval.getEndTime())),
+            tableScan.filter());
+        selectStatement.getSelectorList().addAll(tableScan.selectorList());
+
+        return new JdbcReadStep(
+            dslContext,
+            tableScan.table(),
+            sqlDialect,
+            selectStatement,
+            interval,
+            tableScan.selectorList().stream().map(Selector::getOutputName).collect(Collectors.toList()),
+            Collections.emptyList()
+        );
+    }
+
+    @Override
     public ColumnarTable timeseries(Query query) {
         SelectStatementBuilder statementBuilder = SelectStatementBuilder.builder()
                                                                         .schema(query.getSchema())
@@ -130,16 +155,17 @@ public class JdbcDataSourceReader implements IDataSourceReader {
 
         Interval interval = query.getInterval();
 
-        IQueryStep queryStep = JdbcPipelineBuilder.builder()
-                                                  .dslContext(dslContext)
-                                                  .dialect(this.sqlDialect)
-                                                  .selectStatement(selectStatement)
-                                                  .interval(Interval.of(interval.getStartTime().floor(query.getInterval().getStep()),
-                                                                        interval.getEndTime(),
-                                                                        interval.getStep(),
-                                                                        null,
-                                                                        null))
-                                                  .build();
+        IPhysicalPlan queryStep = JdbcPipelineBuilder.builder()
+                                                     .dslContext(dslContext)
+                                                     .dialect(this.sqlDialect)
+                                                     .schema(query.getSchema())
+                                                     .selectStatement(selectStatement)
+                                                     .interval(Interval.of(interval.getStartTime().floor(query.getInterval().getStep()),
+                                                                           interval.getEndTime(),
+                                                                           interval.getStep(),
+                                                                           null,
+                                                                           null))
+                                                     .build();
 
         try {
             return queryStep.execute()

@@ -1,0 +1,395 @@
+/*
+ *    Copyright 2020 bithon.org
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+package org.bithon.server.metric.expression.plan;
+
+
+import org.bithon.component.commons.expression.ArithmeticExpression;
+import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.datasource.ISchemaProvider;
+import org.bithon.server.datasource.query.IDataSourceReader;
+import org.bithon.server.datasource.query.Interval;
+import org.bithon.server.datasource.query.plan.logical.ILogicalPlan;
+import org.bithon.server.datasource.query.plan.logical.ILogicalPlanVisitor;
+import org.bithon.server.datasource.query.plan.logical.LogicalAggregate;
+import org.bithon.server.datasource.query.plan.logical.LogicalBinaryOp;
+import org.bithon.server.datasource.query.plan.logical.LogicalFilter;
+import org.bithon.server.datasource.query.plan.logical.LogicalScalar;
+import org.bithon.server.datasource.query.plan.logical.LogicalTableScan;
+import org.bithon.server.datasource.query.plan.physical.ArithmeticStep;
+import org.bithon.server.datasource.query.plan.physical.FilterStep;
+import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
+import org.bithon.server.datasource.query.plan.physical.LiteralQueryStep;
+import org.bithon.server.datasource.query.plan.physical.MetricQueryStep;
+import org.bithon.server.metric.expression.ast.IMetricExpressionVisitor;
+import org.bithon.server.metric.expression.ast.MetricAggregateExpression;
+import org.bithon.server.metric.expression.ast.MetricExpectedExpression;
+import org.bithon.server.metric.expression.ast.MetricExpressionASTBuilder;
+import org.bithon.server.metric.expression.ast.MetricExpressionOptimizer;
+import org.bithon.server.metric.expression.ast.PredicateEnum;
+import org.bithon.server.web.service.datasource.api.IntervalRequest;
+import org.bithon.server.web.service.datasource.api.QueryField;
+
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+/**
+ * @author frank.chen021@outlook.com
+ * @date 4/4/25 3:53 pm
+ */
+public class MetricExpressionPhysicalPlanner {
+
+    private IntervalRequest interval;
+    private String condition;
+    private MetricExpressionPlannerSettings settings = MetricExpressionPlannerSettings.DEFAULT;
+    private ISchemaProvider schemaProvider;
+
+    public static MetricExpressionPhysicalPlanner builder() {
+        return new MetricExpressionPhysicalPlanner();
+    }
+
+    public MetricExpressionPhysicalPlanner interval(IntervalRequest interval) {
+        this.interval = interval;
+        return this;
+    }
+
+    public MetricExpressionPhysicalPlanner condition(String condition) {
+        this.condition = condition;
+        return this;
+    }
+
+    public MetricExpressionPhysicalPlanner settings(MetricExpressionPlannerSettings settings) {
+        this.settings = settings;
+        return this;
+    }
+
+    public MetricExpressionPhysicalPlanner schemaProvider(ISchemaProvider schemaProvider) {
+        this.schemaProvider = schemaProvider;
+        return this;
+    }
+
+    public IPhysicalPlan timeSeries(String expression) {
+        Preconditions.checkNotNull(this.interval, "interval of MetricExpressionPhysicalPlanner can't be null");
+
+        IExpression expr = MetricExpressionASTBuilder.parse(expression);
+
+        // Apply optimization like constant folding on parsed expression
+        // The optimization is applied here so that the above parse can be tested separately
+        expr = MetricExpressionOptimizer.optimize(expr);
+
+        ILogicalPlan logicalPlan = expr.accept(new MetricExpressionLogicalPlanner(schemaProvider));
+        return logicalPlan.accept(new PhysicalPlanImpl(Interval.of(this.interval.getStartISO8601(),
+                                                                   this.interval.getEndISO8601(),
+                                                                   this.interval.calculateStep(),
+                                                                   new IdentifierExpression("timestamp"))));
+    }
+
+    public IPhysicalPlan groupBy(String expression) {
+        IExpression expr = MetricExpressionASTBuilder.parse(expression);
+
+        // Apply optimization like constant folding on parsed expression
+        // The optimization is applied here so that the above parse can be tested separately
+        expr = MetricExpressionOptimizer.optimize(expr);
+
+        ILogicalPlan logicalPlan = expr.accept(new MetricExpressionLogicalPlanner(schemaProvider));
+        return logicalPlan.accept(new PhysicalPlanImpl(Interval.of(this.interval.getStartISO8601(),
+                                                                   this.interval.getEndISO8601(),
+                                                                   null,
+                                                                   new IdentifierExpression("timestamp"))));
+    }
+
+    static class PhysicalPlanImpl implements ILogicalPlanVisitor<IPhysicalPlan> {
+        private final Interval interval;
+
+        PhysicalPlanImpl(Interval interval) {
+            this.interval = interval;
+        }
+
+        @Override
+        public IPhysicalPlan visitAggregate(LogicalAggregate aggregate) {
+            IPhysicalPlan physicalPlan = aggregate.input().accept(this);
+            if (physicalPlan.canPushDownAggregate(aggregate)) {
+                return physicalPlan.pushDownAggregate(aggregate);
+            } else {
+                throw new UnsupportedOperationException("Aggregate not supported: " + aggregate);
+            }
+        }
+
+        @Override
+        public IPhysicalPlan visitTableScan(LogicalTableScan tableScan) {
+            try {
+                try (IDataSourceReader reader = tableScan.table().getDataStoreSpec().createReader()) {
+                    return reader.plan(tableScan, interval);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to create reader for table: " + tableScan.table().getName(), e);
+            }
+        }
+
+        @Override
+        public IPhysicalPlan visitBinaryOp(LogicalBinaryOp binaryOp) {
+            return switch (binaryOp.op()) {
+                case ADD -> new ArithmeticStep.Add(binaryOp.left().accept(this),
+                                                   binaryOp.right().accept(this));
+                case SUB -> new ArithmeticStep.Sub(binaryOp.left().accept(this),
+                                                   binaryOp.right().accept(this));
+                case MUL -> new ArithmeticStep.Mul(binaryOp.left().accept(this),
+                                                   binaryOp.right().accept(this));
+                case DIV -> new ArithmeticStep.Div(binaryOp.left().accept(this),
+                                                   binaryOp.right().accept(this));
+            };
+        }
+
+        @Override
+        public IPhysicalPlan visitScalar(LogicalScalar scalar) {
+            return new LiteralQueryStep(scalar.literal());
+        }
+
+        @Override
+        public IPhysicalPlan visitFilter(LogicalFilter filter) {
+            IPhysicalPlan curr = filter.left().accept(this);
+
+            if (filter.right() instanceof LogicalScalar scalar) {
+                if (scalar.offset() != null) {
+                    // AST level ensures that the left side is a MetricAggregateExpression/MetricSelectExpression
+
+                    IPhysicalPlan base = curr.offset(scalar.offset());
+
+                    // convert to expression as: (current - base) / base
+                    curr = new ArithmeticStep.Div(
+                        new ArithmeticStep.Sub(
+                            curr,
+                            base,
+                            // result column name
+                            "diff",
+
+                            // Retain all value columns in the result set
+                            true
+                        ),
+                        base,
+                        "delta",
+
+                        // Keep the current and base columns in the result set
+                        true
+                    );
+                }
+            }
+
+            return switch (filter.op()) {
+                case LT -> new FilterStep.LT(curr,
+                                             (Number) ((LogicalScalar) filter.right()).literal().getValue());
+                case LTE -> new FilterStep.LTE(curr,
+                                               (Number) ((LogicalScalar) filter.right()).literal().getValue());
+                case GT -> new FilterStep.GT(curr,
+                                             (Number) ((LogicalScalar) filter.right()).literal().getValue());
+                case GTE -> new FilterStep.GTE(curr,
+                                               (Number) ((LogicalScalar) filter.right()).literal().getValue());
+                case NE -> new FilterStep.NE(curr,
+                                             (Number) ((LogicalScalar) filter.right()).literal().getValue());
+                default -> throw new UnsupportedOperationException("Unsupported filter operation: " + filter.op());
+            };
+        }
+    }
+
+    private class Builder implements IMetricExpressionVisitor<IPhysicalPlan> {
+        @Override
+        public IPhysicalPlan visit(MetricAggregateExpression expression) {
+            String filterExpression = Stream.of(expression.getWhereText(), condition)
+                                            .filter(Objects::nonNull)
+                                            .collect(Collectors.joining(" AND "));
+
+            if (expression.getOffset() != null) {
+                // Create expression as: (current - base) / base
+                QueryField metricField = expression.getMetric();
+                String expr = StringUtils.format("%s(%s) * 1.0", metricField.getAggregator(), metricField.getField());
+                MetricQueryStep curr = MetricQueryStep.builder()
+                                                      .dataSource(expression.getFrom())
+                                                      .filterExpression(filterExpression)
+                                                      .groupBy(expression.getGroupBy())
+                                                      /*
+                                                      .fields(List.of(new QueryField(metricField.getName(), metricField.getField(), null, expr)))
+                                                      .interval(intervalRequest)
+                                                      .dataSourceApi(dataSourceApi)*/
+                                                      .build();
+
+                MetricQueryStep base = MetricQueryStep.builder()
+                                                      .dataSource(expression.getFrom())
+                                                      .filterExpression(filterExpression)
+                                                      .groupBy(expression.getGroupBy())
+                                                      /*
+                                                      .fields(List.of(new QueryField(
+                                                          // Use offset AS the output name
+                                                          expression.getOffset().toString(),
+                                                          metricField.getField(),
+                                                          null,
+                                                          expr)))
+                                                      .interval(intervalRequest)
+                                                      .offset(expression.getOffset())
+                                                      .dataSourceApi(dataSourceApi)*/
+                                                      .build();
+
+                //
+                return new ArithmeticStep.Div(
+                    new ArithmeticStep.Sub(
+                        curr,
+                        base,
+                        "diff",
+
+                        // Returns 'curr' as well as the computed result set
+                        true
+                    ),
+                    base,
+                    "delta",
+
+                    // Keep the current and base columns in the result set
+                    //metricField.getName(), expression.getOffset().toString()
+                    true
+                );
+            } else {
+                return MetricQueryStep.builder()
+                                      .dataSource(expression.getFrom())
+                                      .filterExpression(filterExpression)
+                                      .groupBy(expression.getGroupBy())
+                                      /*
+                                      .fields(List.of(expression.getMetric()))
+                                      .interval(intervalRequest)
+                                      .dataSourceApi(dataSourceApi)*/
+                                      .build();
+            }
+        }
+
+        /*
+        @Override
+        public IQueryStep visit(FunctionCallExpression expression) {
+            if (expression.getArguments() instanceof MetricSelectExpression selectExpression) {
+                AggregatorEnum aggregator = AggregatorEnum.fromString(expression.getOperator());
+                if (aggregator != null) {
+                    String filterExpression = Stream.of(selectExpression.getWhereText(), condition)
+                                                    .filter(Objects::nonNull)
+                                                    .collect(Collectors.joining(" AND "));
+                    return new MetricQueryStep(QueryRequest.builder()
+                                                           .dataSource(selectExpression.getFrom())
+                                                           .filterExpression(filterExpression)
+                                                           .groupBy(expression.getGroupBy())
+                                                           .fields(List.of(new QueryField(selectExpression.getMetric(),
+                                                                                          selectExpression.getMetric(),
+                                                                                          aggregator.name())))
+                                                           .interval(intervalRequest)
+                                                           .build(),
+                                               dataSourceApi);
+                } else {
+                    // other functions
+                    throw new UnsupportedOperationException("Unsupported metric call expression: " + expression.getOperator());
+                }
+            } else {
+                throw new UnsupportedOperationException("Unsupported metric call expression: " + expression.getArguments().getClass().getSimpleName());
+            }
+        }*/
+
+        @Override
+        public IPhysicalPlan visit(LiteralExpression<?> expression) {
+            return new LiteralQueryStep(expression, Interval.of(interval.getStartISO8601(),
+                                                                interval.getEndISO8601(),
+                                                                interval.calculateStep(),
+                                                                null));
+        }
+
+        @Override
+        public IPhysicalPlan visit(ArithmeticExpression expression) {
+            return switch (expression.getType()) {
+                case "+" -> new ArithmeticStep.Add(expression.getLhs().accept(this), expression.getRhs().accept(this));
+                case "-" -> new ArithmeticStep.Sub(expression.getLhs().accept(this), expression.getRhs().accept(this));
+                case "*" -> new ArithmeticStep.Mul(expression.getLhs().accept(this), expression.getRhs().accept(this));
+                case "/" -> new ArithmeticStep.Div(expression.getLhs().accept(this), expression.getRhs().accept(this));
+                default -> throw new UnsupportedOperationException("Unsupported arithmetic expression: " + expression.getType());
+            };
+        }
+
+        /**
+         * Push down the filter condition to the source step.
+         */
+        @Override
+        public IPhysicalPlan visit(ConditionalExpression expression) {
+            if (settings.isPushdownPostFilter()) {
+                IExpression lhs = expression.getLhs();
+                IExpression rhs = expression.getRhs();
+                if (lhs instanceof MetricAggregateExpression metricExpression
+                    && rhs instanceof MetricExpectedExpression expectedExpression) {
+                    if (expression instanceof ComparisonExpression.LT) {
+                        metricExpression.setPredicate(PredicateEnum.LT);
+                    } else if (expression instanceof ComparisonExpression.GT) {
+                        metricExpression.setPredicate(PredicateEnum.GT);
+                    } else if (expression instanceof ComparisonExpression.LTE) {
+                        metricExpression.setPredicate(PredicateEnum.LTE);
+                    } else if (expression instanceof ComparisonExpression.GTE) {
+                        metricExpression.setPredicate(PredicateEnum.GTE);
+                    } else if (expression instanceof ComparisonExpression.EQ) {
+                        metricExpression.setPredicate(PredicateEnum.EQ);
+                    } else if (expression instanceof ComparisonExpression.NE) {
+                        metricExpression.setPredicate(PredicateEnum.NE);
+                    } else {
+                        throw new UnsupportedOperationException("Unsupported comparison expression: " + expression.getClass().getSimpleName());
+                    }
+
+                    metricExpression.setExpected(expectedExpression.getExpected());
+                    metricExpression.setOffset(expectedExpression.getOffset());
+                    return this.visit(metricExpression);
+                }
+            }
+
+            IPhysicalPlan source = expression.getLhs().accept(this);
+
+            if (expression instanceof ComparisonExpression.LT) {
+                return new FilterStep.LT(
+                    source,
+                    (Number) ((MetricExpectedExpression) expression.getRhs()).getExpected().getValue()
+                );
+            }
+            if (expression instanceof ComparisonExpression.LTE) {
+                return new FilterStep.LTE(
+                    source,
+                    (Number) ((MetricExpectedExpression) expression.getRhs()).getExpected().getValue()
+                );
+            }
+            if (expression instanceof ComparisonExpression.GT) {
+                return new FilterStep.GT(
+                    source,
+                    (Number) ((MetricExpectedExpression) expression.getRhs()).getExpected().getValue()
+                );
+            }
+            if (expression instanceof ComparisonExpression.GTE) {
+                return new FilterStep.GTE(
+                    source,
+                    (Number) ((MetricExpectedExpression) expression.getRhs()).getExpected().getValue()
+                );
+            }
+            if (expression instanceof ComparisonExpression.NE) {
+                return new FilterStep.NE(
+                    source,
+                    (Number) ((MetricExpectedExpression) expression.getRhs()).getExpected().getValue()
+                );
+            }
+            throw new UnsupportedOperationException("Unsupported conditional expression: " + expression.getType());
+        }
+    }
+}

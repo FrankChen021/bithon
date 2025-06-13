@@ -20,11 +20,13 @@ package org.bithon.server.datasource.reader.jdbc.pipeline;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
-import org.bithon.server.datasource.query.pipeline.IQueryStep;
+import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
+import org.bithon.server.datasource.query.plan.physical.SlidingWindowAggregateStep;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByClause;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
@@ -46,6 +48,7 @@ public class JdbcPipelineBuilder {
     private ISqlDialect dialect;
     private SelectStatement selectStatement;
     private Interval interval;
+    private ISchema schema;
 
     private JdbcPipelineBuilder() {
     }
@@ -69,13 +72,17 @@ public class JdbcPipelineBuilder {
         return this;
     }
 
+    public JdbcPipelineBuilder schema(ISchema schema) {
+        this.schema = schema;
+        return this;
+    }
 
     public JdbcPipelineBuilder interval(Interval interval) {
         this.interval = interval;
         return this;
     }
 
-    public IQueryStep build() {
+    public IPhysicalPlan build() {
         List<Selector> windowFunctionSelectors = new ArrayList<>();
         List<String> inputColumns = new ArrayList<>();
         List<String> outputColumns = new ArrayList<>();
@@ -93,18 +100,24 @@ public class JdbcPipelineBuilder {
         }
 
         if (windowFunctionSelectors.isEmpty()) {
-            return new JdbcReadStep(dslContext, dialect, selectStatement, false);
+            return new JdbcReadStep(dslContext,
+                                    schema,
+                                    dialect,
+                                    selectStatement,
+                                    this.interval,
+                                    // TODO: Fixme: inputColumns and outputColumns are empty, should we throw an exception?
+                                    Collections.emptyList(),
+                                    Collections.emptyList());
         }
 
         WindowFunctionExpression windowFunctionExpression = (WindowFunctionExpression) ((ExpressionNode) windowFunctionSelectors.get(0).getSelectExpression()).getParsedExpression();
         LiteralExpression.LongLiteral window = (LiteralExpression.LongLiteral) windowFunctionExpression.getFrame().getStart();
         IdentifierExpression orderBy = (IdentifierExpression) windowFunctionExpression.getOrderBy()[0].getName();
 
-        List<String> keys = CollectionUtils.isEmpty(windowFunctionExpression.getPartitionBy()) ?
-            Collections.emptyList()
-            : Arrays.stream(windowFunctionExpression.getPartitionBy())
-                    .map((expr) -> ((IdentifierExpression) expr).getIdentifier())
-                    .toList();
+        List<String> keys = CollectionUtils.isEmpty(windowFunctionExpression.getPartitionBy()) ? Collections.emptyList()
+                                                                                               : Arrays.stream(windowFunctionExpression.getPartitionBy())
+                                                                                                       .map((expr) -> ((IdentifierExpression) expr).getIdentifier())
+                                                                                                       .toList();
 
         SelectStatement subQuery = (SelectStatement) selectStatement.getFrom().getExpression();
 
@@ -116,17 +129,22 @@ public class JdbcPipelineBuilder {
                                        .toList()
                                        .toArray(new OrderByClause[0]));
 
-        IQueryStep readStep = new JdbcReadStep(dslContext,
-                                               dialect,
-                                               subQuery,
-                                               false);
+        IPhysicalPlan readStep = new JdbcReadStep(dslContext,
+                                                  schema,
+                                                  dialect,
+                                                  subQuery,
+                                                  interval,
+                                                  // TODO: Fixme: inputColumns and outputColumns are empty, should we throw an exception?
+                                                  Collections.emptyList(),
+                                                  Collections.emptyList()
+        );
 
-        return new SlidingWindowAggregationStep(orderBy.getIdentifier(),
-                                                keys,
-                                                inputColumns,
-                                                outputColumns,
-                                                Duration.ofSeconds(window.getValue()),
-                                                this.interval,
-                                                readStep);
+        return new SlidingWindowAggregateStep(orderBy.getIdentifier(),
+                                              keys,
+                                              inputColumns,
+                                              outputColumns,
+                                              Duration.ofSeconds(window.getValue()),
+                                              this.interval,
+                                              readStep);
     }
 }

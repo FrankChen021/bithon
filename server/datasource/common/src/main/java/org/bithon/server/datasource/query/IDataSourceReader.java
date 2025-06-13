@@ -17,7 +17,9 @@
 package org.bithon.server.datasource.query;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.datasource.query.pipeline.ColumnarTable;
+import org.bithon.server.datasource.query.plan.logical.LogicalTableScan;
+import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
+import org.bithon.server.datasource.query.result.ColumnarTable;
 
 import java.util.List;
 
@@ -27,6 +29,10 @@ import java.util.List;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface IDataSourceReader extends AutoCloseable {
+
+    default IPhysicalPlan plan(LogicalTableScan tableScan, Interval interval) {
+        throw new UnsupportedOperationException("This data source does not support logical plan execution");
+    }
 
     ColumnarTable timeseries(Query query);
 
