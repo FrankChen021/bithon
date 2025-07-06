@@ -24,12 +24,14 @@ import org.bithon.component.brpc.exception.CallerSideException;
 import org.bithon.component.brpc.exception.ChannelException;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.TimeoutException;
+import org.bithon.component.brpc.message.ExceptionMessage;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.brpc.message.in.ServiceStreamingDataMessageIn;
 import org.bithon.component.brpc.message.in.ServiceStreamingEndMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.brpc.message.out.ServiceStreamingRequestMessageOut;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -242,7 +244,7 @@ public class InvocationManager {
             inflightRequests.remove(serviceRequest.getTransactionId());
 
             if (inflightRequest.exception != null) {
-                throw inflightRequest.exception;
+                throw inflightRequest.exception.toException();
             }
 
             if (inflightRequest.responseAt > 0) {
@@ -274,7 +276,8 @@ public class InvocationManager {
                                                response.getReturnAsRaw() :
                                                response.getReturningAsObject(inflightRequest.returnObjectType);
             } catch (IOException e) {
-                inflightRequest.exception = new ServiceInvocationException(e, "Failed to deserialize the received response: %s", e.getMessage());
+                inflightRequest.exception = new ExceptionMessage(ServiceInvocationException.class.getName(),
+                                                                 StringUtils.format("Failed to deserialize the received response: %s", e.getMessage()));
             }
         }
 
@@ -340,7 +343,7 @@ public class InvocationManager {
     public void handleException(long txId, Throwable e) {
         InflightRequest inflightRequest = inflightRequests.remove(txId);
         if (inflightRequest != null) {
-            inflightRequest.exception = e;
+            inflightRequest.exception = new ExceptionMessage(CallerSideException.class.getName(), e.getMessage());
             synchronized (inflightRequest) {
                 inflightRequest.responseAt = System.currentTimeMillis();
                 inflightRequest.notifyAll();
@@ -358,26 +361,29 @@ public class InvocationManager {
      * Handle channel closure - clean up all active requests and streams
      */
     public void handleChannelClosure() {
-        ServiceInvocationException e = new ServiceInvocationException("Channel closed during streaming");
+        ExceptionMessage e = new ExceptionMessage(ServiceInvocationException.class.getName(), "Channel closed");
 
         // Clean up regular requests
-        inflightRequests.values().removeIf(request -> {
-            request.exception = e;
-            synchronized (request) {
-                request.responseAt = System.currentTimeMillis();
-                request.notifyAll();
-            }
-            return true;
-        });
+        inflightRequests.values()
+                        .removeIf(request -> {
+                            request.exception = e;
+                            synchronized (request) {
+                                request.responseAt = System.currentTimeMillis();
+                                request.notifyAll();
+                            }
+                            return true;
+                        });
 
         // Clean up streaming requests
-        streamingRequests.values().removeIf(streamingRequest -> {
-            try {
-                streamingRequest.streamResponse.onException(e);
-            } catch (Exception ignored) {
-            }
-            return true;
-        });
+        Exception ex = e.toException();
+        streamingRequests.values()
+                         .removeIf(streamingRequest -> {
+                             try {
+                                 streamingRequest.streamResponse.onException(ex);
+                             } catch (Exception ignored) {
+                             }
+                             return true;
+                         });
     }
 
     /**
@@ -433,7 +439,7 @@ public class InvocationManager {
 
         volatile long responseAt;
         volatile Object returnObject;
-        volatile Throwable exception;
+        volatile ExceptionMessage exception;
     }
 
     static class StreamingRequest {
