@@ -354,28 +354,37 @@ public class AgentDiagnosisApi {
 
                                           if (elapsed % request.getInterval() == 0) {
 
-                                              CompletableFuture.supplyAsync(() -> {
-                                                                   List<IJvmCommand.ThreadInfo> threadInfos = agentJvmCommand.dumpThreads();
-                                                                   return threadInfos;
-                                                               }, profilingExecutor)
+                                              CompletableFuture.supplyAsync(agentJvmCommand::dumpThreads, profilingExecutor)
                                                                .thenAccept(threadInfos -> {
+                                                                   SseEmitter.SseEventBuilder builder = SseEmitter.event()
+                                                                                                                  .id(String.valueOf(elapsed))
+                                                                                                                  .name("thread")
+                                                                                                                  .data(threadInfos, MediaType.APPLICATION_JSON);
                                                                    try {
-                                                                       emitter.send(SseEmitter.event()
-                                                                                              .id(String.valueOf(elapsed))
-                                                                                              .name("thread")
-                                                                                              .data(threadInfos, MediaType.APPLICATION_JSON));
+                                                                       emitter.send(builder);
+                                                                   } catch (IllegalStateException e) {
+                                                                       if (e.getMessage() == null || !e.getMessage().contains("completed")) {
+                                                                           // the exception which is not thrown by SseEmitter
+                                                                           throw e;
+                                                                       }
+
+                                                                       // The emitter has been completed, ignore the exception
+                                                                       // This is because the above send is executed in a different thread,
+                                                                       // when it's the last round to executed, the following code might close the emitter already
                                                                    } catch (IOException e) {
+                                                                       // Ignore the broken pipe exception which is expected when the client closes the connection
                                                                        if (!e.getMessage().contains("Broken pipe")) {
                                                                            emitter.completeWithError(e);
                                                                        }
                                                                        stopProfiling.run();
                                                                    }
                                                                }).exceptionally((ex) -> {
-                                                                   if (ex != null) {
-                                                                       stopProfiling.run();
-
-                                                                       log.error("Failed to get thread info", ex);
+                                                                   if (ex.getCause() != null) {
+                                                                       ex = ex.getCause();
                                                                    }
+                                                                   stopProfiling.run();
+                                                                   emitter.completeWithError(ex);
+                                                                   log.error("Failed to get thread info", ex);
 
                                                                    return null;
                                                                });
