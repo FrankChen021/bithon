@@ -56,9 +56,10 @@ public interface IAgentControllerApi {
         public String buildId;
         public String buildTime;
         public LocalDateTime startAt;
+        public LocalDateTime sessionStartAt;
 
         public Object[] toObjectArray() {
-            return new Object[]{appName, instance, endpoint, controller, agentVersion, buildId, buildTime, startAt};
+            return new Object[]{appName, instance, endpoint, controller, agentVersion, buildId, buildTime, startAt, sessionStartAt};
         }
     }
 
