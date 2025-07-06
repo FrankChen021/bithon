@@ -91,7 +91,7 @@ public class BrpcServer implements Closeable {
             .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
             .option(ChannelOption.SO_BACKLOG, builder.backlog)
             .option(ChannelOption.SO_REUSEADDR, true)
-            .childOption(ChannelOption.SO_KEEPALIVE, false)
+            .childOption(ChannelOption.SO_KEEPALIVE, true)
             .childOption(ChannelOption.TCP_NODELAY, true)
             .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
             .childHandler(new ChannelInitializer<NioSocketChannel>() {
@@ -262,6 +262,10 @@ public class BrpcServer implements Closeable {
         public LowLevelInvoker getLowLevelInvoker() {
             return new LowLevelInvoker(new Server2ClientChannel(channel, sessionStartTimestamp), invocationManager);
         }
+
+        public long getSessionStartTimestamp() {
+            return sessionStartTimestamp;
+        }
     }
 
     /**
@@ -319,10 +323,11 @@ public class BrpcServer implements Closeable {
                 ctx.channel().close();
 
                 // Since the above call is async, we remove the session immediately to reflect the timeout at application side
-                Session session = sessions.remove(ctx.channel().id().asLongText());
+                Session session = sessions.get(ctx.channel().id().asLongText());
                 if (session != null) {
                     LoggerFactory.getLogger(BrpcServer.class)
-                                 .info("Close idle connection: {} -> {}, session life time: {}ms",
+                                 .info("Close idle connection from app = {}, {} -> {}, session life time: {}ms",
+                                       session.remoteApplicationName,
                                        session.remoteEndpoint,
                                        session.localEndpoint,
                                        System.currentTimeMillis() - session.sessionStartTimestamp);
