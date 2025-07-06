@@ -37,6 +37,7 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.io.netty.bootstrap.Bootstrap;
 import org.bithon.shaded.io.netty.channel.Channel;
+import org.bithon.shaded.io.netty.channel.ChannelFuture;
 import org.bithon.shaded.io.netty.channel.ChannelHandler;
 import org.bithon.shaded.io.netty.channel.ChannelHandlerContext;
 import org.bithon.shaded.io.netty.channel.ChannelInboundHandlerAdapter;
@@ -49,7 +50,6 @@ import org.bithon.shaded.io.netty.channel.socket.SocketChannel;
 import org.bithon.shaded.io.netty.channel.socket.nio.NioSocketChannel;
 import org.bithon.shaded.io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import org.bithon.shaded.io.netty.handler.codec.LengthFieldPrepender;
-import org.bithon.shaded.io.netty.util.concurrent.Future;
 
 import java.io.Closeable;
 import java.time.Duration;
@@ -76,6 +76,7 @@ public class BrpcClient implements IBrpcChannel, Closeable {
      * a logic name of the client, which could be used for the servers to find client instances
      */
     private final String appName;
+    private final String clientId;
 
     /**
      * unique id of client application
@@ -85,7 +86,6 @@ public class BrpcClient implements IBrpcChannel, Closeable {
     private long connectionTimestamp;
 
     private final InvocationManager invocationManager;
-    private final Duration connectionTimeout;
 
     /**
      * Use {@link BrpcClientBuilder} to create instance.
@@ -97,12 +97,14 @@ public class BrpcClient implements IBrpcChannel, Closeable {
         this.maxRetry = Math.max(1, builder.maxRetry);
         this.retryBackoff = builder.retryBackoff;
         this.appName = builder.appName;
+        this.clientId = builder.clientId;
 
         this.invocationManager = new InvocationManager();
         this.bossGroup = new NioEventLoopGroup(builder.ioThreads, NamedThreadFactory.daemonThreadFactory("brpc-c-io-" + builder.clientId));
         this.bootstrap = new Bootstrap().group(this.bossGroup)
                                         .channel(NioSocketChannel.class)
                                         .option(ChannelOption.SO_KEEPALIVE, builder.keepAlive)
+                                        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) builder.connectionTimeout.toMillis())
                                         .handler(new ChannelInitializer<SocketChannel>() {
                                             @Override
                                             public void initChannel(SocketChannel ch) {
@@ -112,15 +114,13 @@ public class BrpcClient implements IBrpcChannel, Closeable {
                                                 pipeline.addLast("decoder", new ServiceMessageInDecoder());
                                                 pipeline.addLast("encoder", new ServiceMessageOutEncoder(invocationManager));
                                                 pipeline.addLast(new ClientChannelManager());
-                                                pipeline.addLast(new ServiceMessageChannelHandler(builder.clientId, serviceRegistry, Runnable::run, invocationManager));
+                                                pipeline.addLast(new ServiceMessageChannelHandler(builder.clientId, serviceRegistry, builder.executor, invocationManager));
                                             }
                                         });
 
         if (builder.lowMaterMark > 0 && builder.highMaterMark > 0) {
             this.bootstrap.option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(builder.lowMaterMark, builder.highMaterMark));
         }
-
-        this.connectionTimeout = builder.connectionTimeout;
 
         if (builder.headers != null) {
             for (Map.Entry<String, String> entry : builder.headers.entrySet()) {
@@ -186,14 +186,14 @@ public class BrpcClient implements IBrpcChannel, Closeable {
     public void close() {
         close(2, 15, TimeUnit.SECONDS);
     }
-    
+
     /**
      * Close the client with custom shutdown timeouts.
      * This is useful for tests that need faster shutdown.
-     * 
+     *
      * @param quietPeriod the quiet period for graceful shutdown
-     * @param timeout the maximum time to wait for shutdown
-     * @param unit the time unit
+     * @param timeout     the maximum time to wait for shutdown
+     * @param unit        the time unit
      */
     public void close(long quietPeriod, long timeout, TimeUnit unit) {
         if (this.bossGroup != null) {
@@ -205,7 +205,7 @@ public class BrpcClient implements IBrpcChannel, Closeable {
         this.bossGroup = null;
         this.channelRef.getAndSet(null);
     }
-    
+
     /**
      * Fast shutdown for tests - uses minimal timeouts
      */
@@ -218,10 +218,14 @@ public class BrpcClient implements IBrpcChannel, Closeable {
         for (int i = 0; i < maxRetry; i++) {
             server = this.server.getEndpoint();
             try {
-                Future<?> connectFuture = bootstrap.connect(server.getHost(), server.getPort());
-                connectFuture.await(this.connectionTimeout.toMillis(), TimeUnit.MILLISECONDS);
+                ChannelFuture connectFuture = bootstrap.connect(server.getHost(), server.getPort())
+                                                       .awaitUninterruptibly();
                 if (connectFuture.isSuccess()) {
                     connectionTimestamp = System.currentTimeMillis();
+
+                    // Directly update the ref so that we can use the channel immediately
+                    channelRef.getAndSet(connectFuture.channel());
+
                     LOG.info("Successfully connected to remote service at [{}:{}]", server.getHost(), server.getPort());
                     return;
                 }
@@ -267,16 +271,28 @@ public class BrpcClient implements IBrpcChannel, Closeable {
     @ChannelHandler.Sharable
     class ClientChannelManager extends ChannelInboundHandlerAdapter {
         @Override
-        public void channelActive(ChannelHandlerContext ctx) {
+        public void channelActive(ChannelHandlerContext ctx) throws Exception {
+            LOG.info("[{}] Channel {} to {} is active",
+                     BrpcClient.this.clientId,
+                     ctx.channel().id().asLongText(),
+                     ctx.channel().remoteAddress());
+
             BrpcClient.this.channelRef.getAndSet(ctx.channel());
+
+            super.channelActive(ctx);
         }
 
         @Override
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+            LOG.info("[{}] Channel {} is inactive",
+                     BrpcClient.this.clientId,
+                     ctx.channel().id().asLongText());
+
             BrpcClient.this.channelRef.getAndSet(null);
 
             // Reset the connection timestamp so that we know that the connection is not connected
             BrpcClient.this.connectionTimestamp = 0;
+
             super.channelInactive(ctx);
         }
     }
