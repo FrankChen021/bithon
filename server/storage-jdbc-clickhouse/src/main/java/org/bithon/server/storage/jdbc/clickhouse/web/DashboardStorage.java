@@ -29,10 +29,8 @@ import org.bithon.server.storage.jdbc.clickhouse.common.SecondaryIndex;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.dashboard.DashboardJdbcStorage;
-import org.jooq.Record;
 
 import java.sql.Timestamp;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -69,12 +67,10 @@ public class DashboardStorage extends DashboardJdbcStorage {
                                .getSQL() + " FINAL WHERE ";
         sql += dslContext.renderInlined(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.ge(new Timestamp(afterTimestamp).toLocalDateTime()));
 
-        List<Record> records = dslContext.fetch(sql);
-        if (records == null) {
-            return Collections.emptyList();
-        }
-
-        return records.stream().map(this::toDashboard).collect(Collectors.toList());
+        return dslContext.fetch(sql)
+                         .stream()
+                         .map(this::toDashboard)
+                         .collect(Collectors.toList());
     }
 
     @Override

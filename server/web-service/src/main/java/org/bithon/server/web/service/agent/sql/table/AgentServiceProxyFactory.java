@@ -159,7 +159,7 @@ public class AgentServiceProxyFactory {
                              Method agentServiceMethod,
                              Object[] args) {
             //
-            // Invoke agent service via an controller
+            // Invoke agent service via a controller
             //
             try {
                 return brpcInvocationManager.invoke("bithon-webservice",
@@ -265,7 +265,7 @@ public class AgentServiceProxyFactory {
             }
 
             //
-            // Invoke agent service via an controller
+            // Invoke agent service via a controller
             //
             try {
                 return brpcInvocationManager.invoke("bithon-webservice",

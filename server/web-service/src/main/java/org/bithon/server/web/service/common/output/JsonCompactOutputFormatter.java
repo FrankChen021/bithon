@@ -55,16 +55,17 @@ public class JsonCompactOutputFormatter implements IOutputFormatter {
 
                 writer.write("\"rows\": [");
                 {
-                    Enumerator<Object[]> e = rows.enumerator();
-                    if (e.moveNext()) {
-                        boolean hasNext;
-                        do {
-                            objectMapper.writeValue(generator, e.current());
-                            hasNext = e.moveNext();
-                            if (hasNext) {
-                                writer.write(',');
-                            }
-                        } while (hasNext);
+                    try (Enumerator<Object[]> e = rows.enumerator()) {
+                        if (e.moveNext()) {
+                            boolean hasNext;
+                            do {
+                                objectMapper.writeValue(generator, e.current());
+                                hasNext = e.moveNext();
+                                if (hasNext) {
+                                    writer.write(',');
+                                }
+                            } while (hasNext);
+                        }
                     }
                 }
             }
