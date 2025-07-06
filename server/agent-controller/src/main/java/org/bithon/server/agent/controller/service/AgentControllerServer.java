@@ -19,12 +19,17 @@ package org.bithon.server.agent.controller.service;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.component.brpc.channel.BrpcServerBuilder;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.agent.controller.config.AgentControllerConfig;
 import org.bithon.server.commons.spring.EnvironmentBinder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author frank.chen021@outlook.com
@@ -55,8 +60,16 @@ public class AgentControllerServer implements SmartLifecycle {
         this.loader = loader;
         this.brpcServer = BrpcServerBuilder.builder()
                                            .serverId("ctrl")
+                                           .idleSeconds(120)
                                            .lowWaterMark(config.getChannel() == null ? 128 * 1024 : config.getChannel().getLowWaterMark().intValue())
                                            .highWaterMark(config.getChannel() == null ? 256 * 1024 : config.getChannel().getHighWaterMark().intValue())
+                                           .executor(new ThreadPoolExecutor(1,
+                                                                            Runtime.getRuntime().availableProcessors(),
+                                                                            3,
+                                                                            TimeUnit.MINUTES,
+                                                                            new LinkedBlockingQueue<>(128),
+                                                                            NamedThreadFactory.daemonThreadFactory("ctrl-executor-"),
+                                                                            new ThreadPoolExecutor.CallerRunsPolicy()))
                                            .build()
                                            .bindService(new AgentSettingFetcher(loader));
     }

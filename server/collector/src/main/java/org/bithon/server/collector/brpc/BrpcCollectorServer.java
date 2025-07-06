@@ -63,7 +63,7 @@ public class BrpcCollectorServer {
                                                                                         3,
                                                                                         TimeUnit.MINUTES,
                                                                                         new LinkedBlockingQueue<>(1024),
-                                                                                        NamedThreadFactory.daemonThreadFactory("brpc-executor-" + group),
+                                                                                        NamedThreadFactory.daemonThreadFactory("brpc-collector-" + group),
                                                                                         new ThreadPoolExecutor.CallerRunsPolicy()))
                                                        .build();
             serviceGroup.start(port);
