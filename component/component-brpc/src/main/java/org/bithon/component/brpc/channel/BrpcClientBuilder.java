@@ -22,6 +22,7 @@ import org.bithon.component.brpc.endpoint.SingleEndPointProvider;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 /**
  * @author frank.chen021@outlook.com
@@ -40,6 +41,13 @@ public class BrpcClientBuilder {
 
     IEndPointProvider server;
     Map<String, String> headers;
+
+    /**
+     * The executor that executes the services at client side.
+     * Note that the services in brpc is bidirectional, server side can also call services at client side.
+     * Can be null. If it's null, the service invocation at client side is executed in the netty's IO thread.
+     */
+    Executor executor = null;
 
     /**
      * The name that is used to set to threads of this client.
@@ -118,6 +126,11 @@ public class BrpcClientBuilder {
 
     public BrpcClientBuilder highMaterMark(int high) {
         this.highMaterMark = high;
+        return this;
+    }
+
+    public BrpcClientBuilder executor(Executor executor) {
+        this.executor = executor;
         return this;
     }
 

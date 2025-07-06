@@ -31,6 +31,7 @@ import org.bithon.component.brpc.exception.CalleeSideException;
 import org.bithon.component.brpc.exception.CallerSideException;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.message.Headers;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -38,6 +39,9 @@ import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -65,14 +69,20 @@ public class BrpcAgentController implements IAgentController {
                                       .applicationName(appInstance.getQualifiedName())
                                       .clientId("ctrl")
                                       .server(new RoundRobinEndPointProvider(endpoints))
-                                      .ioThreads(2)
                                       .maxRetry(3)
-                                      .retryBackOff(Duration.ofSeconds(2))
+                                      .retryBackOff(Duration.ofMillis(200))
                                       .connectionTimeout(Duration.ofMillis(config.getClient().getConnectionTimeout()))
                                       .header(Headers.HEADER_VERSION, AgentBuildVersion.getString())
                                       .header(Headers.HEADER_START_TIME, String.valueOf(ManagementFactory.getRuntimeMXBean().getStartTime()))
                                       .lowMaterMark(config.getClient().getLowWaterMark().intValue())
                                       .highMaterMark(config.getClient().getHighWaterMark().intValue())
+                                      .executor(new ThreadPoolExecutor(1,
+                                                                       Runtime.getRuntime().availableProcessors(),
+                                                                       1,
+                                                                       TimeUnit.MINUTES,
+                                                                       new LinkedBlockingQueue<>(16),
+                                                                       NamedThreadFactory.daemonThreadFactory("ctrl-executor-"),
+                                                                       new ThreadPoolExecutor.CallerRunsPolicy()))
                                       .build();
 
         if (appInstance.getPort() > 0) {

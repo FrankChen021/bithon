@@ -101,6 +101,7 @@ public class AgentControllerApi implements IAgentControllerApi {
                                         } catch (NumberFormatException ignored) {
                                         }
                                         record.setStartAt(new Timestamp(start).toLocalDateTime());
+                                        record.setSessionStartAt(new Timestamp(session.getSessionStartTimestamp()).toLocalDateTime());
                                         return record;
                                     })
                                     .filter((record) -> application == null || application.equals(record.getAppName())
