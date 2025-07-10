@@ -48,7 +48,7 @@ public class PropertyFileValuePreconditionTest {
     public void test_VersionGTE() {
         boolean matches = new PropertyFileValuePrecondition("version.properties",
                                                             "v1",
-                                                            PropertyFileValuePrecondition.VersionGT.of("1.0.0"))
+                                                            PropertyFileValuePrecondition.VersionGTE.of("1.0.0"))
             .matches(PropertyFileValuePreconditionTest.class.getClassLoader(), null);
         Assertions.assertTrue(matches);
 
