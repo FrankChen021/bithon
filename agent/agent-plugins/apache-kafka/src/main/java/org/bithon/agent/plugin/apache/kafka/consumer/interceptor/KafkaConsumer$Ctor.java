@@ -41,6 +41,10 @@ public class KafkaConsumer$Ctor extends AfterInterceptor {
         }
 
         ConsumerConfig consumerConfig = aopContext.getArgAs(0);
+        onCall(consumerConfig, aopContext);
+    }
+
+    protected void onCall(ConsumerConfig consumerConfig, AopContext aopContext) {
         String groupId = consumerConfig.getString(ConsumerConfig.GROUP_ID_CONFIG);
         String clientId = (String) ReflectionUtils.getFieldValue(aopContext.getTarget(), "clientId");
 
@@ -90,7 +94,7 @@ public class KafkaConsumer$Ctor extends AfterInterceptor {
      *
      * @param consumerNetworkClient type of {@link ConsumerNetworkClient}
      */
-    private boolean setContextOnNetworkClient(KafkaPluginContext ctx, Object consumerNetworkClient) {
+    protected boolean setContextOnNetworkClient(KafkaPluginContext ctx, Object consumerNetworkClient) {
         Object kafkaNetworkClient = ReflectionUtils.getFieldValue(consumerNetworkClient, "client");
         if (kafkaNetworkClient instanceof IBithonObject) {
             ((IBithonObject) kafkaNetworkClient).setInjectedObject(ctx);
