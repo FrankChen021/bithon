@@ -26,14 +26,19 @@ import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/6 3:28 下午
  */
 public interface ITraceReader extends IDataSourceReader {
-    CloseableIterator<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end);
+    CloseableIterator<TraceSpan> getTraceByTraceId(String traceId,
+                                                   IExpression expression,
+                                                   TimeSpan start,
+                                                   TimeSpan end);
 
     List<TraceSpan> getTraceList(IExpression filter,
                                  List<IExpression> indexedTagFilters,
@@ -60,4 +65,11 @@ public interface ITraceReader extends IDataSourceReader {
      */
     TraceIdMapping getTraceIdByMapping(String userId);
 
+    int getTraceSpanCount(String txId, IExpression filter, TimeSpan start, TimeSpan end);
+
+    List<Map<String, Object>> getTraceSpanDistribution(String txId,
+                                                       IExpression filter,
+                                                       TimeSpan start,
+                                                       TimeSpan end,
+                                                       Collection<String> groups);
 }

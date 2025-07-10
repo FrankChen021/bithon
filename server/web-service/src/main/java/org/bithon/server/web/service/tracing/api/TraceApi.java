@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.component.commons.utils.Watch;
 import org.bithon.server.commons.time.TimeSpan;
@@ -75,6 +76,7 @@ public class TraceApi {
         Watch<List<TraceSpan>> getSpanList = new Watch<>(() -> {
             try (CloseableIterator<TraceSpan> iterator = traceService.getTraceByTraceId(request.getId(),
                                                                                         request.getType(),
+                                                                                        request.getFilterExpression(),
                                                                                         request.getStartTimeISO8601(),
                                                                                         request.getEndTimeISO8601())) {
                 List<TraceSpan> spans = new ArrayList<>(128);
@@ -105,6 +107,7 @@ public class TraceApi {
     @PostMapping("/api/trace/getTraceById/v2")
     public ResponseEntity<StreamingResponseBody> getTraceByIdV2(@Valid @RequestBody GetTraceByIdRequest request,
                                                                 HttpServletRequest httpRequest) {
+
         // Check if client accepts gzip encoding
         String acceptEncoding = httpRequest.getHeader(HttpHeaders.ACCEPT_ENCODING);
         boolean useGzip = acceptEncoding != null && acceptEncoding.contains("gzip");
@@ -118,6 +121,7 @@ public class TraceApi {
 
                  CloseableIterator<TraceSpan> iterator = traceService.getTraceByTraceId(request.getId(),
                                                                                         request.getType(),
+                                                                                        request.getFilterExpression(),
                                                                                         request.getStartTimeISO8601(),
                                                                                         request.getEndTimeISO8601())) {
 
@@ -193,6 +197,45 @@ public class TraceApi {
         }
 
         return responseBuilder.body(responseBodyStream);
+    }
+
+    @PostMapping("/api/trace/getTraceSpanCount")
+    public int getTraceSpanCount(@Valid @RequestBody GetTraceByIdRequest request) {
+        return traceService.getTraceSpanCount(request.getId(),
+                                              request.getType(),
+                                              request.getFilterExpression(),
+                                              request.getStartTimeISO8601(),
+                                              request.getEndTimeISO8601());
+    }
+
+    @PostMapping("/api/trace/getTraceSpanDistribution")
+    public GetTraceSpanDistributionResponse getTraceSpanDistribution(@Valid @RequestBody GetTraceSpanDistributionRequest request) {
+        return traceService.getTraceSpanDistribution(request.getId(),
+                                                     request.getType(),
+                                                     request.getFilterExpression(),
+                                                     request.getStartTimeISO8601(),
+                                                     request.getEndTimeISO8601(),
+                                                     request.getGroups());
+    }
+
+    @PostMapping("/api/trace/validateFilterExpression")
+    public List<ValidateFilterExpressionResponse> validateFilterExpression(@Valid @RequestBody ValidateFilterExpressionRequest request) {
+        List<ValidateFilterExpressionResponse> responses = new ArrayList<>(request.getFilterExpressionList().length);
+        for (String expression : request.getFilterExpressionList()) {
+            try {
+                traceService.validSpanFilterExpression(expression);
+                responses.add(ValidateFilterExpressionResponse.builder()
+                                                              .valid(true)
+                                                              .error("OK")
+                                                              .build());
+            } catch (InvalidExpressionException e) {
+                responses.add(ValidateFilterExpressionResponse.builder()
+                                                              .valid(false)
+                                                              .error(e.getMessage())
+                                                              .build());
+            }
+        }
+        return responses;
     }
 
     /**

@@ -157,7 +157,7 @@ public abstract class LogicalExpression implements IExpression {
             return true;
         }
 
-        public IExpression and(IExpression expression) {
+        public AND and(IExpression expression) {
             this.operands.add(expression);
             return this;
         }
