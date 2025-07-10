@@ -46,15 +46,17 @@ public class PropertyFileValuePreconditionTest {
 
     @Test
     public void test_VersionGTE() {
+        // 1.0.0 >= 1.0.0
         boolean matches = new PropertyFileValuePrecondition("version.properties",
                                                             "v1",
                                                             PropertyFileValuePrecondition.VersionGTE.of("1.0.0"))
             .matches(PropertyFileValuePreconditionTest.class.getClassLoader(), null);
         Assertions.assertTrue(matches);
 
+        // 1.0.0 >= 0.0.9
         matches = new PropertyFileValuePrecondition("version.properties",
                                                     "v1",
-                                                    PropertyFileValuePrecondition.VersionGT.of("0.0.9"))
+                                                    PropertyFileValuePrecondition.VersionGTE.of("0.0.9"))
             .matches(PropertyFileValuePreconditionTest.class.getClassLoader(), null);
         Assertions.assertTrue(matches);
     }
