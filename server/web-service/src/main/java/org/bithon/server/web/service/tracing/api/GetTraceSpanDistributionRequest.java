@@ -16,37 +16,21 @@
 
 package org.bithon.server.web.service.tracing.api;
 
-import jakarta.validation.constraints.NotEmpty;
-import lombok.Data;
 
-import javax.annotation.Nullable;
+import jakarta.validation.constraints.NotEmpty;
+import lombok.Getter;
+
+import java.util.Set;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/6 3:55 下午
+ * @date 10/7/25 6:26 pm
  */
-@Data
-public class GetTraceByIdRequest {
+@Getter
+public class GetTraceSpanDistributionRequest extends GetTraceByIdRequest {
     /**
-     * a trace id or a user transaction id
+     * Use set to avoid duplicates from the client side
      */
     @NotEmpty
-    private String id;
-
-    /**
-     * trace - the value of id field is a trace id
-     * auto  - the value of id field may be a user transaction id or a trace id
-     */
-    private String type = "trace";
-
-    private String startTimeISO8601;
-    private String endTimeISO8601;
-
-    /**
-     * Extra filter expression to filter spans
-     */
-    @Nullable
-    private String filterExpression;
-
-    private boolean asTree = false;
+    private Set<String> groups;
 }

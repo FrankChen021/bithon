@@ -22,12 +22,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
+import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.component.commons.utils.CollectionUtils;
@@ -39,11 +41,15 @@ import org.bithon.server.datasource.query.Limit;
 import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
+import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.pipeline.Column;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.JdbcDataSourceReader;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByClause;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.TableIdentifier;
 import org.bithon.server.datasource.reader.jdbc.statement.serializer.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.tracing.ITraceReader;
@@ -63,7 +69,9 @@ import org.jooq.SelectSeekStep1;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -100,7 +108,10 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public CloseableIterator<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end) {
+    public CloseableIterator<TraceSpan> getTraceByTraceId(String traceId,
+                                                          IExpression filter,
+                                                          TimeSpan start,
+                                                          TimeSpan end) {
         SelectConditionStep<Record> sql = dslContext.selectFrom(Tables.BITHON_TRACE_SPAN.getUnqualifiedName().quotedName())
                                                     .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(traceId));
         if (start != null) {
@@ -119,6 +130,10 @@ public class TraceJdbcReader implements ITraceReader {
             sql = sql.and(sqlDialect.createSqlSerializer(null).serialize(expr));
         }
 
+        if (filter != null) {
+            sql = sql.and(Expression2Sql.from(Tables.BITHON_TRACE_SPAN.getName(), sqlDialect, filter));
+        }
+
         // For spans coming from the same application instance, sort them by the start time
         Cursor<Record> cursor = sql.orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc(),
                                             Tables.BITHON_TRACE_SPAN.INSTANCENAME,
@@ -128,6 +143,38 @@ public class TraceJdbcReader implements ITraceReader {
         return CloseableIterator.transform(cursor.iterator(),
                                            this::toTraceSpan,
                                            cursor);
+    }
+
+    @Override
+    public int getTraceSpanCount(String traceId,
+                                 IExpression filter,
+                                 TimeSpan start,
+                                 TimeSpan end) {
+        SelectConditionStep<Record1<Integer>> sql = dslContext.selectCount()
+                                                              .from(Tables.BITHON_TRACE_SPAN.getUnqualifiedName().quotedName())
+                                                              .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(traceId));
+        if (start != null) {
+            // NOTE: we don't use Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start) because the generated SQL might turn the start into a date time string which might cause time zone issues
+            IExpression expr = new ComparisonExpression.GTE(
+                new IdentifierExpression(Tables.BITHON_TRACE_SPAN.TIMESTAMP.getName()),
+                sqlDialect.toISO8601TimestampExpression(start)
+            );
+            sql = sql.and(sqlDialect.createSqlSerializer(null).serialize(expr));
+        }
+        if (end != null) {
+            IExpression expr = new ComparisonExpression.LT(
+                new IdentifierExpression(Tables.BITHON_TRACE_SPAN.TIMESTAMP.getName()),
+                sqlDialect.toISO8601TimestampExpression(end)
+            );
+            sql = sql.and(sqlDialect.createSqlSerializer(null).serialize(expr));
+        }
+
+        if (filter != null) {
+            sql = sql.and(Expression2Sql.from(Tables.BITHON_TRACE_SPAN.getName(), sqlDialect, filter));
+        }
+
+        Record1<Integer> record = sql.fetchOne();
+        return record == null ? 0 : record.get(0, Integer.class);
     }
 
     @Override
@@ -345,6 +392,58 @@ public class TraceJdbcReader implements ITraceReader {
                              mapping.setUserId(userId);
                              return mapping;
                          });
+    }
+
+    @Override
+    public List<Map<String, Object>> getTraceSpanDistribution(String traceId,
+                                                              IExpression filter,
+                                                              TimeSpan start,
+                                                              TimeSpan end,
+                                                              Collection<String> groups) {
+        List<IExpression> where = new ArrayList<>();
+        where.add(new ComparisonExpression.EQ(
+            new IdentifierExpression(Tables.BITHON_TRACE_SPAN.TRACEID.getName()),
+            new LiteralExpression.StringLiteral(traceId)
+        ));
+
+        if (start != null) {
+            // NOTE: we don't use Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start) because the generated SQL might turn the start into a date time string which might cause time zone issues
+            IExpression expr = new ComparisonExpression.GTE(
+                new IdentifierExpression(Tables.BITHON_TRACE_SPAN.TIMESTAMP.getName()),
+                sqlDialect.toISO8601TimestampExpression(start)
+            );
+            where.add(expr);
+        }
+        if (end != null) {
+            IExpression expr = new ComparisonExpression.LT(
+                new IdentifierExpression(Tables.BITHON_TRACE_SPAN.TIMESTAMP.getName()),
+                sqlDialect.toISO8601TimestampExpression(end)
+            );
+            where.add(expr);
+        }
+
+        if (filter != null) {
+            where.add(filter);
+        }
+
+        SelectStatement selectStatement = new SelectStatement();
+        for (String group : groups) {
+            selectStatement.getSelectorList().add(new org.bithon.server.datasource.query.ast.Column(group), IDataType.STRING);
+        }
+
+        IExpression countExpression = new FunctionExpression(AggregateFunction.Count.INSTANCE, new LiteralExpression.LongLiteral(1));
+        selectStatement.getSelectorList().add(new ExpressionNode(countExpression), "count", IDataType.LONG);
+        selectStatement.getFrom().setExpression(new TableIdentifier(Tables.BITHON_TRACE_SPAN.getUnqualifiedName().last()));
+        selectStatement.getWhere().and(where);
+        selectStatement.getGroupBy().addFields(groups);
+        selectStatement.setOrderBy(new OrderByClause("count", Order.desc));
+
+        String sql = selectStatement.toSQL(this.sqlDialect);
+        log.info("Get trace span distribution: {}", sql);
+        return dslContext.fetch(sql)
+                         .map(Record::intoMap)
+                         .stream()
+                         .toList();
     }
 
     private TraceSpan toTraceSpan(Record record) {
