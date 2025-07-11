@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.apache.kafka27;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.PropertyFileValuePrecondition;
+import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,17 +39,26 @@ public class Kafka27Plugin implements IPlugin {
                 //
                 // Only Kafka 2.7.x changes the declaration of {@link org.apache.kafka.clients.consumer.KafkaConsumer}
                 //
-                .when(new PropertyFileValuePrecondition("kafka/kafka-version.properties",
-                                                        "version",
-                                                        PropertyFileValuePrecondition.and(
-                                                            PropertyFileValuePrecondition.VersionGT.of("2.7"),
-                                                            PropertyFileValuePrecondition.VersionLT.of("2.8")
-                                                        )))
+                .when(new PropertyFileValuePrecondition(
+                    "kafka/kafka-version.properties",
+                    "version",
+                    PropertyFileValuePrecondition.and(
+                        PropertyFileValuePrecondition.VersionGT.of("2.7"),
+                        PropertyFileValuePrecondition.VersionLT.of("2.8")
+                    )
+                ))
                 .onConstructor()
-                .andArgs("java.util.Map<String, Object>",
-                         "org.apache.kafka.common.serialization.Deserializer<K>",
-                         "org.apache.kafka.common.serialization.Deserializer<V>")
+                .andRawArgs(
+                    "java.util.Map",
+                    "org.apache.kafka.common.serialization.Deserializer",
+                    "org.apache.kafka.common.serialization.Deserializer"
+                )
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka27.consumer.interceptor.KafkaConsumer$Ctor")
+
+                .onMethod("poll")
+                .andVisibility(Visibility.PUBLIC)
+                .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.KafkaConsumer$Poll")
+
                 .build()
         );
     }
