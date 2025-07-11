@@ -46,6 +46,28 @@ public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
         return new And(predicates);
     }
 
+    public static PropertyValuePredicate not(PropertyValuePredicate predicates) {
+        return new Not(predicates);
+    }
+
+    private static class Not implements PropertyValuePredicate {
+        private final PropertyValuePredicate predicate;
+
+        public Not(PropertyValuePredicate predicate) {
+            this.predicate = predicate;
+        }
+
+        @Override
+        public boolean matches(String actual) {
+            return !predicate.matches(actual);
+        }
+
+        @Override
+        public String toString() {
+            return "NOT (" + predicate + ")";
+        }
+    }
+
     private static class And implements PropertyValuePredicate {
         private final PropertyValuePredicate[] predicates;
 
@@ -133,7 +155,7 @@ public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
         }
 
         public static PropertyValuePredicate of(String expected) {
-            return new VersionGTE(expected);
+            return new VersionGT(expected);
         }
     }
 

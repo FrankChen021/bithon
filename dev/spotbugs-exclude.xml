@@ -142,6 +142,7 @@
         <Class name="~io\.jaegertracing\..*"/>
     </Match>
 
+    <Bug pattern="NM_SAME_SIMPLE_NAME_AS_SUPERCLASS" />
     <Bug pattern="EI_EXPOSE_STATIC_REP2" />
     <Bug pattern="MS_EXPOSE_REP" />
     <Bug pattern="AT_OPERATION_SEQUENCE_ON_CONCURRENT_ABSTRACTION"/>

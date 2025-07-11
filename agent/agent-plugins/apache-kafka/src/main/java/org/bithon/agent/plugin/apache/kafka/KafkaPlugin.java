@@ -42,7 +42,18 @@ public class KafkaPlugin implements IPlugin {
                     // The instrumentation is moved to Kafka37Plugin and later
                     new PropertyFileValuePrecondition("kafka/kafka-version.properties",
                                                       "version",
-                                                      PropertyFileValuePrecondition.VersionLT.of("3.7.0"))
+                                                      PropertyFileValuePrecondition.and(
+                                                          // 3.7 and above has different implementation of KafkaConsumer
+                                                          PropertyFileValuePrecondition.VersionLT.of("3.7.0"),
+
+                                                          // 2.7.x changed the constructor signature of KafkaConsumer
+                                                          PropertyFileValuePrecondition.not(
+                                                              PropertyFileValuePrecondition.and(
+                                                                  PropertyFileValuePrecondition.VersionGT.of("2.7"),
+                                                                  PropertyFileValuePrecondition.VersionLT.of("2.8")
+                                                              )
+                                                          )
+                                                      ))
                 )
 
                 .onConstructor()
