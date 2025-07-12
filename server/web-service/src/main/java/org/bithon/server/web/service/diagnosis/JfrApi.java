@@ -17,13 +17,11 @@
 package org.bithon.server.web.service.diagnosis;
 
 
-import jdk.jfr.ValueDescriptor;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordingFile;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import one.jfr.JfrReader;
-import one.jfr.event.Event;
+import org.bithon.component.brpc.StreamResponse;
 import org.bithon.component.commons.uuid.UUIDv7Generator;
 import org.openjdk.jmc.common.item.IAttribute;
 import org.openjdk.jmc.common.item.IItem;
@@ -36,11 +34,13 @@ import org.openjdk.jmc.flightrecorder.JfrAttributes;
 import org.openjdk.jmc.flightrecorder.JfrLoaderToolkit;
 import org.openjdk.jmc.flightrecorder.jdk.JdkAttributes;
 import org.openjdk.jmc.flightrecorder.jdk.JdkTypeIDs;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,7 +48,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
@@ -59,9 +58,10 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -77,18 +77,17 @@ import java.util.regex.Pattern;
 @RestController
 public class JfrApi {
 
+    /*
     public static void main(String[] args) throws IOException {
-
         //Path file = Paths.get("/Users/frank.chenling/source/open/bithon/agent/agent-distribution/tools/async-profiler-4.0/macos/bin/output.jfr");
         Path file = Paths.get("/tmp/01970d60a3d4fa3dd68ceebf8bc0c88e/20250527-001552.jfr");
         try (RecordingFile rf = new RecordingFile(file)) {
 
             while (rf.hasMoreEvents()) {
                 RecordedEvent event = rf.readEvent();
-                /*
-                if (!event.getEventType().getName().equals("jdk.CPULoad")) {
-                    continue;
-                }*/
+                //if (!event.getEventType().getName().equals("jdk.CPULoad")) {
+                //    continue;
+                //}
                 // dump the event type of event
                 System.out.print(event.getEventType().getName());
                 System.out.print(" Start Time: " + event.getStartTime());
@@ -100,7 +99,7 @@ public class JfrApi {
                 System.out.println(event.getStackTrace() == null ? " EMPTY" : " HAS STACK TRACE");
             }
         }
-    }
+    }*/
 
     public JfrApi() {
     }
@@ -153,7 +152,9 @@ public class JfrApi {
     }
 
     @PostMapping("/api/diagnosis/profiling")
-    public void profiling() throws IOException {
+    public SseEmitter profiling() {
+        SseEmitter emitter = new SseEmitter((30 + 5) * 1000L); // 30 seconds timeout
+
         String uuid = UUIDv7Generator.create(UUIDv7Generator.INCREMENT_TYPE_DEFAULT)
                                      .generate()
                                      .toCompactFormat();
@@ -178,7 +179,7 @@ public class JfrApi {
         // Configuration
         int loopIntervalSeconds = 3; // --loop parameter value
         int totalDurationSeconds = 30; // -d parameter value
-        
+
         // Example: run asprof to profile current JVM for 30s and output JFR files every 3s
         String pid = String.valueOf(ProcessHandle.current().pid());
         // Create a directory for the UUID if it doesn't exist
@@ -187,64 +188,100 @@ public class JfrApi {
             throw new RuntimeException("Failed to create directory: " + dir.getAbsolutePath());
         }
         File uuidFile = new File(dir, "%t.jfr");
-        ProcessBuilder pb = new ProcessBuilder(
-            profilerHome,
-            "-d", String.valueOf(totalDurationSeconds),
-            "--loop", loopIntervalSeconds + "s",
-            "-f", uuidFile.getAbsolutePath(),
-            "-e", "cpu",
-            pid
-        );
-        pb.inheritIO(); // or redirect output as needed
-        Process process = pb.start();
-        log.info("Started async-profiler asprof for PID {}: {}", pid, profilerHome);
-
-        // Optionally, you can wait for the process to finish in a background thread
-        new Thread(() -> {
-            try {
-                process.waitFor();
-                log.info("Profiler finished for PID {}: {}", pid, profilerHome);
-            } catch (Exception ignored) {
-            }
-        }).start();
-
-        // Blocking queue to communicate between watcher and processor threads
-        BlockingQueue<TimestampedFile> fileQueue = new LinkedBlockingQueue<>();
-        
-        // Pattern to extract timestamp from filename (format: YYYYMMDD-HHMMSS.jfr)
-        Pattern timestampPattern = Pattern.compile("(\\d{8}-\\d{6})\\.jfr");
 
         long startTime = System.currentTimeMillis();
         long endTime = startTime + (totalDurationSeconds + 5) * 1000L;
 
-        // Start file watcher thread
-        Thread watcherThread = new Thread(() -> {
-            try {
-                watchFiles(dir, fileQueue, timestampPattern, endTime);
-            } catch (Exception e) {
-                log.error("File watcher thread failed", e);
+        StreamResponse streamResponse = new StreamResponse() {
+            @Override
+            public void onNext(Object data) {
+                try {
+                    emitter.send(SseEmitter.event()
+                                           .data(data, MediaType.TEXT_PLAIN)
+                                           .build());
+                } catch (IOException | IllegalStateException ignored) {
+                }
             }
-        }, "JFR-FileWatcher");
-        watcherThread.start();
+
+            @Override
+            public void onException(Throwable throwable) {
+                emitter.completeWithError(throwable);
+            }
+
+            @Override
+            public void onComplete() {
+                emitter.complete();
+            }
+        };
 
         // Start file processor thread
         Thread processorThread = new Thread(() -> {
             try {
-                processTimestampedFiles(fileQueue, loopIntervalSeconds, endTime);
+                watchProfilingResult(dir, loopIntervalSeconds, endTime, streamResponse);
             } catch (Exception e) {
                 log.error("File processor thread failed", e);
+            } finally {
+                streamResponse.onComplete();
+
+                log.info("File processor thread completed, deleting directory: {}", dir.getAbsolutePath());
+                try {
+                    if (dir.exists() && dir.isDirectory()) {
+                        File[] files = dir.listFiles();
+                        if (files != null) {
+                            for (File file : files) {
+                                file.delete();
+                            }
+                        }
+                        dir.delete();
+                    }
+                } catch (Exception ignored) {
+                }
             }
         }, "JFR-FileProcessor");
-        processorThread.start();
+
+        new Thread(() -> {
+            ProcessBuilder pb = new ProcessBuilder(
+                profilerHome,
+                "-d", String.valueOf(totalDurationSeconds),
+                "--loop", loopIntervalSeconds + "s",
+                "-f", uuidFile.getAbsolutePath(),
+                "-e", "cpu",
+                pid
+            );
+            pb.inheritIO(); // or redirect output as needed
+            try {
+                Process process = pb.start();
+            } catch (IOException e) {
+                log.error("Failed to start async-profiler for PID {}: {}", pid, e.getMessage());
+                return;
+            }
+            log.info("Started async-profiler asprof for PID {}: {}", pid, profilerHome);
+            // Start the file processor thread
+            processorThread.start();
+            // TODO: check the process output for errors
+
+            try {
+                Thread.sleep(totalDurationSeconds * 1000L + 2000);
+            } catch (InterruptedException ignored) {
+            }
+
+            log.info("Stopping profiler for PID {} after {} seconds", pid, totalDurationSeconds);
+            // Terminate the profiler process after the duration
+            ProcessBuilder pb2 = new ProcessBuilder(profilerHome, "stop", pid);
+            try {
+                pb2.start();
+            } catch (IOException ignored) {
+                ignored.printStackTrace();
+            }
+
+            try {
+                processorThread.join();
+            } catch (Exception e) {
+            }
+        }).start();
 
         // Wait for both threads to complete
-        try {
-            watcherThread.join();
-            processorThread.join();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.warn("Profiling interrupted", e);
-        }
+        return emitter;
     }
 
     /**
@@ -289,8 +326,8 @@ public class JfrApi {
                             if (timestampedFile != null) {
                                 try {
                                     fileQueue.put(timestampedFile);
-                                    log.info("New JFR file detected and added to queue: {} with timestamp {}", 
-                                            fileName, timestampedFile.getTimestamp());
+                                    log.info("New JFR file detected and added to queue: {} with timestamp {}",
+                                             fileName, timestampedFile.getTimestamp());
                                 } catch (InterruptedException e) {
                                     Thread.currentThread().interrupt();
                                     break;
@@ -314,23 +351,40 @@ public class JfrApi {
         } catch (IOException e) {
             log.warn("Failed to close watch service", e);
         }
-        
+
         log.info("File watcher thread completed");
     }
 
     /**
      * Process files from the blocking queue based on timestamp ordering and loop interval
      */
-    private void processTimestampedFiles(BlockingQueue<TimestampedFile> fileQueue, 
-                                       int loopIntervalSeconds, 
-                                       long endTime) {
+    private void watchProfilingResult(File dir,
+                                      int loopIntervalSeconds,
+                                      long endTime,
+                                      StreamResponse outputStream) {
+        Set<String> skipped = new HashSet<>();
+
+        // Pattern to extract timestamp from filename (format: YYYYMMDD-HHMMSS.jfr)
+        Pattern timestampPattern = Pattern.compile("(\\d{8}-\\d{6})\\.jfr");
+
+        PriorityQueue<TimestampedFile> queue = new PriorityQueue<>();
         while (System.currentTimeMillis() < endTime) {
-            try {
-                // Wait for a file to be available in the queue (with timeout)
-                TimestampedFile timestampedFile = fileQueue.poll(1, TimeUnit.SECONDS);
-                if (timestampedFile == null) {
-                    continue; // Timeout, check if we should continue
+            File[] files = dir.listFiles((file, name) -> name.endsWith(".jfr"));
+            if (files != null) {
+                for (File file : files) {
+                    if (skipped.contains(file.getAbsolutePath())) {
+                        continue;
+                    }
+                    TimestampedFile timestampedFile = TimestampedFile.fromFile(file, timestampPattern);
+                    if (timestampedFile != null) {
+                        queue.offer(timestampedFile);
+                        log.info("Added existing JFR file to queue: {} with timestamp {}", file.getName(), timestampedFile.getTimestamp());
+                    }
                 }
+            }
+
+            while (!queue.isEmpty()) {
+                TimestampedFile timestampedFile = queue.peek();
 
                 File jfrFile = timestampedFile.getFile();
                 String jfrFileName = jfrFile.getName();
@@ -338,6 +392,7 @@ public class JfrApi {
                 // Skip if file doesn't exist anymore
                 if (!jfrFile.exists()) {
                     log.debug("Skipping non-existent file: {}", jfrFileName);
+                    queue.poll();
                     continue;
                 }
 
@@ -346,9 +401,9 @@ public class JfrApi {
                 long fileTimestamp = timestampedFile.getTimestamp();
                 long readyTime = fileTimestamp + loopIntervalSeconds * 1000L + 500; // Add 500ms buffer
                 long waitTime = readyTime - currentTime;
-                
+
                 if (waitTime > 0) {
-                    log.debug("JFR file {} is not ready yet, waiting {}ms (file timestamp: {}, current: {}, ready at: {})", 
+                    log.info("JFR file {} is not ready yet, waiting {}ms (file timestamp: {}, current: {}, ready at: {})",
                              jfrFileName, waitTime, fileTimestamp, currentTime, readyTime);
                     try {
                         Thread.sleep(waitTime);
@@ -359,34 +414,29 @@ public class JfrApi {
                 }
 
                 // Additional check: verify file is complete and stable
-                if (isFileComplete(jfrFile.toPath())) {
+                if (waitForComplete(jfrFile.toPath())) {
+                    // Pop the file from the queue
+                    queue.poll();
+
                     // File is ready - process it
-                    log.info("Processing JFR file from queue: {}", jfrFileName);
-                    processJfrFile(jfrFile.toPath());
-                    log.debug("Successfully processed file: {}", jfrFileName);
-                } else {
-                    // File exists and time has passed, but file is still being written
-                    log.debug("JFR file {} is ready by time but still being written, putting back in queue...", jfrFileName);
                     try {
-                        fileQueue.put(timestampedFile); // Put it back for later processing
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        break;
+                        log.info("Processing JFR file from queue: {}", jfrFileName);
+                        processJfrFile(jfrFile.toPath(), outputStream);
+                    } finally {
+                        if (!jfrFile.delete()) {
+                            log.warn("Failed to delete JFR file: {}", jfrFileName);
+                            skipped.add(jfrFile.getAbsolutePath());
+                        }
                     }
                 }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
             }
         }
-        
-        log.info("File processor thread completed");
     }
 
     /**
      * Represents a JFR file with its extracted timestamp
      */
-    private static class TimestampedFile {
+    private static class TimestampedFile implements Comparable<TimestampedFile> {
         private final File file;
         private final long timestamp;
 
@@ -414,14 +464,14 @@ public class JfrApi {
             // Parse YYYYMMDD-HHMMSS format
             String dateStr = timestampStr.substring(0, 8); // YYYYMMDD
             String timeStr = timestampStr.substring(9, 15); // HHMMSS
-            
+
             int year = Integer.parseInt(dateStr.substring(0, 4));
             int month = Integer.parseInt(dateStr.substring(4, 6));
             int day = Integer.parseInt(dateStr.substring(6, 8));
             int hour = Integer.parseInt(timeStr.substring(0, 2));
             int minute = Integer.parseInt(timeStr.substring(2, 4));
             int second = Integer.parseInt(timeStr.substring(4, 6));
-            
+
             // Convert to milliseconds since epoch
             java.time.LocalDateTime dateTime = java.time.LocalDateTime.of(year, month, day, hour, minute, second);
             return dateTime.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
@@ -439,13 +489,18 @@ public class JfrApi {
         public String toString() {
             return file.getPath();
         }
+
+        @Override
+        public int compareTo(TimestampedFile that) {
+            return Long.compare(this.timestamp, that.timestamp);
+        }
     }
 
     /**
      * Check if a file is complete by checking if its size is stable
      * This is a simple and reliable approach that works across all platforms
      */
-    private boolean isFileComplete(Path filePath) {
+    private boolean waitForComplete(Path filePath) {
         File file = filePath.toFile();
 
         // First check if file exists and has content
@@ -481,7 +536,7 @@ public class JfrApi {
     /**
      * Process a complete JFR file
      */
-    private void processJfrFile(Path filePath) {
+    private void processJfrFile(Path filePath, StreamResponse outputStream) {
         readJFR(filePath,
                 (jfrEvent) -> {
                     // Filter events if needed, e.g., only CPU load events
@@ -490,16 +545,30 @@ public class JfrApi {
                            || JdkTypeIDs.EXECUTION_SAMPLE.equals(eventType)
                            || JdkTypeIDs.SYSTEM_PROPERTIES.equals(eventType);
                 },
+                () -> {
+                    log.info("Reading jfr file: {}", filePath);
+                },
                 (jfrEvent) -> {
                     // Process each event as needed
-                    System.out.println("Event: " + jfrEvent.getEventType().getName() + " at " + jfrEvent.getStartTime());
-                });
+                    //System.out.println("Event: " + jfrEvent.getEventType().getName() + " at " + jfrEvent.getStartTime());
+                    outputStream.onNext(
+                        "Event: " + jfrEvent.getEventType().getName() + " at " + jfrEvent.getStartTime()
+                    );
+                },
+                () -> {
+                    log.info("Completed reading jfr file: {}", filePath);
+                }
+        );
     }
 
     private void readJFR(Path file,
                          Predicate<RecordedEvent> filter,
-                         Consumer<RecordedEvent> eventConsumer) {
+                         Runnable onStart,
+                         Consumer<RecordedEvent> eventConsumer,
+                         Runnable onComplete
+    ) {
         try (RecordingFile rf = new RecordingFile(file)) {
+            onStart.run();
             while (rf.hasMoreEvents()) {
                 RecordedEvent event = rf.readEvent();
                 if (filter != null && !filter.test(event)) {
@@ -507,6 +576,7 @@ public class JfrApi {
                 }
                 eventConsumer.accept(event);
             }
+            onComplete.run();
         } catch (IOException e) {
             log.error("Failed to read JFR file: {}", file, e);
         }
@@ -614,5 +684,29 @@ public class JfrApi {
         }
 
         return metrics;
+    }
+
+    public static void main(String[] args) {
+        PriorityBlockingQueue queue = new PriorityBlockingQueue();
+        Pattern timestampPattern = Pattern.compile("(\\d{8}-\\d{6})\\.jfr");
+        File dir = new File("/tmp/0197fdce8f25d88ace4d7ec5b3f77e00");
+        File[] existingFiles = dir.listFiles((file, name) -> name.endsWith(".jfr"));
+        if (existingFiles != null) {
+            for (File file : existingFiles) {
+                TimestampedFile timestampedFile = TimestampedFile.fromFile(file, timestampPattern);
+                if (timestampedFile != null) {
+                    queue.put(timestampedFile);
+                    log.info("Added existing JFR file to queue: {} with timestamp {}", file.getName(), timestampedFile.getTimestamp());
+                }
+            }
+        }
+        while (!queue.isEmpty()) {
+            TimestampedFile timestampedFile = (TimestampedFile) queue.poll();
+            if (timestampedFile != null) {
+                System.out.println("Polled file: " + timestampedFile.getFile().getName() + " with timestamp " + timestampedFile.getTimestamp());
+            } else {
+                System.out.println("Queue is empty");
+            }
+        }
     }
 }
