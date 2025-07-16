@@ -97,4 +97,4 @@ public class JVMInformation extends Event {
                ", pid=" + pid +
                '}';
     }
-} 
+}

@@ -17,28 +17,20 @@
 package org.bithon.server.web.service.diagnosis.event;
 
 
-import java.util.Map;
-import java.util.TreeMap;
-
 /**
  * @author frank.chen021@outlook.com
- * @date 14/7/25 2:19 pm
+ * @date 14/7/25 4:14 pm
  */
-public class SystemProperties implements IEvent {
-    private final Map<String, String> properties;
+public class CPUUsage implements IEvent {
+    public final long time;
+    public final float jvmUser;
+    public final float jvmSystem;
+    public final float machineTotal;
 
-    public SystemProperties(Map<String, String> properties) {
-        this.properties = new TreeMap<>(properties);
-    }
-
-    public Map<String, String> getProperties() {
-        return properties;
-    }
-
-    @Override
-    public String toString() {
-        return "SystemProperties{" +
-               "properties=" + properties +
-               '}' + super.toString();
+    public CPUUsage(long time, float jvmUser, float jvmSystem, float machineTotal) {
+        this.time = time;
+        this.jvmUser = jvmUser;
+        this.jvmSystem = jvmSystem;
+        this.machineTotal = machineTotal;
     }
 }

@@ -21,10 +21,8 @@ import aj.org.objectweb.asm.Type;
 import one.jfr.ClassRef;
 import one.jfr.JfrReader;
 import one.jfr.MethodRef;
-import one.jfr.event.Event;
 import one.jfr.event.ExecutionSample;
 import org.bithon.server.web.service.diagnosis.StackFrame;
-import org.bithon.server.web.service.diagnosis.StackTrace;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -41,22 +39,30 @@ import static one.convert.Frame.TYPE_NATIVE;
  * @author frank.chen021@outlook.com
  * @date 14/7/25 10:59 am
  */
-public class CallStackSample extends Event {
-    public final long startTimeNanos;
-    public final StackTrace stackTrace;
+public class CallStackSample implements IEvent {
+    public final long time;
+    public final int threadId;
+    public final String threadName;
+    public final int threadState;
+    public final List<StackFrame> stackTrace;
+    public final int samples;
 
     protected CallStackSample(JfrReader jfr, ExecutionSample event) {
-        super(event.time, event.tid, event.stackTraceId);
+        this.time = TimeConverter.toEpochNano(jfr, event.time);
 
-        this.startTimeNanos = jfr.startNanos + ((event.time - jfr.startTicks) / jfr.ticksPerSec);
         one.jfr.StackTrace stackTrace = jfr.stackTraces.get(event.stackTraceId);
-        this.stackTrace = toStackTrace(jfr, event.tid, stackTrace);
+        this.stackTrace = toStackTrace(jfr, stackTrace);
+
+        this.threadId = event.tid;
+        this.threadName = jfr.threads.get(event.tid);
+        this.threadState = event.threadState;
+
+        this.samples = event.samples;
     }
 
     @Override
     public String toString() {
         return "CallStackSample{" +
-               "startTimeNanos=" + startTimeNanos +
                ", stackTrace=" + (stackTrace != null ? stackTrace.toString() : "") +
                '}';
     }
@@ -68,19 +74,13 @@ public class CallStackSample extends Event {
         return new CallStackSample(jfr, event);
     }
 
-    public static org.bithon.server.web.service.diagnosis.StackTrace toStackTrace(JfrReader jfr,
-                                                                                  int threadId,
-                                                                                  one.jfr.StackTrace stackTrace) {
+    public static List<StackFrame> toStackTrace(JfrReader jfr,
+                                                one.jfr.StackTrace stackTrace) {
         List<StackFrame> frames = new ArrayList<>();
         for (int i = 0; i < stackTrace.methods.length; i++) {
             frames.add(toStackFrame(jfr, stackTrace, i));
         }
-
-        org.bithon.server.web.service.diagnosis.StackTrace result = new org.bithon.server.web.service.diagnosis.StackTrace();
-        result.setThreadId(threadId);
-        result.setThreadName(jfr.threads.get(threadId));
-        result.setStackFrames(frames);
-        return result;
+        return frames;
     }
 
     private static StackFrame toStackFrame(JfrReader jfr, one.jfr.StackTrace stackTrace, int frameIndex) {
@@ -96,6 +96,8 @@ public class CallStackSample extends Event {
         } else {
             frame.location = location;
         }
+
+        frame.type = stackTrace.types[frameIndex];
 
         MethodRef method = jfr.methods.get(methodId);
         if (method == null) {
@@ -115,14 +117,14 @@ public class CallStackSample extends Event {
         } else {
             String classStr = toJavaClassName(className, 0, true);
             if (methodName == null || methodName.length == 0) {
-                frame.type = classStr;
+                frame.typeName = classStr;
                 frame.method = "Unknown";
                 return frame;
             }
             String methodStr = new String(methodName, StandardCharsets.UTF_8);
             String sigStr = sig != null ? new String(sig, StandardCharsets.UTF_8) : "";
 
-            frame.type = classStr;
+            frame.typeName = classStr;
             frame.method = methodStr;
 
             if (!sigStr.isEmpty()) {

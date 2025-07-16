@@ -24,7 +24,11 @@ import org.bithon.component.commons.utils.StringUtils;
  * @date 13/7/25 11:15 am
  */
 public class StackFrame {
-    public String type;
+    /**
+     * See type defined {@link one.convert.Frame}
+     */
+    public byte type;
+    public String typeName;
     public String method;
     public int modifiers;
     public String[] parameters;
@@ -34,7 +38,7 @@ public class StackFrame {
     @Override
     public String toString() {
         return StringUtils.format("%s.%s(%s) %s",
-                                  type == null ? "" : type,
+                                  typeName == null ? "" : typeName,
                                   method == null ? "" : method,
                                   parameters == null ? "" : String.join(", ", parameters),
                                   location > 0 ? StringUtils.format("line: %d", location) : "");

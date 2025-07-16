@@ -46,4 +46,4 @@ public class InitialSystemProperty extends Event {
                ", value='" + value + '\'' +
                '}';
     }
-} 
+}

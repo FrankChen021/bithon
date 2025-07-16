@@ -49,4 +49,4 @@ public class CPUInformation extends Event {
                ", hwThreads=" + hwThreads +
                '}';
     }
-} 
+}

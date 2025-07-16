@@ -22,30 +22,29 @@ import one.jfr.event.Event;
 /**
  * Represents OS information event from JFR (jdk.OSInformation).
  * This event captures operating system information when the JVM started.
- * 
+ *
  * @see <a href="https://bestsolution-at.github.io/jfr-doc/openjdk-17.html#jdk.OSInformation">JFR Documentation</a>
  */
 public class OSInformation extends Event {
-    
     /**
      * The operating system version
      */
     public String osVersion;
-    
+
     /**
      * Constructor for deserializing jdk.OSInformation events
-     * 
+     *
      * @param jfr the JfrReader instance used for reading the event data
      */
     public OSInformation(JfrReader jfr) {
         super(jfr.getVarlong(), 0, 0);
         this.osVersion = jfr.getString();
     }
-    
+
     @Override
     public String toString() {
         return "OSInformation{" +
                "osVersion='" + osVersion + '\'' +
                '}';
     }
-} 
+}

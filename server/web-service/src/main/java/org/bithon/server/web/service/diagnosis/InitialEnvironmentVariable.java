@@ -55,4 +55,4 @@ public class InitialEnvironmentVariable extends Event {
                ", value='" + value + '\'' +
                '}';
     }
-} 
+}

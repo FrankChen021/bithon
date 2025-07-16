@@ -17,28 +17,14 @@
 package org.bithon.server.web.service.diagnosis.event;
 
 
-import java.util.Map;
-import java.util.TreeMap;
+import one.jfr.JfrReader;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 14/7/25 2:19 pm
+ * @date 14/7/25 4:10 pm
  */
-public class SystemProperties implements IEvent {
-    private final Map<String, String> properties;
-
-    public SystemProperties(Map<String, String> properties) {
-        this.properties = new TreeMap<>(properties);
-    }
-
-    public Map<String, String> getProperties() {
-        return properties;
-    }
-
-    @Override
-    public String toString() {
-        return "SystemProperties{" +
-               "properties=" + properties +
-               '}' + super.toString();
+public class TimeConverter {
+    public static long toEpochNano(JfrReader jfr, long eventTime) {
+        return jfr.startNanos + ((eventTime - jfr.startTicks) / jfr.ticksPerSec);
     }
 }
