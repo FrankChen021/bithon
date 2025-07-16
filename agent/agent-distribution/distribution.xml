@@ -63,8 +63,19 @@
         <!-- Plugins are in a dedicated directory, exclude them from lib -->
         <exclude>${project.parent.groupId}:agent-plugin-*</exclude>
         <exclude>${project.parent.groupId}:agent-plugins</exclude>
+
+        <!--async profiler -->
+        <exclude>tools.profiler:jfr-converter</exclude>
       </excludes>
       <outputDirectory>lib</outputDirectory>
+    </dependencySet>
+
+    <!-- async profiler tool -->
+    <dependencySet>
+      <includes>
+        <include>tools.profiler:jfr-converter</include>
+      </includes>
+      <outputDirectory>tools/async-profiler</outputDirectory>
     </dependencySet>
 
     <!-- sdk -->
