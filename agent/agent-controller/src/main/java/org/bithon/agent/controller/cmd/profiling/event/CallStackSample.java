@@ -14,20 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.diagnosis.event;
+package org.bithon.agent.controller.cmd.profiling.event;
 
 
-import aj.org.objectweb.asm.Type;
 import one.jfr.ClassRef;
 import one.jfr.JfrReader;
 import one.jfr.MethodRef;
 import one.jfr.event.ExecutionSample;
-import org.bithon.server.web.service.diagnosis.StackFrame;
+import org.bithon.shaded.net.bytebuddy.jar.asm.Type;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static one.convert.Frame.TYPE_CPP;
 import static one.convert.Frame.TYPE_KERNEL;
@@ -39,7 +37,8 @@ import static one.convert.Frame.TYPE_NATIVE;
  * @author frank.chen021@outlook.com
  * @date 14/7/25 10:59 am
  */
-public class CallStackSample implements IEvent {
+public class CallStackSample {
+    /*
     public final long time;
     public final int threadId;
     public final String threadName;
@@ -65,43 +64,58 @@ public class CallStackSample implements IEvent {
         return "CallStackSample{" +
                ", stackTrace=" + (stackTrace != null ? stackTrace.toString() : "") +
                '}';
-    }
+    }*/
 
-    public static CallStackSample toCallStackSample(JfrReader jfr, ExecutionSample event) {
+    public static org.bithon.agent.rpc.brpc.profiling.CallStackSample toCallStackSample(JfrReader jfr, ExecutionSample event) {
         if (event.stackTraceId == 0) {
             return null; // no stack trace
         }
-        return new CallStackSample(jfr, event);
+
+        long time = TimeConverter.toEpochNano(jfr, event.time);
+        int threadId = event.tid;
+        String threadName = jfr.threads.get(event.tid);
+
+        one.jfr.StackTrace stackTrace = jfr.stackTraces.get(event.stackTraceId);
+        List<org.bithon.agent.rpc.brpc.profiling.StackFrame> frames = toStackTrace(jfr, stackTrace);
+
+        org.bithon.agent.rpc.brpc.profiling.CallStackSample.Builder builder = org.bithon.agent.rpc.brpc.profiling.CallStackSample.newBuilder()
+                                                                                                                                 .setTime(time)
+                                                                                                                                 .setThreadId(threadId)
+                                                                                                                                 .setThreadName(threadName)
+                                                                                                                                 .setThreadState(event.threadState)
+                                                                                                                                 .addAllStackTrace(frames)
+                                                                                                                                 .setSamples(event.samples);
+        return builder.build();
     }
 
-    public static List<StackFrame> toStackTrace(JfrReader jfr,
-                                                one.jfr.StackTrace stackTrace) {
-        List<StackFrame> frames = new ArrayList<>();
+    public static List<org.bithon.agent.rpc.brpc.profiling.StackFrame> toStackTrace(JfrReader jfr,
+                                                                                    one.jfr.StackTrace stackTrace) {
+        List<org.bithon.agent.rpc.brpc.profiling.StackFrame> frames = new ArrayList<>();
         for (int i = 0; i < stackTrace.methods.length; i++) {
-            frames.add(toStackFrame(jfr, stackTrace, i));
+            frames.add(toStackFrame(jfr, stackTrace, i).build());
         }
         return frames;
     }
 
-    private static StackFrame toStackFrame(JfrReader jfr, one.jfr.StackTrace stackTrace, int frameIndex) {
+    private static org.bithon.agent.rpc.brpc.profiling.StackFrame.Builder toStackFrame(JfrReader jfr, one.jfr.StackTrace stackTrace, int frameIndex) {
         long methodId = stackTrace.methods[frameIndex];
 
-        StackFrame frame = new StackFrame();
+        org.bithon.agent.rpc.brpc.profiling.StackFrame.Builder frame = org.bithon.agent.rpc.brpc.profiling.StackFrame.newBuilder();
 
         int location = -1;
         if ((location = stackTrace.locations[frameIndex] >>> 16) != 0) {
-            frame.location = location;
+            frame.setLocation(location);
         } else if ((location = stackTrace.locations[frameIndex] & 0xffff) != 0) {
-            frame.location = location;
+            frame.setLocation(location);
         } else {
-            frame.location = location;
+            frame.setLocation(location);
         }
 
-        frame.type = stackTrace.types[frameIndex];
+        frame.setType(stackTrace.types[frameIndex]);
 
         MethodRef method = jfr.methods.get(methodId);
         if (method == null) {
-            frame.method = "Unknown";
+            frame.setMethod("Unknown");
             return frame;
         }
 
@@ -112,28 +126,27 @@ public class CallStackSample implements IEvent {
         byte[] methodName = jfr.symbols.get(method.name);
         byte[] sig = jfr.symbols.get(method.sig);
         if (className == null || className.length == 0) {
-            frame.method = new String(methodName, StandardCharsets.UTF_8);
+            frame.setMethod(new String(methodName, StandardCharsets.UTF_8));
             return frame;
         } else {
             String classStr = toJavaClassName(className, 0, true);
             if (methodName == null || methodName.length == 0) {
-                frame.typeName = classStr;
-                frame.method = "Unknown";
+                frame.setTypeName(classStr);
+                frame.setMethod("Unknown");
                 return frame;
             }
             String methodStr = new String(methodName, StandardCharsets.UTF_8);
             String sigStr = sig != null ? new String(sig, StandardCharsets.UTF_8) : "";
 
-            frame.typeName = classStr;
-            frame.method = methodStr;
-
+            frame.setTypeName(classStr);
+            frame.setMethod(methodStr);
             if (!sigStr.isEmpty()) {
                 Type methodType = Type.getMethodType(sigStr);
                 Type[] argTypes = methodType.getArgumentTypes();
-                frame.parameters = Stream.of(argTypes)
-                                         .map(Type::getClassName)
-                                         .toArray(String[]::new);
-                frame.returnType = methodType.getReturnType().getClassName();
+                for (Type argType : argTypes) {
+                    frame.addParameters(argType.getClassName());
+                }
+                frame.setReturnType(methodType.getReturnType().getClassName());
             }
             return frame;
         }

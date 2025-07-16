@@ -17,22 +17,33 @@
 package org.bithon.server.web.service.diagnosis;
 
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import one.jfr.JfrReader;
-import one.jfr.StackTrace;
-import one.jfr.event.Event;
+import org.bithon.agent.rpc.brpc.cmd.IProfilingCommand;
+import org.bithon.agent.rpc.brpc.profiling.ProfilingRequest;
+import org.bithon.agent.rpc.brpc.profiling.ProfilingResponse;
 import org.bithon.component.brpc.StreamResponse;
-import org.bithon.server.web.service.diagnosis.event.CallStackSample;
-import org.bithon.server.web.service.diagnosis.event.IEvent;
+import org.bithon.component.brpc.channel.BrpcServer;
+import org.bithon.component.brpc.exception.SessionNotFoundException;
+import org.bithon.component.brpc.message.Headers;
+import org.bithon.server.agent.controller.service.AgentControllerServer;
+import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
+import org.bithon.server.web.service.agent.api.AgentDiagnosisApi;
+import org.bithon.shaded.com.google.protobuf.GeneratedMessageV3;
+import org.bithon.shaded.com.google.protobuf.util.JsonFormat;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -43,54 +54,131 @@ import java.util.List;
 @RestController
 public class JfrApi {
 
-    @GetMapping("/api/diagnosis/profiling")
-    public SseEmitter profiling() {
-        SseEmitter emitter = new SseEmitter((30 + 10) * 1000L); // 30 seconds timeout
+    private final DiscoveredServiceInvoker discoveredServiceInvoker;
+    private final ApplicationContext applicationContext;
+    private final AgentControllerServer agentControllerServer;
 
-        Profiler.INSTANCE.start(3,
-                                30,
-                                new StreamResponse<>() {
-                                    @Override
-                                    public void onNext(IEvent event) {
-                                        try {
-                                            emitter.send(SseEmitter.event()
-                                                                   .name(event.getClass().getSimpleName())
-                                                                   .data(event, MediaType.APPLICATION_JSON)
-                                                                   .build());
-                                        } catch (IOException | IllegalStateException ignored) {
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onException(Throwable throwable) {
-                                        emitter.completeWithError(throwable);
-                                    }
-
-                                    @Override
-                                    public void onComplete() {
-                                        emitter.complete();
-                                    }
-                                });
-
-        return emitter;
+    public JfrApi(DiscoveredServiceInvoker discoveredServiceInvoker,
+                  ApplicationContext applicationContext, AgentControllerServer agentControllerServer) {
+        this.discoveredServiceInvoker = discoveredServiceInvoker;
+        this.applicationContext = applicationContext;
+        this.agentControllerServer = agentControllerServer;
     }
 
-    private static void dump(File f) {
-        try (JfrReader jfrReader = Profiler.createJfrReader(f.getAbsolutePath())) {
-            {
-                Event event = jfrReader.readEvent();
-                while (event != null) {
-                    long time = jfrReader.startNanos + ((event.time - jfrReader.startTicks) / jfrReader.ticksPerSec);
-                    System.out.printf("%d, %d, %d %s\n", time, event.samples(), event.value(), event);
-                    StackTrace stackTrace = jfrReader.stackTraces.get(event.stackTraceId);
-                    if (stackTrace != null) {
-                        List<StackFrame> frames = CallStackSample.toStackTrace(jfrReader, stackTrace);
-                        System.out.println(frames);
-                    }
-                    event = jfrReader.readEvent();
+    @Data
+    public static class ProfileRequest {
+        @NotEmpty
+        private String appName;
+
+        @NotEmpty
+        private String instanceName;
+
+        /**
+         * in seconds
+         */
+        @Min(3)
+        @Max(10)
+        private long interval;
+
+        /**
+         * how long the profiling should last for in seconds
+         */
+        @Max(5 * 60)
+        @Min(10)
+        private int duration;
+    }
+
+    @GetMapping("/api/diagnosis/profiling")
+    public SseEmitter profiling(@Valid @ModelAttribute AgentDiagnosisApi.ProfileRequest request) {
+        SseEmitter emitter = new SseEmitter((30 + 10) * 1000L); // 30 seconds timeout
+
+        BrpcServer.Session agentSession = agentControllerServer.getBrpcServer()
+                                                               .getSessions()
+                                                               .stream()
+                                                               .filter((session) -> request.getAppName().equals(session.getRemoteApplicationName())
+                                                                                    && request.getInstanceName().equals(session.getRemoteAttribute(Headers.HEADER_APP_ID)))
+                                                               .findFirst()
+                                                               .orElseThrow(() -> new SessionNotFoundException("No session found for target application [app=%s, instance=%s] ", request.getAppName(), request.getInstanceName()));
+
+        IProfilingCommand agentJvmCommand = agentSession.getRemoteService(IProfilingCommand.class, 30);
+
+
+        //
+        // Find the controller where the target instance is connected to
+        //
+//        DiscoveredServiceInstance controller;
+//        {
+//            AtomicReference<DiscoveredServiceInstance> controllerRef = new AtomicReference<>();
+//            List<DiscoveredServiceInstance> controllerList = discoveredServiceInvoker.getInstanceList(IAgentControllerApi.class);
+//            CountDownLatch countDownLatch = new CountDownLatch(controllerList.size());
+//            for (DiscoveredServiceInstance controllerInstance : controllerList) {
+//                discoveredServiceInvoker.getExecutor()
+//                                        .submit(() -> discoveredServiceInvoker.createUnicastApi(IAgentControllerApi.class, () -> controllerInstance)
+//                                                                              .getAgentInstanceList(request.getAppName(), request.getInstanceName()))
+//                                        .thenAccept((returning) -> {
+//                                            if (!returning.isEmpty()) {
+//                                                controllerRef.set(controllerInstance);
+//                                            }
+//                                        })
+//                                        .whenComplete((ret, ex) -> countDownLatch.countDown());
+//            }
+//
+//            try {
+//                countDownLatch.await();
+//            } catch (InterruptedException e) {
+//                emitter.completeWithError(new RuntimeException(e));
+//                return emitter;
+//            }
+//            if (controllerRef.get() == null) {
+//                emitter.completeWithError(new HttpMappableException(HttpStatus.NOT_FOUND.value(), "No controller found for application instance [appName = %s, instanceName = %s]", request.getAppName(), request.getInstanceName()));
+//                return emitter;
+//            }
+//            controller = controllerRef.get();
+//        }
+//
+//        //
+//        // Create service proxy to agent via controller
+//        //
+//        AgentServiceProxyFactory agentServiceProxyFactory = new AgentServiceProxyFactory(discoveredServiceInvoker, applicationContext);
+//        IProfilingCommand agentJvmCommand = agentServiceProxyFactory.createUnicastProxy(IProfilingCommand.class,
+//                                                                                        controller,
+//                                                                                        request.getAppName(),
+//                                                                                        request.getInstanceName());
+
+        ProfilingRequest req = ProfilingRequest.newBuilder()
+                                               .setDurationInSeconds(30)
+                                               .setIntervalInSeconds(3)
+                                               .build();
+        agentJvmCommand.start(req, new StreamResponse<>() {
+            @Override
+            public void onNext(ProfilingResponse event) {
+                try {
+                    GeneratedMessageV3 data = switch (event.getEventCase()) {
+                        case CPUUSAGE -> event.getCpuUsage();
+                        case SYSTEMPROPERTIES -> event.getSystemProperties();
+                        case CALLSTACKSAMPLE -> event.getCallStackSample();
+                        case EVENT_NOT_SET -> null;
+                    };
+
+                    emitter.send(SseEmitter.event()
+                                           .name(data.getClass().getSimpleName())
+                                           .data(JsonFormat.printer().omittingInsignificantWhitespace().print(data), MediaType.TEXT_PLAIN)
+                                           .build());
+                } catch (IOException | IllegalStateException ignored) {
                 }
             }
-        } catch (IOException ignored) {
-        }
+
+            @Override
+            public void onException(Throwable throwable) {
+                emitter.completeWithError(throwable);
+            }
+
+            @Override
+            public void onComplete() {
+                emitter.complete();
+            }
+        });
+
+        return emitter;
     }
 }

@@ -14,36 +14,37 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.diagnosis;
+package org.bithon.agent.controller.cmd.profiling.event.jfr;
 
 import one.jfr.JfrReader;
 import one.jfr.event.Event;
 
 /**
- * Represents initial system property event from JFR (jdk.InitialSystemProperty)
- * This event captures system properties that were set when the JVM started.
- * 
- * @see https://bestsolution-at.github.io/jfr-doc/openjdk-17.html#jdk.InitialSystemProperty
- * @author frank.chen021@outlook.com
- * @date 2025/1/12
+ * Represents OS information event from JFR (jdk.OSInformation).
+ * This event captures operating system information when the JVM started.
+ *
+ * @see <a href="https://bestsolution-at.github.io/jfr-doc/openjdk-17.html#jdk.OSInformation">JFR Documentation</a>
  */
-public class InitialSystemProperty extends Event {
+public class OSInformation extends Event {
+    /**
+     * The operating system version
+     */
+    public String osVersion;
 
-    public InitialSystemProperty(JfrReader jfr) {
+    /**
+     * Constructor for deserializing jdk.OSInformation events
+     *
+     * @param jfr the JfrReader instance used for reading the event data
+     */
+    public OSInformation(JfrReader jfr) {
         super(jfr.getVarlong(), 0, 0);
-        this.key = jfr.getString();
-        this.value = jfr.getString();
+        this.osVersion = jfr.getString();
     }
-
-    // Field names should match the actual field names in the jdk.InitialSystemProperty JFR event
-    public String key;
-    public String value;
 
     @Override
     public String toString() {
-        return "InitialSystemProperty{" +
-               "key='" + key + '\'' +
-               ", value='" + value + '\'' +
+        return "OSInformation{" +
+               "osVersion='" + osVersion + '\'' +
                '}';
     }
 }

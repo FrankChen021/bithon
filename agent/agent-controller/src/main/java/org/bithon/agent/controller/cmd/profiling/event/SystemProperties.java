@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.diagnosis.event;
+package org.bithon.agent.controller.cmd.profiling.event;
 
 
 import java.util.Map;
@@ -24,7 +24,7 @@ import java.util.TreeMap;
  * @author frank.chen021@outlook.com
  * @date 14/7/25 2:19 pm
  */
-public class SystemProperties implements IEvent {
+public class SystemProperties {
     private final Map<String, String> properties;
 
     public SystemProperties(Map<String, String> properties) {

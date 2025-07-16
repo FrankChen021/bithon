@@ -250,6 +250,10 @@ public class BrpcServer implements Closeable {
             return this.remoteAttribute.getOrDefault(name, defaultValue);
         }
 
+        /**
+         *
+         * @param timeout in milliseconds
+         */
         public <T> T getRemoteService(Class<T> serviceClass, int timeout) {
             return ServiceStubFactory.create("brpc-server",
                                              Headers.EMPTY,

@@ -14,17 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.diagnosis.event;
+package org.bithon.agent.controller.cmd.profiling.event;
 
-
-import one.jfr.JfrReader;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 14/7/25 4:10 pm
+ * @date 14/7/25 4:15 pm
  */
-public class TimeConverter {
-    public static long toEpochNano(JfrReader jfr, long eventTime) {
-        return jfr.startNanos + ((eventTime - jfr.startTicks) / jfr.ticksPerSec);
-    }
+public interface IProfilingEvent2 {
 }

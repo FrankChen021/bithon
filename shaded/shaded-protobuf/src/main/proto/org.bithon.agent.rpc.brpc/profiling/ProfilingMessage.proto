@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package org.bithon.agent.rpc.brpc.profiling;
+
+import "google/protobuf/any.proto";
+
+option java_multiple_files = true;
+
+/***************************************************************************/
+/*************************** JVM Metrics ***********************************/
+/***************************************************************************/
+message ProfilingRequest {
+  int32 durationInSeconds = 1;
+  int32 intervalInSeconds = 2;
+}
+
+message ProfilingResponse {
+  oneof event {
+    CPUUsage cpuUsage = 10;
+    SystemProperties systemProperties = 20;
+    CallStackSample callStackSample = 30;  // Including this as it appears to be another relevant event type
+  }
+}
+
+/**************************************************************************/
+/*******************************  Profiling Response       ***************************/
+/**************************************************************************/
+message CPUUsage {
+  int64 time = 1;
+  float user = 2;
+  float system = 3;
+  float machine = 4;
+}
+
+message SystemProperties {
+  map<string, string> properties = 1;
+}
+
+message StackFrame {
+  string typeName = 1;
+  string method = 2;
+  string returnType = 3;
+  repeated string parameters = 4;
+  int32 location = 5;
+  int32 type = 6;
+}
+
+message CallStackSample {
+  int64 time = 1;
+  int32 threadId = 2;
+  string threadName = 3;
+  int32 threadState = 4;
+  repeated StackFrame stackTrace = 5;
+  int32 samples = 6;
+}

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.diagnosis;
+package org.bithon.agent.controller.cmd.profiling.event.jfr;
 
 import one.jfr.JfrReader;
 import one.jfr.event.Event;

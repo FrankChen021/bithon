@@ -29,5 +29,17 @@
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-observability</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>tools.profiler</groupId>
+      <artifactId>jfr-converter</artifactId>
+      <version>4.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>

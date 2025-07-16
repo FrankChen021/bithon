@@ -14,12 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.diagnosis.event;
+package org.bithon.agent.controller.cmd.profiling.event;
 
 
 /**
  * @author frank.chen021@outlook.com
- * @date 14/7/25 4:15 pm
+ * @date 14/7/25 4:14 pm
  */
-public interface IEvent {
+public class CPUUsage {
+    public final long time;
+    public final float jvmUser;
+    public final float jvmSystem;
+    public final float machineTotal;
+
+    public CPUUsage(long time, float jvmUser, float jvmSystem, float machineTotal) {
+        this.time = time;
+        this.jvmUser = jvmUser;
+        this.jvmSystem = jvmSystem;
+        this.machineTotal = machineTotal;
+    }
 }

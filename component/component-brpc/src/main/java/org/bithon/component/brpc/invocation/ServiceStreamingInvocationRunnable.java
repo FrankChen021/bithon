@@ -88,6 +88,8 @@ public class ServiceStreamingInvocationRunnable implements Runnable {
                             return;
                         }
 
+                        LoggerFactory.getLogger(ServiceStreamingInvocationRunnable.class)
+                                     .info("Sending streaming data for txId: {}, data: {}", txId, data);
                         new ServiceStreamingDataMessageOut(txId, data, serviceInvoker.getMetadata().getSerializer())
                             .send(channel);
                     } catch (Exception e) {
@@ -304,7 +306,7 @@ public class ServiceStreamingInvocationRunnable implements Runnable {
                               StreamingContext context = entry.getValue();
                               if (channelId.equals(context.channelId)) {
                                   LoggerFactory.getLogger(ServiceStreamingInvocationRunnable.class)
-                                               .info("Cleaning up streaming context for closed channel, txId: {}, channelId: {}", 
+                                               .info("Cleaning up streaming context for closed channel, txId: {}, channelId: {}",
                                                      entry.getKey(), channelId);
                                   context.cancel();
                                   return true;

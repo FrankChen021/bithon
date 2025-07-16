@@ -22,6 +22,7 @@ import org.bithon.agent.controller.cmd.IAgentCommand;
 import org.bithon.agent.controller.cmd.InstrumentationCommand;
 import org.bithon.agent.controller.cmd.JvmCommand;
 import org.bithon.agent.controller.cmd.LoggingCommand;
+import org.bithon.agent.controller.cmd.ProfilingCommand;
 import org.bithon.agent.controller.config.AgentSettingFetchTask;
 import org.bithon.agent.controller.config.ConfigurationCommandImpl;
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
@@ -74,6 +75,7 @@ public class AgentControllerService implements IAgentService {
         attachCommand(controller, new InstrumentationCommand());
         attachCommand(controller, new ConfigurationCommandImpl());
         attachCommand(controller, new LoggingCommand());
+        attachCommand(controller, new ProfilingCommand());
         loadAgentCommands(controller, AgentClassLoader.getClassLoader());
         loadAgentCommands(controller, PluginClassLoader.getClassLoader());
 

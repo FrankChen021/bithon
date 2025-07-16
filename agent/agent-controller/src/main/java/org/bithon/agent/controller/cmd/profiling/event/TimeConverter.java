@@ -14,23 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.diagnosis.event;
+package org.bithon.agent.controller.cmd.profiling.event;
 
+
+import one.jfr.JfrReader;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 14/7/25 4:14 pm
+ * @date 14/7/25 4:10 pm
  */
-public class CPUUsage implements IEvent {
-    public final long time;
-    public final float jvmUser;
-    public final float jvmSystem;
-    public final float machineTotal;
-
-    public CPUUsage(long time, float jvmUser, float jvmSystem, float machineTotal) {
-        this.time = time;
-        this.jvmUser = jvmUser;
-        this.jvmSystem = jvmSystem;
-        this.machineTotal = machineTotal;
+public class TimeConverter {
+    public static long toEpochNano(JfrReader jfr, long eventTime) {
+        return jfr.startNanos + ((eventTime - jfr.startTicks) / jfr.ticksPerSec);
     }
 }

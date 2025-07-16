@@ -24,6 +24,6 @@ import org.bithon.component.commons.utils.StringUtils;
  */
 public class UnknownMessageException extends RuntimeException {
     public UnknownMessageException(String remoteAddress, String localAddress, int messageType) {
-        super(StringUtils.format("Unknown message type [%d], [%s] --> [%s]", messageType, remoteAddress, localAddress));
+        super(StringUtils.format("Unknown message type [0x%X], [%s] --> [%s]", messageType, remoteAddress, localAddress));
     }
 }

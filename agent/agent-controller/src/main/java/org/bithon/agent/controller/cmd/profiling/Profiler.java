@@ -14,30 +14,45 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.diagnosis;
+package org.bithon.agent.controller.cmd.profiling;
 
 
 import one.jfr.JfrReader;
+import one.jfr.StackTrace;
 import one.jfr.event.CPULoad;
 import one.jfr.event.Event;
 import one.jfr.event.ExecutionSample;
+import org.bithon.agent.controller.cmd.profiling.event.CallStackSample;
+import org.bithon.agent.controller.cmd.profiling.event.TimeConverter;
+import org.bithon.agent.controller.cmd.profiling.event.jfr.CPUInformation;
+import org.bithon.agent.controller.cmd.profiling.event.jfr.InitialEnvironmentVariable;
+import org.bithon.agent.controller.cmd.profiling.event.jfr.InitialSystemProperty;
+import org.bithon.agent.controller.cmd.profiling.event.jfr.JVMInformation;
+import org.bithon.agent.controller.cmd.profiling.event.jfr.OSInformation;
+import org.bithon.agent.instrumentation.utils.AgentDirectory;
+import org.bithon.agent.rpc.brpc.profiling.CPUUsage;
+import org.bithon.agent.rpc.brpc.profiling.ProfilingRequest;
+import org.bithon.agent.rpc.brpc.profiling.ProfilingResponse;
+import org.bithon.agent.rpc.brpc.profiling.StackFrame;
+import org.bithon.agent.rpc.brpc.profiling.SystemProperties;
 import org.bithon.component.brpc.StreamResponse;
+import org.bithon.component.commons.forbidden.SuppressForbidden;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.component.commons.uuid.UUIDv7Generator;
-import org.bithon.server.web.service.diagnosis.event.CPUUsage;
-import org.bithon.server.web.service.diagnosis.event.CallStackSample;
-import org.bithon.server.web.service.diagnosis.event.IEvent;
-import org.bithon.server.web.service.diagnosis.event.SystemProperties;
-import org.bithon.server.web.service.diagnosis.event.TimeConverter;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.management.ManagementFactory;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
@@ -53,7 +68,13 @@ public class Profiler {
 
     public static final Profiler INSTANCE = new Profiler();
 
-    public void start(int intervalSeconds, int durationSeconds, StreamResponse<IEvent> streamResponse) {
+    public static void start(ProfilingRequest request, StreamResponse<ProfilingResponse> streamResponse) {
+        INSTANCE.start(request.getIntervalInSeconds(),
+                       request.getDurationInSeconds(),
+                       streamResponse);
+    }
+
+    public void start(int intervalSeconds, int durationSeconds, StreamResponse<ProfilingResponse> streamResponse) {
         if (intervalSeconds <= 0 || durationSeconds <= 0) {
             streamResponse.onException(new IllegalArgumentException("Interval and duration must be greater than 0"));
             return;
@@ -70,7 +91,7 @@ public class Profiler {
         int loopIntervalSeconds = 3; // --loop parameter value
         int totalDurationSeconds = 30; // -d parameter value
 
-        String pid = String.valueOf(ProcessHandle.current().pid());
+        String pid = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
 
         File dir = new File(System.getProperty("java.io.tmpdir", "/tmp"), uuid);
         if (!dir.exists() && !dir.mkdirs()) {
@@ -97,7 +118,7 @@ public class Profiler {
                 }
 
                 // Read the process output
-                try (BufferedReader stderrReader = process.errorReader()) {
+                try (BufferedReader stderrReader = new BufferedReader(new InputStreamReader(process.getErrorStream(), StandardCharsets.UTF_8))) {
                     while (!stderrReader.ready()) {
                         try {
                             Thread.sleep(100);
@@ -160,7 +181,7 @@ public class Profiler {
     private void watchProfilingResult(File dir,
                                       int loopIntervalSeconds,
                                       long endTime,
-                                      StreamResponse<IEvent> outputStream) {
+                                      StreamResponse<ProfilingResponse> outputStream) {
         Set<String> skipped = new HashSet<>();
 
         // Pattern to extract timestamp from filename (format: YYYYMMDD-HHMMSS.jfr)
@@ -275,9 +296,9 @@ public class Profiler {
         /**
          * Called when a JFR event is read.
          *
-         * @param jfrEvent the JFR event
+         * @param event the JFR event
          */
-        void onEvent(IEvent jfrEvent);
+        void onEvent(ProfilingResponse event);
 
         void onComplete();
     }
@@ -285,7 +306,7 @@ public class Profiler {
     /**
      * Process a complete JFR file
      */
-    private void processJfrFile(Path filePath, StreamResponse<IEvent> streamResponse) {
+    private void processJfrFile(Path filePath, StreamResponse<ProfilingResponse> streamResponse) {
         readJFR(filePath,
                 new FileEventConsumer() {
                     @Override
@@ -293,8 +314,8 @@ public class Profiler {
                     }
 
                     @Override
-                    public void onEvent(IEvent jfrEvent) {
-                        streamResponse.onNext(jfrEvent);
+                    public void onEvent(ProfilingResponse event) {
+                        streamResponse.onNext(event);
                     }
 
                     @Override
@@ -311,14 +332,21 @@ public class Profiler {
             eventConsumer.onStart();
             {
                 for (Event event; (event = jfr.readEvent()) != null; ) {
-                    IEvent e = null;
+                    ProfilingResponse response = null;
                     if (event instanceof ExecutionSample) {
-                        e = CallStackSample.toCallStackSample(jfr, (ExecutionSample) event);
+                        response = ProfilingResponse.newBuilder()
+                                                    .setCallStackSample(CallStackSample.toCallStackSample(jfr, (ExecutionSample) event))
+                                                    .build();
                     } else if (event instanceof CPULoad) {
-                        e = new CPUUsage(TimeConverter.toEpochNano(jfr, event.time),
-                                         ((CPULoad) event).jvmUser,
-                                         ((CPULoad) event).jvmSystem,
-                                         ((CPULoad) event).machineTotal);
+                        CPUUsage cpuUsage = CPUUsage.newBuilder()
+                                                    .setTime(TimeConverter.toEpochNano(jfr, event.time))
+                                                    .setUser(((CPULoad) event).jvmUser)
+                                                    .setSystem(((CPULoad) event).jvmSystem)
+                                                    .setMachine(((CPULoad) event).machineTotal)
+                                                    .build();
+                        response = ProfilingResponse.newBuilder()
+                                                    .setCpuUsage(cpuUsage)
+                                                    .build();
                     } else if (event instanceof InitialSystemProperty) {
                         systemProperties.put(((InitialSystemProperty) event).key,
                                              ((InitialSystemProperty) event).value);
@@ -330,13 +358,15 @@ public class Profiler {
                            || JdkTypeIDs.EXECUTION_SAMPLE.equals(eventType)
                            || JdkTypeIDs.SYSTEM_PROPERTIES.equals(eventType);
                      */
-                    if (e != null) {
-                        eventConsumer.onEvent(e);
+                    if (response != null) {
+                        eventConsumer.onEvent(response);
                     }
                 }
             }
             if (!systemProperties.isEmpty()) {
-                eventConsumer.onEvent(new SystemProperties(systemProperties));
+                SystemProperties.Builder props = SystemProperties.newBuilder()
+                                                                 .putAllProperties(systemProperties);
+                eventConsumer.onEvent(ProfilingResponse.newBuilder().setSystemProperties(props).build());
             }
         } catch (IOException e) {
             LOG.error("Failed to read JFR file: {}", file, e);
@@ -422,8 +452,8 @@ public class Profiler {
     }
 
     private static String getToolLocation() {
-        String os = System.getProperty("os.name").toLowerCase();
-        String arch = System.getProperty("os.arch").toLowerCase();
+        String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
+        String arch = System.getProperty("os.arch").toLowerCase(Locale.ENGLISH);
 
         String dir;
         if (os.contains("mac")) {
@@ -437,6 +467,34 @@ public class Profiler {
         } else {
             throw new RuntimeException("Unsupported OS: " + os);
         }
-        return "/Users/frank.chenling/source/open/bithon/agent/agent-distribution/tools/async-profiler-4.0/" + dir + "/bin/asprof";
+        File toolHome = AgentDirectory.getSubDirectory("tools/async-profiler");
+        if (!toolHome.exists()) {
+            throw new RuntimeException("Async profiler tool directory does not exist: " + toolHome.getAbsolutePath());
+        }
+        File osDir = new File(toolHome, dir);
+        if (!osDir.exists()) {
+            throw new RuntimeException("Async profiler tool directory for " + dir + " does not exist: " + osDir.getAbsolutePath());
+        }
+        return new File(osDir, "bin/asprof").getAbsolutePath();
+    }
+
+    @SuppressForbidden
+    public static void dump(File f) {
+        try (JfrReader jfrReader = Profiler.createJfrReader(f.getAbsolutePath())) {
+            {
+                Event event = jfrReader.readEvent();
+                while (event != null) {
+                    long time = jfrReader.startNanos + ((event.time - jfrReader.startTicks) / jfrReader.ticksPerSec);
+                    System.out.printf("%d, %d, %d %s\n", time, event.samples(), event.value(), event);
+                    StackTrace stackTrace = jfrReader.stackTraces.get(event.stackTraceId);
+                    if (stackTrace != null) {
+                        List<StackFrame> frames = CallStackSample.toStackTrace(jfrReader, stackTrace);
+                        System.out.println(frames);
+                    }
+                    event = jfrReader.readEvent();
+                }
+            }
+        } catch (IOException ignored) {
+        }
     }
 }

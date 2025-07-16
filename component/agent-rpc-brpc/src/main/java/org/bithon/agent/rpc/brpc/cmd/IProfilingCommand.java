@@ -17,6 +17,8 @@
 package org.bithon.agent.rpc.brpc.cmd;
 
 
+import org.bithon.agent.rpc.brpc.profiling.ProfilingRequest;
+import org.bithon.agent.rpc.brpc.profiling.ProfilingResponse;
 import org.bithon.component.brpc.BrpcService;
 import org.bithon.component.brpc.StreamResponse;
 import org.bithon.component.brpc.message.serializer.Serializer;
@@ -25,21 +27,13 @@ import org.bithon.component.brpc.message.serializer.Serializer;
  * @author frank.chen021@outlook.com
  * @date 26/5/25 3:37 pm
  */
-@BrpcService(name = "agent.profiling", serializer = Serializer.JSON_SMILE)
+@BrpcService(name = "agent.profiling", serializer = Serializer.PROTOBUF)
 public interface IProfilingCommand {
-
-    class ProfilingRequest {
-        public int durationInSeconds = 60; // default to 60 seconds
-    }
-
-    class ProfilingFrame {
-
-    }
 
     /**
      * Starts the profiling session and streams profiling frames to the provided response.
      *
      * @param response The response object to which profiling frames will be streamed.
      */
-    void start(ProfilingRequest request, StreamResponse<ProfilingFrame> response);
+    void start(ProfilingRequest request, StreamResponse<ProfilingResponse> response);
 }
