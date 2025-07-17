@@ -20,7 +20,6 @@ package org.bithon.agent.observability.logging;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.source.Helper;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
