@@ -117,6 +117,13 @@ public class ConfigurationManager {
         return INSTANCE;
     }
 
+    public static ConfigurationManager createForTesting() {
+        INSTANCE = new ConfigurationManager(ExternalSource.build(),
+                                            CommandLineArgsSource.build("bithon."),
+                                            EnvironmentSource.build("bithon_"));
+        return INSTANCE;
+    }
+
     /**
      * Exposed for testing
      */
@@ -220,7 +227,9 @@ public class ConfigurationManager {
     @SuppressWarnings("unchecked")
     public <T> T getConfig(String propertyPath, Class<T> clazz, boolean isDynamic) {
         if (clazz.isPrimitive() || clazz.equals(String.class) || clazz.isArray() || !isDynamic) {
-            return Binder.bind(propertyPath, collect(propertyPath), clazz);
+            return Binder.bind(propertyPath,
+                               collect(propertyPath),
+                               clazz);
         }
 
         // If this configuration clazz is defined as dynamic (it means configuration changes will dynamically reflect on its corresponding configuration clazz object),
@@ -228,7 +237,9 @@ public class ConfigurationManager {
         return (T) proxiedBeans.computeIfAbsent(propertyPath, (k) -> {
             Class<?> proxyClass = ProxyClassGenerator.create(clazz);
 
-            T val = Binder.bind(propertyPath, collect(propertyPath), clazz);
+            T val = Binder.bind(propertyPath,
+                                collect(propertyPath),
+                                clazz);
             try {
                 // For each generated
                 return (IProxyObject) proxyClass.getConstructor(clazz)

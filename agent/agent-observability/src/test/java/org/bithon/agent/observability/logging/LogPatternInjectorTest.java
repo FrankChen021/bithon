@@ -17,16 +17,26 @@
 package org.bithon.agent.observability.logging;
 
 
+import org.bithon.agent.configuration.ConfigurationManager;
+import org.bithon.agent.configuration.source.Helper;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+
+import java.util.Arrays;
 
 /**
  * @author Frank Chen
  * @date 19/3/24 4:59 pm
  */
 public class LogPatternInjectorTest {
+
     @Test
     public void test() {
+        ConfigurationManager.createForTesting();
+
         Assertions.assertEquals("[bTxId: %X{bTxId}, bSpanId: %X{bSpanId}, bMode: %X{bMode}] %msg", LogPatternInjector.injectTracePattern("%msg"));
 
         // No injection due to no msg field found
@@ -38,6 +48,8 @@ public class LogPatternInjectorTest {
 
     @Test
     public void test_VariableDefined() {
+        ConfigurationManager.createForTesting();
+
         // No injection due to bTxId variable defined
         Assertions.assertEquals("%X{bTxId}", LogPatternInjector.injectTracePattern("%X{bTxId}"));
 
@@ -52,5 +64,18 @@ public class LogPatternInjectorTest {
         // No injection due to bTxId defined
         Assertions.assertEquals("%X{test} %X{bTxId: -null} %msg",
                             LogPatternInjector.injectTracePattern("%X{test} %X{bTxId: -null} %msg"));
+    }
+
+    @Test
+    public void test_VariableNotInjection() {
+        try (MockedStatic<Helper> configurationMock = Mockito.mockStatic(Helper.class)) {
+            configurationMock.when(Helper::getCommandLineInputArgs)
+                             .thenReturn(Arrays.asList("-Dbithon.logging.disableTraceIdAutoInjection=true"));
+
+            ConfigurationManager.createForTesting();
+        }
+
+        // No injection due to bTxId variable defined
+        Assertions.assertEquals("%X{threadId}", LogPatternInjector.injectTracePattern("%X{threadId}"));
     }
 }
