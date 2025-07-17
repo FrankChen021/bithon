@@ -30,9 +30,13 @@
           <artifactId>druid-core</artifactId>
           <groupId>org.apache.druid</groupId>
         </exclusion>
+        <exclusion>
+          <groupId>org.apache.yetus</groupId>
+          <artifactId>audience-annotations</artifactId>
+        </exclusion>
       </exclusions>
-
     </dependency>
+
     <dependency>
       <groupId>org.apache.druid</groupId>
       <artifactId>druid-sql</artifactId>
@@ -42,6 +46,10 @@
         <exclusion>
           <artifactId>druid-core</artifactId>
           <groupId>org.apache.druid</groupId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.yetus</groupId>
+          <artifactId>audience-annotations</artifactId>
         </exclusion>
       </exclusions>
     </dependency>

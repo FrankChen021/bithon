@@ -21,14 +21,13 @@
         "war" - Creates a WAR format
     -->
     <format>dir</format>
-    <format>zip</format>
-    <format>tar</format>
   </formats>
   <includeBaseDirectory>true</includeBaseDirectory>
 
   <dependencySets>
     <!-- agent entry point -->
     <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
       <includes>
         <include>${project.parent.groupId}:agent-main</include>
       </includes>
@@ -38,6 +37,7 @@
 
     <!-- boot-class-path -->
     <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
       <includes>
         <include>${project.parent.groupId}:agent-instrumentation</include>
       </includes>
@@ -45,6 +45,7 @@
       <outputFileNameMapping>agent-instrumentation.jar</outputFileNameMapping>
     </dependencySet>
     <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
       <includes>
         <include>org.bithon.shaded:shaded-bytebuddy</include>
       </includes>
@@ -54,6 +55,7 @@
 
     <!-- lib -->
     <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
       <excludes>
         <exclude>org.bithon.shaded:shaded-bytebuddy</exclude>
         <exclude>${project.parent.groupId}:agent-instrumentation</exclude>
@@ -69,6 +71,7 @@
 
     <!-- sdk -->
     <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
       <includes>
         <include>${project.parent.groupId}:agent-sdk</include>
       </includes>
@@ -77,6 +80,7 @@
     </dependencySet>
 
     <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
       <includes>
         <include>${project.parent.groupId}:agent-plugins</include>
       </includes>

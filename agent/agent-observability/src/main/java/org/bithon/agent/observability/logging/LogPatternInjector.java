@@ -16,6 +16,8 @@
 
 package org.bithon.agent.observability.logging;
 
+import org.bithon.agent.configuration.ConfigurationManager;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,6 +28,13 @@ import java.util.regex.Pattern;
 public class LogPatternInjector {
 
     public static String injectTracePattern(String userPattern) {
+        Boolean disabled = ConfigurationManager.getInstance()
+                                               .getConfig("logging.disableTraceIdAutoInjection", Boolean.class);
+        if (disabled != null && disabled) {
+            // if the auto-injection is disabled, return the user pattern directly
+            return userPattern;
+        }
+
         //
         // Check if the user pattern has already defined the bTxId/bSpanId.
         // If defined, there's no need to inject the trace id automatically.
