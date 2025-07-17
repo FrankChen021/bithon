@@ -66,6 +66,8 @@
           </descriptors>
           <tarLongFileMode>posix</tarLongFileMode>
           <appendAssemblyId>false</appendAssemblyId>
+          <!-- Only attach archive formats -->
+          <attach>false</attach>
         </configuration>
         <executions>
           <execution>
@@ -74,6 +76,21 @@
             <goals>
               <goal>single</goal>
             </goals>
+          </execution>
+          <!-- Create archives and attach them -->
+          <execution>
+            <id>make-archives</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <formats>
+                <format>zip</format>
+                <format>tar</format>
+              </formats>
+              <attach>true</attach>
+            </configuration>
           </execution>
         </executions>
       </plugin>

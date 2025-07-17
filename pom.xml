@@ -129,6 +129,10 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.14.0</version>
+          <configuration>
+            <release>${maven.compiler.release}</release>
+            <encoding>UTF-8</encoding>
+          </configuration>
         </plugin>
 
         <plugin>
@@ -166,6 +170,29 @@
           <source>1.8</source>
           <target>1.8</target>
           <encoding>UTF-8</encoding>
+          <!--[WARNING] source value 8 is obsolete and will be removed in a future release
+[WARNING] target value 8 is obsolete and will be removed in a future release
+[WARNING] To suppress warnings about obsolete options, use -Xlint:-options.
+-->
+          <compilerArgs>
+            <arg>-Xlint:-options</arg>
+            <!--
+            Suppress warnings about obsolete options.
+            [WARNING] /bithon/agent/agent-plugins/httpclient/jdk/src/main/java/org/bithon/agent/plugin/httpclient/jdk/interceptor/HttpClient$WriteRequests.java:[44,79] sun.net.www.MessageHeader is internal proprietary API and may be removed in a future release
+            -->
+            <arg>-XDignore.symbol.file</arg>
+          </compilerArgs>
+          <!--
+          Required by -XDignore.symbol.file
+          -->
+          <fork>true</fork>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+              <version>${lombok.version}</version>
+            </path>
+          </annotationProcessorPaths>
         </configuration>
       </plugin>
 
@@ -391,21 +418,6 @@
             <dependency>org.bithon:*</dependency>
             <dependency>org.bithon.server:*</dependency>
           </ignoredUnusedDeclaredDependencies>
-        </configuration>
-      </plugin>
-
-      <!--To fix occasional error-->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <annotationProcessorPaths>
-            <path>
-              <groupId>org.projectlombok</groupId>
-              <artifactId>lombok</artifactId>
-              <version>${lombok.version}</version>
-            </path>
-          </annotationProcessorPaths>
         </configuration>
       </plugin>
 
