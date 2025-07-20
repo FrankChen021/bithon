@@ -34,6 +34,8 @@ import java.util.function.Supplier;
  */
 public class Binder {
 
+    private static final ObjectMapper OBJECT_MAPPER = ObjectMapperConfigurer.configure(new ObjectMapper());
+
     public static <T> T bind(String propertyPath, JsonNode configuration, Class<T> clazz) {
         return bind(propertyPath,
                     configuration,
@@ -71,8 +73,7 @@ public class Binder {
 
         T value;
         try {
-            value = ObjectMapperConfigurer.configure(new ObjectMapper())
-                                          .convertValue(configuration, clazz);
+            value = OBJECT_MAPPER.convertValue(configuration, clazz);
         } catch (IllegalArgumentException e) {
             if (e.getCause() instanceof InvalidFormatException) {
                 // No need to wrap the exception, just throw it
