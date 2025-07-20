@@ -37,7 +37,7 @@ public class InterceptorManager {
 
     private int globalInterceptorIndex = 0;
 
-    private InterceptorSupplier[] interceptorList = new InterceptorSupplier[64];
+    private InterceptorSupplier[] interceptorList = new InterceptorSupplier[256];
 
     /**
      * key - interceptor class name
@@ -114,9 +114,12 @@ public class InterceptorManager {
             return;
         }
 
-        InterceptorSupplier[] newArray = new InterceptorSupplier[(int) (interceptorList.length * 1.5)];
-        System.arraycopy(interceptorList, 0, newArray, 0, interceptorList.length);
+        int oldCapacity = interceptorList.length;
+        int newCapacity = (int) (oldCapacity * 1.5);
+        InterceptorSupplier[] newArray = new InterceptorSupplier[newCapacity];
+        System.arraycopy(interceptorList, 0, newArray, 0, oldCapacity);
         interceptorList = newArray;
-        LoggerFactory.getLogger(InterceptorManager.class).info("Enlarge dynamic interceptors storage to {}", interceptorList.length);
+        LoggerFactory.getLogger(InterceptorManager.class)
+                     .info("Enlarge interceptors storage from {} to {}", oldCapacity, newCapacity);
     }
 }
