@@ -22,6 +22,7 @@ import org.bithon.component.brpc.invocation.ServiceInvocationRunnable;
 import org.bithon.component.brpc.invocation.ServiceStreamingInvocationRunnable;
 import org.bithon.component.brpc.message.ServiceMessage;
 import org.bithon.component.brpc.message.ServiceMessageType;
+import org.bithon.component.brpc.message.in.ServiceMessageIn;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.brpc.message.in.ServiceStreamingDataMessageIn;
@@ -30,6 +31,7 @@ import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.shaded.io.netty.channel.Channel;
 import org.bithon.shaded.io.netty.channel.ChannelHandler;
 import org.bithon.shaded.io.netty.channel.ChannelHandlerContext;
 import org.bithon.shaded.io.netty.channel.SimpleChannelInboundHandler;
@@ -69,17 +71,32 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ServiceMessage msg) {
+        try {
+            handleMessageIn(ctx.channel(), (ServiceMessageIn) msg);
+        } finally {
+            try {
+                // Make sure all content has been consumed
+                ((ServiceMessageIn) msg).consume();
+            } catch (Throwable ignored) {
+            }
+        }
+    }
+
+    private void handleMessageIn(Channel channel, ServiceMessageIn msg) {
         switch (msg.getMessageType()) {
             case ServiceMessageType.CLIENT_REQUEST_ONEWAY:
             case ServiceMessageType.CLIENT_REQUEST:
             case ServiceMessageType.CLIENT_REQUEST_V2:
                 ServiceRequestMessageIn request = (ServiceRequestMessageIn) msg;
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Receiving request, txId={}, service={}#{}", request.getTransactionId(), request.getServiceName(), request.getMethodName());
+                    LOG.debug("Receiving request, txId={}, service={}#{}",
+                              request.getTransactionId(),
+                              request.getServiceName(),
+                              request.getMethodName());
                 }
 
                 ServiceInvocationRunnable.execute(serviceRegistry,
-                                                  ctx.channel(),
+                                                  channel,
                                                   (ServiceRequestMessageIn) msg,
                                                   this.executor);
                 break;
@@ -87,11 +104,14 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
             case ServiceMessageType.CLIENT_STREAMING_REQUEST:
                 ServiceRequestMessageIn streamingRequest = (ServiceRequestMessageIn) msg;
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Receiving streaming request, txId={}, service={}#{}", streamingRequest.getTransactionId(), streamingRequest.getServiceName(), streamingRequest.getMethodName());
+                    LOG.debug("Receiving streaming request, txId={}, service={}#{}",
+                              streamingRequest.getTransactionId(),
+                              streamingRequest.getServiceName(),
+                              streamingRequest.getMethodName());
                 }
 
                 ServiceStreamingInvocationRunnable.execute(serviceRegistry,
-                                                           ctx.channel(),
+                                                           channel,
                                                            streamingRequest,
                                                            this.executor);
                 break;
@@ -106,7 +126,8 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
 
             case ServiceMessageType.SERVER_STREAMING_DATA:
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Receiving streaming data, txId={}", msg.getTransactionId());
+                    LOG.debug("Receiving streaming data, txId={}",
+                              msg.getTransactionId());
                 }
 
                 invocationManager.handleStreamingData((ServiceStreamingDataMessageIn) msg);
@@ -114,7 +135,8 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
 
             case ServiceMessageType.SERVER_STREAMING_END:
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Receiving streaming end, txId={}", msg.getTransactionId());
+                    LOG.debug("Receiving streaming end, txId={}",
+                              msg.getTransactionId());
                 }
 
                 invocationManager.handleStreamingEnd((ServiceStreamingEndMessageIn) msg);
@@ -122,7 +144,8 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
 
             case ServiceMessageType.CLIENT_STREAMING_CANCEL:
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Receiving streaming cancel, txId={}", msg.getTransactionId());
+                    LOG.debug("Receiving streaming cancel, txId={}",
+                              msg.getTransactionId());
                 }
 
                 ServiceStreamingInvocationRunnable.cancelStreaming(msg.getTransactionId());

@@ -26,5 +26,21 @@ import java.io.IOException;
  */
 public abstract class ServiceMessageIn extends ServiceMessage {
 
-    public abstract ServiceMessage decode(CodedInputStream in) throws IOException;
+    protected final CodedInputStream in;
+
+    protected ServiceMessageIn(CodedInputStream in) {
+        this.in = in;
+    }
+
+    public abstract ServiceMessage decode() throws IOException;
+
+    /**
+     * Consume the message.
+     */
+    public void consume() throws IOException {
+        int unConsumedBytes = in.getBytesUntilLimit();
+        if (unConsumedBytes > 0) {
+            in.skipRawBytes(unConsumedBytes);
+        }
+    }
 }

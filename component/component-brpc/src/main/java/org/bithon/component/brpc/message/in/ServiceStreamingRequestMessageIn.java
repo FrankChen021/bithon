@@ -17,6 +17,7 @@
 package org.bithon.component.brpc.message.in;
 
 import org.bithon.component.brpc.message.ServiceMessageType;
+import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 
 /**
  * Message for receiving streaming requests on the server side
@@ -25,8 +26,8 @@ import org.bithon.component.brpc.message.ServiceMessageType;
  */
 public class ServiceStreamingRequestMessageIn extends ServiceRequestMessageIn {
     
-    public ServiceStreamingRequestMessageIn(int messageType) {
-        super(messageType);
+    public ServiceStreamingRequestMessageIn(int messageType, CodedInputStream is) {
+        super(messageType, is);
     }
     
     @Override

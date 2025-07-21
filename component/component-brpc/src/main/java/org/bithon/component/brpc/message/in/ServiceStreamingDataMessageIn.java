@@ -26,29 +26,29 @@ import java.lang.reflect.Type;
 
 /**
  * Message for receiving streaming data on the client side
- * 
+ *
  * @author frankchen
  */
 public class ServiceStreamingDataMessageIn extends ServiceMessageIn {
-    
-    private CodedInputStream dataStream;
+
     private int serializerType;
-    
+
+    public ServiceStreamingDataMessageIn(CodedInputStream is) {
+        super(is);
+    }
+
     @Override
     public int getMessageType() {
         return ServiceMessageType.SERVER_STREAMING_DATA;
     }
-    
+
     @Override
-    public ServiceMessage decode(CodedInputStream in) throws IOException {
+    public ServiceMessage decode() throws IOException {
         this.transactionId = in.readInt64();
-        
+
         // Read and store serializer type
         this.serializerType = in.readInt32();
-        
-        // Store the remaining stream for data deserialization
-        this.dataStream = in;
-        
+
         return this;
     }
 
@@ -56,19 +56,13 @@ public class ServiceStreamingDataMessageIn extends ServiceMessageIn {
      * Deserialize the streaming data to the specified type
      */
     public Object getData(Type type) throws IOException {
-        if (dataStream != null) {
-            return Serializer.getSerializer(serializerType).deserialize(dataStream, type);
-        }
-        return null;
+        return Serializer.getSerializer(serializerType).deserialize(in, type);
     }
-    
+
     /**
      * Get the raw data bytes
      */
     public byte[] getRawData() throws IOException {
-        if (dataStream != null) {
-            return dataStream.readRawBytes(dataStream.getBytesUntilLimit());
-        }
-        return new byte[0];
+        return in.readRawBytes(in.getBytesUntilLimit());
     }
 }

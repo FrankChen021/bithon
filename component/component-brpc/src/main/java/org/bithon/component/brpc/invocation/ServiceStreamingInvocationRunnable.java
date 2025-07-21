@@ -88,8 +88,6 @@ public class ServiceStreamingInvocationRunnable implements Runnable {
                             return;
                         }
 
-                        LoggerFactory.getLogger(ServiceStreamingInvocationRunnable.class)
-                                     .info("Sending streaming data for txId: {}, data: {}", txId, data);
                         new ServiceStreamingDataMessageOut(txId, data, serviceInvoker.getMetadata().getSerializer())
                             .send(channel);
                     } catch (Exception e) {

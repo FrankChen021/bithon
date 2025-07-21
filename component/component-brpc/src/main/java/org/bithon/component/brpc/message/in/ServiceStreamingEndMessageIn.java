@@ -31,13 +31,17 @@ public class ServiceStreamingEndMessageIn extends ServiceMessageIn {
 
     private Throwable exception;
 
+    public ServiceStreamingEndMessageIn(CodedInputStream is) {
+        super(is);
+    }
+
     @Override
     public int getMessageType() {
         return ServiceMessageType.SERVER_STREAMING_END;
     }
 
     @Override
-    public ServiceMessage decode(CodedInputStream in) throws IOException {
+    public ServiceMessage decode() throws IOException {
         this.transactionId = in.readInt64();
 
         // Read exception flag
