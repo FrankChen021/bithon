@@ -59,11 +59,9 @@ Returns a list of configurations for the specified application and environment. 
 
 #### Examples
 
-The following example demonstrates that for all running instances of application `bithon-collector` in environment `live`, 
-- update the setting `tracing.samplingConfigs.default.samplingPercentage` from default 100% to 50%
-- update the setting `tracing.headers.request` to record HTTP header 'Content-Type' in the tracing span logs.  
-
-If there's already a setting with the same name `setting1` in the system, the API will return an error.
+The following example adds a setting named as `setting1` for all running instances of application `bithon-collector` in environment `live`. It 
+- updates the setting `tracing.samplingConfigs.default.samplingPercentage` from default 100% to 50%
+- updates the setting `tracing.headers.request` to record HTTP header 'Content-Type' in the tracing span logs.
 
 ```text
 curl --location 'http://<HOST_AND_PORT>/api/agent/configuration/add' \
@@ -81,6 +79,8 @@ tracing:
     request: ["Content-Type"]
 format: yaml'
 ```
+
+If there's already a setting with the same name `setting1` in the system, the API will fail.
 
 Once the setting is added, it may take up to 1 minutes for running instances to apply the new setting.
 You can check the applied setting by going to the Web UI, navigating to the "Diagnosis -> App Insight" page, and selecting one running instance of target application, 
