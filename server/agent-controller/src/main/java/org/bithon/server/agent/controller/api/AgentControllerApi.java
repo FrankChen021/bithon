@@ -19,6 +19,7 @@ package org.bithon.server.agent.controller.api;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import jakarta.servlet.http.HttpServletRequest;
+import org.bithon.component.brpc.StreamResponse;
 import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
@@ -42,10 +43,16 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -188,6 +195,103 @@ public class AgentControllerApi implements IAgentControllerApi {
 
         // Turn the response stream from agent into stream that is going to send back
         return responseBuilder.build().toByteArray();
+    }
+
+    @PostMapping("/api/agent/service/proxy/streaming")
+    public SseEmitter callStreamingService(@RequestHeader(name = "X-Bithon-Token", required = false) String token,
+                                           @RequestParam(name = PARAMETER_NAME_APP_NAME) String application,
+                                           @RequestParam(name = PARAMETER_NAME_INSTANCE) String instance,
+                                           @RequestParam(name = "timeout", required = false) Integer timeout,
+                                           @RequestBody byte[] message) throws IOException {
+        // Get the session first
+        BrpcServer.Session agentSession = agentControllerServer.getBrpcServer()
+                                                               .getSessions()
+                                                               .stream()
+                                                               .filter((session) -> application.equals(session.getRemoteApplicationName())
+                                                                                    && instance.equals(session.getRemoteAttribute(Headers.HEADER_APP_ID)))
+                                                               .findFirst()
+                                                               .orElseThrow(() -> new SessionNotFoundException("No session found for target application [app=%s, instance=%s] ", application, instance));
+
+        //
+        // Parse input request stream so that we get the request object that the user is going to access
+        //
+        CodedInputStream input = CodedInputStream.newInstance(message);
+        input.pushLimit(message.length);
+        ServiceRequestMessageIn rawRequest = ServiceRequestMessageIn.from(input);
+
+        // Verify if the user has permission if the permission checking is ENABLE on this service
+        if (permissionConfig != null && permissionConfig.isEnabled()) {
+            String user;
+            if (StringUtils.isEmpty(token)) {
+                user = "anonymousUser";
+            } else {
+                Jws<Claims> parsedToken = jwtTokenComponent.tryParseToken(token);
+                if (parsedToken == null) {
+                    // Use HTTP 403 instead of 401
+                    // Because the feign client is not able to read response body when 401 is returned.
+                    // Don't know why
+                    throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
+                                                    "Invalid token provided to perform the operation on the agent of target application.");
+
+                }
+                user = parsedToken.getBody().getSubject();
+            }
+
+            Operation operation = rawRequest.getMethodName().startsWith("get") || rawRequest.getMethodName().startsWith("dump") ? Operation.READ : Operation.WRITE;
+            permissionConfig.verifyPermission(operation,
+                                              user,
+                                              agentSession.getRemoteApplicationName(),
+                                              // Previously,
+                                              // some data sources is defined from one remote service like IJvmCommand
+                                              // if we want to limit the access to one data source, we have to use the service name combined with the method name
+                                              // From this point of view, at the agent side, each data source should be defined as a separate service
+                                              // But now, changing/adding service name at the agent side is not easy which requires all target applications to be updated
+                                              rawRequest.getServiceName() + "#" + rawRequest.getMethodName());
+        }
+
+        // Turn the input request stream to the request that is going to send to remote
+        ServiceRequestMessageOut toTarget = ServiceRequestMessageOut.builder()
+                                                                    .applicationName(rawRequest.getApplicationName())
+                                                                    .headers(rawRequest.getHeaders())
+                                                                    .isOneway(false)
+                                                                    .messageType(rawRequest.getMessageType())
+                                                                    .serviceName(rawRequest.getServiceName())
+                                                                    .methodName(rawRequest.getMethodName())
+                                                                    .transactionId(rawRequest.getTransactionId())
+                                                                    .serializer(rawRequest.getSerializer())
+                                                                    .rawArgs(rawRequest.getRawArgs())
+                                                                    .build();
+
+
+        SseEmitter emitter = new SseEmitter(timeout == null ? 30_000L : timeout.longValue());
+        StreamResponse<byte[]> remoteResponse = new StreamResponse<>() {
+            @Override
+            public void onNext(byte[] data) {
+                try {
+                    emitter.send(SseEmitter.event().name("data").data(Base64.getEncoder().encode(data)));
+                } catch (IOException ignored) {
+                }
+            }
+
+            @Override
+            public void onException(Throwable throwable) {
+                emitter.completeWithError(throwable);
+            }
+
+            @Override
+            public void onComplete() {
+                emitter.complete();
+            }
+        };
+        try {
+            agentSession.getLowLevelInvoker()
+                        .invokeStreaming(toTarget,
+                                         remoteResponse,
+                                         timeout == null ? 30_000 : timeout);
+            return emitter;
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

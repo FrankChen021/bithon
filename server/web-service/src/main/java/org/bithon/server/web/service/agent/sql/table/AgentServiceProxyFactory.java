@@ -22,13 +22,25 @@ import feign.Feign;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.bithon.component.brpc.channel.IBrpcChannel;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.exception.ServiceNotFoundException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
 import org.bithon.component.brpc.invocation.InvocationManager;
 import org.bithon.component.brpc.message.Headers;
+import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
+import org.bithon.component.brpc.message.in.ServiceStreamingDataMessageIn;
+import org.bithon.component.brpc.message.in.ServiceStreamingEndMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.CollectionUtils;
@@ -39,17 +51,24 @@ import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.client.ErrorResponseDecoder;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
+import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -159,7 +178,7 @@ public class AgentServiceProxyFactory {
                              Method agentServiceMethod,
                              Object[] args) {
             //
-            // Invoke agent service via a controller
+            // Invoke a synchronous request-response agent service via proxy at controller side
             //
             try {
                 return brpcInvocationManager.invoke("bithon-webservice",
@@ -337,6 +356,14 @@ public class AgentServiceProxyFactory {
 
         @Override
         public void writeAsync(ServiceRequestMessageOut serviceRequest) throws IOException {
+            if (serviceRequest.getMessageType() == ServiceMessageType.CLIENT_STREAMING_REQUEST) {
+                sendStreamingRpc(serviceRequest);
+            } else {
+                sendRequestResponseRpc(serviceRequest);
+            }
+        }
+
+        private void sendRequestResponseRpc(ServiceRequestMessageOut serviceRequest) throws IOException {
             final long txId = serviceRequest.getTransactionId();
 
             // Turn the message into a byte array to send over HTTP
@@ -372,6 +399,74 @@ public class AgentServiceProxyFactory {
                                      invocationManager.handleException(txId, e);
                                  }
                              })
+                             .whenComplete((v, ex) -> {
+                                 if (ex != null) {
+                                     invocationManager.handleException(txId, ex.getCause() != null ? ex.getCause() : ex);
+                                 }
+                             });
+        }
+
+        private void sendStreamingRpc(ServiceRequestMessageOut serviceRequest) throws IOException {
+            final long txId = serviceRequest.getTransactionId();
+            final byte[] message = serviceRequest.toByteArray();
+
+            CompletableFuture.runAsync(() -> {
+                                 try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+                                     URI uri = new URIBuilder(controller.getURL() + "/api/agent/service/proxy/streaming")
+                                         .addParameter("appName", targetApplication)
+                                         .addParameter("instance", targetInstance)
+                                         .addParameter("timeout", "30000")
+                                         .build();
+
+                                     HttpPost httpPost = new HttpPost(uri);
+                                     httpPost.setEntity(new ByteArrayEntity(message, ContentType.APPLICATION_OCTET_STREAM));
+                                     if (StringUtils.hasText(token)) {
+                                         httpPost.setHeader("X-Bithon-Token", token);
+                                     }
+
+                                     try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
+                                         int statusCode = response.getStatusLine().getStatusCode();
+                                         HttpEntity entity = response.getEntity();
+                                         if (entity == null) {
+                                             // No HTTP body, check status code for error
+                                             if (statusCode < 200 || statusCode >= 300) {
+                                                 throw new HttpMappableException(statusCode, "Empty response from server with status: " + statusCode);
+                                             }
+                                             return; // Or handle as completion if appropriate
+                                         }
+
+                                         if (statusCode < 200 || statusCode >= 300) {
+                                             String errorBody = EntityUtils.toString(entity);
+                                             throw new HttpMappableException(statusCode, errorBody);
+                                         }
+
+                                         try (BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent(), StandardCharsets.UTF_8))) {
+                                             String line;
+                                             String eventName = null;
+                                             while ((line = reader.readLine()) != null) {
+                                                 if (line.startsWith("event:")) {
+                                                     eventName = line.substring("event:".length()).trim();
+                                                 } else if (line.startsWith("data:")) {
+                                                     String base64Data = line.substring("data:".length());
+                                                     if (eventName == null) {
+                                                         continue;
+                                                     }
+                                                     byte[] decoded = Base64.getDecoder().decode(base64Data);
+                                                     if ("complete".equals(eventName)) {
+                                                         invocationManager.handleStreamingEnd(new ServiceStreamingEndMessageIn(CodedInputStream.newInstance(decoded)));
+                                                     } else if ("error".equals(eventName)) {
+                                                         invocationManager.handleStreamingEnd(new ServiceStreamingEndMessageIn(CodedInputStream.newInstance(decoded)));
+                                                     } else {
+                                                         invocationManager.handleStreamingData(new ServiceStreamingDataMessageIn(CodedInputStream.newInstance(decoded)));
+                                                     }
+                                                 }
+                                             }
+                                         }
+                                     }
+                                 } catch (IOException | URISyntaxException e) {
+                                     invocationManager.handleException(txId, e);
+                                 }
+                             }, discoveryServiceInvoker.getExecutor())
                              .whenComplete((v, ex) -> {
                                  if (ex != null) {
                                      invocationManager.handleException(txId, ex.getCause() != null ? ex.getCause() : ex);
