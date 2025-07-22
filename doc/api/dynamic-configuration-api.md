@@ -114,7 +114,7 @@ In above example, the HTTP body is in YAML format, you can also use JSON format 
 - `X-Bithon-Token` (optional): Authorization token
 - `Accept` (optional): Specify the response body format. If not given, returned data in JSON format.
 
-  It's suggested to set this one to `application/yaml` so that the response will be in more readable YAML format.
+  It's suggested to set this one to `application/yaml` so that the response will be in a more readable YAML format.
 
 - `Content-Type` (optional): Specify the request body format. If not given, defaults to `application/json`.
   `application/yaml` is also supported
