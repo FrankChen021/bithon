@@ -64,16 +64,11 @@ Note that all environment variables are in underscore mode.
 
 ## Dynamic Configuration
 
-The Bithon server can store configurations for agents. We can use the API to manage(create/update/delete) configurations of an application or a group of applications.
-And the agent itself will fetch configurations from the server periodically.
+The Bithon server can store configurations for agents. We can use the API to manage(add/update/delete/get) configurations of a specified target application or a group of target applications.
 
-You can take a look at the API in the code for reference:
-```
-/api/agent/configuration/add
-/api/agent/configuration/update
-/api/agent/configuration/delete
-/api/agent/configuration/get
-```
+The agent running at the application side will automatically fetch configurations from the server periodically and merge them with above configurations.
+
+Please refer to the [Dynamic Configuration API](../../api/dynamic-configuration-api.md) document to use API to manage dynamic configurations.
 
 # Configuration Instruction
 

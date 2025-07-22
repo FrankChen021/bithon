@@ -1,6 +1,6 @@
 # Bithon Collector APIs
 
-This document describes the APIs exposed by the Bithon collector module for receiving telemetry data from external applications.
+This document describes the APIs exposed by the Bithon collector module to receive metrics and tracing span logs from external applications.
 
 ## HTTP Collector APIs
 
