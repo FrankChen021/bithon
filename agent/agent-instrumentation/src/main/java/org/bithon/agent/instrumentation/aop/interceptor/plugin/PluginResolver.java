@@ -26,6 +26,8 @@ import org.bithon.agent.instrumentation.loader.PluginClassLoader;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -131,6 +133,29 @@ public abstract class PluginResolver {
 
             LOG.info("Found plugin [{}]", pluginName);
             return (IPlugin) pluginClass.getDeclaredConstructor().newInstance();
+        } catch (ClassFormatError t) {
+            //
+            // Some plugins only works for a specific JDK version, when the plugin is not compatible with the current JDK,
+            // we give a more clear information about it
+            //
+            int classFileMajorVersion = -1;
+            try (DataInputStream dataInputStream = new DataInputStream(pluginClassLoader.getResourceAsStream(pluginJarEntryName))) {
+                int magic = dataInputStream.readInt();
+                if (magic == 0xCAFEBABE) {
+                    // class file minor version
+                    dataInputStream.readUnsignedShort();
+                    classFileMajorVersion = dataInputStream.readUnsignedShort();
+                }
+            } catch (IOException ignored) {
+            }
+            if (classFileMajorVersion == -1) {
+                LOG.error("Found plugin [{}], but skipped due to unrecognizable plugin class file version: [{}]", pluginName, t.getMessage());
+            } else {
+                LOG.info("Found plugin [{}], but skipped because plugin requires JDK {} and above",
+                         pluginName,
+                         classFileMajorVersion - 44);
+            }
+            return null;
         } catch (Throwable e) {
             LOG.error(String.format(Locale.ENGLISH, "Failed to load plugin [%s]", pluginName), e);
             return null;
