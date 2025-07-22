@@ -9,7 +9,7 @@ This API allows you to manage dynamic agent configurations for target applicatio
 **POST**   `/api/agent/configuration/get`
 
 **Headers:**
-- `Accept` (optional): Specify the response body format. If not given, returned data in JSON format. 
+- `Accept` (optional): Specify the response body format. If not given, returns data in JSON format. 
     
     It's suggested to set this one to `application/yaml` so that the response will be in YAML format and more readable.
 
