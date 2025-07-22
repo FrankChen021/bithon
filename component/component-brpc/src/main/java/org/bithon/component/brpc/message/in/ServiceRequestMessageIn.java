@@ -130,10 +130,10 @@ public class ServiceRequestMessageIn extends ServiceMessageIn {
         int messageType = inputStream.readInt32();
         if (messageType == ServiceMessageType.CLIENT_REQUEST
             || messageType == ServiceMessageType.CLIENT_REQUEST_ONEWAY
-            || messageType == ServiceMessageType.CLIENT_REQUEST_V2) {
+            || messageType == ServiceMessageType.CLIENT_REQUEST_V2
+            || messageType == ServiceMessageType.CLIENT_STREAMING_REQUEST
+        ) {
             return (ServiceRequestMessageIn) new ServiceRequestMessageIn(messageType, inputStream).decode();
-        } else if (messageType == ServiceMessageType.CLIENT_STREAMING_REQUEST) {
-            return (ServiceRequestMessageIn) new ServiceStreamingRequestMessageIn(messageType, inputStream).decode();
         } else {
             throw new BadRequestException("messageType [%x] is not a valid ServiceRequest message", messageType);
         }
