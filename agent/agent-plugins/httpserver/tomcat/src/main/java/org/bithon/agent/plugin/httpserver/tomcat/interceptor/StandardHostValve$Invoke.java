@@ -113,6 +113,7 @@ public class StandardHostValve$Invoke extends AroundInterceptor {
     @Override
     public void after(AopContext aopContext) {
         InterceptorContext.remove(InterceptorContext.KEY_URI);
+        TraceContextHolder.detach();
 
         ITraceContext traceContext = aopContext.getUserContext();
         try {
