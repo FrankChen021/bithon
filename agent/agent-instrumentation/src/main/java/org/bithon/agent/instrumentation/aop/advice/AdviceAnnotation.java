@@ -45,9 +45,11 @@ public class AdviceAnnotation {
     }
 
     public static class InterceptorNameResolver implements Advice.OffsetMapping {
+        private final int index;
         private final String name;
 
-        public InterceptorNameResolver(String name) {
+        public InterceptorNameResolver(int index, String name) {
+            this.index = index;
             this.name = name;
         }
 
@@ -58,7 +60,10 @@ public class AdviceAnnotation {
                               @Nonnull Assigner assigner,
                               @Nonnull Advice.ArgumentHandler argumentHandler,
                               @Nonnull Sort sort) {
-            InstallerRecorder.INSTANCE.addInterceptedMethod(name, instrumentedType, instrumentedMethod);
+            InstallerRecorder.INSTANCE.addInterceptedMethod(this.index,
+                                                            this.name,
+                                                            instrumentedType,
+                                                            instrumentedMethod);
 
             return new Target.ForStackManipulation(new JavaConstantValue(JavaConstant.Simple.ofLoaded(name)));
         }

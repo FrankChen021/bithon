@@ -42,7 +42,7 @@ public class Uninstaller extends AgentBuilder.InstallationListener.Adapter {
                        Map<String, DynamicInterceptorInstaller.AopDescriptor> descriptors) {
         this.instance = instance;
         descriptors.forEach((clazz, aop) -> interceptors.computeIfAbsent(aop.getInterceptorName(), k -> new HashSet<>())
-                                                    .add(clazz));
+                                                        .add(clazz));
     }
 
     public void setTransformer(ResettableClassFileTransformer transformer) {
@@ -58,7 +58,7 @@ public class Uninstaller extends AgentBuilder.InstallationListener.Adapter {
         LOG.info("Interceptors uninstalled.");
 
         InstallerRecorder.INSTANCE.deleteInterceptorIf((m) -> {
-            Set<String> clazzList = this.interceptors.get(m.getInterceptor());
+            Set<String> clazzList = this.interceptors.get(m.getInterceptorName());
             if (clazzList != null) {
                 return clazzList.contains(m.getType());
             } else {
