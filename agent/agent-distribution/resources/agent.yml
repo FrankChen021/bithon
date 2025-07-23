@@ -9,8 +9,8 @@ controller:
     factory: org.bithon.agent.controller.impl.brpc.BrpcAgentControllerFactory
     connectionLifeTime: 2000
     connectionTimeout: 2000
-    lowWaterMark: 128KiB
-    highWaterMark: 256KiB
+    lowWaterMark: 256KiB
+    highWaterMark: 512KiB
 
 exporters:
   metric:
@@ -29,8 +29,8 @@ exporters:
       # in milliseconds
       connectionLifeTime: 300000
       connectionTimeout: 2000
-      lowWaterMark: 128KiB
-      highWaterMark: 256KiB
+      lowWaterMark: 256KiB
+      highWaterMark: 512KiB
     servers: 127.0.0.1:9895
     batchSize: 4096
     flushTime: 3000
