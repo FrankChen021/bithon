@@ -75,7 +75,7 @@ public class ExportTask {
 
                 if (LOG.isDebugEnabled()) {
                     if (queue instanceof BatchMessageQueue) {
-                        LOG.debug("Sending message, size = {}, max batch = {}", size, ((BatchMessageQueue) this.queue).getBatchSize());
+                        LOG.debug("Sending message, size = {}, max batch = {}", size, ((BatchMessageQueue) this.queue).getMaxBatchSize());
                     } else {
                         LOG.debug("Sending message, size = {}", size);
                     }

@@ -32,16 +32,16 @@ public class BatchMessageQueue implements IThreadSafeQueue {
 
     private final IThreadSafeQueue delegate;
 
-    private final int batchSize;
-    private List<Object> fetched;
+    private final int maxBatchSize;
+    private List<Object> toBeTaken;
 
-    public int getBatchSize() {
-        return batchSize;
+    public int getMaxBatchSize() {
+        return maxBatchSize;
     }
 
     public BatchMessageQueue(IThreadSafeQueue delegate, int batchSize) {
         this.delegate = delegate;
-        this.batchSize = batchSize;
+        this.maxBatchSize = batchSize;
     }
 
     @Override
@@ -78,15 +78,15 @@ public class BatchMessageQueue implements IThreadSafeQueue {
 
     @Override
     public Object take(long timeout) {
-        List<Object> target = new ArrayList<>(this.batchSize);
+        List<Object> returning = new ArrayList<>(this.maxBatchSize);
 
         do {
             long start = System.currentTimeMillis();
-            fetch(target, timeout);
+            takeElements(returning, timeout);
             timeout -= System.currentTimeMillis() - start;
-        } while (target.size() < batchSize && timeout > 0);
+        } while (returning.size() < maxBatchSize && timeout > 0);
 
-        return target;
+        return returning;
     }
 
     @Override
@@ -98,31 +98,31 @@ public class BatchMessageQueue implements IThreadSafeQueue {
      * Fetch items from underlying queue in given timeout
      */
     @SuppressWarnings("unchecked")
-    private void fetch(List<Object> target, long timeout) {
-        if (fetched == null) {
-            // Only take an item from the queue if the previous 'take' process does not leave any items left
+    private void takeElements(List<Object> returning, long timeout) {
+        if (toBeTaken == null) {
+            // Only take a list item from the queue if the previous 'take' process does not leave any items left
             try {
-                fetched = (List<Object>) delegate.take(timeout);
+                toBeTaken = (List<Object>) delegate.take(timeout);
             } catch (InterruptedException ignored) {
             }
         }
 
-        if (fetched == null) {
+        if (toBeTaken == null) {
             // We don't get any item from the queue after the timeout
             return;
         }
 
-        int capacity = this.batchSize - target.size();
-        int maxElements = Math.min(capacity, fetched.size());
-        for (int i = 0; i < maxElements; i++) {
-            target.add(fetched.get(i));
+        int maxFetchableSize = this.maxBatchSize - returning.size();
+        int fetchedSize = Math.min(maxFetchableSize, toBeTaken.size());
+        for (int i = 0; i < fetchedSize; i++) {
+            returning.add(toBeTaken.get(i));
         }
 
-        if (maxElements < fetched.size()) {
+        if (fetchedSize < toBeTaken.size()) {
             // We still have items left in the 'taken' list, keep it for next time
-            fetched = fetched.subList(maxElements, fetched.size());
+            toBeTaken = toBeTaken.subList(fetchedSize, toBeTaken.size());
         } else {
-            fetched = null;
+            toBeTaken = null;
         }
     }
 }
