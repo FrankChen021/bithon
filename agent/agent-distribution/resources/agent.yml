@@ -32,7 +32,7 @@ exporters:
       lowWaterMark: 256KiB
       highWaterMark: 512KiB
     servers: 127.0.0.1:9895
-    batchSize: 4096
+    batchSize: 2048
     flushTime: 3000
     # The default queue size is 4096, the size of queue is determined by the concurrency of target application
     queueSize: 8192
