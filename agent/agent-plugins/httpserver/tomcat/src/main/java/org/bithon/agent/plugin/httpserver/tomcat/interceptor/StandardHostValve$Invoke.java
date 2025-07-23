@@ -84,7 +84,7 @@ public class StandardHostValve$Invoke extends AroundInterceptor {
                     .kind(SpanKind.SERVER)
                     .start();
 
-        TraceContextHolder.attach(traceContext);
+        aopContext.setUserContext(traceContext);
 
         // Put the trace id in the header so that the applications have a chance to know whether this request is being sampled
         {
@@ -104,6 +104,7 @@ public class StandardHostValve$Invoke extends AroundInterceptor {
             }
         }
 
+        TraceContextHolder.attach(traceContext);
         InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());
 
         return InterceptionDecision.CONTINUE;
@@ -113,7 +114,7 @@ public class StandardHostValve$Invoke extends AroundInterceptor {
     public void after(AopContext aopContext) {
         InterceptorContext.remove(InterceptorContext.KEY_URI);
 
-        ITraceContext traceContext = TraceContextHolder.detach();
+        ITraceContext traceContext = aopContext.getUserContext();
         try {
             Response response = (Response) aopContext.getArgs()[1];
             traceContext.currentSpan()
