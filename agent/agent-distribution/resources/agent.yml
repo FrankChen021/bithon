@@ -19,8 +19,8 @@ exporters:
       # in milliseconds
       connectionLifeTime: 300000
       connectionTimeout: 2000
-      lowWaterMark: 128KiB
-      highWaterMark: 256KiB
+      lowWaterMark: 256KiB
+      highWaterMark: 512KiB
     servers: 127.0.0.1:9898
     # No need to configure the metric client in batch because it's already batched. If doing so, there will be exceptions
   tracing:
@@ -29,10 +29,10 @@ exporters:
       # in milliseconds
       connectionLifeTime: 300000
       connectionTimeout: 2000
-      lowWaterMark: 256KiB
-      highWaterMark: 512KiB
+      lowWaterMark: 512KiB
+      highWaterMark: 1MiB
     servers: 127.0.0.1:9895
-    batchSize: 2048
+    batchSize: 1024
     flushTime: 3000
     # The default queue size is 4096, the size of queue is determined by the concurrency of target application
     queueSize: 8192
@@ -42,8 +42,8 @@ exporters:
       # in milliseconds
       connectionLifeTime: 300000
       connectionTimeout: 2000
-      lowWaterMark: 128KiB
-      highWaterMark: 256KiB
+      lowWaterMark: 256KiB
+      highWaterMark: 512KiB
     servers: 127.0.0.1:9896
     batchSize: 500
     flushTime: 5000
