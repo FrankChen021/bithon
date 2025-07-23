@@ -91,14 +91,15 @@ public class InterceptorInstaller {
                 //
                 // Transform target class to a type of IBithonObject
                 //
-                //if (typeDescription.isInterface()) {
-                //    log.warn("Attempt to install interceptors on interface [{}]. This is not supported.", typeDescription.getName());
-                //} else if (!typeDescription.isAssignableTo(IBithonObject.class)) {
-                // define an object field on this class to hold objects across interceptors for state sharing
-                builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME, Object.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_VOLATILE)
-                                 .implement(IBithonObject.class)
-                                 .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
-                //}
+                if (typeDescription.isInterface()) {
+                    log.warn("Attempt to install interceptors on interface [{}]. This is not supported.", typeDescription.getName());
+                    return builder;
+                } else if (!typeDescription.isAssignableTo(IBithonObject.class)) {
+                    // define an object field on this class to hold objects across interceptors for state sharing
+                    builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME, Object.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_VOLATILE)
+                                     .implement(IBithonObject.class)
+                                     .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
+                }
 
                 //
                 // install interceptors for the current matched type
@@ -183,8 +184,7 @@ public class InterceptorInstaller {
                                                          descriptor.getMethodMatcher()));
                     break;
                 case AFTER: {
-                    Class<?> adviceClazz = descriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ?
-                        AfterAdvice.class : ConstructorAfterAdvice.class;
+                    Class<?> adviceClazz = descriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ? AfterAdvice.class : ConstructorAfterAdvice.class;
 
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
                                                                .bind(AdviceAnnotation.InterceptorName.class, nameResolver)
@@ -195,8 +195,7 @@ public class InterceptorInstaller {
                 break;
 
                 case AROUND: {
-                    Class<?> adviceClazz = descriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ?
-                        AroundAdvice.class : AroundConstructorAdvice.class;
+                    Class<?> adviceClazz = descriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ? AroundAdvice.class : AroundConstructorAdvice.class;
 
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
                                                                .bind(AdviceAnnotation.InterceptorName.class, nameResolver)
