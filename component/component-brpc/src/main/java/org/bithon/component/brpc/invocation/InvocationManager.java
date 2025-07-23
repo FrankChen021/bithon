@@ -168,8 +168,19 @@ public class InvocationManager {
         if (!channel.isActive()) {
             throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not active", serviceName, methodName, remoteEndpoint);
         }
-        if (!channel.isWritable()) {
-            throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not writable", serviceName, methodName, remoteEndpoint);
+
+        // Wait for the channel to be writable
+        long deadline = System.currentTimeMillis() + 1000;
+        while (!channel.isWritable()) {
+            if (System.currentTimeMillis() > deadline) {
+                throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not writable", serviceName, methodName, remoteEndpoint);
+            }
+            try {
+                // A short sleep to prevent busy-waiting, allowing the event loop to process I/O
+                Thread.sleep(10);
+            } catch (InterruptedException ignored) {
+                break;
+            }
         }
     }
 
