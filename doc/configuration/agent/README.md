@@ -52,15 +52,15 @@ java -Dbithon.application.name=bithon-server -Dbithon.application.env=local -jar
 
 ## Environment variables
 
-Configurations can also be set by environment variables. This is helpful when the agent is loaded in docker environment.
+Configurations can also be set by environment variables. This is helpful when the agent is loaded in docker/container environment.
 
 ```text
-export bithon_application_name=bithon-server
-export bithon_application_env=local
+export BITHON_APPLICATION_NAME=bithon-server
+export BITHON_APPLICATION_ENV=local
 java -jar bithon-server.jar
 ```
 
-Note that all environment variables are in underscore mode.
+Note that all environment variables are in underscore mode and uppercase.
 
 ## Dynamic Configuration
 
