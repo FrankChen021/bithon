@@ -18,15 +18,25 @@ The HTTP collector provides endpoints for receiving metrics and traces in Bithon
 ```json
 {
   "schema": {
-    "name": "schema_name",
-    "fields": [
+    "name": "data_source_name",
+    "dimensionsSpec": [
       {
-        "name": "field1",
-        "type": "STRING"
+        "name": "dim1",
+        "type": "string"
       },
       {
-        "name": "field2",
-        "type": "LONG"
+        "name": "dim2",
+        "type": "string"
+      }
+    ],
+    "metricsSpec": [
+      {
+        "name": "metric1",
+        "type": "long"
+      },
+      {
+        "name": "metric2",
+        "type": "double"
       }
     ]
   },
@@ -50,12 +60,13 @@ The HTTP collector provides endpoints for receiving metrics and traces in Bithon
 #### Description
 
 - `schema`: Defines the metadata for the metrics being sent
-    - `name`: Name of the schema/metric type
-    - `fields`: Field definitions including name and type
+    - `name`: Name of the schema(data source)
+    - `dimensionsSpec`: Dimension definitions including name and type
+    - `metricsSpec`: Metric definitions including name and type. Type can be either `long` or `double`.
 - `metrics`: Array of metric measurements
     - `timestamp`: Timestamp in milliseconds
     - `interval`: Collection interval in milliseconds
-    - `dimensions`: Key-value pairs for dimensions (tags)
+    - `dimensions`: Key-value pairs for dimensions
     - `metrics`: Key-value pairs for the metric values (numbers only)
 
 ### Traces API
