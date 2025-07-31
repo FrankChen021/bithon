@@ -1,6 +1,7 @@
 #
-# This file demonstrates how to deploy the pipeline module to receive data from Kafka topics and sink them into local storage.
-# The web-service is also enabled in this application to provide query service.
+# This file demonstrates how to deploy the pipeline module independently to receive data from Kafka topics
+# and sink them into local storage.
+# The web-service is also enabled in this application to provide query service, it's optional.
 #
 spring:
   config:
