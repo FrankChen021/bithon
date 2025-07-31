@@ -24,6 +24,7 @@ import org.bithon.component.commons.utils.SupplierUtils;
 import org.bithon.server.datasource.DefaultSchema;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.input.IInputRow;
+import org.bithon.server.datasource.store.IDataStoreSpec;
 import org.bithon.server.pipeline.common.transformer.TransformSpec;
 import org.bithon.server.pipeline.metrics.MetricPipelineConfig;
 import org.bithon.server.pipeline.metrics.MetricsAggregator;
@@ -34,6 +35,7 @@ import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.meta.Instance;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
+import org.bithon.server.storage.metrics.MetricDataSourceSpec;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -74,6 +76,19 @@ public class MetricMessageHandler implements IMetricMessageHandler {
 
         this.schema = schemaManager.getSchema(dataSourceName);
         this.metaStorage = metaStorage;
+
+        //
+        // This is not beautiful.
+        // When the collector receives the metric message, it creates a schema object without a data store spec the spec rely on the metric storage which is not available for the collector module,
+        // after the collector forwards the message to the pipeline, the pipelines needs to access the data store spec to create a metric writer.
+        // So we need to set the data store spec here.
+        //
+        if (this.schema.getDataStoreSpec() == null) {
+            IDataStoreSpec dataStoreSpec = new MetricDataSourceSpec(metricStorage);
+            ((DefaultSchema) this.schema).setDataStoreSpec(dataStoreSpec);
+            dataStoreSpec.setSchema(this.schema);
+        }
+
         this.metricWriter = new MetricBatchWriter(dataSourceName, metricStorage.createMetricWriter(schema), metricPipelineConfig);
 
         this.endpointSchema = schemaManager.getSchema("topo-metrics");
@@ -217,7 +232,7 @@ public class MetricMessageHandler implements IMetricMessageHandler {
 
             String appName = metric.getColAsString("appName");
             String instanceName = metric.getColAsString("instanceName");
-            return new Instance(appName, appType.toString(), instanceName);
+            return appName == null || instanceName == null ? null : new Instance(appName, appType.toString(), instanceName);
         }
     }
 
