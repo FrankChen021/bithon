@@ -79,8 +79,9 @@ public class MetricMessageHandler implements IMetricMessageHandler {
 
         //
         // This is not beautiful.
-        // When the collector receives the metric message, it creates a schema object without a data store spec the spec rely on the metric storage which is not available for the collector module,
-        // after the collector forwards the message to the pipeline, the pipelines needs to access the data store spec to create a metric writer.
+        // When the collector receives the metric message, it creates a schema object without a data store spec,
+        // this is because the spec rely on the metric storage which is not available for the collector module.
+        // After the collector forwards the message to the pipeline, the pipelines needs to access the data store spec to create a metric writer.
         // So we need to set the data store spec here.
         //
         if (this.schema.getDataStoreSpec() == null) {
