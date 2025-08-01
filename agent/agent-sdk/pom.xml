@@ -7,7 +7,7 @@
   <groupId>org.bithon.agent</groupId>
   <artifactId>agent-sdk</artifactId>
   <version>1.2.1</version>
-  <name>Bithon Observability SDK</name>
+  <name>agent-sdk</name>
   <description>The observability SDK</description>
   <url>https://bithon.org</url>
 
@@ -51,6 +51,22 @@
         <version>3.14.0</version>
         <configuration>
           <release>8</release>
+        </configuration>
+      </plugin>
+      <!--spotbug-->
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <dependencies>
+          <!-- overwrite dependency on spotbugs if you want to specify the version of spotbugs -->
+          <dependency>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs</artifactId>
+            <version>4.8.3</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <excludeFilterFile>../../dev/spotbugs-exclude.xml</excludeFilterFile>
         </configuration>
       </plugin>
     </plugins>
