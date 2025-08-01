@@ -176,8 +176,6 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         try {
-            LOG.info("[{}] Channel became inactive: {}", id, ctx.channel().remoteAddress());
-
             // Clean up streaming contexts on server side
             ServiceStreamingInvocationRunnable.cleanupForChannel(ctx.channel());
 
