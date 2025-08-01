@@ -54,6 +54,9 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
      */
     private final String id;
 
+    private long lastLoggingTime = System.currentTimeMillis();
+    private long unwritableCount = 0;
+
     /**
      * Instantiate an instance which calls the service in specified executor.
      */
@@ -167,9 +170,18 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
             // Set auto read to true if the channel is writable.
             ctx.channel().config().setAutoRead(true);
         } else {
-            LOG.warn("[{}] - Channel is not writable, disable auto reading for back pressing", this.id);
+            long now = System.currentTimeMillis();
+            if (now - lastLoggingTime > 60_000) {
+                LOG.warn("[{}] - Channel is not writable for {} times in the past 1min", this.id, unwritableCount);
+                lastLoggingTime = now;
+                unwritableCount = 0;
+            } else {
+                unwritableCount++;
+            }
+
             ctx.channel().config().setAutoRead(false);
         }
+
         ctx.fireChannelWritabilityChanged();
     }
 
