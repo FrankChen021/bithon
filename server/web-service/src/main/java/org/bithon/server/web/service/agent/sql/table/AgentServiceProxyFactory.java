@@ -51,7 +51,6 @@ import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.client.ErrorResponseDecoder;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
-import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -453,11 +452,11 @@ public class AgentServiceProxyFactory {
                                                      }
                                                      byte[] decoded = Base64.getDecoder().decode(base64Data);
                                                      if ("complete".equals(eventName)) {
-                                                         invocationManager.handleStreamingEnd(new ServiceStreamingEndMessageIn(CodedInputStream.newInstance(decoded)));
+                                                         invocationManager.handleStreamingEnd(ServiceStreamingEndMessageIn.from(decoded));
                                                      } else if ("error".equals(eventName)) {
-                                                         invocationManager.handleStreamingEnd(new ServiceStreamingEndMessageIn(CodedInputStream.newInstance(decoded)));
+                                                         invocationManager.handleStreamingEnd(ServiceStreamingEndMessageIn.from(decoded));
                                                      } else {
-                                                         invocationManager.handleStreamingData(new ServiceStreamingDataMessageIn(CodedInputStream.newInstance(decoded)));
+                                                         invocationManager.handleStreamingData(ServiceStreamingDataMessageIn.from(decoded));
                                                      }
                                                  }
                                              }

@@ -16,6 +16,7 @@
 
 package org.bithon.component.brpc.message.in;
 
+import org.bithon.component.brpc.exception.BadRequestException;
 import org.bithon.component.brpc.message.ServiceMessage;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.serializer.Serializer;
@@ -35,6 +36,15 @@ public class ServiceStreamingDataMessageIn extends ServiceMessageIn {
 
     public ServiceStreamingDataMessageIn(CodedInputStream is) {
         super(is);
+    }
+
+    public static ServiceStreamingDataMessageIn from(byte[] bytes) throws IOException {
+        CodedInputStream is = CodedInputStream.newInstance(bytes);
+        int messageType = is.readInt32();
+        if (messageType == ServiceMessageType.SERVER_STREAMING_DATA) {
+            return (ServiceStreamingDataMessageIn) new ServiceStreamingDataMessageIn(is).decode();
+        }
+        throw new BadRequestException("messageType [%x] is not a valid ServiceStreamingDataMessageIn message", messageType);
     }
 
     @Override

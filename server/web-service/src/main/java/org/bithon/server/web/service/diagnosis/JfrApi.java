@@ -230,4 +230,4 @@ public class JfrApi {
 
         return emitter;
     }
-}
+};

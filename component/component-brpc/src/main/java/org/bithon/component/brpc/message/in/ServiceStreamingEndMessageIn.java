@@ -16,6 +16,7 @@
 
 package org.bithon.component.brpc.message.in;
 
+import org.bithon.component.brpc.exception.BadRequestException;
 import org.bithon.component.brpc.message.ServiceMessage;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
@@ -61,5 +62,14 @@ public class ServiceStreamingEndMessageIn extends ServiceMessageIn {
 
     public boolean hasException() {
         return exception != null;
+    }
+
+    public static ServiceStreamingEndMessageIn from(byte[] bytes) throws IOException {
+        CodedInputStream is = CodedInputStream.newInstance(bytes);
+        int messageType = is.readInt32();
+        if (messageType == ServiceMessageType.SERVER_STREAMING_END) {
+            return (ServiceStreamingEndMessageIn) new ServiceStreamingEndMessageIn(is).decode();
+        }
+        throw new BadRequestException("messageType [%x] is not a valid ServiceStreamingEndMessageIn message", messageType);
     }
 }

@@ -27,6 +27,7 @@ import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.brpc.message.out.ServiceResponseMessageOut;
+import org.bithon.component.brpc.message.out.ServiceStreamingDataMessageOut;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.agent.controller.config.AgentControllerConfig;
@@ -249,26 +250,17 @@ public class AgentControllerApi implements IAgentControllerApi {
                                               rawRequest.getServiceName() + "#" + rawRequest.getMethodName());
         }
 
-        // Turn the input request stream to the request that is going to send to remote
-        ServiceRequestMessageOut toTarget = ServiceRequestMessageOut.builder()
-                                                                    .applicationName(rawRequest.getApplicationName())
-                                                                    .headers(rawRequest.getHeaders())
-                                                                    .isOneway(false)
-                                                                    .messageType(rawRequest.getMessageType())
-                                                                    .serviceName(rawRequest.getServiceName())
-                                                                    .methodName(rawRequest.getMethodName())
-                                                                    .transactionId(rawRequest.getTransactionId())
-                                                                    .serializer(rawRequest.getSerializer())
-                                                                    .rawArgs(rawRequest.getRawArgs())
-                                                                    .build();
-
 
         SseEmitter emitter = new SseEmitter(timeout == null ? 30_000L : timeout.longValue());
         StreamResponse<byte[]> remoteResponse = new StreamResponse<>() {
             @Override
             public void onNext(byte[] data) {
                 try {
-                    emitter.send(SseEmitter.event().name("data").data(Base64.getEncoder().encode(data)));
+                    ServiceStreamingDataMessageOut dataMessage = new ServiceStreamingDataMessageOut(rawRequest.getTransactionId(),
+                                                                                                    data,
+                                                                                                    rawRequest.getSerializer());
+                    byte[] message = dataMessage.toByteArray();
+                    emitter.send(SseEmitter.event().name("data").data(Base64.getEncoder().encode(message)));
                 } catch (IOException ignored) {
                 }
             }
@@ -283,6 +275,19 @@ public class AgentControllerApi implements IAgentControllerApi {
                 emitter.complete();
             }
         };
+
+        // Turn the input request stream to the request that is going to send to remote
+        ServiceRequestMessageOut toTarget = ServiceRequestMessageOut.builder()
+                                                                    .applicationName(rawRequest.getApplicationName())
+                                                                    .headers(rawRequest.getHeaders())
+                                                                    .isOneway(false)
+                                                                    .messageType(rawRequest.getMessageType())
+                                                                    .serviceName(rawRequest.getServiceName())
+                                                                    .methodName(rawRequest.getMethodName())
+                                                                    .transactionId(rawRequest.getTransactionId())
+                                                                    .serializer(rawRequest.getSerializer())
+                                                                    .rawArgs(rawRequest.getRawArgs())
+                                                                    .build();
         try {
             agentSession.getLowLevelInvoker()
                         .invokeStreaming(toTarget,
