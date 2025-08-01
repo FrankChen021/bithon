@@ -464,6 +464,15 @@
       <id>dist</id>
       <build>
         <plugins>
+          <plugin>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>0.8.0</version>
+            <extensions>true</extensions>
+            <configuration>
+              <publishingServerId>central</publishingServerId>
+            </configuration>
+          </plugin>
 
           <!-- sonatype requires javadoc -->
           <plugin>
@@ -536,21 +545,5 @@
       </build>
     </profile>
   </profiles>
-
-  <!-- distribution -->
-  <distributionManagement>
-    <snapshotRepository>
-      <!-- the id maps to the server element in settings.xml -->
-      <id>sonatype-nexus</id>
-      <name>Sonatype Nexus Snapshots</name>
-      <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
-    </snapshotRepository>
-    <repository>
-      <!-- the id maps to the server element in settings.xml -->
-      <id>sonatype-nexus</id>
-      <name>Nexus Release Repository</name>
-      <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-    </repository>
-  </distributionManagement>
 
 </project>
