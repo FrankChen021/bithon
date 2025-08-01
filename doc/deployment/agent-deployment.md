@@ -35,7 +35,7 @@ else
 echo "Failed to downloading agent..."
 fi
 
-JAVA_OPTS="-Dbithon.application.name=YOU_APPLICATION_NAME -Dbithon.application.env=YOUR_APPLICATION_ENV $JAVA_OPTS"
+JAVA_TOOL_OPTIONS="-Dbithon.application.name=YOU_APPLICATION_NAME -Dbithon.application.env=YOUR_APPLICATION_ENV $JAVA_TOOL_OPTIONS"
 
 # Automatically detect the JRE version and set the JAVA_OPTS accordingly.
 JAVA_MAJOR="$(java -version 2>&1 | sed -n -E 's/.* version "([^."-]*).*/\1/p')"
@@ -43,7 +43,7 @@ echo "Detected JRE version: ${JAVA_MAJOR}"
 if [ "$JAVA_MAJOR" != "" ] && [ "$JAVA_MAJOR" -ge "11" ]
 then
   # Disable strong encapsulation for certain packages on Java 11+.
-  JAVA_OPTS="$JAVA_OPTS\
+  JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS\
   --add-opens=java.base/jdk.internal.misc=ALL-UNNAMED \
   --add-opens=java.base/sun.net.www=ALL-UNNAMED \
   --add-opens=java.base/java.net=ALL-UNNAMED \
@@ -51,13 +51,11 @@ then
 fi
 
 if [ -f /opt/agent-distribution/agent-main.jar ] ; then
-  JAVA_OPTS="-javaagent:/opt/agent-distribution/agent-main.jar $JAVA_OPTS"
-  echo "Starting application with agent: $JAVA_OPTS"
-else
-  echo "Starting application WITHOUT agent: $JAVA_OPTS"
+  JAVA_TOOL_OPTIONS="-javaagent:/opt/agent-distribution/agent-main.jar $JAVA_TOOL_OPTIONS"
+  echo "Starting application with agent: $JAVA_TOOL_OPTIONS"
 fi
 
-exec java ${JAVA_OPTS} -jar YOUR_JAVA_APPLICATION.jar ${APP_OPTS}
+exec java -jar YOUR_JAVA_APPLICATION.jar
 ```
 
 If you already have a script to start your Java application, you can simply integrate above script into your existing script.
@@ -101,7 +99,7 @@ echo "Detected JRE version: ${JAVA_MAJOR}"
 if [ "$JAVA_MAJOR" != "" ] && [ "$JAVA_MAJOR" -ge "11" ]
 then
   # Disable strong encapsulation for certain packages on Java 11+.
-  JAVA_OPTS="$JAVA_OPTS\
+  JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS\
   --add-opens=java.base/jdk.internal.misc=ALL-UNNAMED \
   --add-opens=java.base/sun.net.www=ALL-UNNAMED \
   --add-opens=java.base/java.net=ALL-UNNAMED \
@@ -109,13 +107,11 @@ then
 fi
 
 if [ -f /opt/agent-distribution/agent-main.jar ] ; then
-  JAVA_OPTS="-javaagent:/opt/agent-distribution/agent-main.jar $JAVA_OPTS"
-  echo "Starting application with agent: $JAVA_OPTS"
-else
-  echo "Starting application WITHOUT agent: $JAVA_OPTS"
+  JAVA_TOOL_OPTIONS="-javaagent:/opt/agent-distribution/agent-main.jar $JAVA_TOOL_OPTIONS"
+  echo "Starting application with agent: $JAVA_TOOL_OPTIONS"
 fi
 
-exec java ${JAVA_OPTS} -jar YOUR_JAVA_APPLICATION.jar ${APP_OPTS}
+exec java -jar YOUR_JAVA_APPLICATION.jar
 ```
 
 ## Update Dockerfile to include the startup script
@@ -124,8 +120,7 @@ exec java ${JAVA_OPTS} -jar YOUR_JAVA_APPLICATION.jar ${APP_OPTS}
 COPY startup.sh /startup.sh
 RUN chmod +x /startup.sh 
  
-ENV JAVA_OPTS ""
-ENV APP_OPTS ""
+ENV JAVA_TOOL_OPTIONS ""
 ENV WITH_AGENT=true
 
 # Remember to change this URL to your own agent distribution URL
@@ -143,7 +138,7 @@ You can start the Docker container with the following command:
 
 ```bash
 docker run -d \
-  -e JAVA_OPTS="-Dbithon.application.name=YOUR_APPLICATION_NAME -Dbithon.application.env=YOUR_APPLICATION_ENV" \
+  -e JAVA_TOOL_OPTIONS="-Dbithon.application.name=YOUR_APPLICATION_NAME -Dbithon.application.env=YOUR_APPLICATION_ENV" \
   your_docker-image:latest
 ```
 
