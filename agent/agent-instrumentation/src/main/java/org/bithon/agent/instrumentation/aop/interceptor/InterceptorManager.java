@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 /**
  * Interceptor is singleton
@@ -37,7 +36,7 @@ public class InterceptorManager {
 
     private int globalInterceptorIndex = 0;
 
-    private InterceptorSupplier[] interceptorList = new InterceptorSupplier[64];
+    private InterceptorSupplier[] interceptorList = new InterceptorSupplier[256];
 
     /**
      * key - interceptor class name
@@ -47,12 +46,17 @@ public class InterceptorManager {
      */
     private final Map<String, Map<String, InterceptorSupplier>> interceptorMaps = new ConcurrentHashMap<>();
 
+    public InterceptorSupplier getSupplier(int index) {
+        return index < interceptorList.length ? interceptorList[index] : null;
+    }
+
     /**
      * Get interceptor by given index.
      */
     public AbstractInterceptor getInterceptor(int index) {
         if (index < interceptorList.length) {
-            Supplier<AbstractInterceptor> supplier = interceptorList[index];
+            InterceptorSupplier supplier = interceptorList[index];
+
             //
             // The case that the returned supplier is null is very complicated.
             // If the target application runs with agent while it enables the spring-boot-devtools,
@@ -91,7 +95,7 @@ public class InterceptorManager {
             ensureCapacity(globalInterceptorIndex);
             int index = globalInterceptorIndex++;
 
-            supplier = new InterceptorSupplier(index, interceptorClassName, classLoader);
+            supplier = new InterceptorSupplier(index, interceptorClassName, classLoader, classLoaderId);
             suppliers.put(classLoaderId, supplier);
 
             interceptorList[index] = supplier;
@@ -101,7 +105,8 @@ public class InterceptorManager {
     }
 
     /**
-     * Take a snapshot of suppliers.
+     * Get installed interceptors by a given interceptor.
+     * An interceptor might be installed to multiple methods in same/different classes.
      *
      * @return if target interceptor does not exist, an empty map, instead of null, is returned
      */
@@ -114,9 +119,12 @@ public class InterceptorManager {
             return;
         }
 
-        InterceptorSupplier[] newArray = new InterceptorSupplier[(int) (interceptorList.length * 1.5)];
-        System.arraycopy(interceptorList, 0, newArray, 0, interceptorList.length);
+        int oldCapacity = interceptorList.length;
+        int newCapacity = (int) (oldCapacity * 1.5);
+        InterceptorSupplier[] newArray = new InterceptorSupplier[newCapacity];
+        System.arraycopy(interceptorList, 0, newArray, 0, oldCapacity);
         interceptorList = newArray;
-        LoggerFactory.getLogger(InterceptorManager.class).info("Enlarge dynamic interceptors storage to {}", interceptorList.length);
+        LoggerFactory.getLogger(InterceptorManager.class)
+                     .info("Enlarge interceptors storage from {} to {}", oldCapacity, newCapacity);
     }
 }

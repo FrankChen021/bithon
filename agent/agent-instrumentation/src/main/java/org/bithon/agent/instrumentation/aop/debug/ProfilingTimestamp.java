@@ -14,23 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.config;
+package org.bithon.agent.instrumentation.aop.debug;
 
-import org.bithon.agent.configuration.ConfigurationProperties;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/8/7 13:53
+ * @date 24/7/25 4:46 pm
  */
-@ConfigurationProperties(path = "aop", dynamic = false)
-public class AopConfig {
-    private boolean debug = false;
-
-    public boolean isDebug() {
-        return debug;
-    }
-
-    public void setDebug(boolean debug) {
-        this.debug = debug;
-    }
+public class ProfilingTimestamp {
+    public long discoveryTimestamp;
+    public long transformationTimestamp;
+    public long completionTimestamp;
 }

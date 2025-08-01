@@ -1,2 +1,5 @@
 @defaultMessage in Agent, threads MUST be daemon threads. Use #daemonThreadFactory instead
 org.bithon.component.commons.concurrency.NamedThreadFactory#nonDaemonThreadFactory(java.lang.String)
+
+@defaultMessage Use org.bithon.agent.instrumentation.aop.interceptor.matcher#implements for better performance
+org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers#isOverriddenFrom(org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher)

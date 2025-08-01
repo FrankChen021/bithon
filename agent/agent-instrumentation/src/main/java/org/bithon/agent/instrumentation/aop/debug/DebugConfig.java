@@ -14,33 +14,29 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.instrumentation.aop;
-
-import org.bithon.agent.instrumentation.aop.debug.Debugger;
-
-import java.lang.instrument.Instrumentation;
+package org.bithon.agent.instrumentation.aop.debug;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/7/10 13:40
+ * @date 2021/8/7 13:53
  */
-public class InstrumentationHelper {
-    private static Instrumentation inst;
-    private static Debugger debugger;
+public class DebugConfig {
+    private boolean outputClassFile = false;
+    private boolean profiling = false;
 
-    public static Instrumentation getInstance() {
-        return inst;
+    public boolean isOutputClassFile() {
+        return outputClassFile;
     }
 
-    public static void setInstance(Instrumentation inst) {
-        InstrumentationHelper.inst = inst;
+    public void setOutputClassFile(boolean outputClassFile) {
+        this.outputClassFile = outputClassFile;
     }
 
-    public static void setAopDebugger(Debugger debugger) {
-        InstrumentationHelper.debugger = debugger;
+    public boolean isProfiling() {
+        return profiling;
     }
 
-    public static Debugger getAopDebugger() {
-        return debugger;
+    public void setProfiling(boolean profiling) {
+        this.profiling = profiling;
     }
 }

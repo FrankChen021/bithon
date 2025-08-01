@@ -41,9 +41,6 @@ import org.bithon.shaded.net.bytebuddy.implementation.FieldAccessor;
 import org.bithon.shaded.net.bytebuddy.implementation.StubMethod;
 import org.bithon.shaded.net.bytebuddy.jar.asm.Opcodes;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
-import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
-import org.bithon.shaded.net.bytebuddy.matcher.NameMatcher;
-import org.bithon.shaded.net.bytebuddy.matcher.StringSetMatcher;
 import org.bithon.shaded.net.bytebuddy.utility.JavaModule;
 
 import java.lang.instrument.Instrumentation;
@@ -65,13 +62,17 @@ public class InterceptorInstaller {
     }
 
     public void installOn(Instrumentation inst) {
-        Set<String> types = new HashSet<>(descriptors.getTypes());
+        final Set<String> types = new HashSet<>(descriptors.getTypes());
 
         AgentBuilder agentBuilder = new AgentBuilder.Default()
             .assureReadEdgeFromAndTo(inst, IBithonObject.class)
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
-            .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(ElementMatchers.nameStartsWith("org.bithon.shaded.net.bytebuddy.").or(ElementMatchers.isSynthetic())))
-            .type(new NameMatcher<>(new StringSetMatcher(types)))
+            // Must set the ignore matcher because the default matcher ignores classes in the bootstrap class loader
+            .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(target -> {
+                // Ignore synthetic classes, e.g. lambda classes
+                return (target.getModifiers() & Opcodes.ACC_SYNTHETIC) != 0;
+            }))
+            .type(target -> types.contains(target.getActualName()))
             .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule, ProtectionDomain protectionDomain) -> {
                 //
                 // get interceptor def for target class
@@ -97,6 +98,7 @@ public class InterceptorInstaller {
                 //
                 if (typeDescription.isInterface()) {
                     log.warn("Attempt to install interceptors on interface [{}]. This is not supported.", typeDescription.getName());
+                    return builder;
                 } else if (!typeDescription.isAssignableTo(IBithonObject.class)) {
                     // define an object field on this class to hold objects across interceptors for state sharing
                     builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME, Object.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_VOLATILE)
@@ -169,13 +171,15 @@ public class InterceptorInstaller {
         }
 
         private void install(MethodPointCutDescriptor descriptor) {
-            AdviceAnnotation.InterceptorNameResolver nameResolver = new AdviceAnnotation.InterceptorNameResolver(descriptor.getInterceptorClassName());
-            AdviceAnnotation.InterceptorIndexResolver indexResolver = new AdviceAnnotation.InterceptorIndexResolver(InterceptorManager.INSTANCE.getOrCreateSupplier(descriptor.getInterceptorClassName(),
-                                                                                                                                                                    classLoader));
             if (descriptor.getInterceptorType() == null) {
                 log.error("Interceptor [{}] not installed due to interceptor type is null.", descriptor.getInterceptorClassName());
                 return;
             }
+
+            int supplierIndex = InterceptorManager.INSTANCE.getOrCreateSupplier(descriptor.getInterceptorClassName(), classLoader);
+            AdviceAnnotation.InterceptorNameResolver nameResolver = new AdviceAnnotation.InterceptorNameResolver(supplierIndex, descriptor.getInterceptorClassName());
+            AdviceAnnotation.InterceptorIndexResolver indexResolver = new AdviceAnnotation.InterceptorIndexResolver(supplierIndex);
+
             switch (descriptor.getInterceptorType()) {
                 case BEFORE:
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
@@ -185,8 +189,7 @@ public class InterceptorInstaller {
                                                          descriptor.getMethodMatcher()));
                     break;
                 case AFTER: {
-                    Class<?> adviceClazz = descriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ?
-                                           AfterAdvice.class : ConstructorAfterAdvice.class;
+                    Class<?> adviceClazz = descriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ? AfterAdvice.class : ConstructorAfterAdvice.class;
 
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
                                                                .bind(AdviceAnnotation.InterceptorName.class, nameResolver)
@@ -197,8 +200,7 @@ public class InterceptorInstaller {
                 break;
 
                 case AROUND: {
-                    Class<?> adviceClazz = descriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ?
-                                           AroundAdvice.class : AroundConstructorAdvice.class;
+                    Class<?> adviceClazz = descriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ? AroundAdvice.class : AroundConstructorAdvice.class;
 
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
                                                                .bind(AdviceAnnotation.InterceptorName.class, nameResolver)

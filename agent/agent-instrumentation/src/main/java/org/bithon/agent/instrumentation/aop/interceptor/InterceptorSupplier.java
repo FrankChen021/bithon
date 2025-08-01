@@ -30,31 +30,46 @@ import java.util.function.Supplier;
  * @date 2023/4/21 22:07
  */
 public class InterceptorSupplier implements Supplier<AbstractInterceptor> {
-    private String interceptorClassName;
-    private ClassLoader classLoader;
+
+    /**
+     * The index of this supplier in the {@link InterceptorManager}
+     */
+    private final int index;
+    private final String interceptorClassName;
+    private final String classLoaderId;
 
     private volatile AbstractInterceptor interceptor;
+    private ClassLoader classLoader;
 
     /**
      * The exception that the interceptor fails to load
      */
     private String exception;
 
-    /**
-     * The index of this supplier in the {@link InterceptorManager}
-     */
-    private final int index;
-
     public InterceptorSupplier(int index,
                                String interceptorClassName,
-                               ClassLoader classLoader) {
+                               ClassLoader classLoader,
+                               String classLoaderId) {
         this.index = index;
         this.interceptorClassName = interceptorClassName;
         this.classLoader = classLoader;
+        this.classLoaderId = classLoaderId;
     }
 
     public int getIndex() {
         return index;
+    }
+
+    public boolean isInterceptorInstantiated() {
+        return interceptor != null;
+    }
+
+    public String getInterceptorClassName() {
+        return interceptorClassName;
+    }
+
+    public String getClassLoaderId() {
+        return classLoaderId;
     }
 
     /**
@@ -76,7 +91,6 @@ public class InterceptorSupplier implements Supplier<AbstractInterceptor> {
             if (interceptor != null) {
                 // Release reference so that GC works
                 this.classLoader = null;
-                this.interceptorClassName = null;
             }
             return interceptor;
         }
@@ -92,10 +106,11 @@ public class InterceptorSupplier implements Supplier<AbstractInterceptor> {
         } catch (Throwable e) {
             this.exception = getStackTrace(e);
 
-            LoggerFactory.getLogger(InterceptorManager.class).error(String.format(Locale.ENGLISH,
-                    "Failed to load interceptor[%s] due to %s",
-                    interceptorClassName,
-                    e.getMessage()), e);
+            LoggerFactory.getLogger(InterceptorManager.class)
+                         .error(String.format(Locale.ENGLISH,
+                                              "Failed to load interceptor[%s] due to %s",
+                                              interceptorClassName,
+                                              e.getMessage()), e);
             return null;
         }
     }
