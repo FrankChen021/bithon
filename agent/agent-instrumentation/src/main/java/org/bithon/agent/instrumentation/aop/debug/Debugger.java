@@ -138,14 +138,14 @@ public class Debugger extends AgentBuilder.Listener.Adapter {
     @Override
     public void onComplete(String typeName, ClassLoader classLoader, JavaModule module, boolean loaded) {
         if (debugConfig.isProfiling() && this.types.contains(typeName)) {
-            ProfilingTimestamp timestmap = timestamps.computeIfAbsent(typeName, k -> new ProfilingTimestamp());
-            timestmap.completionTimestamp = System.nanoTime();
+            ProfilingTimestamp timestamp = timestamps.computeIfAbsent(typeName, k -> new ProfilingTimestamp());
+            timestamp.completionTimestamp = System.nanoTime();
 
             log.info(String.format(Locale.ENGLISH,
                                    "Transformed: %s: discovery->transformation=%d, transformation->completion=%d",
                                    typeName,
-                                   timestmap.transformationTimestamp - timestmap.discoveryTimestamp,
-                                   timestmap.completionTimestamp - timestmap.transformationTimestamp));
+                                   timestamp.transformationTimestamp - timestamp.discoveryTimestamp,
+                                   timestamp.completionTimestamp - timestamp.transformationTimestamp));
         }
     }
 
