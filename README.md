@@ -135,7 +135,7 @@ By default, the agent connects collector running at local(127.0.0.1).
 Collector address could be changed in file `agent/agent-main/src/main/resources/agent.yml`.
 Make sure to re-build the project after changing the configuration file above.
 
-> For production deployment, you refer to the [agent deployment doc](doc/deployment/agent-deployment.md) to deploy the agent to your target Java applications.
+> For production deployment, please refer to the [agent deployment doc](doc/deployment/agent-deployment.md) to deploy the agent to your target Java applications.
 
 # JDKs Compatibility
 
