@@ -78,7 +78,7 @@ But the difference is that we set the environment variable outside the script.
 #!/bin/sh
 
 echo "Downloading agent from ${AGENT_URI}"
-wget -T 10 -O agent.zip "${AGENT_URI}"
+wget -T 10 -O agent.tar "${AGENT_URI}"
 
 if [ "$WITH_AGENT" = true ] ; then
   echo "Downloading agent from ${AGENT_URI}"
@@ -89,7 +89,7 @@ if [ "$WITH_AGENT" = true ] ; then
     rm -fr ./agent-distribution
  
     echo "Unzip agent compress file..."
-    unzip agent.tar
+    tar -xvf agent.tar
   else
     echo "Failed to downloading agent..."
   fi
@@ -129,7 +129,7 @@ ENV APP_OPTS ""
 ENV WITH_AGENT=true
 
 # Remember to change this URL to your own agent distribution URL
-ENV AGENT_URI https://github.com/FrankChen021/bithon/releases/download/agent-distribution-latest/agent-distribution.zip
+ENV AGENT_URI https://github.com/FrankChen021/bithon/releases/download/agent-distribution-latest/agent-distribution.tar
  
 WORKDIR /opt
  
@@ -160,8 +160,6 @@ The following YAML demonstrates how to do it:
 5. You have to change the `bithon_application_name` and `bithon_application_env` environment variables to your own application name and environment.
 
 ```yaml
-apiVersion: argoproj.io/v1alpha1
-kind: Rollout
 spec:
   template:
     spec:
@@ -208,6 +206,5 @@ spec:
               fieldRef:
                 fieldPath: metadata.name
           #-------Added End--------------------------------------------------------
-          ...
    
 ```
