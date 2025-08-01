@@ -146,7 +146,7 @@ You can start the Docker container with the following command:
 
 ```bash
 docker run -d \
-  -e JAVA_TOOL_OPTIONS="-Dbithon.application.name=YOUR_APPLICATION_NAME -Dbithon.application.env=YOUR_APPLICATION_ENV" \
+  -e bithon_application_name=YOUR_APPLICATION_NAME -e bithon_application_env=YOUR_APPLICATION_ENV \
   your_docker-image:latest
 ```
 
