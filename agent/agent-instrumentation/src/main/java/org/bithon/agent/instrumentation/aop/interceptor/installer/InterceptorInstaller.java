@@ -41,7 +41,6 @@ import org.bithon.shaded.net.bytebuddy.implementation.FieldAccessor;
 import org.bithon.shaded.net.bytebuddy.implementation.StubMethod;
 import org.bithon.shaded.net.bytebuddy.jar.asm.Opcodes;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
-import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 import org.bithon.shaded.net.bytebuddy.utility.JavaModule;
 
 import java.lang.instrument.Instrumentation;
@@ -68,7 +67,11 @@ public class InterceptorInstaller {
         AgentBuilder agentBuilder = new AgentBuilder.Default()
             .assureReadEdgeFromAndTo(inst, IBithonObject.class)
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
-            .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(ElementMatchers.nameStartsWith("org.bithon.shaded.net.bytebuddy.").or(ElementMatchers.isSynthetic())))
+            // Must set the ignore matcher because the default matcher ignores classes in the bootstrap class loader
+            .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(target -> {
+                // Ignore synthetic classes, e.g. lambda classes
+                return (target.getModifiers() & Opcodes.ACC_SYNTHETIC) != 0;
+            }))
             .type(target -> types.contains(target.getActualName()))
             .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule, ProtectionDomain protectionDomain) -> {
                 //
