@@ -51,6 +51,10 @@ then
 fi
 
 if [ -f /opt/agent-distribution/agent-main.jar ] ; then
+  #
+  # Assuming the agent is extracted to /opt/agent-distribution/agent-main.jar
+  # If not, change the path accordingly. Note that the path must be absolute.
+  #
   JAVA_TOOL_OPTIONS="-javaagent:/opt/agent-distribution/agent-main.jar $JAVA_TOOL_OPTIONS"
   echo "Starting application with agent: $JAVA_TOOL_OPTIONS"
 fi
@@ -93,7 +97,7 @@ if [ "$WITH_AGENT" = true ] ; then
   fi
 fi
 
-# Automatically detect the JRE version and set the JAVA_OPTS accordingly.
+# Automatically detect the JRE version and set the options accordingly.
 JAVA_MAJOR="$(java -version 2>&1 | sed -n -E 's/.* version "([^."-]*).*/\1/p')"
 echo "Detected JRE version: ${JAVA_MAJOR}"
 if [ "$JAVA_MAJOR" != "" ] && [ "$JAVA_MAJOR" -ge "11" ]
@@ -107,6 +111,10 @@ then
 fi
 
 if [ -f /opt/agent-distribution/agent-main.jar ] ; then
+  #
+  # Assuming the agent is extracted to /opt/agent-distribution/agent-main.jar
+  # If not, change the path accordingly. Note that the path must be absolute.
+  #
   JAVA_TOOL_OPTIONS="-javaagent:/opt/agent-distribution/agent-main.jar $JAVA_TOOL_OPTIONS"
   echo "Starting application with agent: $JAVA_TOOL_OPTIONS"
 fi
@@ -191,11 +199,14 @@ spec:
             name: bithon-agent
           env:
           - name: JAVA_TOOL_OPTIONS
-            value: "-javaagent:/opt/bithon/agent/agent-main.jar --add-opens=java.base/jdk.internal.misc=ALL-UNNAMED --add-opens=java.base/sun.net.www=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED"
+            # For JDK 8,9,10, use the following value  
+            value: "-javaagent:/opt/bithon/agent/agent-main.jar"
+            # If the target JDK is Java 11 and above, use the following value
+            # value: "-javaagent:/opt/bithon/agent/agent-main.jar --add-opens=java.base/jdk.internal.misc=ALL-UNNAMED --add-opens=java.base/sun.net.www=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED"
           - name: bithon_application_name
-            value: Change_to_your_application_name
+            value: CHANGE_TO_YOUR_APPLICATION_NAME
           - name: bithon_application_env
-            value: Change_to_your_application_name
+            value: CHANGE_TO_YOUR_APPLICATION_NAME
           - name: bithon_application_instance
             valueFrom:
               fieldRef:
