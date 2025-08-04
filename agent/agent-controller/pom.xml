@@ -36,6 +36,13 @@
       <version>4.0</version>
     </dependency>
 
+<!--    <dependency>-->
+<!--      <groupId>org.openjdk.jmc</groupId>-->
+<!--      <artifactId>flightrecorder</artifactId>-->
+<!--      <version>8.3.0</version> &lt;!&ndash; or latest available &ndash;&gt;-->
+<!--      <scope>provided</scope>-->
+<!--    </dependency>-->
+
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>

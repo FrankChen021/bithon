@@ -91,23 +91,21 @@ public class Profiler {
         }
 
         // Configuration
-        int loopIntervalSeconds = 3; // --loop parameter value
-        int totalDurationSeconds = 30; // -d parameter value
         long startTime = System.currentTimeMillis();
-        long endTime = startTime + (totalDurationSeconds + 5) * 1000L;
+        long endTime = startTime + (durationSeconds + 5) * 1000L;
 
         new Thread(() -> {
             tryStopProfiling(toolLocation, pid);
 
             try {
-                startProfiling(toolLocation, pid, totalDurationSeconds, loopIntervalSeconds, dir);
+                startProfiling(toolLocation, pid, durationSeconds, intervalSeconds, dir);
             } catch (ProfilingException e) {
                 streamResponse.onException(e);
                 return;
             }
 
             try {
-                collectProfilingData(dir, loopIntervalSeconds, endTime, streamResponse);
+                collectProfilingData(dir, intervalSeconds, endTime, streamResponse);
             } catch (Exception e) {
                 LOG.error("File processor thread failed", e);
             } finally {
@@ -128,7 +126,7 @@ public class Profiler {
                 }
             }
 
-            LOG.info("Stopping profiler for PID {} after {} seconds", pid, totalDurationSeconds);
+            LOG.info("Stopping profiler for PID {} after {} seconds", pid, durationSeconds);
 
             // Terminate the profiler process after the duration
             tryStopProfiling(toolLocation, pid);

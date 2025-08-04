@@ -19,6 +19,7 @@ message ProfilingEvent {
     CPUUsage cpuUsage = 10;
     SystemProperties systemProperties = 20;
     CallStackSample callStackSample = 30;  // Including this as it appears to be another relevant event type
+    GCHeapSummary heapSummary = 40;
   }
 }
 
@@ -49,4 +50,13 @@ message CallStackSample {
   int32 threadState = 4;
   repeated StackFrame stackTrace = 5;
   int32 samples = 6;
+}
+
+message GCHeapSummary {
+  int64 time = 1;
+  int32 gcId = 2;
+
+  int64 committed = 10;
+  int64 used = 11;
+  int64 reserved = 12;
 }

@@ -20,10 +20,10 @@ package org.bithon.agent.controller.cmd.profiling.jfr;
 import one.jfr.ClassRef;
 import one.jfr.JfrReader;
 import one.jfr.MethodRef;
-import one.jfr.StackTrace;
 import one.jfr.event.CPULoad;
 import one.jfr.event.Event;
 import one.jfr.event.ExecutionSample;
+import one.jfr.event.GCHeapSummary;
 import org.bithon.agent.controller.cmd.profiling.jfr.event.CPUInformation;
 import org.bithon.agent.controller.cmd.profiling.jfr.event.InitialEnvironmentVariable;
 import org.bithon.agent.controller.cmd.profiling.jfr.event.InitialSystemProperty;
@@ -78,6 +78,17 @@ public class JfrFileReader {
                     } else if (jfrEvent instanceof InitialSystemProperty) {
                         systemProperties.put(((InitialSystemProperty) jfrEvent).key,
                                              ((InitialSystemProperty) jfrEvent).value);
+                    } else if (jfrEvent instanceof GCHeapSummary) {
+                        GCHeapSummary heap = (GCHeapSummary) jfrEvent;
+                        responseEvent = ProfilingEvent.newBuilder()
+                                                      .setHeapSummary(org.bithon.agent.rpc.brpc.profiling.GCHeapSummary.newBuilder()
+                                                                                                                       .setTime(TimeConverter.toEpochNano(jfr, jfrEvent.time))
+                                                                                                                       .setGcId(heap.gcId)
+                                                                                                                       .setUsed(heap.used)
+                                                                                                                       .setCommitted(heap.committed)
+                                                                                                                       .setReserved(heap.reserved)
+                                                                                                                       .build())
+                                                      .build();
                     }
 
                                 /*
@@ -115,25 +126,28 @@ public class JfrFileReader {
     }
 
     @SuppressForbidden
-    public static void dump(File f) {
-        try (JfrReader jfrReader = createJfrReader(f.getAbsolutePath())) {
-            {
-                Event event = jfrReader.readEvent();
-                while (event != null) {
-                    long time = jfrReader.startNanos + ((event.time - jfrReader.startTicks) / jfrReader.ticksPerSec);
-                    System.out.printf("%d, %d, %d %s\n", time, event.samples(), event.value(), event);
-                    StackTrace stackTrace = jfrReader.stackTraces.get(event.stackTraceId);
-                    if (stackTrace != null) {
-                        List<StackFrame> frames = toStackTrace(jfrReader, stackTrace);
-                        System.out.println(frames);
-                    }
-                    event = jfrReader.readEvent();
+    public static void dump(File f) throws IOException {
+        read(f, new JfrEventConsumer() {
+            @Override
+            public void onStart() {
+            }
+
+            @Override
+            public void onEvent(ProfilingEvent event) {
+                if (event.getEventCase() != ProfilingEvent.EventCase.CALLSTACKSAMPLE && event.getEventCase() != ProfilingEvent.EventCase.SYSTEMPROPERTIES) {
+                    System.out.println(event);
                 }
             }
-        } catch (IOException ignored) {
-        }
+
+            @Override
+            public void onComplete() {
+            }
+        });
     }
 
+    public static void main(String[] args) throws IOException {
+        dump(new File("/Users/frank.chenling/source/open/bithon/agent/agent-distribution/tools/async-profiler/macos/bin/20250804-114138.jfr"));
+    }
 
     public static CallStackSample toCallStackSample(JfrReader jfr, ExecutionSample event) {
         if (event.stackTraceId == 0) {
@@ -157,19 +171,19 @@ public class JfrFileReader {
         return builder.build();
     }
 
-    public static List<org.bithon.agent.rpc.brpc.profiling.StackFrame> toStackTrace(JfrReader jfr,
-                                                                                    one.jfr.StackTrace stackTrace) {
-        List<org.bithon.agent.rpc.brpc.profiling.StackFrame> frames = new ArrayList<>();
+    public static List<StackFrame> toStackTrace(JfrReader jfr,
+                                                one.jfr.StackTrace stackTrace) {
+        List<StackFrame> frames = new ArrayList<>();
         for (int i = 0; i < stackTrace.methods.length; i++) {
             frames.add(toStackFrame(jfr, stackTrace, i).build());
         }
         return frames;
     }
 
-    private static org.bithon.agent.rpc.brpc.profiling.StackFrame.Builder toStackFrame(JfrReader jfr, one.jfr.StackTrace stackTrace, int frameIndex) {
+    private static StackFrame.Builder toStackFrame(JfrReader jfr, one.jfr.StackTrace stackTrace, int frameIndex) {
         long methodId = stackTrace.methods[frameIndex];
 
-        org.bithon.agent.rpc.brpc.profiling.StackFrame.Builder frame = org.bithon.agent.rpc.brpc.profiling.StackFrame.newBuilder();
+        StackFrame.Builder frame = StackFrame.newBuilder();
 
         int location;
         if ((location = stackTrace.locations[frameIndex] >>> 16) != 0) {
