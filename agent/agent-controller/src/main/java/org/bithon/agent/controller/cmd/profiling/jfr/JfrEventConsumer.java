@@ -17,7 +17,7 @@
 package org.bithon.agent.controller.cmd.profiling.jfr;
 
 
-import org.bithon.agent.rpc.brpc.profiling.ProfilingResponse;
+import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 
 /**
  * @author frank.chen021@outlook.com
@@ -31,7 +31,7 @@ public interface JfrEventConsumer {
      *
      * @param event the JFR event
      */
-    void onEvent(ProfilingResponse event);
+    void onEvent(ProfilingEvent event);
 
     void onComplete();
 }

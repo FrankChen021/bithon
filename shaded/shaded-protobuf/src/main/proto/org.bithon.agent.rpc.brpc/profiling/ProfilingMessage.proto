@@ -6,15 +6,15 @@ import "google/protobuf/any.proto";
 
 option java_multiple_files = true;
 
-/***************************************************************************/
-/*************************** JVM Metrics ***********************************/
-/***************************************************************************/
 message ProfilingRequest {
   int32 durationInSeconds = 1;
   int32 intervalInSeconds = 2;
 }
 
-message ProfilingResponse {
+/**************************************************************************/
+/*******************************  Profiling Response       ***************************/
+/**************************************************************************/
+message ProfilingEvent {
   oneof event {
     CPUUsage cpuUsage = 10;
     SystemProperties systemProperties = 20;
@@ -22,9 +22,6 @@ message ProfilingResponse {
   }
 }
 
-/**************************************************************************/
-/*******************************  Profiling Response       ***************************/
-/**************************************************************************/
 message CPUUsage {
   int64 time = 1;
   float user = 2;

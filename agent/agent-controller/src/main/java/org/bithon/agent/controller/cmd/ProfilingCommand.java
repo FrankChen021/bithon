@@ -21,8 +21,8 @@ import org.bithon.agent.instrumentation.loader.AgentClassLoader;
 import org.bithon.agent.instrumentation.loader.JarClassLoader;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
 import org.bithon.agent.rpc.brpc.cmd.IProfilingCommand;
+import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingRequest;
-import org.bithon.agent.rpc.brpc.profiling.ProfilingResponse;
 import org.bithon.component.brpc.StreamResponse;
 
 import java.lang.reflect.InvocationTargetException;
@@ -38,7 +38,7 @@ public class ProfilingCommand implements IProfilingCommand, IAgentCommand {
                                                                   AgentClassLoader.getClassLoader());
 
     @Override
-    public void start(ProfilingRequest request, StreamResponse<ProfilingResponse> response) {
+    public void start(ProfilingRequest request, StreamResponse<ProfilingEvent> response) {
         try {
             Class<?> clazz = Class.forName("org.bithon.agent.controller.cmd.profiling.Profiler", true, classLoader);
             Method method = clazz.getDeclaredMethod("start", ProfilingRequest.class, StreamResponse.class);

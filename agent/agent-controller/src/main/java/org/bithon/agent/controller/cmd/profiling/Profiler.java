@@ -21,8 +21,8 @@ import org.bithon.agent.controller.cmd.profiling.jfr.JfrEventConsumer;
 import org.bithon.agent.controller.cmd.profiling.jfr.JfrFileReader;
 import org.bithon.agent.controller.cmd.profiling.jfr.TimestampedFile;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
+import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingRequest;
-import org.bithon.agent.rpc.brpc.profiling.ProfilingResponse;
 import org.bithon.component.brpc.StreamResponse;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -64,13 +64,13 @@ public class Profiler {
     /**
      * called by {@link org.bithon.agent.controller.cmd.ProfilingCommand} by reflection
      */
-    public static void start(ProfilingRequest request, StreamResponse<ProfilingResponse> streamResponse) {
+    public static void start(ProfilingRequest request, StreamResponse<ProfilingEvent> streamResponse) {
         INSTANCE.start(request.getIntervalInSeconds(),
                        request.getDurationInSeconds(),
                        streamResponse);
     }
 
-    public void start(int intervalSeconds, int durationSeconds, StreamResponse<ProfilingResponse> streamResponse) {
+    public void start(int intervalSeconds, int durationSeconds, StreamResponse<ProfilingEvent> streamResponse) {
         if (intervalSeconds <= 0 || durationSeconds <= 0) {
             streamResponse.onException(new IllegalArgumentException("Interval and duration must be greater than 0"));
             return;
@@ -190,7 +190,7 @@ public class Profiler {
     private void collectProfilingData(File dir,
                                       int loopIntervalSeconds,
                                       long endTime,
-                                      StreamResponse<ProfilingResponse> outputStream) {
+                                      StreamResponse<ProfilingEvent> outputStream) {
         Set<String> skipped = new HashSet<>();
 
         // Pattern to extract timestamp from filename (format: YYYYMMDD-HHMMSS.jfr)
@@ -257,7 +257,7 @@ public class Profiler {
                                                }
 
                                                @Override
-                                               public void onEvent(ProfilingResponse event) {
+                                               public void onEvent(ProfilingEvent event) {
                                                    outputStream.onNext(event);
                                                }
 

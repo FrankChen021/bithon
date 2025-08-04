@@ -31,7 +31,7 @@ import org.bithon.agent.controller.cmd.profiling.jfr.event.JVMInformation;
 import org.bithon.agent.controller.cmd.profiling.jfr.event.OSInformation;
 import org.bithon.agent.rpc.brpc.profiling.CPUUsage;
 import org.bithon.agent.rpc.brpc.profiling.CallStackSample;
-import org.bithon.agent.rpc.brpc.profiling.ProfilingResponse;
+import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 import org.bithon.agent.rpc.brpc.profiling.StackFrame;
 import org.bithon.agent.rpc.brpc.profiling.SystemProperties;
 import org.bithon.component.commons.forbidden.SuppressForbidden;
@@ -59,25 +59,25 @@ public class JfrFileReader {
             final Map<String, String> systemProperties = new HashMap<>();
             eventConsumer.onStart();
             {
-                for (Event event; (event = jfr.readEvent()) != null; ) {
-                    ProfilingResponse response = null;
-                    if (event instanceof ExecutionSample) {
-                        response = ProfilingResponse.newBuilder()
-                                                    .setCallStackSample(toCallStackSample(jfr, (ExecutionSample) event))
-                                                    .build();
-                    } else if (event instanceof CPULoad) {
+                for (Event jfrEvent; (jfrEvent = jfr.readEvent()) != null; ) {
+                    ProfilingEvent responseEvent = null;
+                    if (jfrEvent instanceof ExecutionSample) {
+                        responseEvent = ProfilingEvent.newBuilder()
+                                                      .setCallStackSample(toCallStackSample(jfr, (ExecutionSample) jfrEvent))
+                                                      .build();
+                    } else if (jfrEvent instanceof CPULoad) {
                         CPUUsage cpuUsage = CPUUsage.newBuilder()
-                                                    .setTime(TimeConverter.toEpochNano(jfr, event.time))
-                                                    .setUser(((CPULoad) event).jvmUser)
-                                                    .setSystem(((CPULoad) event).jvmSystem)
-                                                    .setMachine(((CPULoad) event).machineTotal)
+                                                    .setTime(TimeConverter.toEpochNano(jfr, jfrEvent.time))
+                                                    .setUser(((CPULoad) jfrEvent).jvmUser)
+                                                    .setSystem(((CPULoad) jfrEvent).jvmSystem)
+                                                    .setMachine(((CPULoad) jfrEvent).machineTotal)
                                                     .build();
-                        response = ProfilingResponse.newBuilder()
-                                                    .setCpuUsage(cpuUsage)
-                                                    .build();
-                    } else if (event instanceof InitialSystemProperty) {
-                        systemProperties.put(((InitialSystemProperty) event).key,
-                                             ((InitialSystemProperty) event).value);
+                        responseEvent = ProfilingEvent.newBuilder()
+                                                      .setCpuUsage(cpuUsage)
+                                                      .build();
+                    } else if (jfrEvent instanceof InitialSystemProperty) {
+                        systemProperties.put(((InitialSystemProperty) jfrEvent).key,
+                                             ((InitialSystemProperty) jfrEvent).value);
                     }
 
                                 /*
@@ -86,15 +86,15 @@ public class JfrFileReader {
                            || JdkTypeIDs.EXECUTION_SAMPLE.equals(eventType)
                            || JdkTypeIDs.SYSTEM_PROPERTIES.equals(eventType);
                      */
-                    if (response != null) {
-                        eventConsumer.onEvent(response);
+                    if (responseEvent != null) {
+                        eventConsumer.onEvent(responseEvent);
                     }
                 }
             }
             if (!systemProperties.isEmpty()) {
                 SystemProperties.Builder props = SystemProperties.newBuilder()
                                                                  .putAllProperties(systemProperties);
-                eventConsumer.onEvent(ProfilingResponse.newBuilder().setSystemProperties(props).build());
+                eventConsumer.onEvent(ProfilingEvent.newBuilder().setSystemProperties(props).build());
             }
         } finally {
             try {

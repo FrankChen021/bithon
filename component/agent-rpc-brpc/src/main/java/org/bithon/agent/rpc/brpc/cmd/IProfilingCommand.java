@@ -17,8 +17,8 @@
 package org.bithon.agent.rpc.brpc.cmd;
 
 
+import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingRequest;
-import org.bithon.agent.rpc.brpc.profiling.ProfilingResponse;
 import org.bithon.component.brpc.BrpcService;
 import org.bithon.component.brpc.StreamResponse;
 import org.bithon.component.brpc.message.serializer.Serializer;
@@ -35,5 +35,5 @@ public interface IProfilingCommand {
      *
      * @param response The response object to which profiling frames will be streamed.
      */
-    void start(ProfilingRequest request, StreamResponse<ProfilingResponse> response);
+    void start(ProfilingRequest request, StreamResponse<ProfilingEvent> response);
 }
