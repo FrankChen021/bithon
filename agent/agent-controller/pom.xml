@@ -33,7 +33,7 @@
     <dependency>
       <groupId>tools.profiler</groupId>
       <artifactId>jfr-converter</artifactId>
-      <version>4.0</version>
+      <version>4.1</version>
     </dependency>
 
 <!--    <dependency>-->
