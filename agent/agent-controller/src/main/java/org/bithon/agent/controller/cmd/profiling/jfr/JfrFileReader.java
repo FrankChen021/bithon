@@ -41,9 +41,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import static one.convert.Frame.TYPE_CPP;
 import static one.convert.Frame.TYPE_KERNEL;
@@ -56,7 +56,8 @@ import static one.convert.Frame.TYPE_NATIVE;
 public class JfrFileReader {
     public static void read(File jfrFile, JfrEventConsumer eventConsumer) throws IOException {
         try (JfrReader jfr = createJfrReader(jfrFile.getAbsolutePath())) {
-            final Map<String, String> systemProperties = new HashMap<>();
+            // Use TreeMap to ensure the system properties are sorted by key
+            final Map<String, String> systemProperties = new TreeMap<>();
             eventConsumer.onStart();
             {
                 for (Event jfrEvent; (jfrEvent = jfr.readEvent()) != null; ) {
@@ -127,26 +128,15 @@ public class JfrFileReader {
 
     @SuppressForbidden
     public static void dump(File f) throws IOException {
-        read(f, new JfrEventConsumer() {
-            @Override
-            public void onStart() {
+        try (JfrReader jfr = createJfrReader(f.getAbsolutePath())) {
+            for (Event jfrEvent; (jfrEvent = jfr.readEvent()) != null; ) {
+                System.out.println(jfrEvent);
             }
-
-            @Override
-            public void onEvent(ProfilingEvent event) {
-                if (event.getEventCase() != ProfilingEvent.EventCase.CALLSTACKSAMPLE && event.getEventCase() != ProfilingEvent.EventCase.SYSTEMPROPERTIES) {
-                    System.out.println(event);
-                }
-            }
-
-            @Override
-            public void onComplete() {
-            }
-        });
+        }
     }
 
     public static void main(String[] args) throws IOException {
-        dump(new File("/Users/frank.chenling/source/open/bithon/agent/agent-distribution/tools/async-profiler/macos/bin/20250804-114138.jfr"));
+        dump(new File("/Users/frank.chenling/source/open/bithon/agent/agent-distribution/tools/async-profiler/macos/bin/20250804-150143.jfr"));
     }
 
     public static CallStackSample toCallStackSample(JfrReader jfr, ExecutionSample event) {

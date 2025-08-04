@@ -24,8 +24,8 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.cmd.IProfilingCommand;
+import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingRequest;
-import org.bithon.agent.rpc.brpc.profiling.ProfilingResponse;
 import org.bithon.component.brpc.StreamResponse;
 import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
@@ -148,12 +148,13 @@ public class JfrApi {
                                                .build();
         agentJvmCommand.start(req, new StreamResponse<>() {
             @Override
-            public void onNext(ProfilingResponse event) {
+            public void onNext(ProfilingEvent event) {
                 try {
                     GeneratedMessageV3 data = switch (event.getEventCase()) {
                         case CPUUSAGE -> event.getCpuUsage();
                         case SYSTEMPROPERTIES -> event.getSystemProperties();
                         case CALLSTACKSAMPLE -> event.getCallStackSample();
+                        case HEAPSUMMARY -> event.getHeapSummary();
                         case EVENT_NOT_SET -> null;
                     };
 
@@ -200,12 +201,13 @@ public class JfrApi {
                                                .build();
         agentJvmCommand.start(req, new StreamResponse<>() {
             @Override
-            public void onNext(ProfilingResponse event) {
+            public void onNext(ProfilingEvent event) {
                 try {
                     GeneratedMessageV3 data = switch (event.getEventCase()) {
                         case CPUUSAGE -> event.getCpuUsage();
                         case SYSTEMPROPERTIES -> event.getSystemProperties();
                         case CALLSTACKSAMPLE -> event.getCallStackSample();
+                        case HEAPSUMMARY -> event.getHeapSummary();
                         case EVENT_NOT_SET -> null;
                     };
 
@@ -230,4 +232,4 @@ public class JfrApi {
 
         return emitter;
     }
-};
+}
