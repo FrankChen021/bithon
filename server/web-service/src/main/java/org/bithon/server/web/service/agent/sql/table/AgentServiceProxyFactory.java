@@ -38,6 +38,7 @@ import org.bithon.component.brpc.exception.SessionNotFoundException;
 import org.bithon.component.brpc.invocation.InvocationManager;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.ServiceMessageType;
+import org.bithon.component.brpc.message.in.ServiceMessageIn;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.brpc.message.in.ServiceStreamingDataMessageIn;
 import org.bithon.component.brpc.message.in.ServiceStreamingEndMessageIn;
@@ -452,11 +453,11 @@ public class AgentServiceProxyFactory {
                                                      }
                                                      byte[] decoded = Base64.getDecoder().decode(base64Data);
                                                      if ("complete".equals(eventName)) {
-                                                         invocationManager.handleStreamingEnd(ServiceStreamingEndMessageIn.from(decoded));
+                                                         invocationManager.handleStreamingEnd((ServiceStreamingEndMessageIn) ServiceMessageIn.from(decoded));
                                                      } else if ("error".equals(eventName)) {
-                                                         invocationManager.handleStreamingEnd(ServiceStreamingEndMessageIn.from(decoded));
+                                                         invocationManager.handleStreamingEnd((ServiceStreamingEndMessageIn) ServiceMessageIn.from(decoded));
                                                      } else {
-                                                         invocationManager.handleStreamingData(ServiceStreamingDataMessageIn.from(decoded));
+                                                         invocationManager.handleStreamingData((ServiceStreamingDataMessageIn) ServiceMessageIn.from(decoded));
                                                      }
                                                  }
                                              }

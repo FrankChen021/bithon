@@ -24,6 +24,7 @@ import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
 import org.bithon.component.brpc.message.Headers;
+import org.bithon.component.brpc.message.in.ServiceMessageIn;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.brpc.message.out.ServiceResponseMessageOut;
@@ -135,9 +136,7 @@ public class AgentControllerApi implements IAgentControllerApi {
         //
         // Parse input request stream so that we get the request object that the user is going to access
         //
-        CodedInputStream input = CodedInputStream.newInstance(message);
-        input.pushLimit(message.length);
-        ServiceRequestMessageIn rawRequest = ServiceRequestMessageIn.from(input);
+        ServiceRequestMessageIn rawRequest = (ServiceRequestMessageIn) ServiceMessageIn.from(message);
 
         // Verify if the user has permission if the permission checking is ENABLE on this service
         if (permissionConfig != null && permissionConfig.isEnabled()) {

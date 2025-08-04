@@ -16,7 +16,9 @@
 
 package org.bithon.component.brpc.message.in;
 
+import org.bithon.component.brpc.exception.BadRequestException;
 import org.bithon.component.brpc.message.ServiceMessage;
+import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 
 import java.io.IOException;
@@ -42,5 +44,28 @@ public abstract class ServiceMessageIn extends ServiceMessage {
         if (unConsumedBytes > 0) {
             in.skipRawBytes(unConsumedBytes);
         }
+    }
+
+    public static ServiceMessageIn from(byte[] bytes) throws IOException {
+        CodedInputStream inputStream = CodedInputStream.newInstance(bytes);
+        int messageType = inputStream.readInt32();
+        if (messageType == ServiceMessageType.CLIENT_REQUEST
+            || messageType == ServiceMessageType.CLIENT_REQUEST_ONEWAY
+            || messageType == ServiceMessageType.CLIENT_REQUEST_V2
+            || messageType == ServiceMessageType.CLIENT_STREAMING_REQUEST
+        ) {
+            return (ServiceMessageIn) new ServiceRequestMessageIn(messageType, inputStream).decode();
+        }
+
+        if (messageType == ServiceMessageType.SERVER_STREAMING_DATA) {
+            return (ServiceMessageIn) new ServiceStreamingDataMessageIn(inputStream).decode();
+        }
+
+        if (messageType == ServiceMessageType.SERVER_STREAMING_END) {
+            return (ServiceMessageIn) new ServiceStreamingEndMessageIn(inputStream).decode();
+        }
+
+        throw new BadRequestException("messageType [%x] is not a valid ServiceRequest message", messageType);
+
     }
 }
