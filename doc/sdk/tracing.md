@@ -14,7 +14,7 @@ Add the Bithon Tracing API dependency to your project. The dependency is availab
 <dependency>
     <groupId>org.bithon.agent</groupId>
     <artifactId>agent-sdk</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
 </dependency>
 ```
 
