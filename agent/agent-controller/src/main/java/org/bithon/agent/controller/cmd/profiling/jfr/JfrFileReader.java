@@ -14,59 +14,128 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.controller.cmd.profiling.event;
+package org.bithon.agent.controller.cmd.profiling.jfr;
 
 
 import one.jfr.ClassRef;
 import one.jfr.JfrReader;
 import one.jfr.MethodRef;
+import one.jfr.StackTrace;
+import one.jfr.event.CPULoad;
+import one.jfr.event.Event;
 import one.jfr.event.ExecutionSample;
+import org.bithon.agent.controller.cmd.profiling.jfr.event.CPUInformation;
+import org.bithon.agent.controller.cmd.profiling.jfr.event.InitialEnvironmentVariable;
+import org.bithon.agent.controller.cmd.profiling.jfr.event.InitialSystemProperty;
+import org.bithon.agent.controller.cmd.profiling.jfr.event.JVMInformation;
+import org.bithon.agent.controller.cmd.profiling.jfr.event.OSInformation;
+import org.bithon.agent.rpc.brpc.profiling.CPUUsage;
+import org.bithon.agent.rpc.brpc.profiling.CallStackSample;
+import org.bithon.agent.rpc.brpc.profiling.ProfilingResponse;
+import org.bithon.agent.rpc.brpc.profiling.StackFrame;
+import org.bithon.agent.rpc.brpc.profiling.SystemProperties;
+import org.bithon.component.commons.forbidden.SuppressForbidden;
 import org.bithon.shaded.net.bytebuddy.jar.asm.Type;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static one.convert.Frame.TYPE_CPP;
 import static one.convert.Frame.TYPE_KERNEL;
 import static one.convert.Frame.TYPE_NATIVE;
 
 /**
- * An extent to ExecutionSample
- *
  * @author frank.chen021@outlook.com
- * @date 14/7/25 10:59 am
+ * @date 4/8/25 11:07 am
  */
-public class CallStackSample {
-    /*
-    public final long time;
-    public final int threadId;
-    public final String threadName;
-    public final int threadState;
-    public final List<StackFrame> stackTrace;
-    public final int samples;
+public class JfrFileReader {
+    public static void read(File jfrFile, JfrEventConsumer eventConsumer) throws IOException {
+        try (JfrReader jfr = createJfrReader(jfrFile.getAbsolutePath())) {
+            final Map<String, String> systemProperties = new HashMap<>();
+            eventConsumer.onStart();
+            {
+                for (Event event; (event = jfr.readEvent()) != null; ) {
+                    ProfilingResponse response = null;
+                    if (event instanceof ExecutionSample) {
+                        response = ProfilingResponse.newBuilder()
+                                                    .setCallStackSample(toCallStackSample(jfr, (ExecutionSample) event))
+                                                    .build();
+                    } else if (event instanceof CPULoad) {
+                        CPUUsage cpuUsage = CPUUsage.newBuilder()
+                                                    .setTime(TimeConverter.toEpochNano(jfr, event.time))
+                                                    .setUser(((CPULoad) event).jvmUser)
+                                                    .setSystem(((CPULoad) event).jvmSystem)
+                                                    .setMachine(((CPULoad) event).machineTotal)
+                                                    .build();
+                        response = ProfilingResponse.newBuilder()
+                                                    .setCpuUsage(cpuUsage)
+                                                    .build();
+                    } else if (event instanceof InitialSystemProperty) {
+                        systemProperties.put(((InitialSystemProperty) event).key,
+                                             ((InitialSystemProperty) event).value);
+                    }
 
-    protected CallStackSample(JfrReader jfr, ExecutionSample event) {
-        this.time = TimeConverter.toEpochNano(jfr, event.time);
-
-        one.jfr.StackTrace stackTrace = jfr.stackTraces.get(event.stackTraceId);
-        this.stackTrace = toStackTrace(jfr, stackTrace);
-
-        this.threadId = event.tid;
-        this.threadName = jfr.threads.get(event.tid);
-        this.threadState = event.threadState;
-
-        this.samples = event.samples;
+                                /*
+                    String eventType = jfrEvent.getEventType().getName();
+                    return JdkTypeIDs.CPU_LOAD.equals(eventType)
+                           || JdkTypeIDs.EXECUTION_SAMPLE.equals(eventType)
+                           || JdkTypeIDs.SYSTEM_PROPERTIES.equals(eventType);
+                     */
+                    if (response != null) {
+                        eventConsumer.onEvent(response);
+                    }
+                }
+            }
+            if (!systemProperties.isEmpty()) {
+                SystemProperties.Builder props = SystemProperties.newBuilder()
+                                                                 .putAllProperties(systemProperties);
+                eventConsumer.onEvent(ProfilingResponse.newBuilder().setSystemProperties(props).build());
+            }
+        } finally {
+            try {
+                eventConsumer.onComplete();
+            } catch (Exception ignored) {
+            }
+        }
     }
 
-    @Override
-    public String toString() {
-        return "CallStackSample{" +
-               ", stackTrace=" + (stackTrace != null ? stackTrace.toString() : "") +
-               '}';
-    }*/
+    private static JfrReader createJfrReader(String filePath) throws IOException {
+        JfrReader jfrReader = new JfrReader(filePath);
+        jfrReader.registerEvent("jdk.CPUInformation", CPUInformation.class);
+        jfrReader.registerEvent("jdk.InitialSystemProperty", InitialSystemProperty.class);
+        jfrReader.registerEvent("jdk.InitialEnvironmentVariable", InitialEnvironmentVariable.class);
+        jfrReader.registerEvent("jdk.OSInformation", OSInformation.class);
+        jfrReader.registerEvent("jdk.JVMInformation", JVMInformation.class);
+        return jfrReader;
+    }
 
-    public static org.bithon.agent.rpc.brpc.profiling.CallStackSample toCallStackSample(JfrReader jfr, ExecutionSample event) {
+    @SuppressForbidden
+    public static void dump(File f) {
+        try (JfrReader jfrReader = createJfrReader(f.getAbsolutePath())) {
+            {
+                Event event = jfrReader.readEvent();
+                while (event != null) {
+                    long time = jfrReader.startNanos + ((event.time - jfrReader.startTicks) / jfrReader.ticksPerSec);
+                    System.out.printf("%d, %d, %d %s\n", time, event.samples(), event.value(), event);
+                    StackTrace stackTrace = jfrReader.stackTraces.get(event.stackTraceId);
+                    if (stackTrace != null) {
+                        List<StackFrame> frames = toStackTrace(jfrReader, stackTrace);
+                        System.out.println(frames);
+                    }
+                    event = jfrReader.readEvent();
+                }
+            }
+        } catch (IOException ignored) {
+        }
+    }
+
+
+    public static CallStackSample toCallStackSample(JfrReader jfr, ExecutionSample event) {
         if (event.stackTraceId == 0) {
             return null; // no stack trace
         }
@@ -76,15 +145,15 @@ public class CallStackSample {
         String threadName = jfr.threads.get(event.tid);
 
         one.jfr.StackTrace stackTrace = jfr.stackTraces.get(event.stackTraceId);
-        List<org.bithon.agent.rpc.brpc.profiling.StackFrame> frames = toStackTrace(jfr, stackTrace);
+        List<StackFrame> frames = toStackTrace(jfr, stackTrace);
 
-        org.bithon.agent.rpc.brpc.profiling.CallStackSample.Builder builder = org.bithon.agent.rpc.brpc.profiling.CallStackSample.newBuilder()
-                                                                                                                                 .setTime(time)
-                                                                                                                                 .setThreadId(threadId)
-                                                                                                                                 .setThreadName(threadName)
-                                                                                                                                 .setThreadState(event.threadState)
-                                                                                                                                 .addAllStackTrace(frames)
-                                                                                                                                 .setSamples(event.samples);
+        CallStackSample.Builder builder = CallStackSample.newBuilder()
+                                                         .setTime(time)
+                                                         .setThreadId(threadId)
+                                                         .setThreadName(threadName)
+                                                         .setThreadState(event.threadState)
+                                                         .addAllStackTrace(frames)
+                                                         .setSamples(event.samples);
         return builder.build();
     }
 
@@ -102,7 +171,7 @@ public class CallStackSample {
 
         org.bithon.agent.rpc.brpc.profiling.StackFrame.Builder frame = org.bithon.agent.rpc.brpc.profiling.StackFrame.newBuilder();
 
-        int location = -1;
+        int location;
         if ((location = stackTrace.locations[frameIndex] >>> 16) != 0) {
             frame.setLocation(location);
         } else if ((location = stackTrace.locations[frameIndex] & 0xffff) != 0) {

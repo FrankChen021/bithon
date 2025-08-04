@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.controller.cmd.profiling.event;
+package org.bithon.agent.controller.cmd.profiling.jfr;
 
 
 import one.jfr.JfrReader;

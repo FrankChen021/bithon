@@ -14,31 +14,24 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.controller.cmd.profiling.event;
+package org.bithon.agent.controller.cmd.profiling.jfr;
 
 
-import java.util.Map;
-import java.util.TreeMap;
+import org.bithon.agent.rpc.brpc.profiling.ProfilingResponse;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 14/7/25 2:19 pm
+ * @date 4/8/25 11:07 am
  */
-public class SystemProperties {
-    private final Map<String, String> properties;
+public interface JfrEventConsumer {
+    void onStart();
 
-    public SystemProperties(Map<String, String> properties) {
-        this.properties = new TreeMap<>(properties);
-    }
+    /**
+     * Called when a JFR event is read.
+     *
+     * @param event the JFR event
+     */
+    void onEvent(ProfilingResponse event);
 
-    public Map<String, String> getProperties() {
-        return properties;
-    }
-
-    @Override
-    public String toString() {
-        return "SystemProperties{" +
-               "properties=" + properties +
-               '}' + super.toString();
-    }
+    void onComplete();
 }
