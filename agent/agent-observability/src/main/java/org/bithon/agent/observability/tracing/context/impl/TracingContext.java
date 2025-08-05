@@ -43,13 +43,25 @@ public class TracingContext implements ITraceContext {
 
     private static final boolean IS_DEBUG_ENABLED = ConfigurationManager.getInstance().getConfig(TraceConfig.class).isDebug();
 
+    /**
+     * Batch of spans to be reported.
+     */
+    private final List<ITraceSpan> batch = new ArrayList<>();
+
     private final Stack<ITraceSpan> spanStack = new Stack<>();
-    private final List<ITraceSpan> spans = new ArrayList<>();
     private final Clock clock;
+
+    /**
+     * The traceId of this context.
+     */
     private final String traceId;
     private final ISpanIdGenerator spanIdGenerator;
     private ITraceReporter reporter;
-    private TraceState attributes;
+
+    /**
+     * Trace state that received from upstream service and needs to be propagated to the downstream service.
+     */
+    private TraceState traceState;
 
     private boolean finished = false;
 
@@ -68,13 +80,13 @@ public class TracingContext implements ITraceContext {
 
     @Override
     public ITraceContext traceState(TraceState attributes) {
-        this.attributes = attributes;
+        this.traceState = attributes;
         return this;
     }
 
     @Override
     public TraceState traceState() {
-        return attributes;
+        return traceState;
     }
 
     @Override
@@ -138,7 +150,7 @@ public class TracingContext implements ITraceContext {
                                                                    spanStack);
             }
 
-            this.spans.clear();
+            this.batch.clear();
             this.spanStack.clear();
             this.finished = true;
             return;
@@ -152,18 +164,18 @@ public class TracingContext implements ITraceContext {
         // Mark the context as FINISHED first to prevent user code to access spans in the implementation of 'report' below
         this.finished = true;
         try {
-            this.reporter.report(this.spans);
+            this.reporter.report(this.batch);
         } catch (Throwable e) {
             LoggerFactory.getLogger(TracingContext.class).error("Exception occurred when finish a context", e);
         } finally {
             // Clear to allow this method to re-enter
-            this.spans.clear();
+            this.batch.clear();
         }
     }
 
     private void onSpanCreated(ITraceSpan span) {
         spanStack.push(span);
-        spans.add(span);
+        batch.add(span);
     }
 
     void onSpanStarted(TracingSpan span) {
