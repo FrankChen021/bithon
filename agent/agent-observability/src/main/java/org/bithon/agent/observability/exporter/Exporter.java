@@ -74,6 +74,10 @@ public class Exporter {
         return this.messageConverter;
     }
 
+    public ExporterConfig getExporterConfig() {
+        return this.exporterConfig;
+    }
+
     public void export(Object message) {
         if (task != null && message != null) {
             task.accept(message);

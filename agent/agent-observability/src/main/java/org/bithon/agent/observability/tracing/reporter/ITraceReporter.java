@@ -16,8 +16,10 @@
 
 package org.bithon.agent.observability.tracing.reporter;
 
+import org.bithon.agent.observability.exporter.config.ExporterConfig;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -25,5 +27,15 @@ import java.util.List;
  * @date 2021/2/5 9:45 下午
  */
 public interface ITraceReporter {
+
+    ExporterConfig getExporterConfig();
+
+    default void report(ITraceSpan span) {
+        report(Collections.singletonList(span));
+    }
+
     void report(List<ITraceSpan> spans);
+
+    default void flush() {
+    }
 }
