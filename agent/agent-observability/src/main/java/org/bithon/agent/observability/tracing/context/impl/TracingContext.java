@@ -177,14 +177,8 @@ public class TracingContext implements ITraceContext {
                                                                    span,
                                                                    spanStack);
             }
-            return;
-        }
-
-        try {
+        } else {
             spanStack.pop();
-        } finally {
-            // Report the span
-            this.reporter.report(span);
         }
     }
 
