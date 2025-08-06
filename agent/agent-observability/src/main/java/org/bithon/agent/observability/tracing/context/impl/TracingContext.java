@@ -50,7 +50,7 @@ public class TracingContext implements ITraceContext {
      */
     private final String traceId;
     private final ISpanIdGenerator spanIdGenerator;
-    private BatchReporter reporter;
+    private final ITraceReporter reporter;
 
     /**
      * Trace state that received from upstream service and needs to be propagated to the downstream service.
@@ -70,6 +70,7 @@ public class TracingContext implements ITraceContext {
         this.traceId = traceId;
         this.spanIdGenerator = spanIdGenerator;
         this.clock = clock;
+        this.reporter = new BatchReporter(Tracer.get().reporter());
     }
 
     @Override
@@ -101,21 +102,6 @@ public class TracingContext implements ITraceContext {
     @Override
     public Clock clock() {
         return clock;
-    }
-
-    @Override
-    public ITraceReporter reporter() {
-        return reporter;
-    }
-
-    @Override
-    public ITraceContext reporter(ITraceReporter reporter) {
-        if (reporter instanceof BatchReporter) {
-            this.reporter = new BatchReporter(((BatchReporter) reporter).getDelegate());
-        } else {
-            this.reporter = new BatchReporter(reporter);
-        }
-        return this;
     }
 
     @Override
@@ -215,7 +201,7 @@ public class TracingContext implements ITraceContext {
                                   this.spanIdGenerator,
                                   // For all copied trace context that has the same traceId,
                                   // use the same clock to ensure the microsecond calculation is based on the same time base
-                                  this.clock).reporter(this.reporter);
+                                  this.clock);
     }
 
     @Override
