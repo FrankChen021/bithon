@@ -77,6 +77,30 @@
           </execution>
         </executions>
       </plugin>
+
+      <!-- license checking -->
+      <plugin>
+      <groupId>com.mycila</groupId>
+      <artifactId>license-maven-plugin</artifactId>
+      <executions>
+        <execution>
+          <goals>
+            <goal>check</goal>
+          </goals>
+        </execution>
+      </executions>
+      <configuration>
+      <licenseSets>
+        <licenseSet>
+          <excludes>
+            <exclude>tools/**</exclude>
+            <exclude>resources/agent.yml</exclude>
+            <exclude>*.xml</exclude>
+          </excludes>
+        </licenseSet>
+      </licenseSets>
+      </configuration>
+      </plugin>
     </plugins>
   </build>
 </project>
