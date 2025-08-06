@@ -110,7 +110,7 @@ public class TracingContext implements ITraceContext {
 
     @Override
     public ITraceContext reporter(ITraceReporter reporter) {
-        this.reporter = new BatchReporter(reporter, reporter.getExporterConfig());
+        this.reporter = new BatchReporter(reporter);
         return this;
     }
 

@@ -16,7 +16,6 @@
 
 package org.bithon.agent.observability.tracing.reporter;
 
-import org.bithon.agent.observability.exporter.config.ExporterConfig;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 
 import java.util.ArrayList;
@@ -34,15 +33,15 @@ public class BatchReporter implements ITraceReporter {
     private final List<ITraceSpan> batch;
     private final int batchSize;
 
-    public BatchReporter(ITraceReporter delegate, ExporterConfig exporterConfig) {
+    public BatchReporter(ITraceReporter delegate) {
         this.delegate = delegate;
-        this.batchSize = exporterConfig.getBatchSize();
+        this.batchSize = delegate.getReporterConfig().getBatchSize();
         this.batch = new ArrayList<>(this.batchSize);
     }
 
     @Override
-    public ExporterConfig getExporterConfig() {
-        return delegate.getExporterConfig();
+    public ReporterConfig getReporterConfig() {
+        return delegate.getReporterConfig();
     }
 
     @Override

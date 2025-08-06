@@ -16,9 +16,9 @@
 
 package org.bithon.agent.observability.tracing.reporter;
 
+import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.observability.exporter.Exporter;
 import org.bithon.agent.observability.exporter.Exporters;
-import org.bithon.agent.observability.exporter.config.ExporterConfig;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -35,9 +35,16 @@ public class DefaultReporter implements ITraceReporter {
     private static final ILogAdaptor log = LoggerFactory.getLogger(DefaultReporter.class);
 
     private final Exporter traceExporter;
+    private final ReporterConfig reporterConfig;
 
     public DefaultReporter() {
-        traceExporter = Exporters.getOrCreate(Exporters.EXPORTER_NAME_TRACING);
+        this.traceExporter = Exporters.getOrCreate(Exporters.EXPORTER_NAME_TRACING);
+        this.reporterConfig = ConfigurationManager.getInstance().getConfig(ReporterConfig.class);
+    }
+
+    @Override
+    public ReporterConfig getReporterConfig() {
+        return this.reporterConfig;
     }
 
     @Override
@@ -51,10 +58,5 @@ public class DefaultReporter implements ITraceReporter {
         } catch (Exception e) {
             log.error("exception when sending trace messages.", e);
         }
-    }
-
-    @Override
-    public ExporterConfig getExporterConfig() {
-        return traceExporter.getExporterConfig();
     }
 }
