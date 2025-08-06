@@ -22,14 +22,16 @@ import org.bithon.agent.configuration.ConfigurationProperties;
  * @author frank.chen021@outlook.com
  * @date 2025/8/6 21:10
  */
-@ConfigurationProperties(path = "tracing.reporter", dynamic = false)
+@ConfigurationProperties(path = "tracing.reporter")
 public class ReporterConfig {
     /**
      * How many spans should be batched per tracing context.
      * This controls the maximum number of spans that can be stored in a single tracing context
-     * so that the memory usage can be controlled if a tracing context has a long lifetime
+     * so that the memory usage can be controlled if a tracing context has a long lifetime.
+     * <p>
+     * This provides a balance between memory usage and performance.
      */
-    private int batchSize = 128;
+    private int batchSize = 64;
 
     public int getBatchSize() {
         return batchSize;

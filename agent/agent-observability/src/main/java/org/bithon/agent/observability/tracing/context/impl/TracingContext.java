@@ -50,7 +50,7 @@ public class TracingContext implements ITraceContext {
      */
     private final String traceId;
     private final ISpanIdGenerator spanIdGenerator;
-    private ITraceReporter reporter;
+    private BatchReporter reporter;
 
     /**
      * Trace state that received from upstream service and needs to be propagated to the downstream service.
@@ -110,7 +110,11 @@ public class TracingContext implements ITraceContext {
 
     @Override
     public ITraceContext reporter(ITraceReporter reporter) {
-        this.reporter = new BatchReporter(reporter);
+        if (reporter instanceof BatchReporter) {
+            this.reporter = new BatchReporter(((BatchReporter) reporter).getDelegate());
+        } else {
+            this.reporter = new BatchReporter(reporter);
+        }
         return this;
     }
 
@@ -152,14 +156,11 @@ public class TracingContext implements ITraceContext {
         }
 
         // Allow this method to be re-entered
-        if (this.finished) {
-            return;
+        if (!this.finished) {
+            this.finished = true;
+
+            this.reporter.flush();
         }
-
-        // Mark the context as FINISHED first to prevent user code to access spans in the implementation of 'report' below
-        this.finished = true;
-
-        this.reporter.flush();
     }
 
     void onSpanStarted(TracingSpan span) {
@@ -167,25 +168,17 @@ public class TracingContext implements ITraceContext {
     }
 
     void onSpanFinished(TracingSpan span) {
-        if (spanStack.isEmpty()) {
+        try {
             TraceContextListener.getInstance().onSpanFinished(span);
-
-            if (IS_DEBUG_ENABLED) {
-                LoggerFactory.getLogger(TracingContext.class)
-                             .warn(StringUtils.format("Try to finish a span which is not in the stack. This IS a bug.\nCurrent span: \n%s",
-                                                      span),
-                                   new RuntimeException("Bug Detected"));
-            } else {
-                LoggerFactory.getLogger(TracingContext.class).warn("Try to finish a span which is not in the stack. This IS a bug.\n"
-                                                                   + "Please adding -Dbithon.tracing.debug=true parameter to your application to turn on the span life time message to debug. \nCurrent span: \n{}",
-                                                                   span);
-            }
-            return;
+        } catch (Throwable t) {
+            LoggerFactory.getLogger(TracingContext.class)
+                         .warn("Exception occurred when notifying span finished: " + span, t);
         }
 
-        if (!spanStack.peek().equals(span)) {
-            TraceContextListener.getInstance().onSpanFinished(span);
+        // Report the span
+        this.reporter.report(span);
 
+        if (spanStack.isEmpty() || !spanStack.peek().equals(span)) {
             if (IS_DEBUG_ENABLED) {
                 LoggerFactory.getLogger(TracingContext.class)
                              .warn(StringUtils.format("Try to finish a span which does not match the span in the stack. This IS a bug.\nCurrent span: \n%s, \n Unfinished Spans:\n%s",
@@ -203,7 +196,6 @@ public class TracingContext implements ITraceContext {
 
         try {
             spanStack.pop();
-            TraceContextListener.getInstance().onSpanFinished(span);
         } finally {
             // Report the span
             this.reporter.report(span);

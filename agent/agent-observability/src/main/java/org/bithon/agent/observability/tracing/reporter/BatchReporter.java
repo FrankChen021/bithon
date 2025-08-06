@@ -39,6 +39,10 @@ public class BatchReporter implements ITraceReporter {
         this.batch = new ArrayList<>(this.batchSize);
     }
 
+    public ITraceReporter getDelegate() {
+        return delegate;
+    }
+
     @Override
     public ReporterConfig getReporterConfig() {
         return delegate.getReporterConfig();
