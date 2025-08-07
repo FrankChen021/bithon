@@ -17,6 +17,7 @@
 package org.bithon.agent.plugin.httpclient.javanethttp.interceptor;
 
 import org.bithon.agent.observability.metric.model.Sum;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
 
 /**
  * Context object to track HTTP client metrics and tracing information
@@ -31,6 +32,7 @@ public class HttpClientContext {
     private final Sum receiveBytes;
     private long requestStartTime;
     private int responseCode;
+    private ITraceSpan traceSpan;
 
     public HttpClientContext() {
         this.sentBytes = new Sum();
@@ -75,5 +77,13 @@ public class HttpClientContext {
 
     public void setResponseCode(int responseCode) {
         this.responseCode = responseCode;
+    }
+
+    public ITraceSpan getTraceSpan() {
+        return traceSpan;
+    }
+
+    public void setTraceSpan(ITraceSpan traceSpan) {
+        this.traceSpan = traceSpan;
     }
 }

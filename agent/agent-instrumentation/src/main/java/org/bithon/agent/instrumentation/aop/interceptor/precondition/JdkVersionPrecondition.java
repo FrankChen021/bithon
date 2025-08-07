@@ -27,20 +27,19 @@ import java.lang.management.ManagementFactory;
  */
 public class JdkVersionPrecondition {
 
-    private static final int MAJOR_VERSION;
+    private static final int CURRENT_JDK_MAJOR_VERSION;
 
     static {
         String specVersion = ManagementFactory.getRuntimeMXBean().getSpecVersion();
         String[] versionParts = specVersion.split("\\.");
         if (versionParts[0].equals("1")) {
             // For Java 1.x (e.g., 1.8)
-            MAJOR_VERSION = Integer.parseInt(versionParts[1]);
+            CURRENT_JDK_MAJOR_VERSION = Integer.parseInt(versionParts[1]);
         } else {
             // For Java 9 and above
-            MAJOR_VERSION = Integer.parseInt(versionParts[0]);
+            CURRENT_JDK_MAJOR_VERSION = Integer.parseInt(versionParts[0]);
         }
     }
-
 
     /**
      * @param min inclusive
@@ -51,7 +50,7 @@ public class JdkVersionPrecondition {
 
             @Override
             public boolean matches(ClassLoader classLoader, TypeDescription typeDescription) {
-                return MAJOR_VERSION >= min && MAJOR_VERSION <= max;
+                return CURRENT_JDK_MAJOR_VERSION >= min && CURRENT_JDK_MAJOR_VERSION <= max;
             }
 
             @Override
@@ -66,7 +65,7 @@ public class JdkVersionPrecondition {
 
             @Override
             public boolean matches(ClassLoader classLoader, TypeDescription typeDescription) {
-                return MAJOR_VERSION > version;
+                return CURRENT_JDK_MAJOR_VERSION > version;
             }
 
             @Override
@@ -80,7 +79,7 @@ public class JdkVersionPrecondition {
         return new IInterceptorPrecondition() {
             @Override
             public boolean matches(ClassLoader classLoader, TypeDescription typeDescription) {
-                return MAJOR_VERSION >= version;
+                return CURRENT_JDK_MAJOR_VERSION >= version;
             }
 
             @Override
@@ -94,7 +93,7 @@ public class JdkVersionPrecondition {
         return new IInterceptorPrecondition() {
             @Override
             public boolean matches(ClassLoader classLoader, TypeDescription typeDescription) {
-                return MAJOR_VERSION == version;
+                return CURRENT_JDK_MAJOR_VERSION == version;
             }
 
             @Override
