@@ -8,7 +8,11 @@
         "type": "datasource",
         "name": "sql-metrics",
         "fields": [
-          {"name": "appName", "width": 200, "allowClear": false},
+          {
+            "name": "appName",
+            "width": 200,
+            "allowClear": false
+          },
           "instanceName",
           "server",
           "database",
@@ -53,7 +57,10 @@
             "tps",
             "callCount"
           ],
-          "groupBy": ["database", "sqlType"],
+          "groupBy": [
+            "database",
+            "sqlType"
+          ],
           "orderBy": {
             "name": "callCount",
             "order": "desc"
@@ -69,7 +76,7 @@
     },
     {
       "title": "Response Time",
-      "width": 4,
+      "width": 2,
       "type": "line",
       "yAxis": [
         {
@@ -95,9 +102,18 @@
           "database",
           "sqlType",
           "callCount",
-          {"name":"minResponseTime", "format": "nanoFormatter"},
-          {"name":"avgResponseTime", "format": "nanoFormatter"},
-          {"name":"maxResponseTime", "format": "nanoFormatter"}
+          {
+            "name": "minResponseTime",
+            "format": "nanoFormatter"
+          },
+          {
+            "name": "avgResponseTime",
+            "format": "nanoFormatter"
+          },
+          {
+            "name": "maxResponseTime",
+            "format": "nanoFormatter"
+          }
         ],
         "query": {
           "type": "groupBy",
@@ -107,7 +123,10 @@
             "avgResponseTime",
             "maxResponseTime"
           ],
-          "groupBy": ["database", "sqlType"],
+          "groupBy": [
+            "database",
+            "sqlType"
+          ],
           "orderBy": {
             "name": "avgResponseTime",
             "order": "desc"
@@ -117,7 +136,7 @@
     },
     {
       "title": "IO",
-      "width": 4,
+      "width": 2,
       "type": "line",
       "yAxis": [
         {
@@ -138,21 +157,75 @@
         "columns": [
           "database",
           "sqlType",
-          {"name":"bytesOut", "format": "binary_byte"}
+          {
+            "name": "bytesOut",
+            "format": "binary_byte"
+          }
         ],
         "query": {
           "type": "groupBy",
           "fields": [
             "bytesOut"
           ],
-          "groupBy": ["database", "sqlType"],
+          "groupBy": [
+            "database",
+            "sqlType"
+          ],
           "orderBy": {
             "name": "bytesOut",
             "order": "desc"
           }
         }
       }
+    },
+    {
+      "title": "Slow SQLs",
+      "width": 4,
+      "type": "table",
+      "columns": [
+        {
+          "name": "timestamp",
+          "format": "time",
+          "template": "MM-dd hh:mm:ss.S",
+          "sortable": true
+        },
+        "server",
+        "database",
+        {
+          "name": "responseTime",
+          "format": "nanosecond",
+          "sortable": "true"
+        },
+        { "name": "statement", "format": "sql"},
+        {
+          "name": "traceId",
+          "format": "template",
+          "template": "<a target='_blank' href='/web/trace/detail?_sidebar=collapsed&id={traceId}&type=trace'>{traceId}</a>"
+        }
+      ],
+      "query": {
+        "dataSource": "sql-metrics",
+        "type": "list",
+        "fields": [
+          "timestamp",
+          "server",
+          "database",
+          "responseTime",
+          "statement",
+          "traceId"
+        ],
+        "limit": "10",
+        "orderBy": {
+          "name": "responseTime",
+          "order": "desc"
+        },
+        "filter": "statement <> ''",
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
     }
   ]
 }
-
