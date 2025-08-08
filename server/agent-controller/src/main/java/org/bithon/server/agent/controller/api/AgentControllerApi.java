@@ -19,6 +19,7 @@ package org.bithon.server.agent.controller.api;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.brpc.StreamResponse;
 import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
@@ -66,6 +67,7 @@ import java.util.stream.Collectors;
  * @author Frank Chen
  * @date 2022/8/7 20:46
  */
+@Slf4j
 @RestController
 @ConditionalOnProperty(value = "bithon.agent-controller.enabled", havingValue = "true")
 public class AgentControllerApi implements IAgentControllerApi {
@@ -249,7 +251,7 @@ public class AgentControllerApi implements IAgentControllerApi {
                                               rawRequest.getServiceName() + "#" + rawRequest.getMethodName());
         }
 
-
+        // TODO: Make the timeout configurable
         SseEmitter emitter = new SseEmitter(timeout == null ? 30_000L : timeout.longValue());
         StreamResponse<byte[]> remoteResponse = new StreamResponse<>() {
             @Override
@@ -259,14 +261,20 @@ public class AgentControllerApi implements IAgentControllerApi {
                                                                                                     data,
                                                                                                     rawRequest.getSerializer());
                     byte[] message = dataMessage.toByteArray();
-                    emitter.send(SseEmitter.event().name("data").data(Base64.getEncoder().encode(message)));
+                    message = Base64.getEncoder().encode(message);
+                    log.info("Streaming data: {}", message);
+                    emitter.send(SseEmitter.event().name("data").data(message));
                 } catch (IOException ignored) {
                 }
             }
 
             @Override
             public void onException(Throwable throwable) {
-                emitter.completeWithError(throwable);
+                // TODO: Change the onException signature to a customized exception object which can be serialized
+                try {
+                    emitter.send(SseEmitter.event().name("exception").data(message));
+                } catch (IOException ignored) {
+                }
             }
 
             @Override

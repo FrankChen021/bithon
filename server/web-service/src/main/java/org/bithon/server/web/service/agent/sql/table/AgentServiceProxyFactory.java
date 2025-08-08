@@ -444,6 +444,7 @@ public class AgentServiceProxyFactory {
                                              String line;
                                              String eventName = null;
                                              while ((line = reader.readLine()) != null) {
+                                                 log.info("==============>: {}", line);
                                                  if (line.startsWith("event:")) {
                                                      eventName = line.substring("event:".length()).trim();
                                                  } else if (line.startsWith("data:")) {
