@@ -86,7 +86,7 @@ public class AppInstance {
             try {
                 listener.onPortChanged(port);
             } catch (Exception e) {
-                LoggerFactory.getLogger(AppInstance.class).error("portChanged Notify failed", e);
+                LoggerFactory.getLogger(AppInstance.class).warn("portChanged Notify failed", e);
             }
         }
     }

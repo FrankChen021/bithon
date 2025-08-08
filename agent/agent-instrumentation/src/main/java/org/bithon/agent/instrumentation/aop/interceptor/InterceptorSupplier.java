@@ -107,7 +107,7 @@ public class InterceptorSupplier implements Supplier<AbstractInterceptor> {
             this.exception = getStackTrace(e);
 
             LoggerFactory.getLogger(InterceptorManager.class)
-                         .error(String.format(Locale.ENGLISH,
+                         .warn(String.format(Locale.ENGLISH,
                                               "Failed to load interceptor[%s] due to %s",
                                               interceptorClassName,
                                               e.getMessage()), e);

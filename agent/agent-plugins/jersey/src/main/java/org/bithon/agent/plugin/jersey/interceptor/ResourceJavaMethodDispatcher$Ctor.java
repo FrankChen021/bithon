@@ -69,7 +69,7 @@ public class ResourceJavaMethodDispatcher$Ctor extends AfterInterceptor {
         try {
             ReflectionUtils.setFieldValue(aopContext.getTarget(), "invoker", enhancedInvoker);
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            LoggerFactory.getLogger(ResourceJavaMethodDispatcher$Ctor.class).error("Unable to enhance invoker", e);
+            LoggerFactory.getLogger(ResourceJavaMethodDispatcher$Ctor.class).warn("Unable to enhance invoker", e);
         }
     }
 }

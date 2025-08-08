@@ -39,7 +39,7 @@ public class SentinelInitializer implements ServletContainerInitializer {
                .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/*");
             log.info("Sentinel for tomcat installed");
         } catch (Exception e) {
-            log.error("Exception occurred when initialize servlet context. sentinel may not be installed", e);
+            log.warn("Exception occurred when initialize servlet context. sentinel may not be installed", e);
         }
     }
 }

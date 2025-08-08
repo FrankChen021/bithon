@@ -82,7 +82,7 @@ public class JobRunShell$Run extends AroundInterceptor {
         } catch (NoSuchFieldException e) {
             log.warn("quartz jobContext field missing");
         } catch (IllegalAccessException e) {
-            log.error("quartz jobContext field mismatch");
+            log.warn("quartz jobContext field mismatch");
         }
 
         // assigned in NotifyJobListenersComplete

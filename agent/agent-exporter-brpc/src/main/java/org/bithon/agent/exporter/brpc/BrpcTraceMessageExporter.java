@@ -123,7 +123,7 @@ public class BrpcTraceMessageExporter implements IMessageExporter {
                                           (List<BrpcTraceSpanMessage>) message);
         } catch (CallerSideException e) {
             //suppress client exception
-            LOG.error("Failed to send tracing: {}", e.getMessage());
+            LOG.warn("Failed to send tracing: {}", e.getMessage());
         }
     }
 

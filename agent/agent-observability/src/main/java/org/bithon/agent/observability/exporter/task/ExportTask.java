@@ -83,7 +83,7 @@ public class ExportTask {
             }
             this.underlyingSender.accept(message);
         } catch (Exception e) {
-            LOG.error(StringUtils.format("Failed to send message: %s", e.getMessage()), e);
+            LOG.warn(StringUtils.format("Failed to send message: %s", e.getMessage()), e);
         }
     }
 
@@ -113,7 +113,7 @@ public class ExportTask {
                 queue.pop();
             }
             if (discarded > 0) {
-                LOG.error("Failed offer element to the queue, capacity = {}. Discarded the {} oldest entry", this.queue.capacity(), discarded);
+                LOG.warn("Failed offer element to the queue, capacity = {}. Discarded the {} oldest entry", this.queue.capacity(), discarded);
             }
         } else {
             throw new UnsupportedOperationException("Not supported now");

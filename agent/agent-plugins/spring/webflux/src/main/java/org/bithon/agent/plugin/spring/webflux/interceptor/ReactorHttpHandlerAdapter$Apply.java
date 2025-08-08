@@ -161,7 +161,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
             try {
                 update(request, response, System.nanoTime() - start);
             } catch (Exception e) {
-                LOG.error("failed to record http incoming metrics", e);
+                LOG.warn("failed to record http incoming metrics", e);
             } finally {
                 finishTrace(request, response, throwable);
             }

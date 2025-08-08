@@ -47,7 +47,7 @@ public class W3CTraceContextInjector implements ITraceContextInjector {
                        ITracePropagator.TRACE_HEADER_SRC_APPLICATION,
                        Tracer.get().appName());
         } catch (Exception e) {
-            LoggerFactory.getLogger(W3CTraceContextInjector.class).error("Exception when propagating trace", e);
+            LoggerFactory.getLogger(W3CTraceContextInjector.class).warn("Exception when propagating trace", e);
         }
     }
 

@@ -51,7 +51,7 @@ public class CommandHelper$ExecuteCommand extends AroundInterceptor {
         }
         if (!(aopContext.getArgs()[lastIndex] instanceof InternalConnection)) {
             LoggerFactory.getLogger(CommandHelper$ExecuteCommand.class)
-                         .error("Interceptor does not work for {}. Maybe the target library version is not compatible with the agent. ",
+                         .warn("Interceptor does not work for {}. Maybe the target library version is not compatible with the agent. ",
                                 aopContext.getMethod().toString());
             return InterceptionDecision.SKIP_LEAVE;
         }

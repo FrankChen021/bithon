@@ -116,7 +116,7 @@ public class AgentSettingFetchTask extends PeriodicTask {
                         replace.put(name, newSource);
                     }
                 } catch (IOException e) {
-                    log.error(StringUtils.format("Error to deserialize configuration "));
+                    log.warn(StringUtils.format("Error to deserialize configuration "));
                 }
             }
         }
@@ -127,7 +127,7 @@ public class AgentSettingFetchTask extends PeriodicTask {
 
     @Override
     protected void onException(Exception e) {
-        log.error("Failed to update local configuration", e);
+        log.warn("Failed to update local configuration", e);
     }
 
     @Override

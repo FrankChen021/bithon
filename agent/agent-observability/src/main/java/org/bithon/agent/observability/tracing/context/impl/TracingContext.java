@@ -154,7 +154,7 @@ public class TracingContext implements ITraceContext {
         try {
             this.reporter.report(this.spans);
         } catch (Throwable e) {
-            LoggerFactory.getLogger(TracingContext.class).error("Exception occurred when finish a context", e);
+            LoggerFactory.getLogger(TracingContext.class).warn("Exception occurred when finish a context", e);
         } finally {
             // Clear to allow this method to re-enter
             this.spans.clear();

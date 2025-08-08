@@ -71,7 +71,7 @@ public class HttpClientChannelInitializer$OnChannelInit extends AfterInterceptor
                                                          false,
                                                          ChannelHandlerContext.class.getClassLoader());
             } catch (ClassNotFoundException ignored) {
-                LOG.error("Unable to find HttpClientOperations. HTTP metrics may not work as expected.");
+                LOG.warn("Unable to find HttpClientOperations. HTTP metrics may not work as expected.");
             }
         }
 

@@ -114,7 +114,7 @@ public class BrpcEventMessageExporter implements IMessageExporter {
             eventCollector.sendEvent2(header, (List<BrpcEventMessage>) message);
         } catch (CallerSideException e) {
             //suppress client exception
-            LOG.error("Failed to send event: {}", e.getMessage());
+            LOG.warn("Failed to send event: {}", e.getMessage());
         }
     }
 

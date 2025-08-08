@@ -101,7 +101,7 @@ public class ManagedChannelImplBuilder$Build extends BeforeInterceptor {
                     shadedGrpcClassMap.put(targetClazzName, clientInterceptor);
                 } catch (IOException e) {
                     LoggerFactory.getLogger(ManagedChannelImplBuilder$Build.class)
-                                 .error("Error when creating class [{}], error: {}", clientInterceptor, e.getMessage());
+                                 .warn("Error when creating class [{}], error: {}", clientInterceptor, e.getMessage());
                 }
             }
         }

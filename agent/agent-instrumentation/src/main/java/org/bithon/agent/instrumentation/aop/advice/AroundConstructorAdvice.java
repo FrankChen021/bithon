@@ -59,7 +59,7 @@ public class AroundConstructorAdvice {
         try {
             skipAfterMethod = interceptor.before(aopContext) == InterceptionDecision.SKIP_LEAVE;
         } catch (Throwable e) {
-            LOG.error(String.format(Locale.ENGLISH, "Exception occurred when executing onEnter of [%s] for [%s]: %s",
+            LOG.warn(String.format(Locale.ENGLISH, "Exception occurred when executing onEnter of [%s] for [%s]: %s",
                                     name,
                                     clazz.getSimpleName(),
                                     e.getMessage()),
@@ -109,7 +109,7 @@ public class AroundConstructorAdvice {
         try {
             interceptor.after(aopContext);
         } catch (Throwable e) {
-            LOG.error(String.format(Locale.ENGLISH, "Exception occurred when executing onExit of [%s] for [%s]: %s",
+            LOG.warn(String.format(Locale.ENGLISH, "Exception occurred when executing onExit of [%s] for [%s]: %s",
                                     name,
                                     aopContext.getTargetClass().getSimpleName(),
                                     e.getMessage()),

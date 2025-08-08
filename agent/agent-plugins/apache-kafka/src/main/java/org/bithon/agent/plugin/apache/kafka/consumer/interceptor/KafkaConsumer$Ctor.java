@@ -84,7 +84,7 @@ public class KafkaConsumer$Ctor extends AfterInterceptor {
                 setContextOnNetworkClient(kafkaPluginContext, ReflectionUtils.getFieldValue(consumerDelegate, "client"));
             } else if ("AsyncKafkaConsumer".equals(clazzName)) {
                 LoggerFactory.getLogger(KafkaConsumer$Ctor.class)
-                             .error("Unable to inject Kafka plugin context to Kafka Consumer. The AsyncKafkaConsumer is not supported yet.");
+                             .warn("Unable to inject Kafka plugin context to Kafka Consumer. The AsyncKafkaConsumer is not supported yet.");
             }
         }
     }

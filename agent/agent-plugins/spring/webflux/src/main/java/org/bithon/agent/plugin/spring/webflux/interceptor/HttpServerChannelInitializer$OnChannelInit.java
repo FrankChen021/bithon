@@ -74,7 +74,7 @@ public class HttpServerChannelInitializer$OnChannelInit extends AfterInterceptor
                                                          false,
                                                          ChannelHandlerContext.class.getClassLoader());
             } catch (ClassNotFoundException ignored) {
-                LOG.error("Unable to find HttpServerOperations. HTTP metrics may not work as expected.");
+                LOG.warn("Unable to find HttpServerOperations. HTTP metrics may not work as expected.");
             }
         }
 
@@ -97,7 +97,7 @@ public class HttpServerChannelInitializer$OnChannelInit extends AfterInterceptor
                                                    ((HttpServerResponse) channelOps).status().code())
                                .updateBytes(dataReceived, dataSent);
             } catch (Exception e) {
-                LOG.error("exception when update io metrics", e);
+                LOG.warn("exception when update io metrics", e);
             }
         }
 

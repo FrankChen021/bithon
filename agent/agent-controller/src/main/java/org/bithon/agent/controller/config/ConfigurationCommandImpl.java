@@ -18,6 +18,7 @@ package org.bithon.agent.controller.config;
 
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.controller.cmd.IAgentCommand;
+import org.bithon.agent.instrumentation.loader.PluginClassLoader;
 import org.bithon.agent.rpc.brpc.cmd.IConfigurationCommand;
 
 import java.util.Collections;
@@ -33,5 +34,10 @@ public class ConfigurationCommandImpl implements IConfigurationCommand, IAgentCo
     public List<String> getConfiguration(String format, boolean prettyFormat) {
         return Collections.singletonList(ConfigurationManager.getInstance()
                                                              .getActiveConfiguration(format.toLowerCase(Locale.ENGLISH), prettyFormat));
+    }
+
+    @Override
+    public List<ConfigurationMetadata> getConfigurationMetadata() {
+
     }
 }

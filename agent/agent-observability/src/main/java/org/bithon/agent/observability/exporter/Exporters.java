@@ -71,7 +71,7 @@ public class Exporters {
                                         config);
                 } catch (Exception e) {
                     LoggerFactory.getLogger(Exporters.class)
-                                 .error("Failed to create exporter: " + exporterName, e);
+                                 .warn("Failed to create exporter: " + exporterName, e);
                     return null;
                 }
             });

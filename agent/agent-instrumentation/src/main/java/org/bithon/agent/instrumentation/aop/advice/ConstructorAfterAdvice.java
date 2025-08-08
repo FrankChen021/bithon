@@ -51,7 +51,7 @@ public class ConstructorAfterAdvice {
         try {
             ((AfterInterceptor) interceptor).after(new AopContextImpl(clazz, method, target, args));
         } catch (Throwable e) {
-            LOG.error(String.format(Locale.ENGLISH,
+            LOG.warn(String.format(Locale.ENGLISH,
                                     "Exception occurs when executing onConstruct on interceptor [%s]: %s",
                                     name,
                                     e.getMessage()),

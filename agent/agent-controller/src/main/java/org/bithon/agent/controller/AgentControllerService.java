@@ -66,7 +66,7 @@ public class AgentControllerService implements IAgentService {
                                                                              .getDeclaredConstructor().newInstance();
             controller = factory.createController(ctrlConfig);
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            LOG.error("Can't create instanceof fetcher {}", ctrlConfig.getClient());
+            LOG.warn("Can't create instanceof fetcher {}", ctrlConfig.getClient());
             throw e;
         }
 
