@@ -31,14 +31,15 @@ import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCu
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodType;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
+import org.bithon.shaded.net.bytebuddy.ByteBuddy;
 import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.asm.AsmVisitorWrapper;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
-import org.bithon.shaded.net.bytebuddy.implementation.FieldAccessor;
-import org.bithon.shaded.net.bytebuddy.implementation.StubMethod;
+import org.bithon.shaded.net.bytebuddy.dynamic.VisibilityBridgeStrategy;
+import org.bithon.shaded.net.bytebuddy.dynamic.scaffold.MethodGraph;
 import org.bithon.shaded.net.bytebuddy.jar.asm.Opcodes;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
 import org.bithon.shaded.net.bytebuddy.utility.JavaModule;
@@ -65,13 +66,18 @@ public class InterceptorInstaller {
         final Set<String> types = new HashSet<>(descriptors.getTypes());
 
         AgentBuilder agentBuilder = new AgentBuilder.Default()
+            .with(new ByteBuddy().with(MethodGraph.Compiler.ForDeclaredMethods.INSTANCE)
+                                 .with(VisibilityBridgeStrategy.Default.NEVER)
+                  // Removed FROZEN to allow BithonObjectInjector to add fields and methods
+            )
             .assureReadEdgeFromAndTo(inst, IBithonObject.class)
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+            .with(AgentBuilder.TypeStrategy.Default.REBASE)  // Use REBASE to support REPLACEMENT interceptors
             // Must set the ignore matcher because the default matcher ignores classes in the bootstrap class loader
-            .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(target -> {
+            .ignore((target, classLoader, module, classBeingRedefined, protectionDomain) -> {
                 // Ignore synthetic classes, e.g. lambda classes
                 return (target.getModifiers() & Opcodes.ACC_SYNTHETIC) != 0;
-            }))
+            })
             .type(target -> types.contains(target.getActualName()))
             .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule, ProtectionDomain protectionDomain) -> {
                 //
@@ -100,10 +106,9 @@ public class InterceptorInstaller {
                     log.warn("Attempt to install interceptors on interface [{}]. This is not supported.", typeDescription.getName());
                     return builder;
                 } else if (!typeDescription.isAssignableTo(IBithonObject.class)) {
-                    // define an object field on this class to hold objects across interceptors for state sharing
-                    builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME, Object.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_VOLATILE)
-                                     .implement(IBithonObject.class)
-                                     .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
+                    // Use the custom AsmVisitorWrapper to inject IBithonObject interface and field
+                    // This is more performant than using ByteBuddy's high-level API
+                    builder = builder.visit(new BithonObjectInjector());
                 }
 
                 //
@@ -215,12 +220,11 @@ public class InterceptorInstaller {
                         log.error("REPLACEMENT on JDK class [{}] is not allowed. Please report it to agent maintainers.", typeDescription.getName());
                         return;
                     }
-                    builder = builder.method(descriptor.getMethodMatcher())
-                                     .intercept(Advice.withCustomMapping()
-                                                      .bind(AdviceAnnotation.InterceptorName.class, nameResolver)
-                                                      .bind(AdviceAnnotation.InterceptorIndex.class, indexResolver)
-                                                      .to(ReplacementAdvice.class)
-                                                      .wrap(StubMethod.INSTANCE));
+                    builder = builder.visit(newInstaller(Advice.withCustomMapping()
+                                                               .bind(AdviceAnnotation.InterceptorName.class, nameResolver)
+                                                               .bind(AdviceAnnotation.InterceptorIndex.class, indexResolver)
+                                                               .to(ReplacementAdvice.class),
+                                                         descriptor.getMethodMatcher()));
                     break;
 
                 default:
