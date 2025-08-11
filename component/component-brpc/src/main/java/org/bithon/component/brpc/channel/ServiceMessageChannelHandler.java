@@ -173,7 +173,7 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
             long accumulatedCount = this.unwritableCounter.add(1);
             long now = System.currentTimeMillis();
             if (accumulatedCount > 0) {
-                LOG.warn("[{}] - Channel is not writable for {} times in the past 1min", this.id, accumulatedCount);
+                LOG.warn("[{}] - Channel is not writable for {} times in the past 1 min", this.id, accumulatedCount);
             }
 
             ctx.channel().config().setAutoRead(false);
