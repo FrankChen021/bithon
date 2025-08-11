@@ -20,6 +20,7 @@ import org.bithon.agent.observability.exporter.config.ExporterConfig;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.component.commons.utils.TimeWindowBasedCounter;
 
 import java.time.Duration;
 import java.util.Collection;
@@ -125,10 +126,11 @@ public class ExportTask {
 
         if (discarded > 0) {
             // Apply rate-limiting to the logging of discarded messages
-            int totalDiscarded = discardedMessages.add(discarded);
-            if (totalDiscarded > 0) {
+            long accumulatedCount = discardedMessages.addSync(discarded);
+            if (accumulatedCount > 0) {
                 LOG.warn("Failed offer element to the queue with a capacity of {}. {} entries are discarded since last report.",
-                         this.queue.capacity(), totalDiscarded);
+                         this.queue.capacity(),
+                         accumulatedCount);
             }
         }
     }

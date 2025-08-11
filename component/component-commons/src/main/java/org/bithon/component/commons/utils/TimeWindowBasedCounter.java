@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.exporter.task;
+package org.bithon.component.commons.utils;
 
 import java.time.Duration;
 
@@ -31,7 +31,7 @@ public class TimeWindowBasedCounter {
      */
     private final long timeWindow;
     private volatile long lastResetTimestamp = 0;
-    private volatile int counter = 0;
+    private volatile long counter = 0;
 
     /**
      * Creates a rate-limited counter with the specified interval.
@@ -50,12 +50,17 @@ public class TimeWindowBasedCounter {
      * @param count the count to add
      * @return 0 if this operation is still within the current time window
      */
-    public synchronized int add(int count) {
+    public synchronized long addSync(long count) {
+        return add(count);
+    }
+
+    public long add(long count) {
+        //noinspection DuplicatedCode,NonAtomicOperationOnVolatileField
         counter += count;
 
         long now = System.currentTimeMillis();
         if (now - lastResetTimestamp >= timeWindow) {
-            int ret = counter;
+            long ret = counter;
 
             counter = 0;
             lastResetTimestamp = now;
