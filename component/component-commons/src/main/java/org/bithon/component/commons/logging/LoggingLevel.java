@@ -27,7 +27,8 @@ public enum LoggingLevel {
     INFO(3),
     WARN(4),
     ERROR(5),
-    FATAL(6);
+    FATAL(6),
+    NONE(7);
 
     private final int intLevel;
 
