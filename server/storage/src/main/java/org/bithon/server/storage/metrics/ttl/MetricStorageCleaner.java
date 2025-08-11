@@ -66,7 +66,7 @@ public abstract class MetricStorageCleaner implements IExpirationRunnable {
         try {
             expireImpl(schema, before, skipDateList);
         } catch (Exception e) {
-            log.error("Failed to clean " + schema.getName(), e);
+            log.error("Failed to clean {}", schema.getName(), e);
         }
     }
 
