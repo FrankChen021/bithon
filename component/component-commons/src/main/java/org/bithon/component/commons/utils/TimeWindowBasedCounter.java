@@ -50,10 +50,13 @@ public class TimeWindowBasedCounter {
      * @param count the count to add
      * @return 0 if this operation is still within the current time window
      */
-    public synchronized long addSync(long count) {
+    public synchronized long synchronousAdd(long count) {
         return add(count);
     }
 
+    /**
+     * Caller MUST ensure this method is called in a single thread or synchronized.
+     */
     public long add(long count) {
         //noinspection DuplicatedCode,NonAtomicOperationOnVolatileField
         counter += count;

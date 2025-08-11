@@ -128,7 +128,7 @@ public class ExportTask {
 
         if (discarded > 0) {
             // Apply rate-limiting to the logging of discarded messages
-            long accumulatedCount = discardedMessages.addSync(discarded);
+            long accumulatedCount = discardedMessages.synchronousAdd(discarded);
             if (accumulatedCount > 0) {
                 LOG.warn("Failed to offer element to the {} queue(capacity={}). {} entries have been discarded since last report.",
                          this.exporterName,
