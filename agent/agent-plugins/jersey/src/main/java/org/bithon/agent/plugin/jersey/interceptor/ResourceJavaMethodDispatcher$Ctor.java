@@ -71,7 +71,8 @@ public class ResourceJavaMethodDispatcher$Ctor extends AfterInterceptor {
             ReflectionUtils.setFieldValue(aopContext.getTarget(), "invoker", enhancedInvoker);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             LoggerFactory.getLogger(ResourceJavaMethodDispatcher$Ctor.class)
-                         .warn(StringUtils.format("Unable to instrument Jersey invoker. This may be a compatibility problem of the agent with your Jersey component. Please report it to agent maintainers."),
+                         .warn(StringUtils.format("Unable to instrument Jersey invoker due to [%s]. This may be a compatibility problem of the agent with your Jersey component. Please report it to agent maintainers.",
+                                                  e.getClass().getSimpleName()),
                                e);
         }
     }

@@ -72,7 +72,7 @@ public class Exporters {
                                         config);
                 } catch (Exception e) {
                     LoggerFactory.getLogger(Exporters.class)
-                                 .error(StringUtils.format("Failed to create exporter [%s]. Data may not be exported correctly." + exporterName), e);
+                                 .error(StringUtils.format("Failed to create exporter [%s]. Data may not be exported correctly.", exporterName), e);
                     return null;
                 }
             });

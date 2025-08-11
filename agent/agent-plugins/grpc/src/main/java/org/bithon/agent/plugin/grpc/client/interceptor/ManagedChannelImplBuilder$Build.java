@@ -101,10 +101,10 @@ public class ManagedChannelImplBuilder$Build extends BeforeInterceptor {
                     shadedGrpcClassMap.put(targetClazzName, clientInterceptor);
                 } catch (IOException e) {
                     LoggerFactory.getLogger(ManagedChannelImplBuilder$Build.class)
-                                 .error("Failed to create class [{}], error: {}. This leads to failure collection of metrics/tracing log for [%s]. Please report it to agent maintainers.",
+                                 .error("Failed to create class [{}], error: {}. This leads to failure collection of metrics/tracing log for [{}]. Please report it to agent maintainers.",
                                         clientInterceptor,
                                         e.getMessage(),
-                                        shadedPackage.toString());
+                                        shadedPackage);
                 }
             }
         }
