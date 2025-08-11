@@ -22,7 +22,7 @@ import org.bithon.agent.controller.cmd.IAgentCommand;
 import org.bithon.agent.controller.cmd.InstrumentationCommand;
 import org.bithon.agent.controller.cmd.JvmCommand;
 import org.bithon.agent.controller.cmd.LoggingCommand;
-import org.bithon.agent.controller.config.AgentSettingFetchTask;
+import org.bithon.agent.controller.config.AgentConfigurationSyncTask;
 import org.bithon.agent.controller.config.ConfigurationCommandImpl;
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
 import org.bithon.agent.instrumentation.loader.PluginClassLoader;
@@ -42,7 +42,7 @@ public class AgentControllerService implements IAgentService {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(AgentControllerService.class);
 
     private static IAgentController controller;
-    private AgentSettingFetchTask fetchTask;
+    private AgentConfigurationSyncTask syncTask;
 
     @Override
     public void start() throws Exception {
@@ -73,22 +73,21 @@ public class AgentControllerService implements IAgentService {
         loadAgentCommands(controller, AgentClassLoader.getClassLoader());
         loadAgentCommands(controller, PluginClassLoader.getClassLoader());
 
-
         //
         // Start fetcher
         //
         AppConfig appConfig = ConfigurationManager.getInstance().getConfig(AppConfig.class);
-        fetchTask = new AgentSettingFetchTask(appConfig.getName(),
-                                              appConfig.getEnv(),
-                                              controller,
-                                              Duration.ofSeconds(ctrlConfig.getRefreshInterval()));
-        fetchTask.start();
+        syncTask = new AgentConfigurationSyncTask(appConfig.getName(),
+                                                  appConfig.getEnv(),
+                                                  controller,
+                                                  Duration.ofSeconds(ctrlConfig.getRefreshInterval()));
+        syncTask.start();
     }
 
     @Override
     public void stop() {
         // Stop the task first because the task relies on the controller internally
-        this.fetchTask.stop();
+        this.syncTask.stop();
 
         try {
             controller.close();

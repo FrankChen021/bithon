@@ -34,21 +34,20 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Dynamic Setting Manager for agent
+ * Sync agent configuration from remote server and apply changes to the local configuration manager.
  *
  * @author frank.chen021@outlook.com
  */
-public class AgentSettingFetchTask extends PeriodicTask {
+public class AgentConfigurationSyncTask extends PeriodicTask {
 
-    private static final ILogAdaptor log = LoggerFactory.getLogger(AgentSettingFetchTask.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(AgentConfigurationSyncTask.class);
 
     private final String appName;
     private final String env;
     private final IAgentController controller;
 
-
-    public AgentSettingFetchTask(String appName, String env, IAgentController controller, Duration refreshInterval) {
-        super("bithon-cfg-updater", refreshInterval, false);
+    public AgentConfigurationSyncTask(String appName, String env, IAgentController controller, Duration refreshInterval) {
+        super("bithon-cfg-sync", refreshInterval, false);
 
         this.appName = appName;
         this.env = env;
