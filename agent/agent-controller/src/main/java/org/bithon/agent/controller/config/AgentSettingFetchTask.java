@@ -26,12 +26,7 @@ import org.bithon.component.commons.concurrency.PeriodicTask;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.HashUtils;
-import org.bithon.component.commons.utils.StringUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -103,20 +98,16 @@ public class AgentSettingFetchTask extends PeriodicTask {
             if (existingPropertySource == null
                 || !signature.equals(existingPropertySource.getTag())) {
 
-                try (InputStream is = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))) {
-                    PropertySource newSource = PropertySource.from(PropertySourceType.DYNAMIC,
-                                                                   name,
-                                                                   ConfigurationFormat.JSON,
-                                                                   is);
-                    newSource.setTag(signature);
+                PropertySource newSource = PropertySource.from(PropertySourceType.DYNAMIC,
+                                                               name,
+                                                               ConfigurationFormat.JSON,
+                                                               text);
+                newSource.setTag(signature);
 
-                    if (existingPropertySource == null) {
-                        add.add(newSource);
-                    } else {
-                        replace.put(name, newSource);
-                    }
-                } catch (IOException e) {
-                    log.error(StringUtils.format("Error to deserialize configuration "));
+                if (existingPropertySource == null) {
+                    add.add(newSource);
+                } else {
+                    replace.put(name, newSource);
                 }
             }
         }
@@ -127,7 +118,7 @@ public class AgentSettingFetchTask extends PeriodicTask {
 
     @Override
     protected void onException(Exception e) {
-        log.error("Failed to update local configuration", e);
+        log.warn("Failed to update local configuration", e);
     }
 
     @Override

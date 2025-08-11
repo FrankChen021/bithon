@@ -156,7 +156,7 @@ public class Tracer {
             try {
                 traceExporter.export(traceMessages);
             } catch (Exception e) {
-                log.error("exception when sending trace messages.", e);
+                log.warn("Exception when sending trace messages.", e);
             }
         }
     }

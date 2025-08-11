@@ -96,7 +96,28 @@ public class PropertySource implements Comparable<PropertySource> {
             return new PropertySource(source,
                                       name,
                                       ObjectMapperConfigurer.configure(configurationFormat.createMapper())
-                                                           .readTree(configStream));
+                                                            .readTree(configStream));
+        } catch (IOException e) {
+            throw new AgentException("Failed to read configuration from file [%s]: %s",
+                                     configurationFormat,
+                                     e.getMessage());
+        }
+    }
+
+    public static PropertySource from(PropertySourceType source,
+                                      String name,
+                                      ConfigurationFormat configurationFormat,
+                                      String configText) {
+        if (configText == null) {
+            // Returns an empty one
+            return new PropertySource(source, name);
+        }
+
+        try {
+            return new PropertySource(source,
+                                      name,
+                                      ObjectMapperConfigurer.configure(configurationFormat.createMapper())
+                                                            .readTree(configText));
         } catch (IOException e) {
             throw new AgentException("Failed to read configuration from file [%s]: %s",
                                      configurationFormat,

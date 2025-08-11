@@ -65,7 +65,8 @@ public class AbstractJavaResourceMethodDispatcher$Ctor extends AfterInterceptor 
         try {
             ReflectionUtils.setFieldValue(aopContext.getTarget(), "methodHandler", enhancedInvoker);
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            LoggerFactory.getLogger(AbstractJavaResourceMethodDispatcher$Ctor.class).error("Unable to enhance invoker", e);
+            LoggerFactory.getLogger(AbstractJavaResourceMethodDispatcher$Ctor.class)
+                         .error("Unable to instrument invoker. This might be a compatibility problem of the agent with your glassfish component. Please report it to agent maintainers.", e);
         }
     }
 }

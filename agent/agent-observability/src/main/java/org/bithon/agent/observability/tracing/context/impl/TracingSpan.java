@@ -189,7 +189,7 @@ class TracingSpan implements ITraceSpan {
         try {
             this.tracingContext.onSpanFinished(this);
         } catch (Throwable t) {
-            LoggerFactory.getLogger(TracingSpan.class).error("Exception occurred when finish a span", t);
+            LoggerFactory.getLogger(TracingSpan.class).warn("Exception occurred when finishing a span", t);
         }
     }
 

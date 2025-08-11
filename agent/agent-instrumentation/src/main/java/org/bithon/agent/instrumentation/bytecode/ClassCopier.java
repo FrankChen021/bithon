@@ -91,7 +91,7 @@ public class ClassCopier {
             byte[] classInBytes = copy(val.sourceClassName, classLoader);
             if (classInBytes == null) {
                 LoggerFactory.getLogger(ClassCopier.class)
-                             .error("Can't copy class from [{}] to [{}]: source class not found", val.sourceClassName, val.targetClazzName);
+                             .error("Can't copy class from [{}] to [{}]: source class not found. Please report it to agent maintainers.", val.sourceClassName, val.targetClazzName);
                 continue;
             }
 

@@ -20,6 +20,7 @@ import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.agent.observability.exporter.config.ExporterConfig;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -71,7 +72,7 @@ public class Exporters {
                                         config);
                 } catch (Exception e) {
                     LoggerFactory.getLogger(Exporters.class)
-                                 .error("Failed to create exporter: " + exporterName, e);
+                                 .error(StringUtils.format("Failed to create exporter [%s]. Data may not be exported correctly." + exporterName), e);
                     return null;
                 }
             });

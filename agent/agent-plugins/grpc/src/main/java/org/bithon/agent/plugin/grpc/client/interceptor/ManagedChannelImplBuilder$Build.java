@@ -60,7 +60,7 @@ public class ManagedChannelImplBuilder$Build extends BeforeInterceptor {
             return;
         }
 
-        // Current target is a shaded gRPC, we need to create a ClientCallInterceptor class for this shaded gRPC
+        // The current target is a shaded gRPC, we need to create a ClientCallInterceptor class for this shaded gRPC
         synchronized (shadedGrpcClassMap) {
             // double check
             if (!shadedGrpcClassMap.containsKey(targetClazzName)) {
@@ -101,7 +101,10 @@ public class ManagedChannelImplBuilder$Build extends BeforeInterceptor {
                     shadedGrpcClassMap.put(targetClazzName, clientInterceptor);
                 } catch (IOException e) {
                     LoggerFactory.getLogger(ManagedChannelImplBuilder$Build.class)
-                                 .error("Error when creating class [{}], error: {}", clientInterceptor, e.getMessage());
+                                 .error("Failed to create class [{}], error: {}. This leads to failure collection of metrics/tracing log for [%s]. Please report it to agent maintainers.",
+                                        clientInterceptor,
+                                        e.getMessage(),
+                                        shadedPackage.toString());
                 }
             }
         }

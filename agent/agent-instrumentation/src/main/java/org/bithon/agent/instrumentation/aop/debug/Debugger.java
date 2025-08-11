@@ -66,7 +66,10 @@ public class Debugger extends AgentBuilder.Listener.Adapter {
                 classFileDirectory.mkdirs();
             }
         } catch (Exception e) {
-            log.error("log error", e);
+            log.warn(String.format(Locale.ENGLISH,
+                                   "Failed to create output class file path at %s",
+                                   classFileDirectory.getAbsolutePath()),
+                     e);
         }
 
         this.types = Collections.emptySet();
@@ -151,6 +154,6 @@ public class Debugger extends AgentBuilder.Listener.Adapter {
 
     @Override
     public void onError(String typeName, ClassLoader classLoader, JavaModule javaModule, boolean b, Throwable throwable) {
-        log.error(String.format(Locale.ENGLISH, "Failed to transform %s", typeName), throwable);
+        log.warn(String.format(Locale.ENGLISH, "Failed to transform %s", typeName), throwable);
     }
 }

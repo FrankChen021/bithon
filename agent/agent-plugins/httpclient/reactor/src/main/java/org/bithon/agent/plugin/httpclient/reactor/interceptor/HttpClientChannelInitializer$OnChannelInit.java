@@ -71,7 +71,7 @@ public class HttpClientChannelInitializer$OnChannelInit extends AfterInterceptor
                                                          false,
                                                          ChannelHandlerContext.class.getClassLoader());
             } catch (ClassNotFoundException ignored) {
-                LOG.error("Unable to find HttpClientOperations. HTTP metrics may not work as expected.");
+                LOG.error("Unable to find HttpClientOperations class. This may be a compatibility problem of the agent with your reactor http client. Please report it to agent maintainers.");
             }
         }
 

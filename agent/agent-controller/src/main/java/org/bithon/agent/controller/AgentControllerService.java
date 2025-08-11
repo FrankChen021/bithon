@@ -44,10 +44,6 @@ public class AgentControllerService implements IAgentService {
     private static IAgentController controller;
     private AgentSettingFetchTask fetchTask;
 
-    public static IAgentController getControllerInstance() {
-        return controller;
-    }
-
     @Override
     public void start() throws Exception {
         LOG.info("Initializing agent controller");

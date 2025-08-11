@@ -98,7 +98,7 @@ public class DynamicInterceptorInstaller {
                 AopDescriptor descriptor = descriptors.get(typeDescription.getTypeName());
                 if (descriptor == null) {
                     // this must be an error
-                    LOG.error("Can't find BeanAopDescriptor for [{}]", typeDescription.getTypeName());
+                    LOG.error("Can't find BeanAopDescriptor for [{}]. Please report it to agent maintainers.", typeDescription.getTypeName());
                     return builder;
                 }
 

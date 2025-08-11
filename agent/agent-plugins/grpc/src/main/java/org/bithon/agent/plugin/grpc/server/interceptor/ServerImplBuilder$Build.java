@@ -121,7 +121,9 @@ public class ServerImplBuilder$Build extends BeforeInterceptor {
                     shadedGrpcClassMap.put(targetClazzName, serverInterceptor);
                 } catch (IOException e) {
                     LoggerFactory.getLogger(ManagedChannelImplBuilder$Build.class)
-                                 .error("Error when creating class [{}], error: {}", serverInterceptor, e.getMessage());
+                                 .error("Failed to create class [{}]: {}. This leads to failure collection of metrics/tracing log for [%s]. Please report it to agent maintainers.",
+                                        serverInterceptor,
+                                        e.getMessage());
                 }
             }
         }
@@ -141,8 +143,8 @@ public class ServerImplBuilder$Build extends BeforeInterceptor {
             // Hook the interceptor
             Optional<Method> interceptMethod = Stream.of(builder.getClass().getDeclaredMethods())
                                                      .filter(m -> "intercept".equals(m.getName())
-                                                         && m.getParameterCount() == 1
-                                                         && "ServerInterceptor".equals(m.getParameters()[0].getType().getSimpleName()))
+                                                                  && m.getParameterCount() == 1
+                                                                  && "ServerInterceptor".equals(m.getParameters()[0].getType().getSimpleName()))
                                                      .findFirst();
             if (interceptMethod.isPresent()) {
                 interceptMethod.get().invoke(builder, interceptor);

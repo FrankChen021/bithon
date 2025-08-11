@@ -52,7 +52,7 @@ public class ExportTask {
         this.queueFullStrategy = config.getQueueFullStrategy();
         Thread sendThread = new Thread(() -> {
             while (isRunning) {
-                dispatch(true);
+                export(true);
             }
             isTaskEnded = true;
         }, taskName + "-sender");
@@ -60,7 +60,7 @@ public class ExportTask {
         sendThread.start();
     }
 
-    private void dispatch(boolean waitIfEmpty) {
+    private void export(boolean waitIfEmpty) {
         try {
             Object message = queue.take(waitIfEmpty ? this.flushTime : 0);
             if (message == null) {
@@ -83,7 +83,7 @@ public class ExportTask {
             }
             this.underlyingSender.accept(message);
         } catch (Exception e) {
-            LOG.error(StringUtils.format("Failed to send message: %s", e.getMessage()), e);
+            LOG.warn(StringUtils.format("Failed to send message: %s", e.getMessage()), e);
         }
     }
 
@@ -113,7 +113,8 @@ public class ExportTask {
                 queue.pop();
             }
             if (discarded > 0) {
-                LOG.error("Failed offer element to the queue, capacity = {}. Discarded the {} oldest entry", this.queue.capacity(), discarded);
+                // TODO: rate limit the logging
+                LOG.warn("Failed offer element to the queue, capacity = {}. Discarded the {} oldest entry", this.queue.capacity(), discarded);
             }
         } else {
             throw new UnsupportedOperationException("Not supported now");
@@ -134,7 +135,7 @@ public class ExportTask {
 
         // flush all messages
         while (queue.size() > 0) {
-            dispatch(false);
+            export(false);
         }
     }
 
