@@ -43,8 +43,9 @@ public class ExportTask {
      */
     private final long flushTime;
 
-    // Rate limiting for discard logging
-    private final RateLimitedCounter discardCounter = new RateLimitedCounter(Duration.ofSeconds(5));
+    // A counter that will be reset if it's accessed after 5 seconds.
+    // We use this to rate-limit the logging of discarded messages.
+    private final TimeWindowBasedCounter discardedMessages = new TimeWindowBasedCounter(Duration.ofSeconds(5));
 
     public ExportTask(String taskName,
                       IThreadSafeQueue queue,
@@ -106,26 +107,29 @@ public class ExportTask {
         // but because the underlying queue is already a concurrency-supported structure,
         // adding such a lock to solve this edge case does not gain much
         //
+        int discarded = 0;
         if (ExporterConfig.QueueFullStrategy.DISCARD_NEWEST.equals(this.queueFullStrategy)) {
             // The return is ignored if the 'offer' fails to run
-            this.queue.offer(message);
+            if (!this.queue.offer(message)) {
+                discarded = 1;
+            }
         } else if (ExporterConfig.QueueFullStrategy.DISCARD_OLDEST.equals(this.queueFullStrategy)) {
-            // Discard the oldest in the queue
-            int discarded = 0;
+            // Discard the oldest from the queue
             while (!queue.offer(message)) {
                 discarded++;
                 queue.pop();
             }
-            if (discarded > 0) {
-                // Rate-limited logging with accumulated counters
-                RateLimitedCounter.CounterResult result = discardCounter.limit(discarded);
-                if (result != null) {
-                    LOG.warn("Failed offer element to the queue, capacity = {}. Discarded {} entries since last log (interval: {}ms)", 
-                             this.queue.capacity(), result.getCount(), result.getIntervalMs());
-                }
-            }
         } else {
             throw new UnsupportedOperationException("Not supported now");
+        }
+
+        if (discarded > 0) {
+            // Apply rate-limiting to the logging of discarded messages
+            int totalDiscarded = discardedMessages.add(discarded);
+            if (totalDiscarded > 0) {
+                LOG.warn("Failed offer element to the queue with a capacity of {}. {} entries are discarded since last report.",
+                         this.queue.capacity(), totalDiscarded);
+            }
         }
     }
 
