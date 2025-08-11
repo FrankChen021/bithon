@@ -33,6 +33,7 @@ public class ExportTask {
 
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(ExportTask.class);
 
+    private final String exporterName;
     private final Consumer<Object> underlyingSender;
     private final IThreadSafeQueue queue;
     private final ExporterConfig.QueueFullStrategy queueFullStrategy;
@@ -46,12 +47,13 @@ public class ExportTask {
 
     // A counter that will be reset if it's accessed after 5 seconds.
     // We use this to rate-limit the logging of discarded messages.
-    private final TimeWindowBasedCounter discardedMessages = new TimeWindowBasedCounter(Duration.ofSeconds(5));
+    private final TimeWindowBasedCounter discardedMessages = new TimeWindowBasedCounter(Duration.ofMinutes(1));
 
-    public ExportTask(String taskName,
+    public ExportTask(String exporterName,
                       IThreadSafeQueue queue,
                       ExporterConfig config,
                       Consumer<Object> underlyingSender) {
+        this.exporterName = exporterName;
         this.flushTime = Math.max(10, config.getFlushTime());
         this.underlyingSender = underlyingSender;
         this.queue = config.getBatchSize() > 0 ? new BatchMessageQueue(queue, config.getBatchSize()) : queue;
@@ -61,7 +63,7 @@ public class ExportTask {
                 export(true);
             }
             isTaskEnded = true;
-        }, taskName + "-sender");
+        }, exporterName + "-sender");
         sendThread.setDaemon(true);
         sendThread.start();
     }
@@ -128,7 +130,8 @@ public class ExportTask {
             // Apply rate-limiting to the logging of discarded messages
             long accumulatedCount = discardedMessages.addSync(discarded);
             if (accumulatedCount > 0) {
-                LOG.warn("Failed offer element to the queue with a capacity of {}. {} entries are discarded since last report.",
+                LOG.warn("Failed to offer element to the {} queue(capacity={}). {} entries have been discarded since last report.",
+                         this.exporterName,
                          this.queue.capacity(),
                          accumulatedCount);
             }
