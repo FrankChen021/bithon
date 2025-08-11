@@ -21,6 +21,7 @@ import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.function.Consumer;
 
@@ -41,6 +42,9 @@ public class ExportTask {
      * in millisecond
      */
     private final long flushTime;
+
+    // Rate limiting for discard logging
+    private final RateLimitedCounter discardCounter = new RateLimitedCounter(Duration.ofSeconds(5));
 
     public ExportTask(String taskName,
                       IThreadSafeQueue queue,
@@ -113,8 +117,12 @@ public class ExportTask {
                 queue.pop();
             }
             if (discarded > 0) {
-                // TODO: rate limit the logging
-                LOG.warn("Failed offer element to the queue, capacity = {}. Discarded the {} oldest entry", this.queue.capacity(), discarded);
+                // Rate-limited logging with accumulated counters
+                RateLimitedCounter.CounterResult result = discardCounter.limit(discarded);
+                if (result != null) {
+                    LOG.warn("Failed offer element to the queue, capacity = {}. Discarded {} entries since last log (interval: {}ms)", 
+                             this.queue.capacity(), result.getCount(), result.getIntervalMs());
+                }
             }
         } else {
             throw new UnsupportedOperationException("Not supported now");
