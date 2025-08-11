@@ -108,7 +108,7 @@ public class InterceptorSupplier implements Supplier<AbstractInterceptor> {
 
             LoggerFactory.getLogger(InterceptorManager.class)
                          .error(String.format(Locale.ENGLISH,
-                                              "Failed to load interceptor[%s] due to %s",
+                                              "Failed to load interceptor[%s] due to %s. Please report it to agent maintainers.",
                                               interceptorClassName,
                                               e.getMessage()), e);
             return null;

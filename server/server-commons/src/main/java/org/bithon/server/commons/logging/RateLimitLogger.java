@@ -20,18 +20,22 @@ import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.slf4j.event.Level;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map;
 
 /**
  * @author Frank Chen
  * @date 26/3/24 3:25 pm
  */
 public class RateLimitLogger implements Logger {
-    static class Config {
-        private final long max;
+    private static final int LEVEL_COUNT = 5;
 
-        long lastAccessTime;
-        AtomicInteger count = new AtomicInteger(0);
+    static class Config {
+        /**
+         * How many logs are allowed for 1 second
+         */
+        private final long max;
+        private long lastAccessTime;
+        private int count = 0; // Use simple int instead of AtomicInteger
 
         Config(long max) {
             this.max = max;
@@ -39,7 +43,46 @@ public class RateLimitLogger implements Logger {
     }
 
     private final Logger delegation;
-    private final Config[] configPerLevel = new Config[5];
+    private final Config[] configPerLevel = new Config[LEVEL_COUNT];
+
+    // Use EnumMap for better type safety and performance
+    private static final Map<Level, Integer> LEVEL_TO_INDEX = Map.of(
+        Level.DEBUG, 0,
+        Level.TRACE, 1,
+        Level.INFO, 2,
+        Level.WARN, 3,
+        Level.ERROR, 4
+    );
+
+    private int toIndex(Level level) {
+        Integer index = LEVEL_TO_INDEX.get(level);
+        if (index == null) {
+            throw new IllegalArgumentException("Unsupported log level: " + level);
+        }
+        return index;
+    }
+
+    private boolean isRateLimited(Level level) {
+        int index = toIndex(level);
+        Config config = configPerLevel[index];
+        if (config == null) {
+            return false;
+        }
+
+        long nowSecond = System.currentTimeMillis() / 1000;
+
+        //noinspection SynchronizationOnLocalVariableOrMethodParameter
+        synchronized (config) {
+            if (nowSecond != config.lastAccessTime) {
+                config.lastAccessTime = nowSecond;
+                config.count = 1;
+                return false; // First message in new time window
+            } else {
+                config.count++;
+                return config.count > config.max;
+            }
+        }
+    }
 
     public RateLimitLogger(Logger delegation) {
         this.delegation = delegation;
@@ -49,45 +92,6 @@ public class RateLimitLogger implements Logger {
         int index = toIndex(level);
         configPerLevel[index] = new Config(countPerSecond);
         return this;
-    }
-
-    private int toIndex(Level level) {
-        if (level == Level.DEBUG) {
-            return 0;
-        } else if (level == Level.TRACE) {
-            return 1;
-        } else if (level == Level.INFO) {
-            return 2;
-        } else if (level == Level.WARN) {
-            return 3;
-        } else if (level == Level.ERROR) {
-            return 4;
-        } else {
-            throw new RuntimeException("Invalid level");
-        }
-    }
-
-    private boolean isRateLimited(Level level) {
-        int index = toIndex(level);
-        if (configPerLevel[index] == null) {
-            return false;
-        }
-
-        long nowSecond = System.currentTimeMillis() / 1000;
-
-        synchronized (configPerLevel[index]) {
-            Config config = this.configPerLevel[index];
-            long cnt;
-            if (nowSecond != config.lastAccessTime) {
-                // reset counter
-                config.lastAccessTime = nowSecond;
-                config.count.set(1);
-                cnt = 1;
-            } else {
-                cnt = config.count.incrementAndGet();
-            }
-            return cnt > config.max;
-        }
     }
 
     @Override
@@ -283,7 +287,7 @@ public class RateLimitLogger implements Logger {
             return;
         }
 
-        delegation.debug(format, arguments);
+        delegation.debug(marker, format, arguments);
     }
 
     @Override
@@ -396,7 +400,7 @@ public class RateLimitLogger implements Logger {
             return;
         }
 
-        delegation.info(marker, msg);
+        delegation.info(marker, msg, t);
     }
 
     @Override
@@ -487,7 +491,7 @@ public class RateLimitLogger implements Logger {
             return;
         }
 
-        delegation.warn(format, arguments);
+        delegation.warn(marker, format, arguments);
     }
 
     @Override

@@ -22,9 +22,13 @@ import org.apache.kafka.clients.consumer.internals.Fetcher;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.agent.instrumentation.utils.PropertyFileReader;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.ReflectionUtils;
+
+import java.io.IOException;
+import java.util.Properties;
 
 /**
  * {@link org.apache.kafka.clients.consumer.KafkaConsumer}
@@ -83,8 +87,16 @@ public class KafkaConsumer$Ctor extends AfterInterceptor {
 
                 setContextOnNetworkClient(kafkaPluginContext, ReflectionUtils.getFieldValue(consumerDelegate, "client"));
             } else if ("AsyncKafkaConsumer".equals(clazzName)) {
+                String kafkaVersion = null;
+                try {
+                    Properties properties = PropertyFileReader.read(this.getClass().getClassLoader(), "kafka/kafka-version.properties");
+                    kafkaVersion = properties.getProperty("version");
+                } catch (IOException ignored) {
+                    // Ignore exception
+                }
                 LoggerFactory.getLogger(KafkaConsumer$Ctor.class)
-                             .error("Unable to inject Kafka plugin context to Kafka Consumer. The AsyncKafkaConsumer is not supported yet.");
+                             .error("Unable to inject Kafka plugin context to Kafka Consumer({}). Please report it to agent maintainers.",
+                                    kafkaVersion == null ? "unknown Kafka client version" : "kafka version " + kafkaVersion);
             }
         }
     }

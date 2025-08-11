@@ -177,7 +177,7 @@ public class MetricCollectorManager {
                         exporter.export(message);
                     }
                 } catch (Throwable e) {
-                    LOG.error("Throwable(unrecoverable) exception occurred when dispatching!", e);
+                    LOG.warn("Exception occurred when exporting metrics", e);
                 }
             });
         }
