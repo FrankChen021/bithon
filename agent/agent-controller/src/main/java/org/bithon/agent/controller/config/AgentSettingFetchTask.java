@@ -60,7 +60,7 @@ public class AgentSettingFetchTask extends PeriodicTask {
 
     @Override
     protected void onRun() {
-        log.info("Fetch configuration for {}-{}", appName, env);
+        log.info("Sync agent configuration for {}-{} from remote", appName, env);
 
         // Get configuration from remote server
         Map<String, String> configurationListFromRemote = controller.getAgentConfiguration(appName, env, 0);
