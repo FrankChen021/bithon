@@ -12,6 +12,10 @@
   <artifactId>agent-distribution</artifactId>
   <packaging>pom</packaging>
 
+  <properties>
+    <maven.deploy.skip>false</maven.deploy.skip>
+  </properties>
+
   <dependencies>
     <!-- Declare all dependencies so that they will be assembled in the distribution -->
     <dependency>
