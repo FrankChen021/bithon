@@ -25,8 +25,6 @@ import reactor.netty.Connection;
 import reactor.netty.ConnectionObserver;
 import reactor.netty.http.client.HttpClientConfig;
 
-import java.util.concurrent.locks.ReentrantLock;
-
 /**
  * {@link reactor.netty.http.client.HttpClientConfig#defaultConnectionObserver()}
  *
@@ -56,7 +54,6 @@ public class HttpClientConfig$DefaultConnectionObserver extends AfterInterceptor
     private static class ConnectionStateObserver implements ConnectionObserver {
         private ITraceSpan span;
         private final String connectionProvider;
-        private final ReentrantLock lock = new ReentrantLock();
 
         public ConnectionStateObserver(HttpClientConfig clientConfig, ITraceSpan span) {
             this.span = span;
@@ -65,42 +62,32 @@ public class HttpClientConfig$DefaultConnectionObserver extends AfterInterceptor
 
         @Override
         public void onUncaughtException(Connection connection, Throwable error) {
-            lock.lock();
-            try {
-                if (span != null) {
-                    span.tag(error).finish();
-                    span.context().finish();
-                    span = null;
-                }
-            } finally {
-                lock.unlock();
+            if (span != null) {
+                span.tag(error).finish();
+                span.context().finish();
+                span = null;
             }
         }
 
         @Override
         public void onStateChange(Connection connection, State newState) {
-            lock.lock();
-            try {
-                if (newState.equals(State.CONNECTED) && span != null) {
-                    span.tag(Tags.Net.PEER, connection.channel().remoteAddress())
-                        .tag(Tags.Http.CLIENT, "reactor")
-                        // Since there is a network connection to remote, we mark it as a client span
-                        .kind(SpanKind.CLIENT)
-                        .finish();
-                    span.context().finish();
-                    span = null;
-                }
-                if (newState.equals(State.ACQUIRED) && span != null) {
-                    // A connection is retrieved from the pool,
-                    // set the span name to 'acquire' and do not mark it as SpanKind.CLIENT
-                    span.method(connectionProvider, "acquire")
-                        .tag(Tags.Net.PEER, connection.channel().remoteAddress())
-                        .finish();
-                    span.context().finish();
-                    span = null;
-                }
-            } finally {
-                lock.unlock();
+            if (newState.equals(State.CONNECTED) && span != null) {
+                span.tag(Tags.Net.PEER, connection.channel().remoteAddress())
+                    .tag(Tags.Http.CLIENT, "reactor")
+                    // Since there is a network connection to remote, we mark it as a client span
+                    .kind(SpanKind.CLIENT)
+                    .finish();
+                span.context().finish();
+                span = null;
+            }
+            if (newState.equals(State.ACQUIRED) && span != null) {
+                // A connection is retrieved from the pool,
+                // set the span name to 'acquire' and do not mark it as SpanKind.CLIENT
+                span.method(connectionProvider, "acquire")
+                    .tag(Tags.Net.PEER, connection.channel().remoteAddress())
+                    .finish();
+                span.context().finish();
+                span = null;
             }
         }
     }
