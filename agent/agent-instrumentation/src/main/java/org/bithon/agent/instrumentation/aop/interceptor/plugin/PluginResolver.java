@@ -28,10 +28,14 @@ import org.bithon.agent.instrumentation.logging.LoggerFactory;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -44,6 +48,9 @@ import java.util.stream.Collectors;
 public abstract class PluginResolver {
 
     private static final ILogger LOG = LoggerFactory.getLogger(PluginResolver.class);
+
+    // Class-level variable to hold all interceptor type mappings
+    private final Map<String, InterceptorType> interceptorTypes = new HashMap<>();
 
     public PluginResolver() {
         // create plugin class loader first
@@ -63,34 +70,41 @@ public abstract class PluginResolver {
             descriptors.merge(pluginName, plugin.getPreconditions(), plugin.getInterceptors());
         }
 
-        resolveInterceptorType(descriptors.getAllDescriptor());
+        resolveInterceptorType(descriptors.getAllDescriptor(), this.interceptorTypes);
 
-        // Resolve an interceptor type
         return descriptors;
     }
 
     /**
      * Resolve the interceptor type ({@link InterceptorType}) for each interceptor declared in each plugin
+     * Using preloaded interceptor type mappings with fallback to runtime resolution
      */
-    public static void resolveInterceptorType(Collection<Descriptors.Descriptor> descriptors) {
-        LOG.info("Resolving interceptor type from all enabled plugins...");
-        InterceptorTypeResolver resolver = new InterceptorTypeResolver(PluginClassLoader.getClassLoader());
+    public static void resolveInterceptorType(Collection<Descriptors.Descriptor> descriptors, Map<String, InterceptorType> knowInterceptorTypes) {
+        // A fallback if the generated
+        InterceptorTypeResolver runtimeTypeResolver = new InterceptorTypeResolver(PluginClassLoader.getClassLoader());
 
         for (Descriptors.Descriptor descriptor : descriptors) {
             for (Descriptors.MethodPointCuts pointcut : descriptor.getMethodPointCuts()) {
                 for (MethodPointCutDescriptor pointcutDescriptor : pointcut.getMethodInterceptors()) {
-                    try {
-                        InterceptorType type = resolver.resolve(pointcutDescriptor.getInterceptorClassName());
+                    String interceptorClassName = pointcutDescriptor.getInterceptorClassName();
+
+                    InterceptorType type = knowInterceptorTypes.get(interceptorClassName);
+                    if (type != null) {
+                        // Found in compile-time mapping
                         pointcutDescriptor.setInterceptorType(type);
-                    } catch (AgentException e) {
-                        // This is typically an error caused by the plugin developer,
-                        // So we throw an exception to exit the application let the developer know the problem
-                        throw new AgentException("Unable to resolve interceptor type for [" + pointcutDescriptor.getInterceptorClassName() + "]:" + e.getMessage());
+                    } else {
+                        // Fallback to runtime resolution
+                        try {
+                            type = runtimeTypeResolver.resolve(interceptorClassName);
+                            pointcutDescriptor.setInterceptorType(type);
+                            LOG.info("Resolved interceptor type for [{}] using runtime fallback: {}", interceptorClassName, type);
+                        } catch (AgentException e) {
+                            throw new AgentException("Unable to resolve interceptor type for [%s]: %s. Please report this to agent maintainers.", interceptorClassName, e.getMessage());
+                        }
                     }
                 }
             }
         }
-        LOG.info("Resolving interceptor type completes.");
     }
 
     private List<IPlugin> loadPlugins() {
@@ -131,8 +145,14 @@ public abstract class PluginResolver {
                 return null;
             }
 
-            LOG.info("Found plugin [{}]", pluginName);
-            return (IPlugin) pluginClass.getDeclaredConstructor().newInstance();
+            IPlugin plugin = (IPlugin) pluginClass.getDeclaredConstructor().newInstance();
+
+            Map<String, InterceptorType> types = loadGeneratedInterceptorTypes(pluginName);
+            interceptorTypes.putAll(types);
+
+            LOG.info("Found plugin [{}] with [{}] interceptors", pluginName, types.size());
+
+            return plugin;
         } catch (ClassFormatError t) {
             //
             // Some plugins only works for a specific JDK version, when the plugin is not compatible with the current JDK,
@@ -175,6 +195,28 @@ public abstract class PluginResolver {
 
         Class<?> parentClass = clazz.getSuperclass();
         return parentClass != null && isPluginClass(parentClass);
+    }
+
+    /**
+     * Load the generated interceptor types for a plugin.
+     * The generated class is created by {@link org.bithon.agent.instrumentation.aop.interceptor.processor.InterceptorTypeProcessor} during compilation.
+     */
+    private static Map<String, InterceptorType> loadGeneratedInterceptorTypes(String pluginName) {
+        try {
+            String mappingClassName = "org.bithon.agent.plugin." + pluginName + ".InterceptorTypes";
+            Class<?> mappingClass = Class.forName(mappingClassName, true, PluginClassLoader.getClassLoader());
+            Method getTypesMethod = mappingClass.getMethod("getTypes");
+
+            // Invoke the static method to get the interceptor types
+            //noinspection unchecked
+            return (Map<String, InterceptorType>) getTypesMethod.invoke(null);
+        } catch (ClassNotFoundException e) {
+            LOG.warn("No interceptor types found for plugin [{}]. Please report it to agent maintainers.", pluginName);
+            return Collections.emptyMap();
+        } catch (Exception e) {
+            LOG.warn("Failed to load interceptor types for plugin [{}]: {}. Please report it to agent maintainers", pluginName, e.getMessage());
+            return Collections.emptyMap();
+        }
     }
 
     protected abstract boolean onResolved(Class<?> pluginClazz);
