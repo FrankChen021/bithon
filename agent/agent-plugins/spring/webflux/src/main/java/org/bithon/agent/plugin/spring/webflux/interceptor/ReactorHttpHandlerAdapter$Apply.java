@@ -160,8 +160,9 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
         BiConsumer<Void, Throwable> onSuccessOrError = (t, throwable) -> {
             try {
                 update(request, response, System.nanoTime() - start);
-            } catch (Exception e) {
-                LOG.error("failed to record http incoming metrics", e);
+            } catch (Throwable e) {
+                // As this is hooked as user's code, use catch to ensure exception will not be propagated
+                LOG.warn("failed to record http incoming metrics", e);
             } finally {
                 finishTrace(request, response, throwable);
             }

@@ -99,7 +99,7 @@ public class BrpcAgentController implements IAgentController {
                 try {
                     refreshListener.run();
                 } catch (Exception e) {
-                    LOG.error("Failed to call refresh listener.", e);
+                    LOG.warn("Failed to call refresh listener.", e);
                 }
             }
         });
@@ -127,11 +127,11 @@ public class BrpcAgentController implements IAgentController {
             return fetcher.fetch(header, lastModifiedSince);
         } catch (CallerSideException e) {
             //suppress client exception
-            LOG.error("Failed to fetch settings: {}", e.getMessage());
+            LOG.warn("Failed to fetch agent configuration from remote: {}", e.getMessage());
             return null;
         } catch (CalleeSideException e) {
             //suppress stack trace since this exception occurs at server side
-            LOG.error("Failed to fetch settings due to server side exception:\n {}", e.getMessage());
+            LOG.warn("Failed to fetch agent configuration from remote due to remote exception:\n {}", e.getMessage());
             return null;
         }
     }

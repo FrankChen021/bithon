@@ -16,12 +16,11 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor.precondition;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.bithon.agent.instrumentation.utils.PropertyFileReader;
 import org.bithon.agent.instrumentation.utils.VersionUtils;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Properties;
@@ -197,15 +196,9 @@ public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
         return evaluationResult;
     }
 
-    @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE")
     private boolean matches(ClassLoader classLoader) {
-        try (InputStream inputStream = classLoader.getResourceAsStream(propertyFile)) {
-            if (inputStream == null) {
-                return false;
-            }
-
-            Properties properties = new Properties();
-            properties.load(inputStream);
+        try {
+            Properties properties = PropertyFileReader.read(classLoader, propertyFile);
             this.actual = properties.getProperty(propertyName);
             return this.valuePredicate.matches(this.actual);
         } catch (IOException ignored) {

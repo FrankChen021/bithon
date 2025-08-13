@@ -23,6 +23,7 @@ import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.ReflectionUtils;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -69,7 +70,10 @@ public class ResourceJavaMethodDispatcher$Ctor extends AfterInterceptor {
         try {
             ReflectionUtils.setFieldValue(aopContext.getTarget(), "invoker", enhancedInvoker);
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            LoggerFactory.getLogger(ResourceJavaMethodDispatcher$Ctor.class).error("Unable to enhance invoker", e);
+            LoggerFactory.getLogger(ResourceJavaMethodDispatcher$Ctor.class)
+                         .warn(StringUtils.format("Unable to instrument Jersey invoker due to [%s]. This may be a compatibility problem of the agent with your Jersey component. Please report it to agent maintainers.",
+                                                  e.getClass().getSimpleName()),
+                               e);
         }
     }
 }

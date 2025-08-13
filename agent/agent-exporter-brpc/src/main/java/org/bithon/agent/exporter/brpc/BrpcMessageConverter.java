@@ -125,8 +125,8 @@ public class BrpcMessageConverter implements IMessageConverter {
                 builder.putTags(k, v);
             } else {
                 // An exception is construct to parse to the error method,
-                // so tha that the logback/log4j plugin can record the exception into the exception log.
-                logger.error(StringUtils.format("Unexpected exception",
+                // so that the logback/log4j plugin can record the exception into the exception log.
+                logger.warn(StringUtils.format("Unexpected exception",
                                                 new AgentException("Value of tag [%s] is null", k)));
             }
         }
@@ -200,7 +200,7 @@ public class BrpcMessageConverter implements IMessageConverter {
                 }
                 messageBuilder.addMeasurement(measurementBuilder.build());
             } catch (RuntimeException e) {
-                logger.error(StringUtils.format("Invalid measurement: %s, dimensions=%s",
+                logger.warn(StringUtils.format("Invalid measurement: %s, dimensions=%s",
                                                 schema.getName(),
                                                 measurement.getDimensions()), e);
             }

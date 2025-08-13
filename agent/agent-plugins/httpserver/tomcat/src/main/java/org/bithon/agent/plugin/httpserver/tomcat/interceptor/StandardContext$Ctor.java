@@ -67,12 +67,13 @@ public class StandardContext$Ctor extends AfterInterceptor {
             return;
         }
         try {
-            Class sentinelClazz = Class.forName(sentinelFilterClass, true, AgentClassLoader.getClassLoader());
+            Class<?> sentinelClazz = Class.forName(sentinelFilterClass, true, AgentClassLoader.getClassLoader());
             Object initializer = sentinelClazz.getConstructor().newInstance();
 
             addServletContainerInitializer.get().invoke(standardContext, initializer, Collections.emptySet());
         } catch (Exception e) {
-            LoggerFactory.getLogger(StandardContext$Ctor.class).error("Failed to set up sentinel filter to current tomcat webserver", e);
+            LoggerFactory.getLogger(StandardContext$Ctor.class)
+                         .warn("Failed to set up sentinel filter to current tomcat webserver. This may be a compatibility problem of the agent with your Tomcat web server. Please report it to agent maintainers.", e);
         }
     }
 }

@@ -210,13 +210,10 @@ SELECT * FROM agent.logger WHERE instance = '192.168.50.151:9897'
 | Field          | Explanation                                                                                                             |
 |----------------|-------------------------------------------------------------------------------------------------------------------------|
 | name           | The name of a logger.                                                                                                   |
-| level          | The configured logging level of corresponding logger. <br/> Can be one of: OFF, TRACE, DEBUG, INFO, WARN, ERROR, FATAL. |
+| level          | The configured logging level of corresponding logger. <br/> Can be one of the following:<br/> OFF <br/> TRACE<br/> DEBUG <br/> INFO <br/> WARN <br/> ERROR <br/> FATAL <br/> |
 | effectiveLevel | The effective logging level of a logger.                                                                                |
 
 ## Set logger level
-
-> NOTE: This only works for application based on SpringBoot 1.5 and above.
->
 
 We can also change the configured logging level during application running by using `UPDATE` statement.
 
@@ -229,10 +226,11 @@ UPDATE agent.logger SET level = 'DEBUG' where instance = '192.168.50.151:9897' A
 > NOTE:
 > 1. The SQL must provide `instance` and `name` filter in the `WHERE` clause.
 > 2. Only `level` can be UPDATED
-> 3. For the `_token'
->   1. If the server is deployed with the OAuth2 enabled, the token is not needed. The user associated with the login user will be used for authorization internally.
->   2. If the server is not enabled OAuth2, it's needed. And it's configured on the server side per-application basis.
->   3. See [Permission Control](../configuration/server/configuration-controller.md) section to know more about authorization configuration.
+> 3. For the `_token' parameter,
+>    1. If the server is deployed with the OAuth2 enabled, the token is not needed. The login user information will be used for authorization automatically.
+>    2. If the server is not enabled with OAuth2, it MUST be provided. And the token is configured on the server side per-application basis.  
+>    3. The user needs the WRITE permission to do this UPDATE. See [Permission Control](../configuration/server/configuration-controller.md) section to know more about authorization configuration.
+>   
 
 
 ## agent.thread

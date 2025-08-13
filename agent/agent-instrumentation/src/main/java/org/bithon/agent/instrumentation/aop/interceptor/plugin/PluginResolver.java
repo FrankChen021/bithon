@@ -149,7 +149,7 @@ public abstract class PluginResolver {
             } catch (IOException ignored) {
             }
             if (classFileMajorVersion == -1) {
-                LOG.error("Found plugin [{}], but skipped due to unrecognizable plugin class file version: [{}]", pluginName, t.getMessage());
+                LOG.error("Found plugin [{}], but skipped due to unrecognizable plugin class file version: [{}]. Please report it to agent maintainers.", pluginName, t.getMessage());
             } else {
                 LOG.info("Found plugin [{}], but skipped because plugin requires JDK {} and above",
                          pluginName,
@@ -157,7 +157,7 @@ public abstract class PluginResolver {
             }
             return null;
         } catch (Throwable e) {
-            LOG.error(String.format(Locale.ENGLISH, "Failed to load plugin [%s]", pluginName), e);
+            LOG.error(String.format(Locale.ENGLISH, "Failed to load plugin [%s]. Please report it to agent maintainers.", pluginName), e);
             return null;
         }
     }
