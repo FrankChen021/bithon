@@ -62,9 +62,6 @@ public class InterceptorTypeProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        // Always print this message to see if processor runs
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "#### InterceptorTypeProcessor: Running! Annotations: " + annotations.size() + ", processingOver: " + roundEnv.processingOver());
-
         if (roundEnv.processingOver()) {
             // Generate the registry class on the final round
             if (!processed) {
@@ -124,7 +121,7 @@ public class InterceptorTypeProcessor extends AbstractProcessor {
 
                 if (type != null) {
                     interceptorTypes.put(className, type);
-                    processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "Found interceptor: " + className + " -> " + type);
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Found interceptor: " + className + " -> " + type);
                 }
             }
         }
@@ -261,7 +258,7 @@ public class InterceptorTypeProcessor extends AbstractProcessor {
                 writer.write("}\n");
             }
 
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING,
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE,
                                                      "Generated " + fullClassName + " with " + interceptorTypes.size() + " interceptors");
 
         } catch (IOException e) {
