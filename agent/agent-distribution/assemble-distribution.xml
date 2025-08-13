@@ -88,15 +88,14 @@
         <include>*.xml</include>
       </includes>
     </fileSet>
-    
-    <!-- Include the generated agent-plugins.jar -->
-    <fileSet>
-      <directory>target</directory>
-      <outputDirectory>plugins</outputDirectory>
-      <includes>
-        <include>agent-plugins.jar</include>
-      </includes>
-    </fileSet>
   </fileSets>
+
+  <files>
+    <file>
+      <source>target/agent-plugins.jar</source>
+      <outputDirectory>plugins</outputDirectory>
+      <destName>all-in-one.jar</destName>
+    </file>
+  </files>
 
 </assembly>

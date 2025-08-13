@@ -353,7 +353,7 @@
         <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
           <descriptors>
-            <descriptor>distribution.xml</descriptor>
+            <descriptor>assemble-distribution.xml</descriptor>
           </descriptors>
           <tarLongFileMode>posix</tarLongFileMode>
           <appendAssemblyId>false</appendAssemblyId>
@@ -371,17 +371,18 @@
           <!-- Create plugin assembly -->
           <execution>
             <id>make-plugins</id>
+            <!--Make sure plugins are packed before distribution-->
             <phase>prepare-package</phase>
             <goals>
               <goal>single</goal>
             </goals>
             <configuration>
               <descriptors>
-                <descriptor>plugins-assembly.xml</descriptor>
+                <descriptor>assemble-plugins.xml</descriptor>
               </descriptors>
-              <finalName>agent-plugins</finalName>
               <appendAssemblyId>false</appendAssemblyId>
               <attach>false</attach>
+              <finalName>agent-plugins</finalName>
             </configuration>
           </execution>
           
