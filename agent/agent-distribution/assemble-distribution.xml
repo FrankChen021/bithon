@@ -96,6 +96,11 @@
       <outputDirectory>plugins</outputDirectory>
       <destName>all-in-one.jar</destName>
     </file>
+    <file>
+      <source>target/plugins.meta</source>
+      <outputDirectory>plugins</outputDirectory>
+      <destName>plugins.meta</destName>
+    </file>
   </files>
 
 </assembly>

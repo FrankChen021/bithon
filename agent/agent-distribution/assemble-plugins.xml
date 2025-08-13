@@ -16,8 +16,13 @@
         <excludes>
           <exclude>META-INF/maven/</exclude>
         </excludes>
+        <includes>
+          <include>**/*.class</include>
+          <include>META-INF/bithon/*_interceptor_types.properties</include>
+        </includes>
       </unpackOptions>
       <outputDirectory>/</outputDirectory>
     </dependencySet>
   </dependencySets>
+
 </assembly>
