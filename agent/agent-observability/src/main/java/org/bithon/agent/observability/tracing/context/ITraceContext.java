@@ -18,7 +18,6 @@ package org.bithon.agent.observability.tracing.context;
 
 import org.bithon.agent.observability.tracing.context.propagation.PropagationSetter;
 import org.bithon.agent.observability.tracing.id.ISpanIdGenerator;
-import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
 import org.bithon.component.commons.time.Clock;
 
 /**
@@ -41,10 +40,6 @@ public interface ITraceContext {
     ITraceSpan currentSpan();
 
     Clock clock();
-
-    ITraceReporter reporter();
-
-    ITraceContext reporter(ITraceReporter reporter);
 
     ISpanIdGenerator spanIdGenerator();
 

@@ -16,25 +16,28 @@
 
 package org.bithon.agent.observability.tracing.reporter;
 
-import org.bithon.agent.observability.tracing.context.ITraceSpan;
-
-import java.util.Collections;
-import java.util.List;
+import org.bithon.agent.configuration.ConfigurationProperties;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/5 9:45 下午
+ * @date 2025/8/6 21:10
  */
-public interface ITraceReporter {
+@ConfigurationProperties(path = "tracing.reporter")
+public class ReporterConfig {
+    /**
+     * How many spans should be batched per tracing context.
+     * This controls the maximum number of spans that can be stored in a single tracing context
+     * so that the memory usage can be controlled if a tracing context has a long lifetime.
+     * <p>
+     * This provides a balance between memory usage and performance.
+     */
+    private int batchSize = 64;
 
-    ReporterConfig getReporterConfig();
-
-    default void report(ITraceSpan span) {
-        report(Collections.singletonList(span));
+    public int getBatchSize() {
+        return batchSize;
     }
 
-    void report(List<ITraceSpan> spans);
-
-    default void flush() {
+    public void setBatchSize(int batchSize) {
+        this.batchSize = batchSize;
     }
 }

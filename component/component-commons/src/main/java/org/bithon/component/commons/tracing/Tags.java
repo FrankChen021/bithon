@@ -154,9 +154,6 @@ public class Tags {
 
         public static final String REDIS_DB_INDEX = "db.redis.database_index";
         public static final String MONGODB_DB_COLLECTION = "db.mongodb.collection";
-
-        // Non standard
-        public static final String MONGODB_DB_COMMAND = "db.mongodb.command";
     }
 
     /**

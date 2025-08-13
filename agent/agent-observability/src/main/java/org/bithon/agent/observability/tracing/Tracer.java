@@ -18,25 +18,19 @@ package org.bithon.agent.observability.tracing;
 
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.observability.context.AppInstance;
-import org.bithon.agent.observability.exporter.Exporter;
-import org.bithon.agent.observability.exporter.Exporters;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
-import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.propagation.DefaultPropagator;
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
 import org.bithon.agent.observability.tracing.id.ISpanIdGenerator;
 import org.bithon.agent.observability.tracing.id.ITraceIdGenerator;
 import org.bithon.agent.observability.tracing.id.impl.DefaultSpanIdGenerator;
+import org.bithon.agent.observability.tracing.reporter.DefaultReporter;
 import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -132,32 +126,5 @@ public class Tracer {
 
     public String instanceName() {
         return instanceName;
-    }
-
-    static class NoopReporter implements ITraceReporter {
-        @Override
-        public void report(List<ITraceSpan> spans) {
-        }
-    }
-
-    static class DefaultReporter implements ITraceReporter {
-        private final Exporter traceExporter;
-
-        public DefaultReporter() {
-            traceExporter = Exporters.getOrCreate(Exporters.EXPORTER_NAME_TRACING);
-        }
-
-        @Override
-        public void report(List<ITraceSpan> spans) {
-            List<Object> traceMessages = spans.stream()
-                                              .map(span -> traceExporter.getMessageConverter().from(span))
-                                              .filter(Objects::nonNull)
-                                              .collect(Collectors.toList());
-            try {
-                traceExporter.export(traceMessages);
-            } catch (Exception e) {
-                log.warn("Exception when sending trace messages.", e);
-            }
-        }
     }
 }

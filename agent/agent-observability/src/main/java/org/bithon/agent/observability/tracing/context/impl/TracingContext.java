@@ -26,13 +26,12 @@ import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.context.TraceState;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationSetter;
 import org.bithon.agent.observability.tracing.id.ISpanIdGenerator;
+import org.bithon.agent.observability.tracing.reporter.BatchReporter;
 import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.time.Clock;
 import org.bithon.component.commons.utils.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Stack;
 
 /**
@@ -44,12 +43,19 @@ public class TracingContext implements ITraceContext {
     private static final boolean IS_DEBUG_ENABLED = ConfigurationManager.getInstance().getConfig(TraceConfig.class).isDebug();
 
     private final Stack<ITraceSpan> spanStack = new Stack<>();
-    private final List<ITraceSpan> spans = new ArrayList<>();
     private final Clock clock;
+
+    /**
+     * The traceId of this context.
+     */
     private final String traceId;
     private final ISpanIdGenerator spanIdGenerator;
-    private ITraceReporter reporter;
-    private TraceState attributes;
+    private final ITraceReporter reporter;
+
+    /**
+     * Trace state that received from upstream service and needs to be propagated to the downstream service.
+     */
+    private TraceState traceState;
 
     private boolean finished = false;
 
@@ -64,17 +70,18 @@ public class TracingContext implements ITraceContext {
         this.traceId = traceId;
         this.spanIdGenerator = spanIdGenerator;
         this.clock = clock;
+        this.reporter = new BatchReporter(Tracer.get().reporter());
     }
 
     @Override
     public ITraceContext traceState(TraceState attributes) {
-        this.attributes = attributes;
+        this.traceState = attributes;
         return this;
     }
 
     @Override
     public TraceState traceState() {
-        return attributes;
+        return traceState;
     }
 
     @Override
@@ -98,17 +105,6 @@ public class TracingContext implements ITraceContext {
     }
 
     @Override
-    public ITraceReporter reporter() {
-        return reporter;
-    }
-
-    @Override
-    public ITraceContext reporter(ITraceReporter reporter) {
-        this.reporter = reporter;
-        return this;
-    }
-
-    @Override
     public ISpanIdGenerator spanIdGenerator() {
         return spanIdGenerator;
     }
@@ -116,7 +112,9 @@ public class TracingContext implements ITraceContext {
     @Override
     public ITraceSpan newSpan(String parentSpanId, String spanId) {
         ITraceSpan span = new TracingSpan(spanId, parentSpanId, this);
-        this.onSpanCreated(span);
+
+        spanStack.push(span);
+
         return span;
     }
 
@@ -138,32 +136,17 @@ public class TracingContext implements ITraceContext {
                                                                    spanStack);
             }
 
-            this.spans.clear();
             this.spanStack.clear();
             this.finished = true;
             return;
         }
 
         // Allow this method to be re-entered
-        if (this.finished) {
-            return;
-        }
+        if (!this.finished) {
+            this.finished = true;
 
-        // Mark the context as FINISHED first to prevent user code to access spans in the implementation of 'report' below
-        this.finished = true;
-        try {
-            this.reporter.report(this.spans);
-        } catch (Throwable e) {
-            LoggerFactory.getLogger(TracingContext.class).warn("Exception occurred when finish a context", e);
-        } finally {
-            // Clear to allow this method to re-enter
-            this.spans.clear();
+            this.reporter.flush();
         }
-    }
-
-    private void onSpanCreated(ITraceSpan span) {
-        spanStack.push(span);
-        spans.add(span);
     }
 
     void onSpanStarted(TracingSpan span) {
@@ -171,26 +154,17 @@ public class TracingContext implements ITraceContext {
     }
 
     void onSpanFinished(TracingSpan span) {
-
-        if (spanStack.isEmpty()) {
+        try {
             TraceContextListener.getInstance().onSpanFinished(span);
-
-            if (IS_DEBUG_ENABLED) {
-                LoggerFactory.getLogger(TracingContext.class)
-                             .warn(StringUtils.format("Try to finish a span which is not in the stack. This IS a bug.\nCurrent span: \n%s",
-                                                      span),
-                                   new RuntimeException("Bug Detected"));
-            } else {
-                LoggerFactory.getLogger(TracingContext.class).warn("Try to finish a span which is not in the stack. This IS a bug.\n"
-                                                                   + "Please adding -Dbithon.tracing.debug=true parameter to your application to turn on the span life time message to debug. \nCurrent span: \n{}",
-                                                                   span);
-            }
-            return;
+        } catch (Throwable t) {
+            LoggerFactory.getLogger(TracingContext.class)
+                         .warn("Exception occurred when notifying span finished: " + span, t);
         }
 
-        if (!spanStack.peek().equals(span)) {
-            TraceContextListener.getInstance().onSpanFinished(span);
+        // Report the span
+        this.reporter.report(span);
 
+        if (spanStack.isEmpty() || !spanStack.peek().equals(span)) {
             if (IS_DEBUG_ENABLED) {
                 LoggerFactory.getLogger(TracingContext.class)
                              .warn(StringUtils.format("Try to finish a span which does not match the span in the stack. This IS a bug.\nCurrent span: \n%s, \n Unfinished Spans:\n%s",
@@ -203,17 +177,9 @@ public class TracingContext implements ITraceContext {
                                                                    span,
                                                                    spanStack);
             }
-            return;
+        } else {
+            spanStack.pop();
         }
-
-        spanStack.pop();
-        if (spanStack.isEmpty()) {
-            // TODO: report span
-            TraceContextListener.getInstance().onSpanFinished(span);
-            return;
-        }
-
-        TraceContextListener.getInstance().onSpanFinished(span);
     }
 
     @Override
@@ -229,7 +195,7 @@ public class TracingContext implements ITraceContext {
                                   this.spanIdGenerator,
                                   // For all copied trace context that has the same traceId,
                                   // use the same clock to ensure the microsecond calculation is based on the same time base
-                                  this.clock).reporter(this.reporter);
+                                  this.clock);
     }
 
     @Override

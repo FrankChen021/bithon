@@ -21,11 +21,14 @@ import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.source.Helper;
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationGetter;
 import org.bithon.agent.observability.tracing.context.propagation.w3c.W3CTraceContextExtractor;
 import org.bithon.agent.observability.tracing.context.propagation.w3c.W3CTraceContextHeader;
 import org.bithon.agent.observability.tracing.id.impl.DefaultSpanIdGenerator;
+import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
+import org.bithon.agent.observability.tracing.reporter.ReporterConfig;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -35,6 +38,7 @@ import org.mockito.Mockito;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -64,7 +68,18 @@ public class W3CTraceContextExtractorTest {
 
         // mock Tracer.get()
         mockTracer = Mockito.mockStatic(Tracer.class);
-        mockTracer.when(Tracer::get).thenReturn(new Tracer("test", "test").spanIdGenerator(new DefaultSpanIdGenerator()));
+        mockTracer.when(Tracer::get).thenReturn(new Tracer("test", "test")
+                                                    .spanIdGenerator(new DefaultSpanIdGenerator())
+                                                    .reporter(new ITraceReporter() {
+                                                        @Override
+                                                        public ReporterConfig getReporterConfig() {
+                                                            return new ReporterConfig();
+                                                        }
+
+                                                        @Override
+                                                        public void report(List<ITraceSpan> spans) {
+                                                        }
+                                                    }));
     }
 
     @AfterAll
@@ -95,7 +110,7 @@ public class W3CTraceContextExtractorTest {
         W3CTraceContextExtractor extractor = new W3CTraceContextExtractor();
 
         Assertions.assertNull(extractor.extract(Collections.emptyMap(),
-                                            TestPropagationGetter.INSTANCE));
+                                                TestPropagationGetter.INSTANCE));
     }
 
     @Test
@@ -103,7 +118,7 @@ public class W3CTraceContextExtractorTest {
         W3CTraceContextExtractor extractor = new W3CTraceContextExtractor();
 
         Assertions.assertNull(extractor.extract(ImmutableMap.of(W3CTraceContextHeader.TRACE_HEADER_PARENT, "invalid-format"),
-                                            TestPropagationGetter.INSTANCE));
+                                                TestPropagationGetter.INSTANCE));
     }
 
     @Test
@@ -111,13 +126,13 @@ public class W3CTraceContextExtractorTest {
         W3CTraceContextExtractor extractor = new W3CTraceContextExtractor();
 
         Assertions.assertNull(extractor.extract(ImmutableMap.of(W3CTraceContextHeader.TRACE_HEADER_PARENT, "00-invalidtraceid-00f067aa0ba902b7-01"),
-                                            TestPropagationGetter.INSTANCE));
+                                                TestPropagationGetter.INSTANCE));
 
         // Length of trace id is not 32
         Assertions.assertNull(extractor.extract(ImmutableMap.of(W3CTraceContextHeader.TRACE_HEADER_PARENT, "00-4bf92f3577b34d-00f067aa0ba902b7-01"),
-                                            TestPropagationGetter.INSTANCE));
+                                                TestPropagationGetter.INSTANCE));
         Assertions.assertNull(extractor.extract(ImmutableMap.of(W3CTraceContextHeader.TRACE_HEADER_PARENT, "00-4bf92f3577b34da6a3ce929d0e0e4736A-00f067aa0ba902b7-01"),
-                                            TestPropagationGetter.INSTANCE));
+                                                TestPropagationGetter.INSTANCE));
     }
 
     @Test
@@ -125,16 +140,16 @@ public class W3CTraceContextExtractorTest {
         W3CTraceContextExtractor extractor = new W3CTraceContextExtractor();
 
         Assertions.assertNull(extractor.extract(ImmutableMap.of(W3CTraceContextHeader.TRACE_HEADER_PARENT, "00-4bf92f3577b34da6a3ce929d0e0e4736-invalidspanid-01"),
-                                            TestPropagationGetter.INSTANCE));
+                                                TestPropagationGetter.INSTANCE));
 
         Assertions.assertNull(extractor.extract(ImmutableMap.of(W3CTraceContextHeader.TRACE_HEADER_PARENT, "00-4bf92f3577b34da6a3ce929d0e0e4736--01"),
-                                            TestPropagationGetter.INSTANCE));
+                                                TestPropagationGetter.INSTANCE));
 
         // The length of parent id is not 16
         Assertions.assertNull(extractor.extract(ImmutableMap.of(W3CTraceContextHeader.TRACE_HEADER_PARENT, "00-4bf92f3577b34da6a3ce929d0e0e4736-00f0-01"),
-                                            TestPropagationGetter.INSTANCE));
+                                                TestPropagationGetter.INSTANCE));
         Assertions.assertNull(extractor.extract(ImmutableMap.of(W3CTraceContextHeader.TRACE_HEADER_PARENT, "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7A-01"),
-                                            TestPropagationGetter.INSTANCE));
+                                                TestPropagationGetter.INSTANCE));
     }
 
     @Test
@@ -142,12 +157,12 @@ public class W3CTraceContextExtractorTest {
         W3CTraceContextExtractor extractor = new W3CTraceContextExtractor();
 
         Assertions.assertNull(extractor.extract(ImmutableMap.of(W3CTraceContextHeader.TRACE_HEADER_PARENT, "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-invalidflags"),
-                                            TestPropagationGetter.INSTANCE));
+                                                TestPropagationGetter.INSTANCE));
 
         Assertions.assertNull(extractor.extract(ImmutableMap.of(W3CTraceContextHeader.TRACE_HEADER_PARENT, "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-001"),
-                                            TestPropagationGetter.INSTANCE));
+                                                TestPropagationGetter.INSTANCE));
 
         Assertions.assertNull(extractor.extract(ImmutableMap.of(W3CTraceContextHeader.TRACE_HEADER_PARENT, "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-"),
-                                            TestPropagationGetter.INSTANCE));
+                                                TestPropagationGetter.INSTANCE));
     }
 }

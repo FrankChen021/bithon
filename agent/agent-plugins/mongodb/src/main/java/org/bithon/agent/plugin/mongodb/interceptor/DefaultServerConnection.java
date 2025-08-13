@@ -94,7 +94,8 @@ public class DefaultServerConnection {
             if (span != null) {
                 span.tag(aopContext.getException())
                     .tag(Tags.Net.PEER, hostAndPort)
-                    .tag(Tags.Database.NAME, command == null ? null : command.getDatabase())
+                    .tag(Tags.Database.SYSTEM, "mongodb")
+                    .tag(Tags.Database.NAMESPACE, command == null ? null : command.getDatabase())
                     .finish();
             }
 

@@ -62,7 +62,7 @@ import static java.io.File.separator;
  * 1. When getting configuration properties,
  * the manager will collect properties with the same key prefixes from all sources and merge them in the above list order.
  *
- * Let p1 has the following configuration defined(Note it's just example, not reflected real configuration):
+ * Assuming p1 has the following configuration defined(Note it's just example, not reflected real configuration):
  * <pre>
  * -- p1
  *   tracing:
@@ -205,12 +205,12 @@ public class ConfigurationManager {
      * NOTE: The clazz must have a non-private default ctor if it's annotated by {@link ConfigurationProperties}
      */
     public <T> T getConfig(Class<T> clazz) {
-        ConfigurationProperties cfg = clazz.getAnnotation(ConfigurationProperties.class);
-        if (cfg == null || StringUtils.isEmpty(cfg.path())) {
+        ConfigurationProperties cfgAnnotation = clazz.getAnnotation(ConfigurationProperties.class);
+        if (cfgAnnotation == null || StringUtils.isEmpty(cfgAnnotation.path())) {
             throw new AgentException("Class [%s] does not have valid ConfigurationProperties.", clazz.getName());
         }
 
-        return getConfig(cfg.path(), clazz, cfg.dynamic());
+        return getConfig(cfgAnnotation.path(), clazz, cfgAnnotation.dynamic());
     }
 
     public <T> T getDynamicConfig(String propertyPath, Class<T> clazz) {
