@@ -115,21 +115,6 @@
             </plugins>
         </pluginManagement>
         <plugins>
-            <!-- Configure annotation processor for all agent plugin modules -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <annotationProcessorPaths>
-                        <!-- Add our interceptor type annotation processor -->
-                        <path>
-                            <groupId>org.bithon.agent</groupId>
-                            <artifactId>agent-instrumentation</artifactId>
-                            <version>${project.version}</version>
-                        </path>
-                    </annotationProcessorPaths>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>de.thetaphi</groupId>
                 <artifactId>forbiddenapis</artifactId>
@@ -162,6 +147,7 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
+                            <ignoreSignaturesOfMissingClasses>true</ignoreSignaturesOfMissingClasses>
                             <bundledSignatures>
                                 <!-- Check jdk-system-out only for production code, but not in test code -->
                                 <bundledSignature>jdk-unsafe</bundledSignature>

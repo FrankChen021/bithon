@@ -4,9 +4,9 @@
 
   <parent>
     <groupId>org.bithon.agent</groupId>
-    <artifactId>agent-all</artifactId>
+    <artifactId>agent-plugins</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <relativePath>../../../pom.xml</relativePath>
+    <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>agent-plugin-jdbc-mysql6</artifactId>
 
