@@ -380,9 +380,9 @@
               <descriptors>
                 <descriptor>assemble-plugins.xml</descriptor>
               </descriptors>
-              <appendAssemblyId>false</appendAssemblyId>
               <attach>false</attach>
-              <finalName>agent-plugins</finalName>
+              <!--generate the jar as agent-distribution-plugins.jar -->
+              <appendAssemblyId>true</appendAssemblyId>
             </configuration>
           </execution>
           

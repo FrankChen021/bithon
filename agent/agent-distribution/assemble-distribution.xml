@@ -92,7 +92,7 @@
 
   <files>
     <file>
-      <source>target/agent-plugins.jar</source>
+      <source>target/agent-distribution-plugins.jar</source>
       <outputDirectory>plugins</outputDirectory>
       <destName>all-in-one.jar</destName>
     </file>
