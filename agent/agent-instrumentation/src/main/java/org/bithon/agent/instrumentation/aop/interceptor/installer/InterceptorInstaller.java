@@ -73,7 +73,7 @@ public class InterceptorInstaller {
                                  .with(InstrumentedType.Factory.Default.FROZEN))
             .assureReadEdgeFromAndTo(inst, IBithonObject.class)
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
-            .with(AgentBuilder.TypeStrategy.Default.REBASE)  // Use REBASE to support REPLACEMENT interceptors
+            .with(AgentBuilder.TypeStrategy.Default.REDEFINE)  // Use REBASE to support REPLACEMENT interceptors
             // Use NoOp initialization strategy with FROZEN types to avoid initializer injection conflicts
             .with(AgentBuilder.InitializationStrategy.NoOp.INSTANCE)
             .with(AgentBuilder.TypeStrategy.Default.DECORATE)

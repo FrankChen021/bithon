@@ -24,7 +24,7 @@ package org.bithon.agent.instrumentation.aop;
  */
 public interface IBithonObject {
 
-    String INJECTED_FIELD_NAME = "_$BITHON_INJECTED_OBJECT$_";
+    String INJECTED_FIELD_NAME = "_$BITHON_INJECTED_OBJECT_V2$_";
 
     Object getInjectedObject();
 
