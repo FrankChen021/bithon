@@ -18,6 +18,11 @@
         </excludes>
         <includes>
           <include>**/*.class</include>
+
+          <!--Plugin Configuration-->
+          <include>*.yml</include>
+
+          <!--Generated plugin metadata-->
           <include>META-INF/bithon/*.meta</include>
         </includes>
       </unpackOptions>
