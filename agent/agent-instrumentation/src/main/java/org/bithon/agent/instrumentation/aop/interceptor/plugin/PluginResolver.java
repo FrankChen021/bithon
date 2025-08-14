@@ -27,17 +27,10 @@ import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
 
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -52,10 +45,6 @@ public abstract class PluginResolver {
 
     private static final ILogger LOG = LoggerFactory.getLogger(PluginResolver.class);
 
-    // Class-level variable to hold all interceptor type mappings
-    private final Map<String, InterceptorType> interceptorTypes = new HashMap<>();
-    private final List<String> pluginClassList = new ArrayList<>();
-
     public PluginResolver() {
         // create plugin class loader first
         PluginClassLoader.createClassLoader();
@@ -63,58 +52,29 @@ public abstract class PluginResolver {
 
     public Descriptors resolveInterceptors() {
         // Load all interceptor types from the merged properties file first
-        loadPluginMetadata();
+        PluginMetadata pluginMeta = PluginMetadata.Loader.load(new File(AgentDirectory.getSubDirectory("plugins"), "plugins.meta"));
 
         // Load plugins
-        List<IPlugin> plugins = loadPlugins();
+        List<IPlugin> plugins = loadPlugins(pluginMeta.pluginClassList);
 
         Descriptors descriptors = new Descriptors();
         for (IPlugin plugin : plugins) {
             String pluginName = plugin.getClass().getSimpleName();
 
+            // Merge class transformers
             descriptors.merge(plugin.getBithonClassDescriptor(), plugin.getPreconditions());
 
+            // Merge method point cuts
             descriptors.merge(pluginName, plugin.getPreconditions(), plugin.getInterceptors());
         }
 
-        resolveInterceptorType(descriptors.getAllDescriptor(), this.interceptorTypes);
+        // Resolve interceptor types for all method point cuts
+        resolveInterceptorType(descriptors.getAllDescriptor(), pluginMeta.interceptorTypes);
 
         return descriptors;
     }
 
-    /**
-     * Resolve the interceptor type ({@link InterceptorType}) for each interceptor declared in each plugin
-     * Using preloaded interceptor type mappings with fallback to runtime resolution
-     */
-    public static void resolveInterceptorType(Collection<Descriptors.Descriptor> descriptors, Map<String, InterceptorType> knowInterceptorTypes) {
-        // A fallback if the generated
-        InterceptorTypeResolver runtimeTypeResolver = new InterceptorTypeResolver(PluginClassLoader.getClassLoader());
-
-        for (Descriptors.Descriptor descriptor : descriptors) {
-            for (Descriptors.MethodPointCuts pointcut : descriptor.getMethodPointCuts()) {
-                for (MethodPointCutDescriptor pointcutDescriptor : pointcut.getMethodInterceptors()) {
-                    String interceptorClassName = pointcutDescriptor.getInterceptorClassName();
-
-                    InterceptorType type = knowInterceptorTypes.get(interceptorClassName);
-                    if (type != null) {
-                        // Found in compile-time mapping
-                        pointcutDescriptor.setInterceptorType(type);
-                    } else {
-                        // Fallback to runtime resolution
-                        try {
-                            type = runtimeTypeResolver.resolve(interceptorClassName);
-                            pointcutDescriptor.setInterceptorType(type);
-                            LOG.info("Resolved interceptor type for [{}] using runtime fallback: {}", interceptorClassName, type);
-                        } catch (AgentException e) {
-                            throw new AgentException("Unable to resolve interceptor type for [%s]: %s. Please report this to agent maintainers.", interceptorClassName, e.getMessage());
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private List<IPlugin> loadPlugins() {
+    private List<IPlugin> loadPlugins(List<String> pluginClassList) {
         // If we have known plugin classes from the INI file, use them directly
         if (pluginClassList.isEmpty()) {
             throw new AgentException("Can't find plugins. Please report it to agent maintainers. ");
@@ -200,58 +160,31 @@ public abstract class PluginResolver {
     }
 
     /**
-     * Load all interceptor types and plugin classes from the external plugins.meta file.
-     * The plugins.meta file is created during the agent-distribution build process and placed in the plugins directory.
+     * Resolve the interceptor type ({@link InterceptorType}) for each interceptor declared in each plugin
+     * Using preloaded interceptor type mappings with fallback to runtime resolution
      */
-    private void loadPluginMetadata() {
-        File pluginMetaFile = new File(AgentDirectory.getSubDirectory("plugins"), "plugins.meta");
-        if (!pluginMetaFile.exists()) {
-            throw new AgentException("Plugin metadata file not found. Please report it to agent maintainers.");
-        }
+    public static void resolveInterceptorType(Collection<Descriptors.Descriptor> descriptors, Map<String, InterceptorType> knowInterceptorTypes) {
+        // A fallback if the generated
+        InterceptorTypeResolver runtimeTypeResolver = new InterceptorTypeResolver(PluginClassLoader.getClassLoader());
 
-        try (FileInputStream fileStream = new FileInputStream(pluginMetaFile)) {
-            loadPluginMetadata(fileStream);
-        } catch (IOException e) {
-            throw new AgentException("Unable to read plugin metadata file: %s", e.getMessage());
-        }
-    }
+        for (Descriptors.Descriptor descriptor : descriptors) {
+            for (Descriptors.MethodPointCuts pointcut : descriptor.getMethodPointCuts()) {
+                for (MethodPointCutDescriptor pointcutDescriptor : pointcut.getMethodInterceptors()) {
+                    String interceptorClassName = pointcutDescriptor.getInterceptorClassName();
 
-    /**
-     * Parse INI-style properties file to extract plugin classes and interceptor types.
-     * Format:
-     * [plugin.class.name]
-     * interceptor.class.name=INTERCEPTOR_TYPE
-     */
-    private void loadPluginMetadata(InputStream inputStream) throws IOException {
-
-
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                line = line.trim();
-
-                // Skip comments and empty lines
-                if (line.isEmpty() || line.startsWith("#")) {
-                    continue;
-                }
-
-                // Find plugin class declaration as [plugin.class.name]
-                if (line.startsWith("[") && line.endsWith("]")) {
-                    String pluginClass = line.substring(1, line.length() - 1);
-                    pluginClassList.add(pluginClass);
-                    continue;
-                }
-
-                int equalIndex = line.indexOf('=');
-                if (equalIndex > 0) {
-                    String interceptorClassName = line.substring(0, equalIndex).trim();
-                    String typeString = line.substring(equalIndex + 1).trim();
-
-                    try {
-                        interceptorTypes.put(interceptorClassName, InterceptorType.valueOf(typeString));
-                    } catch (IllegalArgumentException e) {
-                        LOG.warn("Invalid interceptor type [{}] for interceptor [{}]", typeString, interceptorClassName);
+                    InterceptorType type = knowInterceptorTypes.get(interceptorClassName);
+                    if (type != null) {
+                        // Found in compile-time mapping
+                        pointcutDescriptor.setInterceptorType(type);
+                    } else {
+                        // Fallback to runtime resolution
+                        try {
+                            type = runtimeTypeResolver.resolve(interceptorClassName);
+                            pointcutDescriptor.setInterceptorType(type);
+                            LOG.info("Resolved interceptor type for [{}] using runtime fallback: {}", interceptorClassName, type);
+                        } catch (AgentException e) {
+                            throw new AgentException("Unable to resolve interceptor type for [%s]: %s. Please report this to agent maintainers.", interceptorClassName, e.getMessage());
+                        }
                     }
                 }
             }
