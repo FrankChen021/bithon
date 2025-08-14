@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.instrumentation.aop.interceptor.processor;
+package org.bithon.agent.plugin.processor;
 
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorType;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
@@ -51,7 +51,7 @@ import java.util.Set;
  * @date 2025/08/14 13:30
  */
 @SupportedAnnotationTypes("*")
-public class InterceptorTypeProcessor extends AbstractProcessor {
+public class PluginMetadataProcessor extends AbstractProcessor {
 
     private final Map<String, InterceptorType> interceptorTypes = new HashMap<>();
     private String pluginClass = null;

@@ -98,7 +98,7 @@
           <showWarnings>true</showWarnings>
           <!-- Run compiler in same JVM to preserve NOTE level messages -->
           <fork>false</fork>
-          <!--Increase WARN/ERROR numbers in case there're too many NOTE messages-->
+          <!--Increase WARN/ERROR numbers in case there are too many NOTE messages-->
           <compilerArgs>
             <arg>-Xmaxwarns</arg>
             <arg>10000</arg>
