@@ -27,7 +27,7 @@ import org.bithon.component.commons.tracing.Tags;
  * @author frank.chen021@outlook.com
  * @date 2024/12/30 17:30
  */
-public class AbstractStatement$ExecuteBatch extends AbstractStatement$Execute {
+public abstract class AbstractStatement$ExecuteBatch extends AbstractStatement$Execute {
 
     @Override
     protected StatementContext getStatementContext(AopContext aopContext) {

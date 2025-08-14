@@ -18,7 +18,7 @@
         </excludes>
         <includes>
           <include>**/*.class</include>
-          <include>META-INF/bithon/*_interceptor_types.properties</include>
+          <include>META-INF/bithon/*.meta</include>
         </includes>
       </unpackOptions>
       <outputDirectory>/</outputDirectory>

@@ -30,18 +30,18 @@ import org.bithon.agent.instrumentation.utils.AgentDirectory;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
 /**
@@ -54,7 +54,7 @@ public abstract class PluginResolver {
 
     // Class-level variable to hold all interceptor type mappings
     private final Map<String, InterceptorType> interceptorTypes = new HashMap<>();
-    private final List<String> knownPluginClasses = new ArrayList<>();
+    private final List<String> pluginClassList = new ArrayList<>();
 
     public PluginResolver() {
         // create plugin class loader first
@@ -63,7 +63,7 @@ public abstract class PluginResolver {
 
     public Descriptors resolveInterceptors() {
         // Load all interceptor types from the merged properties file first
-        loadAllInterceptorTypes();
+        loadPluginMetadata();
 
         // Load plugins
         List<IPlugin> plugins = loadPlugins();
@@ -115,31 +115,17 @@ public abstract class PluginResolver {
     }
 
     private List<IPlugin> loadPlugins() {
-        JarClassLoader pluginClassLoader = (JarClassLoader) PluginClassLoader.getClassLoader();
-
         // If we have known plugin classes from the INI file, use them directly
-        if (!knownPluginClasses.isEmpty()) {
-            LOG.info("Loading {} plugins from INI-style properties file", knownPluginClasses.size());
-            return knownPluginClasses.stream()
-                                     .sorted() // Load plugins by alphabetic order
-                                     .map(pluginClassName -> loadPluginByClassName(pluginClassName, pluginClassLoader))
-                                     .filter(Objects::nonNull)
-                                     .collect(Collectors.toList());
+        if (pluginClassList.isEmpty()) {
+            throw new AgentException("Can't find plugins. Please report it to agent maintainers. ");
         }
 
-        // Fallback to JAR scanning if no INI file is available
-        LOG.warn("No plugin classes found in INI file, falling back to JAR scanning");
-        return pluginClassLoader.getJars()
-                                .stream()
-                                .flatMap(JarFile::stream)
-                                // Find the plugin class, which must be located under org.bithon.agent.plugin package
-                                .filter(jarEntry -> jarEntry.getName().startsWith("org/bithon/agent/plugin/") && jarEntry.getName().endsWith("Plugin.class"))
-                                // Load plugins by its alphabetic names
-                                .sorted(Comparator.comparing(JarEntry::getName))
-                                // Load plugin
-                                .map((jarEntry) -> loadPlugin(jarEntry.getName(), pluginClassLoader))
-                                .filter(Objects::nonNull)
-                                .collect(Collectors.toList());
+        JarClassLoader pluginClassLoader = (JarClassLoader) PluginClassLoader.getClassLoader();
+        return pluginClassList.stream()
+                              .sorted() // Load plugins by alphabetic order
+                              .map(pluginClassName -> loadPluginByClassName(pluginClassName, pluginClassLoader))
+                              .filter(Objects::nonNull)
+                              .collect(Collectors.toList());
     }
 
     /**
@@ -150,26 +136,6 @@ public abstract class PluginResolver {
         String packageName = pluginFullClassName.substring(0, pluginFullClassName.lastIndexOf('.'));
         String pluginName = packageName.substring("org.bithon.agent.plugin.".length());
 
-        return loadPluginInstance(pluginFullClassName, pluginName, pluginClassLoader);
-    }
-
-    private IPlugin loadPlugin(String pluginJarEntryName, JarClassLoader pluginClassLoader) {
-        String pluginFullClassName = pluginJarEntryName.substring(0, pluginJarEntryName.length() - ".class".length())
-                                                       .replace('/', '.');
-
-        // A readable name for this plugin, so that users can use this name to disable one plugin
-        // Since the above method already makes sure that the plugin class located under org.bithon.agent.plugin package,
-        // we can directly use substring to get the name
-        String packageName = pluginFullClassName.substring(0, pluginFullClassName.lastIndexOf('.'));
-        String pluginName = packageName.substring("org.bithon.agent.plugin.".length());
-
-        return loadPluginInstance(pluginFullClassName, pluginName, pluginClassLoader);
-    }
-
-    /**
-     * Common method to load plugin instance
-     */
-    private IPlugin loadPluginInstance(String pluginFullClassName, String pluginName, JarClassLoader pluginClassLoader) {
         try {
             Class<?> pluginClass = Class.forName(pluginFullClassName, true, pluginClassLoader);
             if (!isPluginClass(pluginClass)) {
@@ -237,28 +203,17 @@ public abstract class PluginResolver {
      * Load all interceptor types and plugin classes from the external plugins.meta file.
      * The plugins.meta file is created during the agent-distribution build process and placed in the plugins directory.
      */
-    private void loadAllInterceptorTypes() {
-        try {
-            // Try to load from external plugins.meta file first
-            File pluginMetaFile = findPluginMetaFile();
-            try (java.io.FileInputStream fileStream = new java.io.FileInputStream(pluginMetaFile)) {
-                loadPluginMetadata(fileStream);
-            }
+    private void loadPluginMetadata() {
+        File pluginMetaFile = new File(AgentDirectory.getSubDirectory("plugins"), "plugins.meta");
+        if (!pluginMetaFile.exists()) {
+            throw new AgentException("Plugin metadata file not found. Please report it to agent maintainers.");
+        }
+
+        try (FileInputStream fileStream = new FileInputStream(pluginMetaFile)) {
+            loadPluginMetadata(fileStream);
         } catch (IOException e) {
             throw new AgentException("Unable to read plugin metadata file: %s", e.getMessage());
         }
-    }
-
-    /**
-     * Find the plugins.meta file in the plugins directory.
-     * The plugins directory is typically located relative to the agent JAR.
-     */
-    private File findPluginMetaFile() {
-        File file = new File(AgentDirectory.getSubDirectory("plugins"), "plugins.meta");
-        if (!file.exists()) {
-            throw new AgentException("Plugin metadata file not found. Please report it to agent maintainers.");
-        }
-        return file;
     }
 
     /**
@@ -268,45 +223,39 @@ public abstract class PluginResolver {
      * interceptor.class.name=INTERCEPTOR_TYPE
      */
     private void loadPluginMetadata(InputStream inputStream) throws IOException {
-        BufferedReader reader = new BufferedReader(new java.io.InputStreamReader(inputStream, java.nio.charset.StandardCharsets.UTF_8));
-        String line;
-        String currentPluginClass = null;
-        int loadedInterceptors = 0;
-        int loadedPlugins = 0;
 
-        while ((line = reader.readLine()) != null) {
-            line = line.trim();
 
-            // Skip comments and empty lines
-            if (line.isEmpty() || line.startsWith("#")) {
-                continue;
-            }
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
 
-            // Check for section header [plugin.class.name]
-            if (line.startsWith("[") && line.endsWith("]")) {
-                currentPluginClass = line.substring(1, line.length() - 1);
-                knownPluginClasses.add(currentPluginClass);
-                loadedPlugins++;
-                continue;
-            }
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
 
-            // Parse interceptor entry: interceptor.class.name=INTERCEPTOR_TYPE
-            if (currentPluginClass != null && line.contains("=")) {
+                // Skip comments and empty lines
+                if (line.isEmpty() || line.startsWith("#")) {
+                    continue;
+                }
+
+                // Find plugin class declaration as [plugin.class.name]
+                if (line.startsWith("[") && line.endsWith("]")) {
+                    String pluginClass = line.substring(1, line.length() - 1);
+                    pluginClassList.add(pluginClass);
+                    continue;
+                }
+
                 int equalIndex = line.indexOf('=');
-                String interceptorClassName = line.substring(0, equalIndex).trim();
-                String typeString = line.substring(equalIndex + 1).trim();
+                if (equalIndex > 0) {
+                    String interceptorClassName = line.substring(0, equalIndex).trim();
+                    String typeString = line.substring(equalIndex + 1).trim();
 
-                try {
-                    InterceptorType type = InterceptorType.valueOf(typeString);
-                    interceptorTypes.put(interceptorClassName, type);
-                    loadedInterceptors++;
-                } catch (IllegalArgumentException e) {
-                    LOG.warn("Invalid interceptor type [{}] for interceptor [{}] in plugin [{}]", typeString, interceptorClassName, currentPluginClass);
+                    try {
+                        interceptorTypes.put(interceptorClassName, InterceptorType.valueOf(typeString));
+                    } catch (IllegalArgumentException e) {
+                        LOG.warn("Invalid interceptor type [{}] for interceptor [{}]", typeString, interceptorClassName);
+                    }
                 }
             }
         }
-
-        LOG.info("Loaded {} plugin classes and {} interceptor types from merged INI-style properties file", loadedPlugins, loadedInterceptors);
     }
 
     protected abstract boolean onResolved(Class<?> pluginClazz);

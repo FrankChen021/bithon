@@ -28,11 +28,13 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
+import javax.tools.StandardLocation;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
@@ -46,7 +48,7 @@ import java.util.Set;
  * This generated class will be loaded during a plugin is loaded, and the interceptor types
  *
  * @author frank.chen021@outlook.com
- * @date 2024/1/1 00:00
+ * @date 2025/08/14 13:30
  */
 @SupportedAnnotationTypes("*")
 public class InterceptorTypeProcessor extends AbstractProcessor {
@@ -54,7 +56,6 @@ public class InterceptorTypeProcessor extends AbstractProcessor {
     private final Map<String, InterceptorType> interceptorTypes = new HashMap<>();
     private String pluginClass = null;
     private boolean processed = false;
-    private String moduleName = null;
 
     @Override
     public SourceVersion getSupportedSourceVersion() {
@@ -66,7 +67,7 @@ public class InterceptorTypeProcessor extends AbstractProcessor {
         if (roundEnv.processingOver()) {
             // Generate the registry class on the final round
             if (!processed) {
-                generateRegistryClass();
+                generatePluginMetadata();
                 processed = true;
             }
             return true;
@@ -102,14 +103,11 @@ public class InterceptorTypeProcessor extends AbstractProcessor {
                     continue;
                 }
 
-                // Debug: Print all classes being processed (NOTE level - may not show by default)
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "InterceptorTypeProcessor: Processing class " + className);
-
                 // Check if this is a plugin class (ends with "Plugin" and implements IPlugin)
                 if (className.endsWith("Plugin") && implementsIPlugin(classElement, typeUtils)) {
                     if (pluginClass == null) {
                         pluginClass = className;
-                        processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "Found plugin class: " + className);
+                        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Found plugin class: " + className);
                     } else {
                         processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING,
                                                                  "Warning: Multiple plugin classes found in same compilation unit: " + pluginClass + " and " + className);
@@ -146,6 +144,11 @@ public class InterceptorTypeProcessor extends AbstractProcessor {
                                                      TypeMirror beforeType, TypeMirror afterType,
                                                      TypeMirror aroundType, TypeMirror replaceType) {
 
+        // Skip abstract classes - they cannot be instantiated as interceptors
+        if (classElement.getModifiers().contains(Modifier.ABSTRACT)) {
+            return null;
+        }
+
         TypeMirror currentType = classElement.asType();
 
         // Check direct inheritance and walk up the inheritance hierarchy
@@ -178,135 +181,47 @@ public class InterceptorTypeProcessor extends AbstractProcessor {
         return null;
     }
 
-    private void generateRegistryClass() {
-        if (interceptorTypes.isEmpty()) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE,
-                                                     "No interceptors found, skipping registry generation");
+    private void generatePluginMetadata() {
+        if (pluginClass == null && interceptorTypes.isEmpty()) {
+            // No plugin class or interceptors found, nothing to generate
             return;
-        }
-
-        // Determine module name once - this will report errors if configuration is invalid
-        this.moduleName = determineModuleName();
-        if (this.moduleName == null) {
-            // Error already reported in determineModuleName()
-            return;
-        }
-
-        // Generate the properties file
-        generateInterceptorTypesProperties();
-    }
-
-    private void generateInterceptorTypesProperties() {
-        try {
-            // Use the already determined module name
-            if (this.moduleName == null) {
-                // This should not happen if generateRegistryClass() was called properly
+        } else {
+            if (pluginClass == null) {
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                                                         "Module name not determined before generating properties file");
+                                                         "No plugin class found, but interceptors found.");
                 return;
             }
+            if (interceptorTypes.isEmpty()) {
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                                                         "No interceptors found, but plugin class found.");
+                return;
+            }
+        }
 
-            // Convert module name to properties file name format
-            // e.g., "redis.jedis3" -> "META-INF/bithon/redis_jedis3_interceptor_types.properties"
-            String propertiesFileName = "META-INF/bithon/" + this.moduleName.replace('.', '_') + "_interceptor_types.properties";
+        try {
+            String metadataFile = "META-INF/bithon/" + this.pluginClass + ".meta";
 
             // Create the properties file in the META-INF/bithon directory  
-            FileObject file = processingEnv.getFiler().createResource(
-                javax.tools.StandardLocation.CLASS_OUTPUT,
-                "",
-                propertiesFileName
-            );
-
+            FileObject file = processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", metadataFile);
             try (Writer writer = file.openWriter()) {
-                writer.write("# Generated interceptor type mappings for plugin module: " + this.moduleName + "\n");
-                writer.write("# This file is automatically generated by InterceptorTypeProcessor.\n");
-                writer.write("# Format: INI-style with plugin sections\n");
-                writer.write("# [plugin.class.name]\n");
-                writer.write("# interceptor.class.name=INTERCEPTOR_TYPE\n");
-                writer.write("\n");
-
                 // Write plugin class section
                 writer.write("[" + this.pluginClass + "]\n");
-                writer.write("\n");
 
                 // Generate the interceptor entries under the plugin section
                 for (Map.Entry<String, InterceptorType> entry : interceptorTypes.entrySet()) {
                     writer.write(entry.getKey() + "=" + entry.getValue() + "\n");
                 }
+
+                // Extra space so that two plugins can be separated by a blank line in the final merged file
+                writer.write("\n");
             }
 
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE,
-                                                     "Generated " + propertiesFileName + " with " + interceptorTypes.size() + " interceptors");
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Generated " + metadataFile + " with " + interceptorTypes.size() + " interceptors");
 
         } catch (IOException e) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                                                     "Failed to generate interceptor type properties: " + e.getMessage());
+                                                     "Failed to generate plugin metadata: " + e.getMessage());
         }
-    }
-
-    private String determineModuleName() {
-        // Check if we have interceptors but no plugin class - this is an error
-        if (pluginClass == null && !interceptorTypes.isEmpty()) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING,
-                                                     "Found " + interceptorTypes.size() + " interceptor classes but no plugin class implementing IPlugin. " +
-                                                     "Each plugin module must have exactly one class ending with 'Plugin' that implements IPlugin. " +
-                                                     "Interceptors found: " + interceptorTypes.keySet());
-            return null;
-        }
-
-        // If no plugin class and no interceptors, nothing to process
-        if (pluginClass == null) {
-            return null;
-        }
-
-        // Extract module name from the plugin class we discovered during processing
-        if (pluginClass.startsWith("org.bithon.agent.plugin.")) {
-            // Extract module name from plugin class package
-            // Example: org.bithon.agent.plugin.redis.jedis2.Jedis2Plugin -> redis.jedis2
-            String packagePart = pluginClass.substring("org.bithon.agent.plugin.".length());
-            int lastDot = packagePart.lastIndexOf('.');
-            if (lastDot > 0) {
-                String moduleName = packagePart.substring(0, lastDot); // Remove class name, keep package path
-
-                // Verify this module name matches our interceptors
-                if (hasInterceptorsInModule(moduleName)) {
-                    processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING,
-                                                             "Determined module name from plugin class [" + pluginClass + "]: " + moduleName);
-                    return moduleName;
-                } else {
-                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                                                             "Plugin class [" + pluginClass + "] found but no interceptors match module [" + moduleName + "]. " +
-                                                             "Interceptors found: " + interceptorTypes.keySet());
-                    return null;
-                }
-            } else {
-                // Single level package like org.bithon.agent.plugin.grpc.GrpcPlugin -> grpc
-                String moduleName = packagePart;
-                if (hasInterceptorsInModule(moduleName)) {
-                    processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING,
-                                                             "Determined module name from plugin class [" + pluginClass + "]: " + moduleName);
-                    return moduleName;
-                } else {
-                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                                                             "Plugin class [" + pluginClass + "] found but no interceptors match module [" + moduleName + "]. " +
-                                                             "Interceptors found: " + interceptorTypes.keySet());
-                    return null;
-                }
-            }
-        }
-
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                                                 "Invalid plugin class name [" + pluginClass + "]. Plugin classes must be under org.bithon.agent.plugin package.");
-        return null;
-    }
-
-    private boolean hasInterceptorsInModule(String moduleName) {
-        if (moduleName == null) {
-            return false;
-        }
-        String expectedPrefix = "org.bithon.agent.plugin." + moduleName + ".";
-        return interceptorTypes.keySet().stream()
-                               .anyMatch(className -> className.startsWith(expectedPrefix));
     }
 
     /**
@@ -348,6 +263,4 @@ public class InterceptorTypeProcessor extends AbstractProcessor {
 
         return false;
     }
-
-
 }

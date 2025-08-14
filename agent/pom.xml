@@ -28,6 +28,7 @@
     <modules>
         <module>agent-sdk</module>
         <module>agent-instrumentation</module>
+        <module>agent-plugin-processor</module>
         <module>agent-core</module>
         <module>agent-observability</module>
         <module>agent-controller</module>
