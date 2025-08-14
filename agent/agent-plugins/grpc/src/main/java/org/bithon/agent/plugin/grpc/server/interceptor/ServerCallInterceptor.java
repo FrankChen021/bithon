@@ -25,7 +25,6 @@ import io.grpc.ServerCall;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
 import io.grpc.Status;
-import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
@@ -77,8 +76,7 @@ public class ServerCallInterceptor implements ServerInterceptor {
             }
         }
 
-        ITraceSpan rootSpan = context.reporter(Tracer.get().reporter())
-                                     .currentSpan()
+        ITraceSpan rootSpan = context.currentSpan()
                                      .name("grpc-server")
                                      .kind(SpanKind.SERVER)
                                      .method(serviceName, methodName)

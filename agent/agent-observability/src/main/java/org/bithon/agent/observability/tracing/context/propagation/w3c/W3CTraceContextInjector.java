@@ -23,6 +23,7 @@ import org.bithon.agent.observability.tracing.context.propagation.ITraceContextI
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationSetter;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.utils.StringUtils;
 
 /**
  * @author frank.chen021@outlook.com
@@ -47,7 +48,9 @@ public class W3CTraceContextInjector implements ITraceContextInjector {
                        ITracePropagator.TRACE_HEADER_SRC_APPLICATION,
                        Tracer.get().appName());
         } catch (Exception e) {
-            LoggerFactory.getLogger(W3CTraceContextInjector.class).error("Exception when propagating trace", e);
+            LoggerFactory.getLogger(W3CTraceContextInjector.class)
+                         .warn(StringUtils.format("Exception when propagating trace to request object [{}]", request.getClass().getName()),
+                               e);
         }
     }
 

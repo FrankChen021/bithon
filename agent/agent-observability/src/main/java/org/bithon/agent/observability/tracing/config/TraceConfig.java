@@ -22,44 +22,12 @@ import org.bithon.agent.observability.tracing.id.impl.UUIDv7TracePlusNTraceIdGen
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonIgnore;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/8/5 21:33
  */
 @ConfigurationProperties(path = "tracing")
 public class TraceConfig {
-
-    public static class HeaderConfig {
-        private List<String> request = Collections.emptyList();
-        private List<String> response = Collections.emptyList();
-
-        public List<String> getRequest() {
-            return request;
-        }
-
-        public void setRequest(List<String> request) {
-            // Headers in HTTP protocols are case-insensitive
-            this.request = request.stream()
-                                  .map((header) -> header.toLowerCase(Locale.ENGLISH))
-                                  .collect(Collectors.toList());
-        }
-
-        public List<String> getResponse() {
-            return response;
-        }
-
-        public void setResponse(List<String> response) {
-            // Headers in HTTP protocols are case-insensitive
-            this.response = response.stream()
-                                    .map((header) -> header.toLowerCase(Locale.ENGLISH))
-                                    .collect(Collectors.toList());
-        }
-    }
 
     /**
      * Use for debug.

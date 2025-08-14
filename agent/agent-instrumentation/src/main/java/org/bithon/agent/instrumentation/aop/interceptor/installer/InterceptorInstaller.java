@@ -81,7 +81,7 @@ public class InterceptorInstaller {
                 Descriptors.Descriptor descriptor = descriptors.get(type);
                 if (descriptor == null) {
                     // this must be something wrong
-                    log.error("Error to transform [{}] for the descriptor is not found", type);
+                    log.error("Error to transform [{}] because the descriptor is not found. Please report it to agent maintainers.", type);
                     return builder;
                 }
 
@@ -172,7 +172,7 @@ public class InterceptorInstaller {
 
         private void install(MethodPointCutDescriptor descriptor) {
             if (descriptor.getInterceptorType() == null) {
-                log.error("Interceptor [{}] not installed due to interceptor type is null.", descriptor.getInterceptorClassName());
+                log.error("Interceptor [{}] not installed due to interceptor type is null. Please report it to agent maintainers.", descriptor.getInterceptorClassName());
                 return;
             }
 
@@ -212,7 +212,7 @@ public class InterceptorInstaller {
 
                 case REPLACEMENT:
                     if (classLoader == null) {
-                        log.error("REPLACEMENT on JDK class [{}] is not allowed", typeDescription.getName());
+                        log.error("REPLACEMENT on JDK class [{}] is not allowed. Please report it to agent maintainers.", typeDescription.getName());
                         return;
                     }
                     builder = builder.method(descriptor.getMethodMatcher())

@@ -80,9 +80,11 @@ public class JobRunShell$Run extends AroundInterceptor {
             field.setAccessible(true);
             jobExecutionContext = (JobExecutionContextImpl) field.get(jobRunShell);
         } catch (NoSuchFieldException e) {
-            log.warn("quartz jobContext field missing");
+            // Use WARN as the feature still works
+            log.warn("Can't find quartz job execution context. This may be a compatibility problem of the agent with your Quartz component. Please report it to agent maintainers.");
         } catch (IllegalAccessException e) {
-            log.error("quartz jobContext field mismatch");
+            // Use WARN as the feature still works
+            log.warn("Unable to access quartz job execution context. This may be a compatibility problem of the agent with your Quartz component. Please report it to agent maintainers.");
         }
 
         // assigned in NotifyJobListenersComplete

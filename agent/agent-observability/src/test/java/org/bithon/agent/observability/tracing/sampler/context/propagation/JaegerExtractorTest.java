@@ -21,10 +21,13 @@ import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.source.Helper;
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationGetter;
 import org.bithon.agent.observability.tracing.context.propagation.jaeger.JaegerExtractor;
 import org.bithon.agent.observability.tracing.id.impl.DefaultSpanIdGenerator;
+import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
+import org.bithon.agent.observability.tracing.reporter.ReporterConfig;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -34,6 +37,7 @@ import org.mockito.Mockito;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -63,7 +67,18 @@ public class JaegerExtractorTest {
 
         // mock Tracer.get()
         mockTracer = Mockito.mockStatic(Tracer.class);
-        mockTracer.when(Tracer::get).thenReturn(new Tracer("test", "test").spanIdGenerator(new DefaultSpanIdGenerator()));
+        mockTracer.when(Tracer::get).thenReturn(new Tracer("test", "test")
+                                                    .spanIdGenerator(new DefaultSpanIdGenerator())
+                                                    .reporter(new ITraceReporter() {
+                                                        @Override
+                                                        public ReporterConfig getReporterConfig() {
+                                                            return new ReporterConfig();
+                                                        }
+
+                                                        @Override
+                                                        public void report(List<ITraceSpan> spans) {
+                                                        }
+                                                    }));
     }
 
     @AfterAll

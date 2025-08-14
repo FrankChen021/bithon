@@ -69,7 +69,7 @@ public class TraceContextFactory {
         ITraceContext context;
         switch (samplingMode) {
             case FULL:
-                context = new TracingContext(traceId, spanIdGenerator).reporter(Tracer.get().reporter());
+                context = new TracingContext(traceId, spanIdGenerator);
                 break;
             case NONE:
                 context = new LoggingTraceContext(traceId, spanIdGenerator);
@@ -142,7 +142,6 @@ public class TraceContextFactory {
         }
 
         ITraceSpan span = traceContext.copy()
-                                      .reporter(traceContext.reporter())
                                       .newSpan(parentSpan.spanId(), traceContext.spanIdGenerator().newSpanId())
                                       .name(name);
         if (injectedTo != null && setter != null) {

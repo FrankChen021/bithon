@@ -20,7 +20,9 @@ import org.bithon.agent.observability.exporter.config.ExporterConfig;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.component.commons.utils.TimeWindowBasedCounter;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.function.Consumer;
 
@@ -31,6 +33,7 @@ public class ExportTask {
 
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(ExportTask.class);
 
+    private final String exporterName;
     private final Consumer<Object> underlyingSender;
     private final IThreadSafeQueue queue;
     private final ExporterConfig.QueueFullStrategy queueFullStrategy;
@@ -42,25 +45,30 @@ public class ExportTask {
      */
     private final long flushTime;
 
-    public ExportTask(String taskName,
+    // A counter that will be reset if it's accessed after 5 seconds.
+    // We use this to rate-limit the logging of discarded messages.
+    private final TimeWindowBasedCounter discardedMessages = new TimeWindowBasedCounter(Duration.ofMinutes(1));
+
+    public ExportTask(String exporterName,
                       IThreadSafeQueue queue,
                       ExporterConfig config,
                       Consumer<Object> underlyingSender) {
+        this.exporterName = exporterName;
         this.flushTime = Math.max(10, config.getFlushTime());
         this.underlyingSender = underlyingSender;
         this.queue = config.getBatchSize() > 0 ? new BatchMessageQueue(queue, config.getBatchSize()) : queue;
         this.queueFullStrategy = config.getQueueFullStrategy();
         Thread sendThread = new Thread(() -> {
             while (isRunning) {
-                dispatch(true);
+                export(true);
             }
             isTaskEnded = true;
-        }, taskName + "-sender");
+        }, exporterName + "-sender");
         sendThread.setDaemon(true);
         sendThread.start();
     }
 
-    private void dispatch(boolean waitIfEmpty) {
+    private void export(boolean waitIfEmpty) {
         try {
             Object message = queue.take(waitIfEmpty ? this.flushTime : 0);
             if (message == null) {
@@ -83,7 +91,7 @@ public class ExportTask {
             }
             this.underlyingSender.accept(message);
         } catch (Exception e) {
-            LOG.error(StringUtils.format("Failed to send message: %s", e.getMessage()), e);
+            LOG.warn(StringUtils.format("Failed to send message: %s", e.getMessage()), e);
         }
     }
 
@@ -102,21 +110,31 @@ public class ExportTask {
         // but because the underlying queue is already a concurrency-supported structure,
         // adding such a lock to solve this edge case does not gain much
         //
+        int discarded = 0;
         if (ExporterConfig.QueueFullStrategy.DISCARD_NEWEST.equals(this.queueFullStrategy)) {
             // The return is ignored if the 'offer' fails to run
-            this.queue.offer(message);
+            if (!this.queue.offer(message)) {
+                discarded = 1;
+            }
         } else if (ExporterConfig.QueueFullStrategy.DISCARD_OLDEST.equals(this.queueFullStrategy)) {
-            // Discard the oldest in the queue
-            int discarded = 0;
+            // Discard the oldest from the queue
             while (!queue.offer(message)) {
                 discarded++;
                 queue.pop();
             }
-            if (discarded > 0) {
-                LOG.error("Failed offer element to the queue, capacity = {}. Discarded the {} oldest entry", this.queue.capacity(), discarded);
-            }
         } else {
             throw new UnsupportedOperationException("Not supported now");
+        }
+
+        if (discarded > 0) {
+            // Apply rate-limiting to the logging of discarded messages
+            long accumulatedCount = discardedMessages.synchronousAdd(discarded);
+            if (accumulatedCount > 0) {
+                LOG.warn("Failed to offer element to the {} queue(capacity={}). {} entries have been discarded since last report.",
+                         this.exporterName,
+                         this.queue.capacity(),
+                         accumulatedCount);
+            }
         }
     }
 
@@ -134,7 +152,7 @@ public class ExportTask {
 
         // flush all messages
         while (queue.size() > 0) {
-            dispatch(false);
+            export(false);
         }
     }
 

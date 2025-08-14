@@ -66,7 +66,11 @@ public class LogbackAdaptorFactory implements ILogAdaptorFactory {
         }
         ch.qos.logback.classic.Logger logger = context.getLogger(loggerName);
         if (logger != null) {
-            logger.setLevel(toNativeLevel(level));
+            Level nativeLevel = toNativeLevel(level);
+            if (ROOT_LOGGER_NAME.equals(loggerName) && nativeLevel == null) {
+                throw new RuntimeException("ROOT logger cannot be set to NONE");
+            }
+            logger.setLevel(nativeLevel);
         }
     }
 
@@ -88,12 +92,12 @@ public class LogbackAdaptorFactory implements ILogAdaptorFactory {
         if (!StringUtils.hasText(name) || Logger.ROOT_LOGGER_NAME.equals(name)) {
             name = Logger.ROOT_LOGGER_NAME;
         }
-        return new LoggerConfiguration(name, toLoggingLevel(logger.getLevel()), toLoggingLevel(logger.getEffectiveLevel()));
+        return new LoggerConfiguration(name, fromNativeLevel(logger.getLevel()), fromNativeLevel(logger.getEffectiveLevel()));
     }
 
-    private static LoggingLevel toLoggingLevel(Level level) {
+    private static LoggingLevel fromNativeLevel(Level level) {
         if (level == null) {
-            return LoggingLevel.OFF;
+            return LoggingLevel.NONE;
         }
         switch (level.toInt()) {
             case Level.TRACE_INT:
@@ -115,6 +119,7 @@ public class LogbackAdaptorFactory implements ILogAdaptorFactory {
         if (level == null) {
             return Level.OFF;
         }
+
         switch (level) {
             case FATAL:
             case ERROR:
@@ -127,6 +132,10 @@ public class LogbackAdaptorFactory implements ILogAdaptorFactory {
                 return Level.DEBUG;
             case TRACE:
                 return Level.TRACE;
+
+            case NONE:
+                return null;
+
             default:
                 return Level.OFF;
         }

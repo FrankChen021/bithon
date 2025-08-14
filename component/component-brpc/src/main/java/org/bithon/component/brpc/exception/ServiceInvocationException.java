@@ -23,7 +23,7 @@ import java.util.Locale;
  */
 public class ServiceInvocationException extends RuntimeException {
     public ServiceInvocationException(CharSequence message) {
-        super(message instanceof String ? (String) message : message.toString());
+        super(message == null ? "ServiceInvocationException" : (message instanceof String ? (String) message : message.toString()));
     }
 
     public ServiceInvocationException(String messageFormat, Object... args) {

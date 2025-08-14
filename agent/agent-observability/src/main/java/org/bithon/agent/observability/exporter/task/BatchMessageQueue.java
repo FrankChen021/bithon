@@ -76,6 +76,10 @@ public class BatchMessageQueue implements IThreadSafeQueue {
         return delegate.capacity();
     }
 
+    /**
+     * Wait for at most given milliseconds to take a batch of elements from the current queue.
+     * If the queue does not have enough elements, it will wait until the timeout is reached.
+     */
     @Override
     public Object take(long timeout) {
         List<Object> returning = new ArrayList<>(this.maxBatchSize);
