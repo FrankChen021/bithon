@@ -39,8 +39,8 @@ import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
 import org.bithon.shaded.net.bytebuddy.dynamic.VisibilityBridgeStrategy;
+import org.bithon.shaded.net.bytebuddy.dynamic.scaffold.InstrumentedType;
 import org.bithon.shaded.net.bytebuddy.dynamic.scaffold.MethodGraph;
-import org.bithon.shaded.net.bytebuddy.implementation.StubMethod;
 import org.bithon.shaded.net.bytebuddy.jar.asm.Opcodes;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
 import org.bithon.shaded.net.bytebuddy.utility.JavaModule;
@@ -70,12 +70,13 @@ public class InterceptorInstaller {
             .disableClassFormatChanges()
             .with(new ByteBuddy().with(MethodGraph.Compiler.ForDeclaredMethods.INSTANCE)
                                  .with(VisibilityBridgeStrategy.Default.NEVER)
-                                 .with(org.bithon.shaded.net.bytebuddy.dynamic.scaffold.InstrumentedType.Factory.Default.FROZEN))
+                                 .with(InstrumentedType.Factory.Default.FROZEN))
             .assureReadEdgeFromAndTo(inst, IBithonObject.class)
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
             .with(AgentBuilder.TypeStrategy.Default.REBASE)  // Use REBASE to support REPLACEMENT interceptors
             // Use NoOp initialization strategy with FROZEN types to avoid initializer injection conflicts
             .with(AgentBuilder.InitializationStrategy.NoOp.INSTANCE)
+            .with(AgentBuilder.TypeStrategy.Default.DECORATE)
             // Must set the ignore matcher because the default matcher ignores classes in the bootstrap class loader
             .ignore((target, classLoader, module, classBeingRedefined, protectionDomain) -> {
                 // Ignore synthetic classes, e.g. lambda classes
@@ -223,12 +224,11 @@ public class InterceptorInstaller {
                         log.error("REPLACEMENT on JDK class [{}] is not allowed. Please report it to agent maintainers.", typeDescription.getName());
                         return;
                     }
-                    builder = builder.method(descriptor.getMethodMatcher())
-                                     .intercept(Advice.withCustomMapping()
-                                                      .bind(AdviceAnnotation.InterceptorName.class, nameResolver)
-                                                      .bind(AdviceAnnotation.InterceptorIndex.class, indexResolver)
-                                                      .to(ReplacementAdvice.class)
-                                                      .wrap(StubMethod.INSTANCE));
+                    builder = builder.visit(newInstaller(Advice.withCustomMapping()
+                                                               .bind(AdviceAnnotation.InterceptorName.class, nameResolver)
+                                                               .bind(AdviceAnnotation.InterceptorIndex.class, indexResolver)
+                                                               .to(ReplacementAdvice.class),
+                                                         descriptor.getMethodMatcher()));
 
                     break;
 

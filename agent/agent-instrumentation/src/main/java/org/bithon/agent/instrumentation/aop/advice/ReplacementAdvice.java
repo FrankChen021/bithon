@@ -29,6 +29,13 @@ import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
  * @date 22/2/22 11:25 PM
  */
 public class ReplacementAdvice {
+
+    @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+    public static boolean onEnter() {
+        // ALWAYS skip the original method
+        return true;
+    }
+
     /**
      * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class
      */
