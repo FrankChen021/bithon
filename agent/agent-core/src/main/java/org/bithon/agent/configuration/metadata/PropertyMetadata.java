@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.configuration.processor;
+package org.bithon.agent.configuration.metadata;
 
 import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonProperty;
 

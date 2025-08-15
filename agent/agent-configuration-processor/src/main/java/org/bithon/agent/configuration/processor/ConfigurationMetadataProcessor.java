@@ -17,7 +17,8 @@
 package org.bithon.agent.configuration.processor;
 
 import com.google.auto.service.AutoService;
-import org.bithon.agent.configuration.ConfigurationProperties;
+import org.bithon.agent.configuration.annotation.ConfigurationProperties;
+import org.bithon.agent.configuration.metadata.PropertyMetadata;
 import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.shaded.com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -54,7 +55,7 @@ import java.util.Set;
  * @author frank.chen021@outlook.com
  */
 @AutoService(Processor.class)
-@SupportedAnnotationTypes("org.bithon.agent.configuration.ConfigurationProperties")
+@SupportedAnnotationTypes("org.bithon.agent.configuration.annotation.ConfigurationProperties")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class ConfigurationMetadataProcessor extends AbstractProcessor {
 
@@ -317,7 +318,7 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
         // Look for @PropertyDescriptor annotation using annotation mirrors
         for (AnnotationMirror annotationMirror : field.getAnnotationMirrors()) {
             String annotationName = annotationMirror.getAnnotationType().toString();
-            if ("org.bithon.agent.configuration.PropertyDescriptor".equals(annotationName)) {
+            if ("org.bithon.agent.configuration.annotation.PropertyDescriptor".equals(annotationName)) {
                 // Extract the description value from the annotation
                 Map<? extends ExecutableElement, ? extends AnnotationValue> elementValues = 
                     annotationMirror.getElementValues();

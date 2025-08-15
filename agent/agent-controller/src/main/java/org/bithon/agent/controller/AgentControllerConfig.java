@@ -17,7 +17,7 @@
 package org.bithon.agent.controller;
 
 import org.bithon.agent.config.RpcClientConfig;
-import org.bithon.agent.configuration.ConfigurationProperties;
+import org.bithon.agent.configuration.annotation.ConfigurationProperties;
 import org.bithon.agent.configuration.validation.GreaterThan;
 import org.bithon.agent.configuration.validation.Validated;
 

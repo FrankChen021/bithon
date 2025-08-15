@@ -17,6 +17,7 @@
 package org.bithon.agent.configuration;
 
 import com.google.common.collect.ImmutableMap;
+import org.bithon.agent.configuration.annotation.ConfigurationProperties;
 import org.bithon.agent.configuration.source.Helper;
 import org.bithon.agent.configuration.source.PropertySource;
 import org.bithon.agent.configuration.source.PropertySourceType;
