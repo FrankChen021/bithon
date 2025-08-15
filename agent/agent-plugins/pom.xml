@@ -85,37 +85,36 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <annotationProcessorPaths combine.self="override">
-            <!-- Add our interceptor type annotation processor for plugin modules only -->
-            <path>
-              <groupId>org.bithon.agent</groupId>
-              <artifactId>agent-plugin-processor</artifactId>
-              <version>${project.version}</version>
-            </path>
-          </annotationProcessorPaths>
-          <!-- Show annotation processor NOTE messages -->
-          <showWarnings>true</showWarnings>
-          <!-- Run compiler in same JVM to preserve NOTE level messages -->
-          <fork>false</fork>
-          <!--Increase WARN/ERROR numbers in case there are too many NOTE messages-->
-          <compilerArgs>
-            <arg>-Xmaxwarns</arg>
-            <arg>10000</arg>
-            <arg>-Xmaxerrs</arg>
-            <arg>10000</arg>
-          </compilerArgs>
-        </configuration>
+
         <executions>
+          <!-- Override parent's default-compile to include both processors for plugin modules -->
           <execution>
-            <id>default-testCompile</id>
-            <phase>test-compile</phase>
+            <id>default-compile</id>
+            <phase>compile</phase>
             <goals>
-              <goal>testCompile</goal>
+              <goal>compile</goal>
             </goals>
             <configuration>
-              <!-- Disable annotation processing for test compilation -->
-              <proc>none</proc>
+              <annotationProcessorPaths>
+                <path>
+                  <groupId>org.bithon.agent</groupId>
+                  <artifactId>agent-plugin-processor</artifactId>
+                  <version>${project.version}</version>
+                </path>
+                <path>
+                  <groupId>org.bithon.agent</groupId>
+                  <artifactId>agent-configuration-processor</artifactId>
+                  <version>${project.version}</version>
+                </path>
+              </annotationProcessorPaths>
+              <showWarnings>true</showWarnings>
+              <fork>false</fork>
+              <compilerArgs>
+                <arg>-Xmaxwarns</arg>
+                <arg>10000</arg>
+                <arg>-Xmaxerrs</arg>
+                <arg>10000</arg>
+              </compilerArgs>
             </configuration>
           </execution>
         </executions>
