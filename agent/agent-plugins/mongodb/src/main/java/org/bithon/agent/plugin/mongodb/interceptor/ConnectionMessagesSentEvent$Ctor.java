@@ -29,29 +29,28 @@ import org.bithon.component.commons.logging.LoggerFactory;
  * @author frankchen
  * @date 2021-03-27 16:30
  */
-public class ConnectionMessagesSentEvent {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(ConnectionMessagesSentEvent.class);
+public class ConnectionMessagesSentEvent$Ctor extends AfterInterceptor {
+    private static final ILogAdaptor log = LoggerFactory.getLogger(ConnectionMessagesSentEvent$Ctor.class);
 
-    public static class Constructor extends AfterInterceptor {
-        private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
-        @Override
-        public void after(AopContext aopContext) {
-            MongoCommand mongoCommand = InterceptorContext.getAs("mongo-3.x-command");
-            if (mongoCommand == null) {
-                log.warn("Don' worry, the stack is dumped to help analyze the problem. No real exception happened.",
-                         new RuntimeException());
-                return;
-            }
+    private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
-            ConnectionId connectionId = aopContext.getArgAs(0);
-            int bytesOut = aopContext.getArgAs(2);
-
-            metricRegistry.getOrCreateMetric(connectionId.getServerId().getAddress().toString(),
-                                             mongoCommand.getDatabase(),
-                                             mongoCommand.getCollection(),
-                                             mongoCommand.getCommand())
-                          .addBytesOut(bytesOut);
+    @Override
+    public void after(AopContext aopContext) {
+        MongoCommand mongoCommand = InterceptorContext.getAs("mongo-3.x-command");
+        if (mongoCommand == null) {
+            log.warn("Don' worry, the stack is dumped to help analyze the problem. No real exception happened.",
+                     new RuntimeException());
+            return;
         }
+
+        ConnectionId connectionId = aopContext.getArgAs(0);
+        int bytesOut = aopContext.getArgAs(2);
+
+        metricRegistry.getOrCreateMetric(connectionId.getServerId().getAddress().toString(),
+                                         mongoCommand.getDatabase(),
+                                         mongoCommand.getCollection(),
+                                         mongoCommand.getCommand())
+                      .addBytesOut(bytesOut);
     }
 }

@@ -31,7 +31,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Read the class file and determine which base interceptor the class inherits from
+ * Runtime interceptor type resolver.
+ * It reads a class file to determine which base interceptor the class inherits from.
  *
  * @author frank.chen021@outlook.com
  * @date 2023/3/19 15:45

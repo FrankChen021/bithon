@@ -175,7 +175,7 @@ public class TestZooKeeperClientMetrics {
         descriptors.merge(plugin.getClass().getSimpleName(),
                           plugin.getPreconditions(),
                           plugin.getInterceptors());
-        PluginResolver.resolveInterceptorType(descriptors.getAllDescriptor());
+        PluginResolver.resolveInterceptorType(descriptors.getAllDescriptor(), Collections.emptyMap());
 
         // Install interceptors
         ByteBuddyAgent.install();

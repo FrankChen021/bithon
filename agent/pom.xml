@@ -28,6 +28,7 @@
     <modules>
         <module>agent-sdk</module>
         <module>agent-instrumentation</module>
+        <module>agent-plugin-processor</module>
         <module>agent-core</module>
         <module>agent-observability</module>
         <module>agent-controller</module>
@@ -147,6 +148,7 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
+                            <ignoreSignaturesOfMissingClasses>true</ignoreSignaturesOfMissingClasses>
                             <bundledSignatures>
                                 <!-- Check jdk-system-out only for production code, but not in test code -->
                                 <bundledSignature>jdk-unsafe</bundledSignature>

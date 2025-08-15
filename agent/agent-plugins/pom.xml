@@ -76,370 +76,60 @@
     <module>xxl-job</module>
   </modules>
 
-  <dependencies> <!-- Include all plugins for publication -->
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-apache-zookeeper</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-apache-druid</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <!-- Apache Kafka -->
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-apache-kafka</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-apache-kafka-0.10</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-apache-kafka-0.10.2</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-apache-kafka-0.11</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-apache-kafka-2.7</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-apache-kafka-3.7</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-apache-kafka-3.9</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <!-- Apache Ozone -->
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-apache-ozone</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-bithon-brpc</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-bithon-sdk</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <!-- Google gRPC -->
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-grpc</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <!-- Eclipse glassfish -->
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-glassfish</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <!-- Google Guice -->
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-guice</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <!-- Web Container-->
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-httpserver-tomcat</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-httpserver-undertow</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-httpserver-jetty</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-httpserver-jetty-12</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-httpserver-netty</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-jersey</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <!-- JDK -->
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-thread-jdk</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-thread-jdk8</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-thread-jdk9</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-thread-jdk21</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <!-- JDBC -->
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-jdbc-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-jdbc-apache-derby</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-jdbc-clickhouse</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-jdbc-clickhouse-yandex</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-jdbc-h2</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-jdbc-postgresql</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-jdbc-alibaba-druid</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-jdbc-mysql5</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-jdbc-mysql6</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-jdbc-mysql8</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-quartz2</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <!-- HTTP Client -->
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-httpclient-okhttp-3.2</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-httpclient-jdk</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-httpclient-apache-httpcomponents4</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-httpclient-apache-httpcomponents5</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-httpclient-jetty</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-httpclient-netty3</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-httpclient-reactor</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-netty4</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <!-- Redis -->
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-redis-jedis-2.x</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-redis-jedis-3.x</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-redis-jedis-4.x</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-redis-lettuce-5.x</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-redis-redisson</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <!-- Log -->
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-logging-logback</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-logging-log4j2</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <!-- Open Feign -->
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-openfeign</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <!-- Spring -->
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-spring-bean</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-spring-web</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-spring-scheduling</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-spring-webflux</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <!-- MongoDB -->
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-mongodb</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-mongodb-3.8</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <!-- XXL-Job -->
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-xxl-job</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <!-- end-->
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.5.2</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+  <!-- Dependencies removed - using moduleSet in assembly instead -->
 
   <build>
     <finalName>agent-plugins</finalName>
     <plugins>
-      <!--
-      Use assembly to move all plugins to a target directory and then pack them into one jar
-      -->
+      <!-- Configure annotation processor specifically for agent plugin modules -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
+        <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <descriptors>
-            <descriptor>distribution.xml</descriptor>
-          </descriptors>
-          <appendAssemblyId>false</appendAssemblyId>
+          <annotationProcessorPaths combine.self="override">
+            <!-- Add our interceptor type annotation processor for plugin modules only -->
+            <path>
+              <groupId>org.bithon.agent</groupId>
+              <artifactId>agent-plugin-processor</artifactId>
+              <version>${project.version}</version>
+            </path>
+          </annotationProcessorPaths>
+          <!-- Show annotation processor NOTE messages -->
+          <showWarnings>true</showWarnings>
+          <!-- Run compiler in same JVM to preserve NOTE level messages -->
+          <fork>false</fork>
+          <!--Increase WARN/ERROR numbers in case there are too many NOTE messages-->
+          <compilerArgs>
+            <arg>-Xmaxwarns</arg>
+            <arg>10000</arg>
+            <arg>-Xmaxerrs</arg>
+            <arg>10000</arg>
+          </compilerArgs>
         </configuration>
         <executions>
           <execution>
-            <id>make-distribution</id>
-            <phase>package</phase>
+            <id>default-testCompile</id>
+            <phase>test-compile</phase>
             <goals>
-              <goal>single</goal>
+              <goal>testCompile</goal>
             </goals>
+            <configuration>
+              <!-- Disable annotation processing for test compilation -->
+              <proc>none</proc>
+            </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>de.thetaphi</groupId>
+        <artifactId>forbiddenapis</artifactId>
+        <configuration>
+          <signaturesFiles>
+            <signaturesFile>${project.parent.basedir}/../../dev/forbidden-apis-joda-time.txt</signaturesFile>
+            <signaturesFile>${project.parent.basedir}/../../dev/forbidden-apis-bithon.txt</signaturesFile>
+            <signaturesFile>${project.parent.basedir}/../../dev/forbidden-apis-agent.txt</signaturesFile>
+          </signaturesFiles>
+        </configuration>
       </plugin>
     </plugins>
   </build>
