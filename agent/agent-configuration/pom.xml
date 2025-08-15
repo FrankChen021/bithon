@@ -30,14 +30,6 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- Agent core for accessing configuration annotations -->
-        <dependency>
-            <groupId>org.bithon.agent</groupId>
-            <artifactId>agent-core</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
         <!-- Component commons for logging -->
         <dependency>
             <groupId>org.bithon.component</groupId>
