@@ -103,7 +103,7 @@
                 </path>
                 <path>
                   <groupId>org.bithon.agent</groupId>
-                  <artifactId>agent-configuration-processor</artifactId>
+                  <artifactId>agent-configuration</artifactId>
                   <version>${project.version}</version>
                 </path>
               </annotationProcessorPaths>

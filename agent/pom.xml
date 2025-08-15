@@ -29,7 +29,7 @@
         <module>agent-sdk</module>
         <module>agent-instrumentation</module>
         <module>agent-plugin-processor</module>
-        <module>agent-configuration-processor</module>
+        <module>agent-configuration</module>
         <module>agent-core</module>
         <module>agent-observability</module>
         <module>agent-controller</module>
@@ -98,7 +98,7 @@
 
             <dependency>
                 <groupId>org.bithon.agent</groupId>
-                <artifactId>agent-configuration-processor</artifactId>
+                <artifactId>agent-configuration</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
@@ -137,11 +137,11 @@
                         </goals>
                         <configuration>
                             <annotationProcessorPaths>
-                                <path>
-                                    <groupId>org.bithon.agent</groupId>
-                                    <artifactId>agent-configuration-processor</artifactId>
-                                    <version>${project.version}</version>
-                                </path>
+                                                        <path>
+                            <groupId>org.bithon.agent</groupId>
+                            <artifactId>agent-configuration</artifactId>
+                            <version>${project.version}</version>
+                        </path>
                             </annotationProcessorPaths>
                             <showWarnings>true</showWarnings>
                             <!-- Run compiler in same JVM to preserve NOTE level messages -->
