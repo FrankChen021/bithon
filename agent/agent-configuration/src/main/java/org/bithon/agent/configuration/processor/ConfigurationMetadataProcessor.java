@@ -81,16 +81,10 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
         if (!allProperties.isEmpty()) {
             try {
                 generateMetadataFile(allProperties);
-                processingEnv.getMessager().printMessage(
-                    Diagnostic.Kind.NOTE,
-                    "Generated configuration metadata for " + allProperties.size() + " properties"
-                );
             } catch (Exception e) {
-                processingEnv.getMessager().printMessage(
-                    Diagnostic.Kind.ERROR,
-                    "Failed to generate configuration metadata: " + e.getClass().getName() + ": " + e.getMessage()
-                );
-                e.printStackTrace();
+                processingEnv.getMessager()
+                             .printMessage(Diagnostic.Kind.ERROR,
+                                           "Failed to generate configuration metadata: " + e.getClass().getName() + ": " + e.getMessage());
             }
         }
 
@@ -106,25 +100,21 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
         String basePath = configProps.path();
         boolean isDynamic = configProps.dynamic();
 
-        processingEnv.getMessager().printMessage(
-            Diagnostic.Kind.NOTE,
-            "Processing configuration class: " + configClass.getQualifiedName() + " with path: " + basePath
-        );
+        processingEnv.getMessager()
+                     .printMessage(Diagnostic.Kind.NOTE, "Processing configuration class: " + configClass.getQualifiedName());
 
         // Process all fields in the class
         for (Element enclosedElement : configClass.getEnclosedElements()) {
             if (enclosedElement.getKind() == ElementKind.FIELD) {
                 VariableElement field = (VariableElement) enclosedElement;
-                
+
                 // Skip static fields and synthetic fields
                 if (field.getModifiers().contains(Modifier.STATIC)) {
                     continue;
                 }
 
                 PropertyMetadata property = createPropertyMetadata(field, basePath, isDynamic, configClass.getQualifiedName().toString());
-                if (property != null) {
-                    allProperties.add(property);
-                }
+                allProperties.add(property);
             }
         }
 
@@ -132,7 +122,10 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
         processNestedConfigurationClasses(configClass, basePath, isDynamic, allProperties);
     }
 
-    private PropertyMetadata createPropertyMetadata(VariableElement field, String basePath, boolean isDynamic, String configurationClass) {
+    private PropertyMetadata createPropertyMetadata(VariableElement field,
+                                                    String basePath,
+                                                    boolean isDynamic,
+                                                    String configurationClass) {
         String fieldName = field.getSimpleName().toString();
         String fullPath = basePath + "." + fieldName;
 
@@ -171,17 +164,17 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
         for (Element enclosedElement : parentClass.getEnclosedElements()) {
             if (enclosedElement.getKind() == ElementKind.FIELD) {
                 VariableElement field = (VariableElement) enclosedElement;
-                
+
                 if (field.getModifiers().contains(Modifier.STATIC)) {
                     continue;
                 }
 
                 TypeMirror fieldType = field.asType();
                 Element fieldTypeElement = processingEnv.getTypeUtils().asElement(fieldType);
-                
+
                 if (fieldTypeElement != null && fieldTypeElement.getKind() == ElementKind.CLASS) {
                     TypeElement fieldTypeClass = (TypeElement) fieldTypeElement;
-                    
+
                     // Check if this field type has configuration properties
                     if (hasConfigurationFields(fieldTypeClass)) {
                         String nestedPath = parentPath + "." + field.getSimpleName().toString();
@@ -196,20 +189,18 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
         for (Element enclosedElement : nestedClass.getEnclosedElements()) {
             if (enclosedElement.getKind() == ElementKind.FIELD) {
                 VariableElement field = (VariableElement) enclosedElement;
-                
+
                 if (field.getModifiers().contains(Modifier.STATIC)) {
                     continue;
                 }
 
                 PropertyMetadata property = createPropertyMetadata(field, nestedPath, isDynamic, nestedClass.getQualifiedName().toString());
-                if (property != null) {
-                    allProperties.add(property);
-                }
+                allProperties.add(property);
 
                 // Recursively process further nested classes
                 TypeMirror fieldType = field.asType();
                 Element fieldTypeElement = processingEnv.getTypeUtils().asElement(fieldType);
-                
+
                 if (fieldTypeElement != null && fieldTypeElement.getKind() == ElementKind.CLASS) {
                     TypeElement fieldTypeClass = (TypeElement) fieldTypeElement;
                     if (hasConfigurationFields(fieldTypeClass)) {
@@ -223,12 +214,12 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
 
     private boolean hasConfigurationFields(TypeElement typeElement) {
         String className = typeElement.getQualifiedName().toString();
-        
+
         // Skip JDK internal classes and common library classes
         if (isSystemClass(className)) {
             return false;
         }
-        
+
         // Check if the class has any non-static fields that could be configuration properties
         for (Element enclosedElement : typeElement.getEnclosedElements()) {
             if (enclosedElement.getKind() == ElementKind.FIELD) {
@@ -240,17 +231,17 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
         }
         return false;
     }
-    
+
     private boolean isSystemClass(String className) {
         // Skip JDK classes
-        if (className.startsWith("java.") || 
+        if (className.startsWith("java.") ||
             className.startsWith("javax.") ||
             className.startsWith("sun.") ||
             className.startsWith("com.sun.") ||
             className.startsWith("jdk.")) {
             return true;
         }
-        
+
         // Skip common library classes that shouldn't be processed as configuration
         if (className.startsWith("org.slf4j.") ||
             className.startsWith("ch.qos.logback.") ||
@@ -260,14 +251,14 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
             className.startsWith("io.netty.")) {
             return true;
         }
-        
+
         // Skip utility classes that should be treated as primitive types
         if ("org.bithon.component.commons.utils.HumanReadableNumber".equals(className) ||
             "org.bithon.component.commons.utils.HumanReadableDuration".equals(className) ||
             "org.bithon.component.commons.utils.HumanReadablePercentage".equals(className)) {
             return true;
         }
-        
+
         // Only process classes from the current project (org.bithon)
         return !className.startsWith("org.bithon.");
     }
@@ -277,7 +268,7 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
         if (fullTypeName.contains("<")) {
             return fullTypeName; // Keep generic information
         }
-        
+
         // Extract simple name for non-generic types
         int lastDot = fullTypeName.lastIndexOf('.');
         if (lastDot >= 0) {
@@ -305,13 +296,14 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
 
     private boolean isFieldRequired(VariableElement field) {
         // Check for validation annotations that indicate required fields
-        return field.getAnnotationMirrors().stream()
-            .anyMatch(annotation -> {
-                String annotationName = annotation.getAnnotationType().toString();
-                return annotationName.contains("NotNull") || 
-                       annotationName.contains("NotBlank") || 
-                       annotationName.contains("NotEmpty");
-            });
+        return field.getAnnotationMirrors()
+                    .stream()
+                    .anyMatch(annotation -> {
+                        String annotationName = annotation.getAnnotationType().toString();
+                        return annotationName.contains("NotNull") ||
+                               annotationName.contains("NotBlank") ||
+                               annotationName.contains("NotEmpty");
+                    });
     }
 
     private String extractPropertyDescription(VariableElement field) {
@@ -320,9 +312,8 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
             String annotationName = annotationMirror.getAnnotationType().toString();
             if ("org.bithon.agent.configuration.annotation.PropertyDescriptor".equals(annotationName)) {
                 // Extract the description value from the annotation
-                Map<? extends ExecutableElement, ? extends AnnotationValue> elementValues = 
-                    annotationMirror.getElementValues();
-                
+                Map<? extends ExecutableElement, ? extends AnnotationValue> elementValues = annotationMirror.getElementValues();
+
                 for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : elementValues.entrySet()) {
                     if ("description".equals(entry.getKey().getSimpleName().toString())) {
                         Object value = entry.getValue().getValue();
@@ -337,20 +328,17 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
     }
 
     private void generateMetadataFile(List<PropertyMetadata> properties) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
-
-        String json = mapper.writeValueAsString(properties);
-
         // Determine module name from the first property's configuration class
         String moduleName = determineModuleName(properties);
         String metadataFilePath = METADATA_FILE_BASE_PATH + moduleName + ".meta";
 
         FileObject file = processingEnv.getFiler()
-            .createResource(StandardLocation.CLASS_OUTPUT, "", metadataFilePath);
+                                       .createResource(StandardLocation.CLASS_OUTPUT, "", metadataFilePath);
 
         try (Writer writer = file.openWriter()) {
-            writer.write(json);
+            new ObjectMapper()
+                .enable(SerializationFeature.INDENT_OUTPUT)
+                .writeValue(writer, properties);
             writer.flush();
         }
     }
@@ -362,13 +350,13 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
 
         // Extract module name from the configuration class package
         String configClass = properties.get(0).getConfigurationClass();
-        
+
         // For plugin classes like "org.bithon.agent.plugin.bithon.brpc.BithonBrpcPlugin.ServiceProviderConfig"
         // or "org.bithon.agent.plugin.spring.bean.installer.SpringBeanPluginConfig"
         // Extract the module identifier
-        if (configClass.contains("org.bithon.agent.plugin.")) {
+        if (configClass.startsWith("org.bithon.agent.plugin.")) {
             String pluginPart = configClass.substring("org.bithon.agent.plugin.".length());
-            
+
             // Handle different plugin package structures
             String[] parts = pluginPart.split("\\.");
             if (parts.length >= 2) {
@@ -380,7 +368,7 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
                 return parts[0];
             }
         }
-        
+
         // For non-plugin classes like "org.bithon.agent.controller.config.ConfigurationCommandImpl"
         // Extract a meaningful module name from the package
         if (configClass.contains("org.bithon.agent.")) {
@@ -390,7 +378,7 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
                 return "agent-" + parts[0];
             }
         }
-        
+
         // Fallback: use a hash of the configuration class name
         return "module-" + Math.abs(configClass.hashCode());
     }
