@@ -23,7 +23,10 @@
           <include>*.yml</include>
 
           <!--Generated plugin metadata-->
-          <include>META-INF/bithon/*.meta</include>
+          <include>META-INF/bithon/interceptor/*.meta</include>
+          
+          <!--Generated configuration metadata-->
+          <include>META-INF/bithon/configuration/*.meta</include>
         </includes>
       </unpackOptions>
       <outputDirectory>/</outputDirectory>

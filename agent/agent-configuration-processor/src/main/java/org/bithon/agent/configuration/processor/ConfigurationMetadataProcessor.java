@@ -58,7 +58,7 @@ import java.util.Set;
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class ConfigurationMetadataProcessor extends AbstractProcessor {
 
-    private static final String METADATA_FILE_PATH = "META-INF/bithon-configuration-metadata.json";
+    private static final String METADATA_FILE_BASE_PATH = "META-INF/bithon/configuration/";
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -84,11 +84,12 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
                     Diagnostic.Kind.NOTE,
                     "Generated configuration metadata for " + allProperties.size() + " properties"
                 );
-            } catch (IOException e) {
+            } catch (Exception e) {
                 processingEnv.getMessager().printMessage(
                     Diagnostic.Kind.ERROR,
-                    "Failed to generate configuration metadata: " + e.getMessage()
+                    "Failed to generate configuration metadata: " + e.getClass().getName() + ": " + e.getMessage()
                 );
+                e.printStackTrace();
             }
         }
 
@@ -340,11 +341,56 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
 
         String json = mapper.writeValueAsString(properties);
 
+        // Determine module name from the first property's configuration class
+        String moduleName = determineModuleName(properties);
+        String metadataFilePath = METADATA_FILE_BASE_PATH + moduleName + ".meta";
+
         FileObject file = processingEnv.getFiler()
-            .createResource(StandardLocation.CLASS_OUTPUT, "", METADATA_FILE_PATH);
+            .createResource(StandardLocation.CLASS_OUTPUT, "", metadataFilePath);
 
         try (Writer writer = file.openWriter()) {
             writer.write(json);
+            writer.flush();
         }
+    }
+
+    private String determineModuleName(List<PropertyMetadata> properties) {
+        if (properties.isEmpty()) {
+            return "unknown";
+        }
+
+        // Extract module name from the configuration class package
+        String configClass = properties.get(0).getConfigurationClass();
+        
+        // For plugin classes like "org.bithon.agent.plugin.bithon.brpc.BithonBrpcPlugin.ServiceProviderConfig"
+        // or "org.bithon.agent.plugin.spring.bean.installer.SpringBeanPluginConfig"
+        // Extract the module identifier
+        if (configClass.contains("org.bithon.agent.plugin.")) {
+            String pluginPart = configClass.substring("org.bithon.agent.plugin.".length());
+            
+            // Handle different plugin package structures
+            String[] parts = pluginPart.split("\\.");
+            if (parts.length >= 2) {
+                // For "bithon.brpc.BithonBrpcPlugin" -> "bithon-brpc"
+                // For "spring.bean.installer.SpringBeanPluginConfig" -> "spring-bean"
+                return parts[0] + "-" + parts[1];
+            } else if (parts.length == 1) {
+                // For single part like "redis.RedisPlugin" -> "redis"
+                return parts[0];
+            }
+        }
+        
+        // For non-plugin classes like "org.bithon.agent.controller.config.ConfigurationCommandImpl"
+        // Extract a meaningful module name from the package
+        if (configClass.contains("org.bithon.agent.")) {
+            String agentPart = configClass.substring("org.bithon.agent.".length());
+            String[] parts = agentPart.split("\\.");
+            if (parts.length >= 1) {
+                return "agent-" + parts[0];
+            }
+        }
+        
+        // Fallback: use a hash of the configuration class name
+        return "module-" + Math.abs(configClass.hashCode());
     }
 }
