@@ -61,6 +61,9 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
 
     private static final String METADATA_FILE_BASE_PATH = "META-INF/bithon/configuration/";
 
+    /**
+     * Process all classes annotated with @ConfigurationProperties
+     */
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         if (roundEnv.processingOver()) {
@@ -68,8 +71,6 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
         }
 
         List<PropertyMetadata> allProperties = new ArrayList<>();
-
-        // Process all classes annotated with @ConfigurationProperties
         for (Element element : roundEnv.getElementsAnnotatedWith(ConfigurationProperties.class)) {
             if (element.getKind() == ElementKind.CLASS) {
                 TypeElement typeElement = (TypeElement) element;
@@ -81,10 +82,10 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
         if (!allProperties.isEmpty()) {
             try {
                 generateMetadataFile(allProperties);
-            } catch (Exception e) {
+            } catch (IOException e) {
                 processingEnv.getMessager()
                              .printMessage(Diagnostic.Kind.ERROR,
-                                           "Failed to generate configuration metadata: " + e.getClass().getName() + ": " + e.getMessage());
+                                           "Failed to generate configuration metadata: " + e);
             }
         }
 
@@ -101,7 +102,7 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
         boolean isDynamic = configProps.dynamic();
 
         processingEnv.getMessager()
-                     .printMessage(Diagnostic.Kind.NOTE, "Processing configuration class: " + configClass.getQualifiedName());
+                     .printMessage(Diagnostic.Kind.NOTE, "Processing ConfigurationProperties annotated class: " + configClass.getQualifiedName());
 
         // Process all fields in the class
         for (Element enclosedElement : configClass.getEnclosedElements()) {
@@ -339,8 +340,11 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
             new ObjectMapper()
                 .enable(SerializationFeature.INDENT_OUTPUT)
                 .writeValue(writer, properties);
-            writer.flush();
         }
+
+        processingEnv.getMessager()
+                     .printMessage(Diagnostic.Kind.NOTE,
+                                   "Generated configuration metadata: " + metadataFilePath);
     }
 
     private String determineModuleName(List<PropertyMetadata> properties) {
