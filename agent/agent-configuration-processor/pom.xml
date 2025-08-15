@@ -43,6 +43,13 @@
             <artifactId>component-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- Agent instrumentation for class loaders -->
+        <dependency>
+            <groupId>org.bithon.agent</groupId>
+            <artifactId>agent-instrumentation</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

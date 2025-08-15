@@ -448,7 +448,7 @@
                 <unzip src="${project.build.directory}/agent-distribution-plugins.jar"
                        dest="${project.build.directory}/temp-extract">
                   <patternset>
-                    <include name="META-INF/bithon/*.meta"/>
+                    <include name="META-INF/bithon/interceptor/*.meta"/>
                   </patternset>
                 </unzip>
 
@@ -466,7 +466,7 @@
                   </header>
                   <!-- Merge all individual properties files -->
                   <fileset dir="${project.build.directory}/temp-extract" erroronmissingdir="false">
-                    <include name="META-INF/bithon/*.meta"/>
+                    <include name="META-INF/bithon/interceptor/*.meta"/>
                   </fileset>
                 </concat>
 

@@ -267,7 +267,7 @@ public class PluginMetadataProcessor extends AbstractProcessor {
         }
 
         try {
-            String metadataFile = "META-INF/bithon/" + this.pluginClass + ".meta";
+            String metadataFile = "META-INF/bithon/interceptor/" + this.pluginClass + ".meta";
 
             // Create the properties file in the META-INF/bithon directory  
             FileObject file = processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", metadataFile);
