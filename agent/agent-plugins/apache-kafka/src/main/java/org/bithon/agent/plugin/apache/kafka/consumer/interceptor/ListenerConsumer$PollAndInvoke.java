@@ -21,7 +21,6 @@ import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
@@ -30,6 +29,7 @@ import org.bithon.agent.observability.tracing.context.propagation.ITraceContextE
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
+import org.bithon.agent.plugin.apache.kafka.consumer.config.KafkaConsumerTraceSamplingConfig;
 import org.bithon.component.commons.tracing.Components;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
@@ -46,8 +46,7 @@ public class ListenerConsumer$PollAndInvoke extends AroundInterceptor {
 
     public ListenerConsumer$PollAndInvoke() {
         ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
-                                                                            .getDynamicConfig("tracing.samplingConfigs.kafka-consumer",
-                                                                                              TraceSamplingConfig.class));
+                                                                            .getConfig(KafkaConsumerTraceSamplingConfig.class));
         this.extractor = new ChainedTraceContextExtractor(sampler);
     }
 

@@ -28,10 +28,9 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -66,8 +65,6 @@ public class ConfigurationPropertyRegistry {
 
     private static List<PropertyMetadata> loadAllProperties() {
         List<PropertyMetadata> allProperties = new ArrayList<>();
-        Set<String> discoveredMetadataPaths = new HashSet<>();
-        int moduleCount = 0;
 
         try {
             // Iterate through both PluginClassLoader and AgentClassLoader JARs
@@ -76,6 +73,7 @@ public class ConfigurationPropertyRegistry {
                 AgentClassLoader.getClassLoader()
             };
 
+            List<URL> discoveredMetadataPaths = new ArrayList<>();
             for (JarClassLoader classLoader : classLoaders) {
                 if (classLoader != null) {
                     List<JarFile> jars = classLoader.getJars();
@@ -83,76 +81,55 @@ public class ConfigurationPropertyRegistry {
 
                     for (JarFile jarFile : jars) {
                         try {
-                            Set<String> metadataPathsFromJar = scanJarForConfigurationMetadata(jarFile);
-                            discoveredMetadataPaths.addAll(metadataPathsFromJar);
+                            discoveredMetadataPaths.addAll(scanJarForConfigurationMetadata(classLoader, jarFile));
                         } catch (Exception e) {
-                            log.warn("Failed to scan JAR {} for configuration metadata: {}", 
-                                   jarFile.getName(), e.getMessage());
+                            log.warn("Failed to scan JAR {} for configuration metadata: {}",
+                                     jarFile.getName(), e.getMessage());
                         }
                     }
                 }
             }
 
             // Load configuration metadata for discovered paths
-            for (String metadataPath : discoveredMetadataPaths) {
+            for (URL metadataPath : discoveredMetadataPaths) {
                 try {
-                    // Try to load from PluginClassLoader first, then AgentClassLoader
-                    URL resource = PluginClassLoader.getClassLoader().getResource(metadataPath);
-                    if (resource == null) {
-                        resource = AgentClassLoader.getClassLoader().getResource(metadataPath);
-                    }
-                    
-                    if (resource != null) {
-                        moduleCount++;
-                        log.info("Loading configuration metadata from: {}", resource);
-                        
-                        try (InputStream is = resource.openStream()) {
-                            List<PropertyMetadata> properties = parseMetadata(is);
-                            if (properties != null) {
-                                allProperties.addAll(properties);
-                            }
-                        } catch (Exception e) {
-                            log.warn("Failed to load configuration metadata from {}: {}", resource, e.getMessage());
+                    try (InputStream is = metadataPath.openStream()) {
+                        List<PropertyMetadata> properties = parseMetadata(is);
+                        if (properties != null) {
+                            allProperties.addAll(properties);
                         }
+                    } catch (Exception e) {
+                        log.warn("Failed to load configuration metadata from {}: {}", metadataPath, e.getMessage());
                     }
                 } catch (Exception e) {
                     log.warn("Failed to load configuration metadata from path {}: {}", metadataPath, e.getMessage());
                 }
             }
-
-            log.info("Loaded {} configuration properties from {} modules", allProperties.size(), moduleCount);
-
         } catch (Exception e) {
             log.error("Failed to enumerate configuration metadata resources", e);
         }
 
+        // Sort for better readability
+        allProperties.sort(Comparator.comparing(PropertyMetadata::getPath));
+
         return Collections.unmodifiableList(allProperties);
     }
 
-    private static Set<String> scanJarForConfigurationMetadata(JarFile jarFile) {
-        Set<String> discoveredMetadataPaths = new HashSet<>();
-        Enumeration<JarEntry> entries = jarFile.entries();
-        
-        while (entries.hasMoreElements()) {
-            JarEntry entry = entries.nextElement();
-            String entryName = entry.getName();
-            
-            // Look for configuration metadata files
-            if (entryName.startsWith("META-INF/bithon/configuration/") && 
-                entryName.endsWith(".meta")) {
-                
-                // Add the full path directly
-                discoveredMetadataPaths.add(entryName);
-                
-                // Extract module name for logging
-                String fileName = entryName.substring("META-INF/bithon/configuration/".length());
-                if (fileName.endsWith(".meta")) {
-                    String moduleName = fileName.substring(0, fileName.length() - ".meta".length());
-                    log.debug("Discovered module configuration metadata: {} at {}", moduleName, entryName);
+    private static List<URL> scanJarForConfigurationMetadata(ClassLoader classLoader, JarFile jarFile) {
+        List<URL> discoveredMetadataPaths = new ArrayList<>();
+        {
+            Enumeration<JarEntry> entries = jarFile.entries();
+            while (entries.hasMoreElements()) {
+                JarEntry jarEntry = entries.nextElement();
+                String entryName = jarEntry.getName();
+
+                // Look for configuration metadata files
+                if (entryName.startsWith("META-INF/bithon/configuration/") &&
+                    entryName.endsWith(".meta")) {
+                    discoveredMetadataPaths.add(classLoader.getResource(entryName));
                 }
             }
         }
-        
         return discoveredMetadataPaths;
     }
 

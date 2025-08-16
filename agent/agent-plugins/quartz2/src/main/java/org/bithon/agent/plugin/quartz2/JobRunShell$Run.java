@@ -21,7 +21,6 @@ import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
@@ -29,6 +28,7 @@ import org.bithon.agent.observability.tracing.context.propagation.ChainedTraceCo
 import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
+import org.bithon.agent.plugin.quartz2.config.QuartzTraceSamplingConfig;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -48,8 +48,7 @@ public class JobRunShell$Run extends AroundInterceptor {
 
     public JobRunShell$Run() {
         ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
-                                                                            .getDynamicConfig("tracing.samplingConfigs.quartz",
-                                                                                              TraceSamplingConfig.class));
+                                                                            .getConfig(QuartzTraceSamplingConfig.class));
         this.extractor = new ChainedTraceContextExtractor(sampler);
     }
 
