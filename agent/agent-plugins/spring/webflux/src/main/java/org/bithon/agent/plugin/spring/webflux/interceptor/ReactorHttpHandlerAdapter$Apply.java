@@ -16,7 +16,6 @@
 
 package org.bithon.agent.plugin.spring.webflux.interceptor;
 
-import io.netty.handler.codec.http.HttpHeaders;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
@@ -30,7 +29,6 @@ import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
-import org.bithon.agent.plugin.spring.webflux.config.ResponseConfigs;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -43,11 +41,8 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
 
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.function.BiConsumer;
 
 /**
@@ -59,22 +54,15 @@ import java.util.function.BiConsumer;
 public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
 
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(ReactorHttpHandlerAdapter$Apply.class);
-    private static final String X_FORWARDED_FOR = "X-Forwarded-For";
 
     private final HttpIncomingMetricsRegistry metricRegistry = HttpIncomingMetricsRegistry.get();
     private final HttpIncomingFilter requestFilter;
     private final TraceConfig traceConfig;
-    private final ResponseConfigs responseConfigs;
-    private final String xforwardTagName;
 
     public ReactorHttpHandlerAdapter$Apply() {
         requestFilter = new HttpIncomingFilter();
 
         traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
-        responseConfigs = ConfigurationManager.getInstance().getConfig(ResponseConfigs.class);
-
-        // remove the special header for fast processing later
-        xforwardTagName = responseConfigs.getHeaders().remove(X_FORWARDED_FOR);
     }
 
     @Override
@@ -216,47 +204,15 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
             .tag(t)
             .config((s -> {
                 // extract headers in the response to tag
-                if (!CollectionUtils.isEmpty(responseConfigs.getHeaders())) {
-                    HttpHeaders httpHeaders = response.responseHeaders();
-                    for (Map.Entry<String, String> entry : responseConfigs.getHeaders().entrySet()) {
-                        String headerName = entry.getKey();
-                        String tagName = entry.getValue();
-                        String tagValue = httpHeaders.get(headerName);
-                        if (tagValue != null) {
-                            s.tag(tagName, tagValue);
+                if (traceConfig.getHeaders() != null && !CollectionUtils.isEmpty(traceConfig.getHeaders().getResponse())) {
+                    List<String> headerNames = traceConfig.getHeaders().getResponse();
+                    for (String headerName : headerNames) {
+                        String headerValue = response.responseHeaders().get(headerName);
+                        if (headerValue != null) {
+                            s.tag(headerName, headerValue);
                         }
                     }
                 }
-
-                //
-                // handle X-FORWARDED-FOR
-                //
-                if (xforwardTagName == null) {
-                    return;
-                }
-                InetSocketAddress remoteAddr = request.remoteAddress();
-                if (remoteAddr == null) {
-                    return;
-                }
-
-                String remoteAddrText = remoteAddr.getAddress().getHostAddress();
-                List<String> xforwarded = request.requestHeaders().getAll(X_FORWARDED_FOR);
-                if (xforwarded == null) {
-                    span.tag(xforwardTagName, remoteAddrText);
-                    return;
-                }
-
-                if (!xforwarded.contains(remoteAddrText)) { // prevent duplicates
-                    // xforwarded maybe unmodifiable, create a new container
-                    xforwarded = new ArrayList<>(xforwarded);
-
-                    xforwarded.add(remoteAddrText);
-                }
-
-                // using join instead of using ObjectMapper
-                // because in other modules such as tomcat-plugin, we directly get the header value and record it in the log
-                // the value in that header is comma delimited
-                s.tag(xforwardTagName, String.join(",", xforwarded));
             }))
             .finish();
         traceContext.finish();
