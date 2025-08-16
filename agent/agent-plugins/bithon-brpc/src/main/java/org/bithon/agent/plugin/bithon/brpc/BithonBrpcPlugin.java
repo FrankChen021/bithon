@@ -36,10 +36,10 @@ import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.Interc
  */
 public class BithonBrpcPlugin implements IPlugin {
 
-    @ConfigurationProperties(path = "agent.plugin.bithon.brpc")
+    @ConfigurationProperties(path = "agent.plugin.bithon.brpc", dynamic = false)
     public static class ServiceProviderConfig {
         @PropertyDescriptor(
-            value = "The BRPC services that will be instrumented.",
+            value = "The BRPC services that will be instrumented. The key is the service class name while the value is the BRPC interfaces that the service implements, separated by comma.",
             required = false
         )
         private Map<String, String> providers = Collections.emptyMap();
@@ -60,7 +60,10 @@ public class BithonBrpcPlugin implements IPlugin {
             return Collections.emptyList();
         }
 
-        return config.getProviders().keySet().stream().map((provider) -> {
+        return config.getProviders()
+                     .keySet()
+                     .stream()
+                     .map((provider) -> {
             String[] interfaces = config.getProviders().get(provider).split(",");
 
             return forClass(provider).onMethod(Matchers.implement(interfaces))
