@@ -20,13 +20,13 @@ import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.propagation.ChainedTraceContextExtractor;
 import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
+import org.bithon.agent.plugin.spring.scheduling.config.SpringSchedulerTraceSamplingConfig;
 
 /**
  * {@link org.springframework.scheduling.support.DelegatingErrorHandlingRunnable#run()}
@@ -44,8 +44,7 @@ public class DelegatingErrorHandlingRunnable$Run extends AroundInterceptor {
 
     public DelegatingErrorHandlingRunnable$Run() {
         ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
-                                                                            .getDynamicConfig("tracing.samplingConfigs.spring-scheduler",
-                                                                                              TraceSamplingConfig.class));
+                                                                            .getConfig(SpringSchedulerTraceSamplingConfig.class));
         this.extractor = new ChainedTraceContextExtractor(sampler);
     }
 

@@ -20,7 +20,6 @@ import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
@@ -28,6 +27,7 @@ import org.bithon.agent.observability.tracing.context.propagation.ChainedTraceCo
 import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
+import org.bithon.agent.plugin.bithon.brpc.config.BrpcTraceSamplingConfig;
 import org.bithon.component.commons.tracing.SpanKind;
 
 /**
@@ -40,8 +40,7 @@ public class BrpcMethodInterceptor extends AroundInterceptor {
 
     public BrpcMethodInterceptor() {
         ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
-                                                                            .getDynamicConfig("tracing.samplingConfigs.brpc",
-                                                                                              TraceSamplingConfig.class));
+                                                                            .getConfig(BrpcTraceSamplingConfig.class));
         this.extractor = new ChainedTraceContextExtractor(sampler);
     }
 

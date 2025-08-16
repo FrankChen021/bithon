@@ -104,23 +104,85 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
         processingEnv.getMessager()
                      .printMessage(Diagnostic.Kind.NOTE, "Processing ConfigurationProperties annotated class: " + configClass.getQualifiedName());
 
-        // Process all fields in the class
-        for (Element enclosedElement : configClass.getEnclosedElements()) {
-            if (enclosedElement.getKind() == ElementKind.FIELD) {
-                VariableElement field = (VariableElement) enclosedElement;
-
-                // Skip static fields and synthetic fields
-                if (field.getModifiers().contains(Modifier.STATIC)) {
-                    continue;
-                }
-
-                PropertyMetadata property = createPropertyMetadata(field, basePath, isDynamic, getBinaryName(configClass));
-                allProperties.add(property);
-            }
-        }
+        // Process all fields in the class hierarchy (including inherited fields)
+        processClassHierarchyFields(configClass, basePath, isDynamic, allProperties);
 
         // Process nested configuration classes
         processNestedConfigurationClasses(configClass, basePath, isDynamic, allProperties);
+    }
+
+    /**
+     * Process fields from the current class and all its parent classes in the hierarchy.
+     * This ensures that inherited fields are also included in the configuration metadata.
+     * 
+     * @param currentClass the class to process
+     * @param basePath the base configuration path
+     * @param isDynamic whether the configuration is dynamic
+     * @param allProperties the list to add discovered properties to
+     */
+    private void processClassHierarchyFields(TypeElement currentClass, String basePath, boolean isDynamic, List<PropertyMetadata> allProperties) {
+        // Process fields in the current class and all parent classes, but always use the original annotated class
+        // as the configuration class for all properties
+        processClassHierarchyFieldsRecursive(currentClass, currentClass, basePath, isDynamic, allProperties);
+    }
+
+    /**
+     * Recursively process fields from the class hierarchy.
+     * 
+     * @param originalClass the original @ConfigurationProperties annotated class
+     * @param currentClass the current class being processed in the hierarchy
+     * @param basePath the base configuration path
+     * @param isDynamic whether the configuration is dynamic
+     * @param allProperties the list to add discovered properties to
+     */
+    private void processClassHierarchyFieldsRecursive(TypeElement originalClass, TypeElement currentClass, String basePath, boolean isDynamic, List<PropertyMetadata> allProperties) {
+        // Process fields in the current class
+        processClassFields(originalClass, currentClass, basePath, isDynamic, allProperties);
+        
+        // Recursively process parent class fields
+        TypeMirror superclass = currentClass.getSuperclass();
+        if (superclass != null) {
+            Element superElement = processingEnv.getTypeUtils().asElement(superclass);
+            if (superElement != null && superElement.getKind() == ElementKind.CLASS) {
+                TypeElement superTypeElement = (TypeElement) superElement;
+                
+                // Only process parent classes that are not system classes (like Object, etc.)
+                String superClassName = superTypeElement.getQualifiedName().toString();
+                if (!isSystemClass(superClassName)) {
+                    processClassHierarchyFieldsRecursive(originalClass, superTypeElement, basePath, isDynamic, allProperties);
+                }
+            }
+        }
+    }
+
+    /**
+     * Process fields directly declared in the given class (not inherited).
+     * 
+     * @param originalClass the original @ConfigurationProperties annotated class
+     * @param currentClass the current class being processed (may be a parent class)
+     * @param basePath the base configuration path
+     * @param isDynamic whether the configuration is dynamic
+     * @param allProperties the list to add discovered properties to
+     */
+    private void processClassFields(TypeElement originalClass,
+                                    TypeElement currentClass,
+                                    String basePath,
+                                    boolean isDynamic,
+                                    List<PropertyMetadata> allProperties) {
+        for (Element enclosedElement : currentClass.getEnclosedElements()) {
+            if (enclosedElement.getKind() == ElementKind.FIELD) {
+                VariableElement field = (VariableElement) enclosedElement;
+
+                // Use centralized field filtering logic
+                if (shouldSkipField(currentClass, field)) {
+                    continue;
+                }
+
+                // Always use the original annotated class as the configuration class
+                PropertyMetadata property = createPropertyMetadata(field, basePath, isDynamic, getBinaryName(originalClass));
+                allProperties.add(property);
+            }
+        }
     }
 
     private PropertyMetadata createPropertyMetadata(VariableElement field,
@@ -186,16 +248,17 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
         }
     }
 
-    private void processNestedFields(TypeElement nestedClass, String nestedPath, boolean isDynamic, List<PropertyMetadata> allProperties) {
-        for (Element enclosedElement : nestedClass.getEnclosedElements()) {
+    private void processNestedFields(TypeElement typeElement, String propertyPath, boolean isDynamic, List<PropertyMetadata> allProperties) {
+        for (Element enclosedElement : typeElement.getEnclosedElements()) {
             if (enclosedElement.getKind() == ElementKind.FIELD) {
                 VariableElement field = (VariableElement) enclosedElement;
 
-                if (field.getModifiers().contains(Modifier.STATIC)) {
+                // Use centralized field filtering logic
+                if (shouldSkipField(typeElement, field)) {
                     continue;
                 }
 
-                PropertyMetadata property = createPropertyMetadata(field, nestedPath, isDynamic, getBinaryName(nestedClass));
+                PropertyMetadata property = createPropertyMetadata(field, propertyPath, isDynamic, getBinaryName(typeElement));
                 allProperties.add(property);
 
                 // Recursively process further nested classes
@@ -205,7 +268,7 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
                 if (fieldTypeElement != null && fieldTypeElement.getKind() == ElementKind.CLASS) {
                     TypeElement fieldTypeClass = (TypeElement) fieldTypeElement;
                     if (hasConfigurationFields(fieldTypeClass)) {
-                        String furtherNestedPath = nestedPath + "." + field.getSimpleName().toString();
+                        String furtherNestedPath = propertyPath + "." + field.getSimpleName().toString();
                         processNestedFields(fieldTypeClass, furtherNestedPath, isDynamic, allProperties);
                     }
                 }
@@ -305,6 +368,138 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
                                annotationName.contains("NotBlank") ||
                                annotationName.contains("NotEmpty");
                     });
+    }
+
+    /**
+     * Determines if a field should be skipped from configuration metadata generation.
+     * Fields are skipped if they are:
+     * - Static fields
+     * - Annotated with @Deprecated
+     * - Annotated with @JsonIgnore (from Jackson)
+     * - Don't have a public getter method
+     * 
+     * @param field the field to check
+     * @param typeElement the class containing the field (used for getter validation)
+     * @return true if the field should be skipped, false otherwise
+     */
+    private boolean shouldSkipField(TypeElement typeElement, VariableElement field) {
+        // Skip static fields and synthetic fields
+        if (field.getModifiers().contains(Modifier.STATIC)) {
+            return true;
+        }
+
+        // Check for annotation-based exclusions
+        for (AnnotationMirror annotationMirror : field.getAnnotationMirrors()) {
+            String annotationName = annotationMirror.getAnnotationType().toString();
+            
+            // Check for @Deprecated annotation
+            if ("java.lang.Deprecated".equals(annotationName)) {
+                return true;
+            }
+            
+            // Check for @JsonIgnore annotation (both shaded and non-shaded versions)
+            if ("org.bithon.shaded.com.fasterxml.jackson.annotation.JsonIgnore".equals(annotationName) ||
+                "com.fasterxml.jackson.annotation.JsonIgnore".equals(annotationName)) {
+                return true;
+            }
+        }
+
+        // Skip fields that don't have public getter methods
+        if (!hasPublicGetter(typeElement, field)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if a field has a public getter method in the class hierarchy.
+     * For boolean fields, checks for both getFieldName() and isFieldName() methods.
+     * 
+     * @param typeElement the class containing the field
+     * @param field the field to check
+     * @return true if a public getter exists, false otherwise
+     */
+    private boolean hasPublicGetter(TypeElement typeElement, VariableElement field) {
+        String fieldName = field.getSimpleName().toString();
+        String capitalizedFieldName = Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+        
+        // Check for getter methods in the class hierarchy
+        return hasGetterInHierarchy(typeElement, field, capitalizedFieldName);
+    }
+
+    /**
+     * Recursively checks for getter methods in the class hierarchy.
+     * 
+     * @param typeElement the current class to check
+     * @param field the field we're looking for a getter for
+     * @param capitalizedFieldName the capitalized field name for getter method names
+     * @return true if a getter is found, false otherwise
+     */
+    private boolean hasGetterInHierarchy(TypeElement typeElement, VariableElement field, String capitalizedFieldName) {
+        // Check methods in the current class
+        for (Element enclosedElement : typeElement.getEnclosedElements()) {
+            if (enclosedElement.getKind() == ElementKind.METHOD) {
+                ExecutableElement method = (ExecutableElement) enclosedElement;
+                
+                // Skip non-public methods
+                if (!method.getModifiers().contains(Modifier.PUBLIC)) {
+                    continue;
+                }
+                
+                // Skip methods with parameters (getters should have no parameters)
+                if (!method.getParameters().isEmpty()) {
+                    continue;
+                }
+                
+                String methodName = method.getSimpleName().toString();
+                
+                // Check for standard getter patterns
+                if (isGetterMethod(methodName, capitalizedFieldName, field)) {
+                    return true;
+                }
+            }
+        }
+        
+        // Recursively check parent classes
+        TypeMirror superclass = typeElement.getSuperclass();
+        if (superclass != null) {
+            Element superElement = processingEnv.getTypeUtils().asElement(superclass);
+            if (superElement != null && superElement.getKind() == ElementKind.CLASS) {
+                TypeElement superTypeElement = (TypeElement) superElement;
+                
+                // Only check parent classes that are not system classes
+                String superClassName = superTypeElement.getQualifiedName().toString();
+                if (!isSystemClass(superClassName)) {
+                    return hasGetterInHierarchy(superTypeElement, field, capitalizedFieldName);
+                }
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Checks if a method name matches the getter pattern for a field.
+     * 
+     * @param methodName the method name to check
+     * @param capitalizedFieldName the capitalized field name
+     * @param field the field element (used to check if it's boolean)
+     * @return true if the method is a valid getter for the field
+     */
+    private boolean isGetterMethod(String methodName, String capitalizedFieldName, VariableElement field) {
+        // Standard getter: getFieldName()
+        if (("get" + capitalizedFieldName).equals(methodName)) {
+            return true;
+        }
+        
+        // Boolean getter: isFieldName() - only for boolean fields
+        if (("is" + capitalizedFieldName).equals(methodName)) {
+            String fieldType = field.asType().toString();
+            return "boolean".equals(fieldType) || "java.lang.Boolean".equals(fieldType);
+        }
+        
+        return false;
     }
 
     private String extractPropertyDescription(VariableElement field) {

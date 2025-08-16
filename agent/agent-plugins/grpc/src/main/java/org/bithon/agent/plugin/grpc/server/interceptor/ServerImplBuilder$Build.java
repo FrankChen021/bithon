@@ -28,6 +28,7 @@ import org.bithon.agent.observability.tracing.context.propagation.w3c.W3CTraceCo
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
 import org.bithon.agent.plugin.grpc.ShadedGrpcList;
 import org.bithon.agent.plugin.grpc.client.interceptor.ManagedChannelImplBuilder$Build;
+import org.bithon.agent.plugin.grpc.server.config.GrpcTraceSamplingConfig;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
 
@@ -58,9 +59,8 @@ public class ServerImplBuilder$Build extends BeforeInterceptor {
         this.traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
 
         TraceSamplingConfig grpcSamplingConfig = ConfigurationManager.getInstance()
-                                                                     .getDynamicConfig("tracing.samplingConfigs.grpc",
-                                                                                       TraceSamplingConfig.class);
-        contextExtractor = new ChainedTraceContextExtractor(SamplerFactory.createSampler(grpcSamplingConfig),
+                                                                     .getConfig(GrpcTraceSamplingConfig.class);
+        this.contextExtractor = new ChainedTraceContextExtractor(SamplerFactory.createSampler(grpcSamplingConfig),
                                                             new W3CTraceContextExtractor());
     }
 

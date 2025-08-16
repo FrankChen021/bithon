@@ -16,13 +16,17 @@
 
 package org.bithon.agent.observability.tracing.config;
 
+import org.bithon.agent.configuration.annotation.ConfigurationProperties;
+import org.bithon.agent.configuration.annotation.PropertyDescriptor;
 import org.bithon.agent.configuration.validation.Range;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
+import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/1/7 20:27
  */
+@ConfigurationProperties(path = "tracing.samplingConfigs.default")
 public class TraceSamplingConfig {
     /**
      * in range of [0, 100]
@@ -50,11 +54,14 @@ public class TraceSamplingConfig {
      * Supported precision: [0.001%, 100%]
      * The precision is limited because we're using a more definitive way to calculate if a request should be sampled.
      */
+    @PropertyDescriptor("The sampling percentage for tracing. The value is in range of [0, 100%]. 100% means all requests are sampled. "
+                        + "The precision is 0.001%, that is 0.00001")
     private HumanReadablePercentage samplingPercentage = new HumanReadablePercentage(0);
 
     /**
      * A runtime value calculated by the percentage above
      */
+    @JsonIgnore
     private int rate;
 
     public HumanReadablePercentage getSamplingPercentage() {

@@ -214,10 +214,6 @@ public class ConfigurationManager {
         return getConfig(cfgAnnotation.path(), clazz, cfgAnnotation.dynamic());
     }
 
-    public <T> T getDynamicConfig(String propertyPath, Class<T> clazz) {
-        return getConfig(propertyPath, clazz, true);
-    }
-
     /**
      * Bind configuration to an object. And if the configuration changes, it will NOT reflect on this object
      */
