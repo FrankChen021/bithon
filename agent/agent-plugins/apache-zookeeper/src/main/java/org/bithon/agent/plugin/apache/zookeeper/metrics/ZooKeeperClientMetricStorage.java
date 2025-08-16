@@ -18,6 +18,7 @@ package org.bithon.agent.plugin.apache.zookeeper.metrics;
 
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.annotation.ConfigurationProperties;
+import org.bithon.agent.configuration.annotation.PropertyDescriptor;
 import org.bithon.agent.observability.metric.collector.MetricCollectorManager;
 import org.bithon.agent.observability.metric.model.AbstractMetricStorage;
 import org.bithon.component.commons.utils.HumanReadableDuration;
@@ -37,6 +38,10 @@ public class ZooKeeperClientMetricStorage extends AbstractMetricStorage<ZooKeepe
 
     @ConfigurationProperties(path = "agent.observability.metrics.zookeeper-client-metrics")
     public static class ZKClientMetricsConfig {
+        @PropertyDescriptor(
+            value = "The response time threshold to record detailed log for a ZooKeeper operation",
+            required = false
+        )
         private HumanReadableDuration responseTime = HumanReadableDuration.of(Duration.ofSeconds(3), TimeUnit.SECONDS);
 
         public HumanReadableDuration getResponseTime() {

@@ -18,6 +18,7 @@ package org.bithon.agent.observability.metric.domain.httpserver;
 
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.annotation.ConfigurationProperties;
+import org.bithon.agent.configuration.annotation.PropertyDescriptor;
 import org.bithon.agent.observability.utils.filter.IMatcher;
 import org.bithon.agent.observability.utils.filter.StringSuffixMatcher;
 import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonProperty;
@@ -39,6 +40,10 @@ public class HttpIncomingFilter {
 
     @ConfigurationProperties(path = "agent.plugin.http.incoming.filter.uri")
     public static class UriFilterConfiguration {
+        @PropertyDescriptor(
+            value = "A set of URI suffixes that will be filtered out from the incoming HTTP metrics.",
+            required = false
+        )
         @JsonProperty
         private String suffixes = ".html,.js,.css,.jpg,.gif,.png,.swf,.ttf,.ico,.woff,.woff2,.eot,.svg,.map";
 
@@ -64,6 +69,10 @@ public class HttpIncomingFilter {
 
     @ConfigurationProperties(path = "agent.plugin.http.incoming.filter.user-agent")
     public static class UserAgentFilterConfiguration {
+        @PropertyDescriptor(
+            value = "A list of user agent matchers that will be used to filter out incoming HTTP requests.",
+            required = false
+        )
         @JsonProperty
         private List<IMatcher> matchers = Collections.emptyList();
 

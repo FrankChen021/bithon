@@ -16,6 +16,8 @@
 
 package org.bithon.agent.observability.tracing.config;
 
+import org.bithon.agent.configuration.annotation.PropertyDescriptor;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -26,7 +28,16 @@ import java.util.stream.Collectors;
  * @date 2025/8/6 21:09
  */
 public class HeaderConfig {
+    @PropertyDescriptor(
+        value = "The HTTP headers that will be added to the tracing span logs when a HTTP request is received from a client. ",
+        required = false
+    )
     private List<String> request = Collections.emptyList();
+
+    @PropertyDescriptor(
+        value = "The HTTP headers that will be added to the tracing span logs when a HTTP response is received from a remote HTTP server.",
+        required = false
+    )
     private List<String> response = Collections.emptyList();
 
     public List<String> getRequest() {

@@ -18,6 +18,7 @@ package org.bithon.agent.controller;
 
 import org.bithon.agent.config.RpcClientConfig;
 import org.bithon.agent.configuration.annotation.ConfigurationProperties;
+import org.bithon.agent.configuration.annotation.PropertyDescriptor;
 import org.bithon.agent.configuration.validation.GreaterThan;
 import org.bithon.agent.configuration.validation.Validated;
 
@@ -31,8 +32,13 @@ public class AgentControllerConfig {
     @Validated
     private RpcClientConfig client;
 
+    @PropertyDescriptor("The list of the agent controller endpoint separated in comma, e.g. host1:port1,host2:port2...")
     private String servers;
 
+    @PropertyDescriptor(
+        value = "The interval in seconds that how long the agent sync its configuration with the remote controller",
+        required = false
+    )
     @GreaterThan(value = 0)
     private int refreshInterval = 60;
 
