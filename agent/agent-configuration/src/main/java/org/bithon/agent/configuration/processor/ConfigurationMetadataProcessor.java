@@ -316,7 +316,7 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
                 Map<? extends ExecutableElement, ? extends AnnotationValue> elementValues = annotationMirror.getElementValues();
 
                 for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : elementValues.entrySet()) {
-                    if ("description".equals(entry.getKey().getSimpleName().toString())) {
+                    if ("value".equals(entry.getKey().getSimpleName().toString())) {
                         Object value = entry.getValue().getValue();
                         if (value instanceof String) {
                             return (String) value;
