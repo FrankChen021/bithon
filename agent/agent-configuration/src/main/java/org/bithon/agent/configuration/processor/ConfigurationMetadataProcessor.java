@@ -114,7 +114,7 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
                     continue;
                 }
 
-                PropertyMetadata property = createPropertyMetadata(field, basePath, isDynamic, configClass.getQualifiedName().toString());
+                PropertyMetadata property = createPropertyMetadata(field, basePath, isDynamic, getBinaryName(configClass));
                 allProperties.add(property);
             }
         }
@@ -195,7 +195,7 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
                     continue;
                 }
 
-                PropertyMetadata property = createPropertyMetadata(field, nestedPath, isDynamic, nestedClass.getQualifiedName().toString());
+                PropertyMetadata property = createPropertyMetadata(field, nestedPath, isDynamic, getBinaryName(nestedClass));
                 allProperties.add(property);
 
                 // Recursively process further nested classes
@@ -385,5 +385,16 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
 
         // Fallback: use a hash of the configuration class name
         return "module-" + Math.abs(configClass.hashCode());
+    }
+
+    /**
+     * Get the binary name for a TypeElement, which correctly handles inner classes
+     * by using '$' instead of '.' as the separator.
+     * 
+     * @param typeElement the type element
+     * @return the binary name suitable for runtime class loading
+     */
+    private String getBinaryName(TypeElement typeElement) {
+        return processingEnv.getElementUtils().getBinaryName(typeElement).toString();
     }
 }
