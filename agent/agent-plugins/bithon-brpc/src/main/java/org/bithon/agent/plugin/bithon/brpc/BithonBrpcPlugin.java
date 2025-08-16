@@ -18,6 +18,7 @@ package org.bithon.agent.plugin.bithon.brpc;
 
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.annotation.ConfigurationProperties;
+import org.bithon.agent.configuration.annotation.PropertyDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
@@ -37,6 +38,10 @@ public class BithonBrpcPlugin implements IPlugin {
 
     @ConfigurationProperties(path = "agent.plugin.bithon.brpc")
     public static class ServiceProviderConfig {
+        @PropertyDescriptor(
+            value = "The BRPC services that will be instrumented.",
+            required = false
+        )
         private Map<String, String> providers = Collections.emptyMap();
 
         public Map<String, String> getProviders() {

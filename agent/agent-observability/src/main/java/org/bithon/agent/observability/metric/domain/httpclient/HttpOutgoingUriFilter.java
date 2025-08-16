@@ -17,6 +17,7 @@
 package org.bithon.agent.observability.metric.domain.httpclient;
 
 import org.bithon.agent.configuration.annotation.ConfigurationProperties;
+import org.bithon.agent.configuration.annotation.PropertyDescriptor;
 import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Arrays;
@@ -30,6 +31,10 @@ import java.util.stream.Collectors;
  */
 @ConfigurationProperties(path = "agent.plugin.http.outgoing.filter.uri")
 public class HttpOutgoingUriFilter {
+    @PropertyDescriptor(
+        value = "A set of URI suffixes that will be filtered out from the outgoing HTTP client metrics.",
+        required = false
+    )
     @JsonProperty
     private Set<String> suffixes = Arrays.stream("html, js, css, jpg, gif, png, swf, ttf, ico, woff, woff2, json, eot, svg".split(","))
                                          .map(x -> x.trim().toLowerCase(Locale.ENGLISH))

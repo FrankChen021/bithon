@@ -17,6 +17,7 @@
 package org.bithon.agent.plugin.apache.kafka.producer;
 
 import org.bithon.agent.configuration.annotation.ConfigurationProperties;
+import org.bithon.agent.configuration.annotation.PropertyDescriptor;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,10 +28,10 @@ import java.util.List;
  */
 @ConfigurationProperties(path = "agent.plugin.kafka.producer.tracing")
 public class KafkaProducerTracingConfig {
-
-    /**
-     * headers that will be recorded into tracing logs
-     */
+    @PropertyDescriptor(
+        value = "Kafka headers that will be recorded into tracing logs",
+        required = false
+    )
     private List<String> headers = Collections.emptyList();
 
     public List<String> getHeaders() {

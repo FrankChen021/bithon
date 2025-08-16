@@ -18,6 +18,7 @@ package org.bithon.agent.observability.metric.domain.sql;
 
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.annotation.ConfigurationProperties;
+import org.bithon.agent.configuration.annotation.PropertyDescriptor;
 import org.bithon.agent.observability.metric.collector.MetricCollectorManager;
 import org.bithon.agent.observability.metric.model.AbstractMetricStorage;
 import org.bithon.component.commons.utils.HumanReadableDuration;
@@ -40,6 +41,10 @@ public class SQLMetricStorage extends AbstractMetricStorage<SQLMetrics> {
      */
     @ConfigurationProperties(path = "agent.observability.metrics." + NAME)
     public static class SQLMetricsConfig {
+        @PropertyDescriptor(
+            value = "The response time threshold to record detailed execution log for a SQL operation",
+            required = false
+        )
         private HumanReadableDuration responseTime = HumanReadableDuration.of(5, TimeUnit.SECONDS);
 
         public HumanReadableDuration getResponseTime() {

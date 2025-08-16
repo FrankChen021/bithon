@@ -17,6 +17,7 @@
 package org.bithon.agent.observability.tracing.config;
 
 import org.bithon.agent.configuration.annotation.ConfigurationProperties;
+import org.bithon.agent.configuration.annotation.PropertyDescriptor;
 import org.bithon.agent.observability.tracing.id.ITraceIdGenerator;
 import org.bithon.agent.observability.tracing.id.impl.UUIDv7TracePlusNTraceIdGenerator;
 import org.bithon.component.commons.utils.StringUtils;
@@ -33,6 +34,10 @@ public class TraceConfig {
      * Use for debug.
      * Under debug mode, events of span creation and completion will be logged
      */
+    @PropertyDescriptor(
+        value = "Whether to enable debug mode. Under debug mode, events of span creation and completion will be logged.",
+        required = false
+    )
     private boolean debug = false;
 
     public boolean isDebug() {
@@ -43,6 +48,10 @@ public class TraceConfig {
         this.debug = debug;
     }
 
+    @PropertyDescriptor(
+        value = "Whether to disable tracing. If true, the tracing is DISABLED, and no span logs will be recorded.",
+        required = false
+    )
     private boolean disabled = false;
 
     public boolean isDisabled() {
@@ -58,6 +67,7 @@ public class TraceConfig {
      * The header name is the value of this field, header value is the trace id.
      * For example, X-Bithon-TraceId
      */
+    @PropertyDescriptor("The response header name that contains tracing information. -Id and -Mode will be appended to this header name to keep trace id and trace mode.")
     private String traceResponseHeader = "X-Bithon-Trace";
 
     @JsonIgnore

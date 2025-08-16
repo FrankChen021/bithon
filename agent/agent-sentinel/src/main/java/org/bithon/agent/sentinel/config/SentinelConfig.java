@@ -17,6 +17,7 @@
 package org.bithon.agent.sentinel.config;
 
 import org.bithon.agent.configuration.annotation.ConfigurationProperties;
+import org.bithon.agent.configuration.annotation.PropertyDescriptor;
 
 /**
  * @author frank.chen021@outlook.com
@@ -24,6 +25,9 @@ import org.bithon.agent.configuration.annotation.ConfigurationProperties;
  */
 @ConfigurationProperties(path = "agent.sentinel")
 public class SentinelConfig {
+    @PropertyDescriptor(
+        value = "Whether to enable Sentinel component. Currently it's only supported for Tomcat-based web applications.",
+        required = false)
     private boolean enabled = false;
 
     public boolean isEnabled() {
