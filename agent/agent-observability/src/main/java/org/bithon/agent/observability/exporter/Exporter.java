@@ -19,6 +19,7 @@ package org.bithon.agent.observability.exporter;
 
 import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.agent.observability.exporter.config.ExporterConfig;
+import org.bithon.agent.observability.exporter.impl.brpc.BrpcExporterFactory;
 import org.bithon.agent.observability.exporter.task.BlockingQueue;
 import org.bithon.agent.observability.exporter.task.ExportTask;
 import org.bithon.agent.observability.exporter.task.IThreadSafeQueue;
@@ -88,10 +89,8 @@ public class Exporter {
         }
     }
 
-    private IMessageExporterFactory createDispatcherFactory(ExporterConfig config) throws Exception {
-        return (IMessageExporterFactory) Class.forName(config.getClient().getFactory())
-                                              .getDeclaredConstructor()
-                                              .newInstance();
+    private IMessageExporterFactory createDispatcherFactory(ExporterConfig config) {
+        return new BrpcExporterFactory();
     }
 
     private synchronized void startTask(int port) {

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.exporter.brpc;
+package org.bithon.agent.observability.exporter.impl.brpc;
 
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.observability.event.EventMessage;
