@@ -225,7 +225,7 @@ public class ConfigurationManager {
     public <T> T getConfig(String propertyPath, Class<T> clazz, boolean isDynamic) {
         if (clazz.isPrimitive() || clazz.equals(String.class) || clazz.isArray() || !isDynamic) {
             return Binder.bind(propertyPath,
-                               collect(propertyPath),
+                               getPropertyValue(propertyPath),
                                clazz);
         }
 
@@ -235,7 +235,7 @@ public class ConfigurationManager {
             Class<?> proxyClass = ProxyClassGenerator.create(clazz);
 
             T val = Binder.bind(propertyPath,
-                                collect(propertyPath),
+                                getPropertyValue(propertyPath),
                                 clazz);
             try {
                 // For each generated
@@ -254,7 +254,7 @@ public class ConfigurationManager {
      *
      * @return A nullable node that contains all properties under the give property path
      */
-    private JsonNode collect(String propertyPath) {
+    public JsonNode getPropertyValue(String propertyPath) {
         String[] propertyPaths = propertyPath.split("\\.");
 
         boolean isFirst = true;
