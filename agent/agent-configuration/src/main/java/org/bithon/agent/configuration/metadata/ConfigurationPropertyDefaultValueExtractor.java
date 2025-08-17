@@ -14,9 +14,8 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.controller.config;
+package org.bithon.agent.configuration.metadata;
 
-import org.bithon.agent.configuration.metadata.PropertyMetadata;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.HumanReadableDuration;
@@ -41,8 +40,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author frank.chen021@outlook.com
  */
-public class ConfigurationDefaultValueExtractor {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(ConfigurationDefaultValueExtractor.class);
+public class ConfigurationPropertyDefaultValueExtractor {
+    private static final ILogAdaptor log = LoggerFactory.getLogger(ConfigurationPropertyDefaultValueExtractor.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     // Cache of instantiated configuration classes to avoid recreating them

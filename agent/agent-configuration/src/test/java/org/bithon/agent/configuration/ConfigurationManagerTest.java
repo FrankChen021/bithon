@@ -39,7 +39,7 @@ import java.util.HashMap;
  * @author frank.chen021@outlook.com
  * @date 2023/1/6 20:09
  */
-public class TestConfigurationManager {
+public class ConfigurationManagerTest {
 
     @ConfigurationProperties(path = "test")
     static class TestConfig {
