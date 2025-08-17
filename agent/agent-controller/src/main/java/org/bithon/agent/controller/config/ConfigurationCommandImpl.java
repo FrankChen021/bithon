@@ -17,6 +17,7 @@
 package org.bithon.agent.controller.config;
 
 import org.bithon.agent.configuration.ConfigurationManager;
+import org.bithon.agent.configuration.metadata.ConfigurationPropertyDefaultValueExtractor;
 import org.bithon.agent.configuration.metadata.ConfigurationPropertyRegistry;
 import org.bithon.agent.configuration.metadata.PropertyMetadata;
 import org.bithon.agent.controller.cmd.IAgentCommand;
@@ -51,7 +52,7 @@ public class ConfigurationCommandImpl implements IConfigurationCommand, IAgentCo
             List<PropertyMetadata> properties = ConfigurationPropertyRegistry.getAllProperties();
             
             // Extract default values from configuration class instances
-            ConfigurationDefaultValueExtractor.extractDefaultValues(properties);
+            ConfigurationPropertyDefaultValueExtractor.extractDefaultValues(properties);
             
             List<IConfigurationCommand.ConfigurationMetadata> metadataList = new ArrayList<>();
             

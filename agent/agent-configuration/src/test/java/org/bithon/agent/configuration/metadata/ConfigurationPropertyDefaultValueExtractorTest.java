@@ -14,10 +14,9 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.controller.config;
+package org.bithon.agent.configuration.metadata;
 
 import org.bithon.agent.configuration.annotation.ConfigurationProperties;
-import org.bithon.agent.configuration.metadata.PropertyMetadata;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
@@ -37,7 +36,7 @@ import java.util.Map;
  *
  * @author frank.chen021@outlook.com
  */
-public class ConfigurationDefaultValueExtractorTest {
+public class ConfigurationPropertyDefaultValueExtractorTest {
 
     /**
      * Simple configuration class with primitive and string fields
@@ -133,7 +132,7 @@ public class ConfigurationDefaultValueExtractorTest {
         properties.add(doubleProperty);
 
         // Extract default values
-        ConfigurationDefaultValueExtractor.extractDefaultValues(properties);
+        ConfigurationPropertyDefaultValueExtractor.extractDefaultValues(properties);
 
         // Verify extracted values with exact string representation
         Assertions.assertEquals("default-string", stringProperty.getDefaultValue());
@@ -205,7 +204,7 @@ public class ConfigurationDefaultValueExtractorTest {
         properties.add(percentageProperty);
 
         // Extract default values
-        ConfigurationDefaultValueExtractor.extractDefaultValues(properties);
+        ConfigurationPropertyDefaultValueExtractor.extractDefaultValues(properties);
 
         // Verify extracted values with exact string representation
         Assertions.assertEquals("10M", numberProperty.getDefaultValue());
@@ -282,7 +281,7 @@ public class ConfigurationDefaultValueExtractorTest {
         properties.add(arrayProperty);
 
         // Extract default values
-        ConfigurationDefaultValueExtractor.extractDefaultValues(properties);
+        ConfigurationPropertyDefaultValueExtractor.extractDefaultValues(properties);
 
         // Verify list value
         String listValue = listProperty.getDefaultValue();
@@ -382,7 +381,7 @@ public class ConfigurationDefaultValueExtractorTest {
         properties.add(nestedProperty);
 
         // Extract default values
-        ConfigurationDefaultValueExtractor.extractDefaultValues(properties);
+        ConfigurationPropertyDefaultValueExtractor.extractDefaultValues(properties);
 
         // Verify simple property
         Assertions.assertEquals("nested-config", nameProperty.getDefaultValue());
@@ -480,7 +479,7 @@ public class ConfigurationDefaultValueExtractorTest {
         properties.add(parentStringProperty);
 
         // Extract default values
-        ConfigurationDefaultValueExtractor.extractDefaultValues(properties);
+        ConfigurationPropertyDefaultValueExtractor.extractDefaultValues(properties);
 
         // Verify child class properties with exact string representation
         Assertions.assertEquals("200", childValueProperty.getDefaultValue());
