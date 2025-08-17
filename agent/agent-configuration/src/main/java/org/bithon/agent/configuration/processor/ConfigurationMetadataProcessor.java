@@ -16,14 +16,12 @@
 
 package org.bithon.agent.configuration.processor;
 
-import com.google.auto.service.AutoService;
 import org.bithon.agent.configuration.annotation.ConfigurationProperties;
 import org.bithon.agent.configuration.metadata.PropertyMetadata;
 import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.shaded.com.fasterxml.jackson.databind.SerializationFeature;
 
 import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
@@ -54,7 +52,6 @@ import java.util.Set;
  *
  * @author frank.chen021@outlook.com
  */
-@AutoService(Processor.class)
 @SupportedAnnotationTypes("org.bithon.agent.configuration.annotation.ConfigurationProperties")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class ConfigurationMetadataProcessor extends AbstractProcessor {
@@ -114,10 +111,10 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
     /**
      * Process fields from the current class and all its parent classes in the hierarchy.
      * This ensures that inherited fields are also included in the configuration metadata.
-     * 
-     * @param currentClass the class to process
-     * @param basePath the base configuration path
-     * @param isDynamic whether the configuration is dynamic
+     *
+     * @param currentClass  the class to process
+     * @param basePath      the base configuration path
+     * @param isDynamic     whether the configuration is dynamic
      * @param allProperties the list to add discovered properties to
      */
     private void processClassHierarchyFields(TypeElement currentClass, String basePath, boolean isDynamic, List<PropertyMetadata> allProperties) {
@@ -128,24 +125,24 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
 
     /**
      * Recursively process fields from the class hierarchy.
-     * 
+     *
      * @param originalClass the original @ConfigurationProperties annotated class
-     * @param currentClass the current class being processed in the hierarchy
-     * @param basePath the base configuration path
-     * @param isDynamic whether the configuration is dynamic
+     * @param currentClass  the current class being processed in the hierarchy
+     * @param basePath      the base configuration path
+     * @param isDynamic     whether the configuration is dynamic
      * @param allProperties the list to add discovered properties to
      */
     private void processClassHierarchyFieldsRecursive(TypeElement originalClass, TypeElement currentClass, String basePath, boolean isDynamic, List<PropertyMetadata> allProperties) {
         // Process fields in the current class
         processClassFields(originalClass, currentClass, basePath, isDynamic, allProperties);
-        
+
         // Recursively process parent class fields
         TypeMirror superclass = currentClass.getSuperclass();
         if (superclass != null) {
             Element superElement = processingEnv.getTypeUtils().asElement(superclass);
             if (superElement != null && superElement.getKind() == ElementKind.CLASS) {
                 TypeElement superTypeElement = (TypeElement) superElement;
-                
+
                 // Only process parent classes that are not system classes (like Object, etc.)
                 String superClassName = superTypeElement.getQualifiedName().toString();
                 if (!isSystemClass(superClassName)) {
@@ -157,11 +154,11 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
 
     /**
      * Process fields directly declared in the given class (not inherited).
-     * 
+     *
      * @param originalClass the original @ConfigurationProperties annotated class
-     * @param currentClass the current class being processed (may be a parent class)
-     * @param basePath the base configuration path
-     * @param isDynamic whether the configuration is dynamic
+     * @param currentClass  the current class being processed (maybe a parent class)
+     * @param basePath      the base configuration path
+     * @param isDynamic     whether the configuration is dynamic
      * @param allProperties the list to add discovered properties to
      */
     private void processClassFields(TypeElement originalClass,
@@ -377,8 +374,8 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
      * - Annotated with @Deprecated
      * - Annotated with @JsonIgnore (from Jackson)
      * - Don't have a public getter method
-     * 
-     * @param field the field to check
+     *
+     * @param field       the field to check
      * @param typeElement the class containing the field (used for getter validation)
      * @return true if the field should be skipped, false otherwise
      */
@@ -391,12 +388,12 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
         // Check for annotation-based exclusions
         for (AnnotationMirror annotationMirror : field.getAnnotationMirrors()) {
             String annotationName = annotationMirror.getAnnotationType().toString();
-            
+
             // Check for @Deprecated annotation
             if ("java.lang.Deprecated".equals(annotationName)) {
                 return true;
             }
-            
+
             // Check for @JsonIgnore annotation (both shaded and non-shaded versions)
             if ("org.bithon.shaded.com.fasterxml.jackson.annotation.JsonIgnore".equals(annotationName) ||
                 "com.fasterxml.jackson.annotation.JsonIgnore".equals(annotationName)) {
@@ -405,34 +402,30 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
         }
 
         // Skip fields that don't have public getter methods
-        if (!hasPublicGetter(typeElement, field)) {
-            return true;
-        }
-
-        return false;
+        return !hasPublicGetter(typeElement, field);
     }
 
     /**
      * Checks if a field has a public getter method in the class hierarchy.
      * For boolean fields, checks for both getFieldName() and isFieldName() methods.
-     * 
+     *
      * @param typeElement the class containing the field
-     * @param field the field to check
+     * @param field       the field to check
      * @return true if a public getter exists, false otherwise
      */
     private boolean hasPublicGetter(TypeElement typeElement, VariableElement field) {
         String fieldName = field.getSimpleName().toString();
         String capitalizedFieldName = Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
-        
+
         // Check for getter methods in the class hierarchy
         return hasGetterInHierarchy(typeElement, field, capitalizedFieldName);
     }
 
     /**
      * Recursively checks for getter methods in the class hierarchy.
-     * 
-     * @param typeElement the current class to check
-     * @param field the field we're looking for a getter for
+     *
+     * @param typeElement          the current class to check
+     * @param field                the field we're looking for a getter for
      * @param capitalizedFieldName the capitalized field name for getter method names
      * @return true if a getter is found, false otherwise
      */
@@ -441,33 +434,33 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
         for (Element enclosedElement : typeElement.getEnclosedElements()) {
             if (enclosedElement.getKind() == ElementKind.METHOD) {
                 ExecutableElement method = (ExecutableElement) enclosedElement;
-                
+
                 // Skip non-public methods
                 if (!method.getModifiers().contains(Modifier.PUBLIC)) {
                     continue;
                 }
-                
+
                 // Skip methods with parameters (getters should have no parameters)
                 if (!method.getParameters().isEmpty()) {
                     continue;
                 }
-                
+
                 String methodName = method.getSimpleName().toString();
-                
+
                 // Check for standard getter patterns
                 if (isGetterMethod(methodName, capitalizedFieldName, field)) {
                     return true;
                 }
             }
         }
-        
+
         // Recursively check parent classes
         TypeMirror superclass = typeElement.getSuperclass();
         if (superclass != null) {
             Element superElement = processingEnv.getTypeUtils().asElement(superclass);
             if (superElement != null && superElement.getKind() == ElementKind.CLASS) {
                 TypeElement superTypeElement = (TypeElement) superElement;
-                
+
                 // Only check parent classes that are not system classes
                 String superClassName = superTypeElement.getQualifiedName().toString();
                 if (!isSystemClass(superClassName)) {
@@ -475,16 +468,16 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
                 }
             }
         }
-        
+
         return false;
     }
 
     /**
      * Checks if a method name matches the getter pattern for a field.
-     * 
-     * @param methodName the method name to check
+     *
+     * @param methodName           the method name to check
      * @param capitalizedFieldName the capitalized field name
-     * @param field the field element (used to check if it's boolean)
+     * @param field                the field element (used to check if it's boolean)
      * @return true if the method is a valid getter for the field
      */
     private boolean isGetterMethod(String methodName, String capitalizedFieldName, VariableElement field) {
@@ -492,13 +485,13 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
         if (("get" + capitalizedFieldName).equals(methodName)) {
             return true;
         }
-        
+
         // Boolean getter: isFieldName() - only for boolean fields
         if (("is" + capitalizedFieldName).equals(methodName)) {
             String fieldType = field.asType().toString();
             return "boolean".equals(fieldType) || "java.lang.Boolean".equals(fieldType);
         }
-        
+
         return false;
     }
 
@@ -563,7 +556,7 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
                 // For "spring.bean.installer.SpringBeanPluginConfig" -> "spring-bean"
                 return parts[0] + "-" + parts[1];
             } else if (parts.length == 1) {
-                // For single part like "redis.RedisPlugin" -> "redis"
+                // For a single part like "redis.RedisPlugin" -> "redis"
                 return parts[0];
             }
         }
@@ -585,7 +578,7 @@ public class ConfigurationMetadataProcessor extends AbstractProcessor {
     /**
      * Get the binary name for a TypeElement, which correctly handles inner classes
      * by using '$' instead of '.' as the separator.
-     * 
+     *
      * @param typeElement the type element
      * @return the binary name suitable for runtime class loading
      */

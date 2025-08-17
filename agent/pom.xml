@@ -2,235 +2,238 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.bithon</groupId>
-        <artifactId>bithon</artifactId>
-        <version>1.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
-    <groupId>org.bithon.agent</groupId>
-    <artifactId>agent-all</artifactId>
-    <packaging>pom</packaging>
+  <parent>
+    <groupId>org.bithon</groupId>
+    <artifactId>bithon</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <groupId>org.bithon.agent</groupId>
+  <artifactId>agent-all</artifactId>
+  <packaging>pom</packaging>
+  <version>1.0-SNAPSHOT</version>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
 
-        <!-- Agent is set to compile to JDK8 -->
-        <java.version>8</java.version>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
-    </properties>
+    <!-- Agent is set to compile to JDK8 -->
+    <java.version>8</java.version>
+    <maven.compiler.source>8</maven.compiler.source>
+    <maven.compiler.target>8</maven.compiler.target>
+  </properties>
 
-    <modules>
-        <module>agent-sdk</module>
-        <module>agent-instrumentation</module>
-        <module>agent-plugin-processor</module>
-        <module>agent-configuration</module>
-        <module>agent-core</module>
-        <module>agent-observability</module>
-        <module>agent-controller</module>
-        <module>agent-exporter-brpc</module>
-        <module>agent-plugins</module>
-        <module>agent-sentinel</module>
-        <module>agent-main</module>
+  <modules>
+    <module>agent-sdk</module>
+    <module>agent-instrumentation</module>
+    <module>agent-plugin-processor</module>
+    <module>agent-configuration</module>
+    <module>agent-core</module>
+    <module>agent-observability</module>
+    <module>agent-controller</module>
+    <module>agent-exporter-brpc</module>
+    <module>agent-plugins</module>
+    <module>agent-sentinel</module>
+    <module>agent-main</module>
 
-        <!-- Must be the last module -->
-        <!-- make distribution package -->
-        <module>agent-distribution</module>
-    </modules>
+    <!-- Must be the last module -->
+    <!-- make distribution package -->
+    <module>agent-distribution</module>
+  </modules>
 
-    <dependencyManagement>
-        <dependencies>
-            <!-- Main -->
-            <dependency>
-                <groupId>org.bithon.agent</groupId>
-                <artifactId>agent-main</artifactId>
-                <version>${project.version}</version>
-            </dependency>
+  <dependencyManagement>
+    <dependencies>
+      <!-- Main -->
+      <dependency>
+        <groupId>org.bithon.agent</groupId>
+        <artifactId>agent-main</artifactId>
+        <version>${project.version}</version>
+      </dependency>
 
-            <dependency>
-                <groupId>org.bithon.agent</groupId>
-                <artifactId>agent-instrumentation</artifactId>
-                <version>${project.version}</version>
-            </dependency>
+      <dependency>
+        <groupId>org.bithon.agent</groupId>
+        <artifactId>agent-instrumentation</artifactId>
+        <version>${project.version}</version>
+      </dependency>
 
-            <dependency>
-                <groupId>org.bithon.agent</groupId>
-                <artifactId>agent-core</artifactId>
-                <version>${project.version}</version>
-            </dependency>
+      <dependency>
+        <groupId>org.bithon.agent</groupId>
+        <artifactId>agent-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
 
-            <!-- Observability -->
-            <dependency>
-                <groupId>org.bithon.agent</groupId>
-                <artifactId>agent-observability</artifactId>
-                <version>${project.version}</version>
-            </dependency>
+      <!-- Observability -->
+      <dependency>
+        <groupId>org.bithon.agent</groupId>
+        <artifactId>agent-observability</artifactId>
+        <version>${project.version}</version>
+      </dependency>
 
-            <!-- Dispatcher brpc client -->
-            <dependency>
-                <groupId>org.bithon.agent</groupId>
-                <artifactId>agent-exporter-brpc</artifactId>
-                <version>${project.version}</version>
-            </dependency>
+      <!-- Dispatcher brpc client -->
+      <dependency>
+        <groupId>org.bithon.agent</groupId>
+        <artifactId>agent-exporter-brpc</artifactId>
+        <version>${project.version}</version>
+      </dependency>
 
-            <dependency>
-                <groupId>org.bithon.agent</groupId>
-                <artifactId>agent-controller</artifactId>
-                <version>${project.version}</version>
-            </dependency>
+      <dependency>
+        <groupId>org.bithon.agent</groupId>
+        <artifactId>agent-controller</artifactId>
+        <version>${project.version}</version>
+      </dependency>
 
-            <dependency>
-                <groupId>org.bithon.agent</groupId>
-                <artifactId>agent-sentinel</artifactId>
-                <version>${project.version}</version>
-            </dependency>
+      <dependency>
+        <groupId>org.bithon.agent</groupId>
+        <artifactId>agent-sentinel</artifactId>
+        <version>${project.version}</version>
+      </dependency>
 
-            <dependency>
-                <groupId>org.bithon.agent</groupId>
-                <artifactId>agent-sdk</artifactId>
-                <version>1.2.0</version>
-            </dependency>
+      <dependency>
+        <groupId>org.bithon.agent</groupId>
+        <artifactId>agent-sdk</artifactId>
+        <version>1.2.0</version>
+      </dependency>
 
-            <dependency>
-                <groupId>org.bithon.agent</groupId>
-                <artifactId>agent-configuration</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+      <dependency>
+        <groupId>org.bithon.agent</groupId>
+        <artifactId>agent-configuration</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
-    <build>
-        <pluginManagement>
-            <plugins>
-                <!-- Package agent jars-->
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.0.2</version>
-                </plugin>
+  <build>
+    <pluginManagement>
+      <plugins>
+        <!-- Package agent jars-->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.0.2</version>
+        </plugin>
 
-                <!--Assembly the distribution of agent-->
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-assembly-plugin</artifactId>
-                    <version>3.3.0</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-        <plugins>
-            <!-- Configure annotation processing for all agent modules -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <executions>
-                    <!-- Main compilation with annotation processing -->
-                    <execution>
-                        <id>default-compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <configuration>
-                            <annotationProcessorPaths>
-                                                        <path>
-                            <groupId>org.bithon.agent</groupId>
-                            <artifactId>agent-configuration</artifactId>
-                            <version>${project.version}</version>
-                        </path>
-                            </annotationProcessorPaths>
-                            <showWarnings>true</showWarnings>
-                            <!-- Run compiler in same JVM to preserve NOTE level messages -->
-                            <fork>false</fork>
-                            <!--Increase WARN/ERROR numbers in case there are too many NOTE messages-->
-                            <compilerArgs>
-                                <arg>-Xmaxwarns</arg>
-                                <arg>10000</arg>
-                                <arg>-Xmaxerrs</arg>
-                                <arg>10000</arg>
-                            </compilerArgs>
-                        </configuration>
-                    </execution>
-                    <!-- Test compilation without annotation processing -->
-                    <execution>
-                        <id>default-testCompile</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                        <configuration>
-                            <!-- Disable annotation processing for tests -->
-                            <compilerArgument>-proc:none</compilerArgument>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            
-            <plugin>
-                <groupId>de.thetaphi</groupId>
-                <artifactId>forbiddenapis</artifactId>
-                <configuration>
-                    <ignoreSignaturesOfMissingClasses>true</ignoreSignaturesOfMissingClasses>
-                    <bundledSignatures>
-                        <!--
-                          This will automatically choose the right
-                          signatures based on 'maven.compiler.target':
-                          -->
-                        <bundledSignature>jdk-unsafe</bundledSignature>
-                    </bundledSignatures>
-                    <signaturesFiles>
-                        <signaturesFile>${project.parent.basedir}/../dev/forbidden-apis-joda-time.txt</signaturesFile>
-                        <signaturesFile>${project.parent.basedir}/../dev/forbidden-apis-bithon.txt</signaturesFile>
-                        <signaturesFile>${project.parent.basedir}/../dev/forbidden-apis-agent.txt</signaturesFile>
-                    </signaturesFiles>
-                    <excludes>
-                        <exclude>**/SomeAvroDatum.class</exclude>
-                    </excludes>
-                    <suppressAnnotations>
-                        <annotation>**.SuppressForbidden</annotation>
-                    </suppressAnnotations>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                        <configuration>
-                            <ignoreSignaturesOfMissingClasses>true</ignoreSignaturesOfMissingClasses>
-                            <bundledSignatures>
-                                <!-- Check jdk-system-out only for production code, but not in test code -->
-                                <bundledSignature>jdk-unsafe</bundledSignature>
-                            </bundledSignatures>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>testCompile</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>testCheck</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+        <!--Assembly the distribution of agent-->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>3.3.0</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <!-- Configure annotation processing for all agent modules -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <executions>
+          <!-- Main compilation with annotation processing -->
+          <execution>
+            <id>default-compile</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <configuration>
+              <!-- Default annotation processor path for all modules 
+                   Individual modules with circular dependencies (agent-instrumentation, agent-configuration) 
+                   will override this configuration -->
+              <annotationProcessorPaths>
+                <path>
+                  <groupId>org.bithon.agent</groupId>
+                  <artifactId>agent-configuration</artifactId>
+                  <version>${project.version}</version>
+                </path>
+              </annotationProcessorPaths>
+              <showWarnings>true</showWarnings>
+              <!-- Run compiler in same JVM to preserve NOTE level messages -->
+              <fork>false</fork>
+              <!--Increase WARN/ERROR numbers in case there are too many NOTE messages-->
+              <compilerArgs>
+                <arg>-Xmaxwarns</arg>
+                <arg>10000</arg>
+                <arg>-Xmaxerrs</arg>
+                <arg>10000</arg>
+              </compilerArgs>
+            </configuration>
+          </execution>
+          <!-- Test compilation without annotation processing -->
+          <execution>
+            <id>default-testCompile</id>
+            <phase>test-compile</phase>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
+            <configuration>
+              <!-- Disable annotation processing for tests -->
+              <compilerArgument>-proc:none</compilerArgument>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
 
-    <profiles>
-        <profile>
-            <id>deploy-selected</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <!-- Skip deployment for all modules by default. submodules should override this property if it's needed to be deployed -->
-                <maven.deploy.skip>true</maven.deploy.skip>
-            </properties>
-        </profile>
-    </profiles>
+      <plugin>
+        <groupId>de.thetaphi</groupId>
+        <artifactId>forbiddenapis</artifactId>
+        <configuration>
+          <ignoreSignaturesOfMissingClasses>true</ignoreSignaturesOfMissingClasses>
+          <bundledSignatures>
+            <!--
+              This will automatically choose the right
+              signatures based on 'maven.compiler.target':
+              -->
+            <bundledSignature>jdk-unsafe</bundledSignature>
+          </bundledSignatures>
+          <signaturesFiles>
+            <signaturesFile>${project.parent.basedir}/../dev/forbidden-apis-joda-time.txt</signaturesFile>
+            <signaturesFile>${project.parent.basedir}/../dev/forbidden-apis-bithon.txt</signaturesFile>
+            <signaturesFile>${project.parent.basedir}/../dev/forbidden-apis-agent.txt</signaturesFile>
+          </signaturesFiles>
+          <excludes>
+            <exclude>**/SomeAvroDatum.class</exclude>
+          </excludes>
+          <suppressAnnotations>
+            <annotation>**.SuppressForbidden</annotation>
+          </suppressAnnotations>
+        </configuration>
+        <executions>
+          <execution>
+            <id>compile</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <ignoreSignaturesOfMissingClasses>true</ignoreSignaturesOfMissingClasses>
+              <bundledSignatures>
+                <!-- Check jdk-system-out only for production code, but not in test code -->
+                <bundledSignature>jdk-unsafe</bundledSignature>
+              </bundledSignatures>
+            </configuration>
+          </execution>
+          <execution>
+            <id>testCompile</id>
+            <phase>test-compile</phase>
+            <goals>
+              <goal>testCheck</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>deploy-selected</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <!-- Skip deployment for all modules by default. submodules should override this property if it's needed to be deployed -->
+        <maven.deploy.skip>true</maven.deploy.skip>
+      </properties>
+    </profile>
+  </profiles>
 </project>
