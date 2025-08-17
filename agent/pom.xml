@@ -28,12 +28,11 @@
   <modules>
     <module>agent-sdk</module>
     <module>agent-instrumentation</module>
-    <module>agent-plugin-processor</module>
     <module>agent-configuration</module>
     <module>agent-core</module>
     <module>agent-observability</module>
     <module>agent-controller</module>
-    <module>agent-exporter-brpc</module>
+    <module>agent-plugin-processor</module>
     <module>agent-plugins</module>
     <module>agent-sentinel</module>
     <module>agent-main</module>
@@ -68,13 +67,6 @@
       <dependency>
         <groupId>org.bithon.agent</groupId>
         <artifactId>agent-observability</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <!-- Dispatcher brpc client -->
-      <dependency>
-        <groupId>org.bithon.agent</groupId>
-        <artifactId>agent-exporter-brpc</artifactId>
         <version>${project.version}</version>
       </dependency>
 
