@@ -17,22 +17,12 @@
 package org.bithon.agent.config;
 
 import org.bithon.agent.configuration.validation.GreaterThan;
-import org.bithon.agent.configuration.validation.NotBlank;
 import org.bithon.component.commons.utils.HumanReadableNumber;
 
 /**
  * @author frankchen
  */
 public class RpcClientConfig {
-
-    /**
-     * The factor class that creates the RPC object.
-     * Example:
-     * IAgentControllerFactory
-     * IMessageChannelFactory
-     */
-    @NotBlank(message = "factory should not be blank.")
-    private String factory;
 
     /**
      * how long a connection can be kept. in milliseconds
@@ -63,14 +53,6 @@ public class RpcClientConfig {
 
     public void setConnectionLifeTime(int connectionLifeTime) {
         this.connectionLifeTime = connectionLifeTime;
-    }
-
-    public String getFactory() {
-        return factory;
-    }
-
-    public void setFactory(String factory) {
-        this.factory = factory;
     }
 
     public int getConnectionTimeout() {

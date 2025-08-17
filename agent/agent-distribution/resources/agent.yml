@@ -6,7 +6,6 @@ application:
 controller:
   servers: 127.0.0.1:9899
   client:
-    factory: org.bithon.agent.controller.impl.brpc.BrpcAgentControllerFactory
     connectionLifeTime: 2000
     connectionTimeout: 2000
     lowWaterMark: 256KiB
@@ -15,7 +14,6 @@ controller:
 exporters:
   metric:
     client:
-      factory: org.bithon.agent.exporter.brpc.BrpcExporterFactory
       # in milliseconds
       connectionLifeTime: 300000
       connectionTimeout: 2000
@@ -26,7 +24,6 @@ exporters:
     flushTime: 1000
   tracing:
     client:
-      factory: org.bithon.agent.exporter.brpc.BrpcExporterFactory
       # in milliseconds
       connectionLifeTime: 300000
       connectionTimeout: 2000
@@ -39,7 +36,6 @@ exporters:
     queueSize: 8192
   event:
     client:
-      factory: org.bithon.agent.exporter.brpc.BrpcExporterFactory
       # in milliseconds
       connectionLifeTime: 300000
       connectionTimeout: 2000

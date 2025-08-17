@@ -43,6 +43,13 @@
       <scope>provided</scope>
     </dependency>
 
+    <!-- Exporter Implementation -->
+    <dependency>
+      <groupId>org.bithon.component</groupId>
+      <artifactId>agent-rpc-brpc</artifactId>
+    </dependency>
+
+    <!-- Test -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>

@@ -25,12 +25,12 @@ import org.bithon.agent.controller.cmd.LoggingCommand;
 import org.bithon.agent.controller.cmd.ProfilingCommand;
 import org.bithon.agent.controller.config.AgentConfigurationSyncTask;
 import org.bithon.agent.controller.config.ConfigurationCommandImpl;
+import org.bithon.agent.controller.impl.brpc.BrpcAgentControllerFactory;
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
 import org.bithon.agent.instrumentation.loader.PluginClassLoader;
 import org.bithon.agent.starter.IAgentService;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
-import org.bithon.component.commons.utils.StringUtils;
 
 import java.time.Duration;
 import java.util.ServiceLoader;
@@ -46,11 +46,11 @@ public class AgentControllerService implements IAgentService {
     private AgentConfigurationSyncTask syncTask;
 
     @Override
-    public void start() throws Exception {
+    public void start() {
         LOG.info("Initializing agent controller");
 
         AgentControllerConfig ctrlConfig = ConfigurationManager.getInstance().getConfig(AgentControllerConfig.class);
-        if (ctrlConfig == null || ctrlConfig.getClient() == null || StringUtils.isEmpty(ctrlConfig.getClient().getFactory())) {
+        if (ctrlConfig == null || ctrlConfig.getClient() == null) {
             LOG.warn("Agent Controller has not configured.");
             return;
         }
@@ -58,15 +58,7 @@ public class AgentControllerService implements IAgentService {
         //
         // create controller
         //
-        try {
-            IAgentControllerFactory factory = (IAgentControllerFactory) Class.forName(ctrlConfig.getClient().getFactory())
-                                                                             .getDeclaredConstructor().newInstance();
-            controller = factory.createController(ctrlConfig);
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            LOG.error("Can't create instanceof fetcher {}", ctrlConfig.getClient());
-            throw e;
-        }
-
+        controller = new BrpcAgentControllerFactory().createController(ctrlConfig);
         attachCommand(controller, new JvmCommand());
         attachCommand(controller, new InstrumentationCommand());
         attachCommand(controller, new ConfigurationCommandImpl());

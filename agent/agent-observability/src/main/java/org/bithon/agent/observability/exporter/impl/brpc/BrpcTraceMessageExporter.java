@@ -14,15 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.exporter.brpc;
+package org.bithon.agent.observability.exporter.impl.brpc;
 
 import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.agent.observability.exporter.IMessageExporter;
 import org.bithon.agent.observability.exporter.config.ExporterConfig;
 import org.bithon.agent.rpc.brpc.ApplicationType;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
-import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
-import org.bithon.agent.rpc.brpc.event.IEventCollector;
+import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
+import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import org.bithon.component.brpc.IServiceController;
 import org.bithon.component.brpc.channel.BrpcClient;
 import org.bithon.component.brpc.channel.BrpcClientBuilder;
@@ -43,21 +43,22 @@ import java.util.stream.Stream;
  * @author frank.chen021@outlook.com
  * @date 2021/6/27 20:14
  */
-public class BrpcEventMessageExporter implements IMessageExporter {
-    private static final ILogAdaptor LOG = LoggerFactory.getLogger(BrpcEventMessageExporter.class);
+public class BrpcTraceMessageExporter implements IMessageExporter {
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(BrpcTraceMessageExporter.class);
 
-    private final BrpcClient brpcClient;
     private final ExporterConfig exporterConfig;
-    private IEventCollector eventCollector;
+    private final BrpcClient brpcClient;
+    private ITraceCollector traceCollector;
     private BrpcMessageHeader header;
 
-    public BrpcEventMessageExporter(ExporterConfig exporterConfig) {
+    public BrpcTraceMessageExporter(ExporterConfig exporterConfig) {
+
         List<EndPoint> endpoints = Stream.of(exporterConfig.getServers().split(",")).map(hostAndPort -> {
             String[] parts = hostAndPort.split(":");
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));
         }).collect(Collectors.toList());
         this.brpcClient = BrpcClientBuilder.builder()
-                                           .clientId("event")
+                                           .clientId("trace")
                                            .server(new RoundRobinEndPointProvider(endpoints))
                                            .maxRetry(3)
                                            .retryBackOff(Duration.ofMillis(200))
@@ -85,18 +86,25 @@ public class BrpcEventMessageExporter implements IMessageExporter {
 
     @Override
     public void export(Object message) {
-        if (this.eventCollector == null) {
+        if (this.traceCollector == null) {
             try {
-                this.eventCollector = brpcClient.getRemoteService(IEventCollector.class);
+                this.traceCollector = this.brpcClient.getRemoteService(ITraceCollector.class);
             } catch (ServiceInvocationException e) {
-                LOG.warn("Unable to get remote service: {}", e.getMessage());
+                LOG.warn("Unable to get remote ITraceCollector service: {}", e.getMessage());
                 return;
             }
         }
 
-        IBrpcChannel channel = ((IServiceController) eventCollector).getChannel();
+        if (!(message instanceof List)) {
+            return;
+        }
+        if (((List<?>) message).isEmpty()) {
+            return;
+        }
+
+        IBrpcChannel channel = ((IServiceController) traceCollector).getChannel();
         if (channel.getConnectionLifeTime() > exporterConfig.getClient().getConnectionLifeTime()) {
-            LOG.info("Disconnect for event-channel load balancing...");
+            LOG.info("Disconnect trace-channel for client-side load balancing...");
             try {
                 channel.disconnect();
             } catch (Exception ignored) {
@@ -104,22 +112,23 @@ public class BrpcEventMessageExporter implements IMessageExporter {
         }
 
         boolean isDebugOn = this.exporterConfig.getMessageDebug()
-                                               .getOrDefault(BrpcEventMessage.class.getName(), false);
+                                               .getOrDefault(BrpcTraceSpanMessage.class.getName(), false);
         if (isDebugOn) {
-            LOG.info("[Debugging] Sending Event Messages: {}", message);
+            LOG.info("[Debugging] Sending Tracing Messages: {}", message);
         }
 
         try {
             //noinspection unchecked
-            eventCollector.sendEvent2(header, (List<BrpcEventMessage>) message);
+            this.traceCollector.sendTrace(this.header,
+                                          (List<BrpcTraceSpanMessage>) message);
         } catch (CallerSideException e) {
             //suppress client exception
-            LOG.warn("Failed to send event: {}", e.getMessage());
+            LOG.warn("Failed to send tracing: {}", e.getMessage());
         }
     }
 
     @Override
     public void close() {
-        brpcClient.close();
+        this.brpcClient.close();
     }
 }
