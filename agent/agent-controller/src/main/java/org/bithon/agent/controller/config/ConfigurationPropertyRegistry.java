@@ -14,8 +14,9 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.configuration.metadata;
+package org.bithon.agent.controller.config;
 
+import org.bithon.agent.configuration.metadata.PropertyMetadata;
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
 import org.bithon.agent.instrumentation.loader.JarClassLoader;
 import org.bithon.agent.instrumentation.loader.PluginClassLoader;
