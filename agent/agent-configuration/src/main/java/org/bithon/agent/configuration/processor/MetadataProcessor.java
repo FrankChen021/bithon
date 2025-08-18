@@ -54,7 +54,7 @@ import java.util.Set;
  */
 @SupportedAnnotationTypes("org.bithon.agent.configuration.annotation.ConfigurationProperties")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
-public class ConfigurationMetadataProcessor extends AbstractProcessor {
+public class MetadataProcessor extends AbstractProcessor {
 
     private static final String METADATA_FILE_BASE_PATH = "META-INF/bithon/configuration/";
 

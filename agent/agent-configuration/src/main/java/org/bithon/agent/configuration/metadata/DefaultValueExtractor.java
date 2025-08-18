@@ -29,7 +29,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,12 +39,23 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author frank.chen021@outlook.com
  */
-public class ConfigurationPropertyDefaultValueExtractor {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(ConfigurationPropertyDefaultValueExtractor.class);
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+public class DefaultValueExtractor {
+    private static final ILogAdaptor log = LoggerFactory.getLogger(DefaultValueExtractor.class);
+
+    public interface IConfigurationClassLoader {
+        Class<?> load(String className) throws ClassNotFoundException;
+    }
+
+    private final IConfigurationClassLoader classLoader;
+    private final ObjectMapper objectMapper;
 
     // Cache of instantiated configuration classes to avoid recreating them
-    private static final Map<String, Object> INSTANCE_CACHE = new ConcurrentHashMap<>();
+    private final Map<String, Object> instanceCache = new ConcurrentHashMap<>();
+
+    public DefaultValueExtractor(IConfigurationClassLoader classLoader) {
+        this.classLoader = classLoader;
+        this.objectMapper = new ObjectMapper();
+    }
 
     /**
      * Extract default values for a list of property metadata objects.
@@ -53,7 +63,7 @@ public class ConfigurationPropertyDefaultValueExtractor {
      *
      * @param properties the list of property metadata to process
      */
-    public static void extractDefaultValues(List<PropertyMetadata> properties) {
+    public void extract(Collection<PropertyMetadata> properties) {
         // Group properties by configuration class
         Map<String, Map<String, PropertyMetadata>> propertiesByClass = new HashMap<>();
 
@@ -96,16 +106,16 @@ public class ConfigurationPropertyDefaultValueExtractor {
      * @param className the fully qualified class name
      * @return an instance of the class, or null if instantiation fails
      */
-    private static Object getConfigClassInstance(String className) {
+    private Object getConfigClassInstance(String className) {
         // Check cache first
-        Object instance = INSTANCE_CACHE.get(className);
+        Object instance = instanceCache.get(className);
         if (instance != null) {
             return instance;
         }
 
         try {
             // Load the class
-            Class<?> clazz = Class.forName(className);
+            Class<?> clazz = this.classLoader.load(className);
 
             // Create an instance using the no-arg constructor
             Constructor<?> constructor = clazz.getDeclaredConstructor();
@@ -113,7 +123,7 @@ public class ConfigurationPropertyDefaultValueExtractor {
             instance = constructor.newInstance();
 
             // Cache the instance
-            INSTANCE_CACHE.put(className, instance);
+            instanceCache.put(className, instance);
             return instance;
         } catch (ClassNotFoundException e) {
             log.warn("Configuration class not found: {}", className);
@@ -132,8 +142,8 @@ public class ConfigurationPropertyDefaultValueExtractor {
      * @param instance   the configuration class instance
      * @param properties map of property paths to PropertyMetadata objects
      */
-    private static void extractDefaultValuesFromInstance(Object instance,
-                                                         Map<String, PropertyMetadata> properties) {
+    private void extractDefaultValuesFromInstance(Object instance,
+                                                  Map<String, PropertyMetadata> properties) {
         // Get all fields from the class and its superclasses
         Class<?> clazz = instance.getClass();
         while (clazz != null && !isSystemClass(clazz.getName())) {
@@ -199,7 +209,7 @@ public class ConfigurationPropertyDefaultValueExtractor {
      * @param value the field value
      * @return string representation of the value, or null if conversion fails
      */
-    private static String convertToString(Object value) {
+    private String convertToString(Object value) {
         if (value == null) {
             return null;
         }
@@ -222,13 +232,13 @@ public class ConfigurationPropertyDefaultValueExtractor {
         if (value instanceof HumanReadablePercentage) {
             return value.toString();
         }
-        
+
         // Handle arrays
         if (value.getClass().isArray()) {
             try {
-                ArrayNode arrayNode = OBJECT_MAPPER.createArrayNode();
+                ArrayNode arrayNode = objectMapper.createArrayNode();
                 int length = java.lang.reflect.Array.getLength(value);
-                
+
                 for (int i = 0; i < length; i++) {
                     Object item = java.lang.reflect.Array.get(value, i);
                     addValueToArrayNode(arrayNode, item);
@@ -248,7 +258,7 @@ public class ConfigurationPropertyDefaultValueExtractor {
                 return "[]";
             }
             try {
-                ArrayNode arrayNode = OBJECT_MAPPER.createArrayNode();
+                ArrayNode arrayNode = objectMapper.createArrayNode();
                 for (Object item : collection) {
                     addValueToArrayNode(arrayNode, item);
                 }
@@ -265,7 +275,7 @@ public class ConfigurationPropertyDefaultValueExtractor {
                 return "{}";
             }
             try {
-                ObjectNode objectNode = OBJECT_MAPPER.createObjectNode();
+                ObjectNode objectNode = objectMapper.createObjectNode();
                 for (Map.Entry<?, ?> entry : map.entrySet()) {
                     if (entry.getKey() != null) {
                         addValueToObjectNode(objectNode, entry.getKey().toString(), entry.getValue());
