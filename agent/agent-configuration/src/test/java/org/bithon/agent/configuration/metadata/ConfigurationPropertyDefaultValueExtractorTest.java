@@ -16,20 +16,31 @@
 
 package org.bithon.agent.configuration.metadata;
 
+import com.google.testing.compile.Compilation;
+import com.google.testing.compile.JavaFileObjects;
+import lombok.Getter;
+import lombok.Setter;
 import org.bithon.agent.configuration.annotation.ConfigurationProperties;
+import org.bithon.agent.configuration.processor.ConfigurationMetadataProcessor;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
+import org.bithon.shaded.com.fasterxml.jackson.core.type.TypeReference;
 import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import javax.tools.FileObject;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.google.testing.compile.Compiler.javac;
 
 /**
  * Tests for ConfigurationDefaultValueExtractor
@@ -41,6 +52,8 @@ public class ConfigurationPropertyDefaultValueExtractorTest {
     /**
      * Simple configuration class with primitive and string fields
      */
+    @Getter
+    @Setter
     @ConfigurationProperties(path = "test.basic")
     public static class BasicConfig {
         private String stringValue = "default-string";
@@ -49,46 +62,9 @@ public class ConfigurationPropertyDefaultValueExtractorTest {
         private boolean booleanValue = true;
         private double doubleValue = 3.14159;
 
-        // Getters and setters
-        public String getStringValue() {
-            return stringValue;
-        }
-
-        public void setStringValue(String stringValue) {
-            this.stringValue = stringValue;
-        }
-
-        public int getIntValue() {
-            return intValue;
-        }
-
-        public void setIntValue(int intValue) {
-            this.intValue = intValue;
-        }
-
-        public long getLongValue() {
-            return longValue;
-        }
-
-        public void setLongValue(long longValue) {
-            this.longValue = longValue;
-        }
-
-        public boolean isBooleanValue() {
-            return booleanValue;
-        }
-
-        public void setBooleanValue(boolean booleanValue) {
-            this.booleanValue = booleanValue;
-        }
-
-        public double getDoubleValue() {
-            return doubleValue;
-        }
-
-        public void setDoubleValue(double doubleValue) {
-            this.doubleValue = doubleValue;
-        }
+        // This field is not set, should not be included in default values
+        private boolean booleanNotSet;
+        private String stringNotSet;
     }
 
     @Test
@@ -145,36 +121,13 @@ public class ConfigurationPropertyDefaultValueExtractorTest {
     /**
      * Configuration class with utility types
      */
+    @Getter
+    @Setter
     @ConfigurationProperties(path = "test.utility")
     public static class UtilityTypesConfig {
         private HumanReadableNumber number = HumanReadableNumber.of("10M");
         private HumanReadableDuration duration = HumanReadableDuration.parse("5m");
         private HumanReadablePercentage percentage = HumanReadablePercentage.of("75%");
-
-        // Getters and setters
-        public HumanReadableNumber getNumber() {
-            return number;
-        }
-
-        public void setNumber(HumanReadableNumber number) {
-            this.number = number;
-        }
-
-        public HumanReadableDuration getDuration() {
-            return duration;
-        }
-
-        public void setDuration(HumanReadableDuration duration) {
-            this.duration = duration;
-        }
-
-        public HumanReadablePercentage getPercentage() {
-            return percentage;
-        }
-
-        public void setPercentage(HumanReadablePercentage percentage) {
-            this.percentage = percentage;
-        }
     }
 
     @Test
@@ -215,6 +168,8 @@ public class ConfigurationPropertyDefaultValueExtractorTest {
     /**
      * Configuration class with collection and map fields
      */
+    @Setter
+    @Getter
     @ConfigurationProperties(path = "test.collections")
     public static class CollectionsConfig {
         private List<String> stringList = new ArrayList<>(Arrays.asList("item1", "item2", "item3"));
@@ -225,31 +180,6 @@ public class ConfigurationPropertyDefaultValueExtractorTest {
             integerMap.put("key1", 1);
             integerMap.put("key2", 2);
             integerMap.put("key3", 3);
-        }
-
-        // Getters and setters
-        public List<String> getStringList() {
-            return stringList;
-        }
-
-        public void setStringList(List<String> stringList) {
-            this.stringList = stringList;
-        }
-
-        public Map<String, Integer> getIntegerMap() {
-            return integerMap;
-        }
-
-        public void setIntegerMap(Map<String, Integer> integerMap) {
-            this.integerMap = integerMap;
-        }
-
-        public String[] getStringArray() {
-            return stringArray;
-        }
-
-        public void setStringArray(String[] stringArray) {
-            this.stringArray = stringArray;
         }
     }
 
@@ -308,48 +238,19 @@ public class ConfigurationPropertyDefaultValueExtractorTest {
     /**
      * Configuration class with nested objects
      */
+    @Getter
+    @Setter
     @ConfigurationProperties(path = "test.nested")
     public static class NestedConfig {
         private String name = "nested-config";
         private NestedObject nestedObject = new NestedObject();
 
-        // Getters and setters
-        public String getName() {
-            return name;
-        }
 
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public NestedObject getNestedObject() {
-            return nestedObject;
-        }
-
-        public void setNestedObject(NestedObject nestedObject) {
-            this.nestedObject = nestedObject;
-        }
-
+        @Getter
+        @Setter
         public static class NestedObject {
             private String nestedValue = "nested-default";
             private int nestedInt = 500;
-
-            // Getters and setters
-            public String getNestedValue() {
-                return nestedValue;
-            }
-
-            public void setNestedValue(String nestedValue) {
-                this.nestedValue = nestedValue;
-            }
-
-            public int getNestedInt() {
-                return nestedInt;
-            }
-
-            public void setNestedInt(int nestedInt) {
-                this.nestedInt = nestedInt;
-            }
 
             @Override
             public String toString() {
@@ -399,52 +300,22 @@ public class ConfigurationPropertyDefaultValueExtractorTest {
     /**
      * Parent configuration class for inheritance testing
      */
+    @Getter
+    @Setter
     public static class ParentConfig {
         private int parentValue = 100;
         private String parentString = "parent-default";
-
-        // Getters and setters
-        public int getParentValue() {
-            return parentValue;
-        }
-
-        public void setParentValue(int parentValue) {
-            this.parentValue = parentValue;
-        }
-
-        public String getParentString() {
-            return parentString;
-        }
-
-        public void setParentString(String parentString) {
-            this.parentString = parentString;
-        }
     }
 
     /**
      * Child configuration class that inherits from ParentConfig
      */
+    @Setter
+    @Getter
     @ConfigurationProperties(path = "test.inheritance")
     public static class ChildConfig extends ParentConfig {
         private int childValue = 200;
         private String childString = "child-default";
-
-        // Getters and setters
-        public int getChildValue() {
-            return childValue;
-        }
-
-        public void setChildValue(int childValue) {
-            this.childValue = childValue;
-        }
-
-        public String getChildString() {
-            return childString;
-        }
-
-        public void setChildString(String childString) {
-            this.childString = childString;
-        }
     }
 
     @Test
@@ -489,4 +360,6 @@ public class ConfigurationPropertyDefaultValueExtractorTest {
         Assertions.assertEquals("100", parentValueProperty.getDefaultValue());
         Assertions.assertEquals("parent-default", parentStringProperty.getDefaultValue());
     }
+
+
 }
