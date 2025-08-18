@@ -30,6 +30,7 @@ import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.brpc.message.out.ServiceResponseMessageOut;
 import org.bithon.component.brpc.message.out.ServiceStreamingDataMessageOut;
+import org.bithon.component.brpc.message.out.ServiceStreamingEndMessageOut;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.agent.controller.config.AgentControllerConfig;
@@ -203,7 +204,7 @@ public class AgentControllerApi implements IAgentControllerApi {
     public SseEmitter callStreamingService(@RequestHeader(name = "X-Bithon-Token", required = false) String token,
                                            @RequestParam(name = PARAMETER_NAME_APP_NAME) String application,
                                            @RequestParam(name = PARAMETER_NAME_INSTANCE) String instance,
-                                           @RequestParam(name = "timeout", required = false) Integer timeout,
+                                           @RequestParam(name = "timeout") long timeout,
                                            @RequestBody byte[] message) throws IOException {
         // Get the session first
         BrpcServer.Session agentSession = agentControllerServer.getBrpcServer()
@@ -251,8 +252,7 @@ public class AgentControllerApi implements IAgentControllerApi {
                                               rawRequest.getServiceName() + "#" + rawRequest.getMethodName());
         }
 
-        // TODO: Make the timeout configurable
-        SseEmitter emitter = new SseEmitter(timeout == null ? 30_000L : timeout.longValue());
+        SseEmitter emitter = new SseEmitter(timeout);
         StreamResponse<byte[]> remoteResponse = new StreamResponse<>() {
             @Override
             public void onNext(byte[] data) {
@@ -260,21 +260,24 @@ public class AgentControllerApi implements IAgentControllerApi {
                     ServiceStreamingDataMessageOut dataMessage = new ServiceStreamingDataMessageOut(rawRequest.getTransactionId(),
                                                                                                     data,
                                                                                                     rawRequest.getSerializer());
-                    byte[] message = dataMessage.toByteArray();
-                    message = Base64.getEncoder().encode(message);
-                    log.info("Streaming data: {}", message);
-                    emitter.send(SseEmitter.event().name("data").data(message));
+                    emitter.send(SseEmitter.event()
+                                           .name("data")
+                                           .data(Base64.getEncoder().encode(dataMessage.toByteArray())));
                 } catch (IOException ignored) {
                 }
             }
 
             @Override
             public void onException(Throwable throwable) {
-                // TODO: Change the onException signature to a customized exception object which can be serialized
                 try {
-                    emitter.send(SseEmitter.event().name("exception").data(message));
+                    ServiceStreamingEndMessageOut endMessage = new ServiceStreamingEndMessageOut(rawRequest.getTransactionId(), throwable);
+                    emitter.send(SseEmitter.event()
+                                           .name("error")
+                                           .data(Base64.getEncoder().encode(endMessage.toByteArray())));
                 } catch (IOException ignored) {
                 }
+
+                emitter.complete();
             }
 
             @Override
@@ -297,9 +300,7 @@ public class AgentControllerApi implements IAgentControllerApi {
                                                                     .build();
         try {
             agentSession.getLowLevelInvoker()
-                        .invokeStreaming(toTarget,
-                                         remoteResponse,
-                                         timeout == null ? 30_000 : timeout);
+                        .invokeStreaming(toTarget, remoteResponse, 30_000);
             return emitter;
         } catch (Throwable e) {
             throw new RuntimeException(e);

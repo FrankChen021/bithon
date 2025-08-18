@@ -305,8 +305,8 @@ public class AgentDiagnosisApi {
         IJvmCommand agentJvmCommand = agentServiceProxyFactory.createUnicastProxy(IJvmCommand.class,
                                                                                   controller,
                                                                                   request.getAppName(),
-                                                                                  request.getInstanceName());
-
+                                                                                  request.getInstanceName(),
+                                                                                  30_000L);
 
         ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(NamedThreadFactory.daemonThreadFactory("profiling-timer"));
         ExecutorService profilingExecutor = new ThreadPoolExecutor(1,

@@ -128,7 +128,8 @@ public class AgentServiceProxyFactory {
     public <T> T createUnicastProxy(Class<T> agentServiceDeclaration,
                                     DiscoveredServiceInstance controller,
                                     String appName,
-                                    String instanceName) {
+                                    String instanceName,
+                                    long timeout) {
         // Check if given service declaration is correctly declared
         DiscoverableService metadata = IAgentControllerApi.class.getAnnotation(DiscoverableService.class);
         if (metadata == null) {
@@ -150,7 +151,8 @@ public class AgentServiceProxyFactory {
                                                                          invocationManager,
                                                                          token,
                                                                          appName,
-                                                                         instanceName));
+                                                                         instanceName,
+                                                                         timeout));
     }
 
     private class AgentServiceUnicastInvoker implements InvocationHandler {
@@ -160,17 +162,20 @@ public class AgentServiceProxyFactory {
         private final String targetApplication;
         private final String targetInstance;
         private final String token;
+        private final long timeout;
 
         private AgentServiceUnicastInvoker(DiscoveredServiceInstance controller,
                                            InvocationManager brpcInvocationManager,
                                            String token,
                                            String targetApplication,
-                                           String targetInstance) {
+                                           String targetInstance,
+                                           long timeout) {
             this.controller = controller;
             this.brpcInvocationManager = brpcInvocationManager;
             this.token = token;
             this.targetApplication = targetApplication;
             this.targetInstance = targetInstance;
+            this.timeout = timeout;
         }
 
         @Override
@@ -186,8 +191,9 @@ public class AgentServiceProxyFactory {
                                                     new BrpcChannelOverHttp(controller,
                                                                             this.targetApplication,
                                                                             this.targetInstance,
-                                                                            this.token),
-                                                    30_000,
+                                                                            this.token,
+                                                                            this.timeout),
+                                                    this.timeout,
                                                     agentServiceMethod,
                                                     args);
             } catch (HttpMappableException e) {
@@ -292,8 +298,9 @@ public class AgentServiceProxyFactory {
                                                     new BrpcChannelOverHttp(connectedController.get(0),
                                                                             this.targetApplication,
                                                                             this.targetInstance,
-                                                                            context.getOrDefault("X-Bithon-Token", "").toString()),
-                                                    30_000,
+                                                                            context.getOrDefault("X-Bithon-Token", "").toString(),
+                                                                            30_000L),
+                                                    30_000L,
                                                     agentServiceMethod,
                                                     args);
             } catch (HttpMappableException e) {
@@ -323,15 +330,18 @@ public class AgentServiceProxyFactory {
         private final String targetApplication;
         private final String targetInstance;
         private final String token;
+        private final long timeout;
 
         public BrpcChannelOverHttp(DiscoveredServiceInstance controller,
                                    String targetApplication,
                                    String targetInstance,
-                                   String token) {
+                                   String token,
+                                   long timeout) {
             this.controller = controller;
             this.targetApplication = targetApplication;
             this.targetInstance = targetInstance;
             this.token = token;
+            this.timeout = timeout;
         }
 
         @Override
@@ -384,7 +394,7 @@ public class AgentServiceProxyFactory {
                                                   return proxyApi.callAgentService(token,
                                                                                    targetApplication,
                                                                                    targetInstance,
-                                                                                   30_000,
+                                                                                   (int) timeout,
                                                                                    message);
                                               } catch (IOException e) {
                                                   throw new RuntimeException(e);
@@ -415,7 +425,7 @@ public class AgentServiceProxyFactory {
                                      URI uri = new URIBuilder(controller.getURL() + "/api/agent/service/proxy/streaming")
                                          .addParameter("appName", targetApplication)
                                          .addParameter("instance", targetInstance)
-                                         .addParameter("timeout", "30000")
+                                         .addParameter("timeout", String.valueOf(this.timeout))
                                          .build();
 
                                      HttpPost httpPost = new HttpPost(uri);
@@ -432,7 +442,9 @@ public class AgentServiceProxyFactory {
                                              if (statusCode < 200 || statusCode >= 300) {
                                                  throw new HttpMappableException(statusCode, "Empty response from server with status: " + statusCode);
                                              }
-                                             return; // Or handle as completion if appropriate
+
+                                             // what to do?
+                                             return;
                                          }
 
                                          if (statusCode < 200 || statusCode >= 300) {
@@ -442,20 +454,19 @@ public class AgentServiceProxyFactory {
 
                                          try (BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent(), StandardCharsets.UTF_8))) {
                                              String line;
-                                             String eventName = null;
+                                             String eventType = null;
                                              while ((line = reader.readLine()) != null) {
-                                                 log.info("==============>: {}", line);
+                                                 log.info("=========>{}", line);
                                                  if (line.startsWith("event:")) {
-                                                     eventName = line.substring("event:".length()).trim();
+                                                     eventType = line.substring("event:".length()).trim();
                                                  } else if (line.startsWith("data:")) {
-                                                     String base64Data = line.substring("data:".length());
-                                                     if (eventName == null) {
+                                                     String data = line.substring("data:".length());
+                                                     if (eventType == null) {
                                                          continue;
                                                      }
-                                                     byte[] decoded = Base64.getDecoder().decode(base64Data);
-                                                     if ("complete".equals(eventName)) {
-                                                         invocationManager.handleStreamingEnd((ServiceStreamingEndMessageIn) ServiceMessageIn.from(decoded));
-                                                     } else if ("error".equals(eventName)) {
+
+                                                     byte[] decoded = Base64.getDecoder().decode(data);
+                                                     if ("error".equals(eventType)) {
                                                          invocationManager.handleStreamingEnd((ServiceStreamingEndMessageIn) ServiceMessageIn.from(decoded));
                                                      } else {
                                                          invocationManager.handleStreamingData((ServiceStreamingDataMessageIn) ServiceMessageIn.from(decoded));
@@ -469,9 +480,9 @@ public class AgentServiceProxyFactory {
                                  }
                              }, discoveryServiceInvoker.getExecutor())
                              .whenComplete((v, ex) -> {
-                                 if (ex != null) {
-                                     invocationManager.handleException(txId, ex.getCause() != null ? ex.getCause() : ex);
-                                 }
+                                 Throwable cause = ex == null ? null : (ex.getCause() != null ? ex.getCause() : ex);
+                                 ServiceStreamingEndMessageIn endMessage = new ServiceStreamingEndMessageIn(txId, cause);
+                                 invocationManager.handleStreamingEnd(endMessage);
                              });
         }
     }

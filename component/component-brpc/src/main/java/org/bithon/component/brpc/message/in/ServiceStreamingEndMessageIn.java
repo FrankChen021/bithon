@@ -35,6 +35,15 @@ public class ServiceStreamingEndMessageIn extends ServiceMessageIn {
         super(is);
     }
 
+    /**
+     * @param exception CAN be nullable
+     */
+    public ServiceStreamingEndMessageIn(long txId, Throwable exception) {
+        super(null);
+        this.transactionId = txId;
+        this.exception = exception;
+    }
+
     @Override
     public int getMessageType() {
         return ServiceMessageType.SERVER_STREAMING_END;

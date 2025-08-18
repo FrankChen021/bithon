@@ -98,7 +98,8 @@ public class JfrApi {
 
     @GetMapping("/api/diagnosis/profiling")
     public SseEmitter profiling(@Valid @ModelAttribute AgentDiagnosisApi.ProfileRequest request) {
-        SseEmitter emitter = new SseEmitter((30 + 10) * 1000L); // 30 seconds timeout
+        long timeout = (request.getDuration() + 10) * 1000L; // 10 seconds more than the profiling duration
+        SseEmitter emitter = new SseEmitter(timeout);
 
         //
         // Find the controller where the target instance is connected to
@@ -137,16 +138,18 @@ public class JfrApi {
         // Create service proxy to agent via controller
         //
         AgentServiceProxyFactory agentServiceProxyFactory = new AgentServiceProxyFactory(discoveredServiceInvoker, applicationContext);
-        IProfilingCommand agentJvmCommand = agentServiceProxyFactory.createUnicastProxy(IProfilingCommand.class,
-                                                                                        controller,
-                                                                                        request.getAppName(),
-                                                                                        request.getInstanceName());
+        IProfilingCommand profilingCommand = agentServiceProxyFactory.createUnicastProxy(IProfilingCommand.class,
+                                                                                         controller,
+                                                                                         request.getAppName(),
+                                                                                         request.getInstanceName(),
+                                                                                         timeout);
 
         ProfilingRequest req = ProfilingRequest.newBuilder()
                                                .setDurationInSeconds(30)
                                                .setIntervalInSeconds(3)
                                                .build();
-        agentJvmCommand.start(req, new StreamResponse<>() {
+
+        profilingCommand.start(req, new StreamResponse<>() {
             @Override
             public void onNext(ProfilingEvent event) {
                 try {
@@ -155,11 +158,12 @@ public class JfrApi {
                         case SYSTEMPROPERTIES -> event.getSystemProperties();
                         case CALLSTACKSAMPLE -> event.getCallStackSample();
                         case HEAPSUMMARY -> event.getHeapSummary();
-                        case EVENT_NOT_SET -> null;
+                        default -> null;
                     };
 
                     emitter.send(SseEmitter.event()
                                            .name(data.getClass().getSimpleName())
+                                           // TODO: improve the performance of serialization 'cause the following has lower performance
                                            .data(JsonFormat.printer().omittingInsignificantWhitespace().print(data), MediaType.TEXT_PLAIN)
                                            .build());
                 } catch (IOException | IllegalStateException ignored) {
