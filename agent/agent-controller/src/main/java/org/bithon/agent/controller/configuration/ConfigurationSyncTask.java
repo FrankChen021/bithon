@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.controller.config;
+package org.bithon.agent.controller.configuration;
 
 
 import org.bithon.agent.configuration.ConfigurationFormat;
@@ -38,15 +38,15 @@ import java.util.Map;
  *
  * @author frank.chen021@outlook.com
  */
-public class AgentConfigurationSyncTask extends PeriodicTask {
+public class ConfigurationSyncTask extends PeriodicTask {
 
-    private static final ILogAdaptor log = LoggerFactory.getLogger(AgentConfigurationSyncTask.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(ConfigurationSyncTask.class);
 
     private final String appName;
     private final String env;
     private final IAgentController controller;
 
-    public AgentConfigurationSyncTask(String appName, String env, IAgentController controller, Duration refreshInterval) {
+    public ConfigurationSyncTask(String appName, String env, IAgentController controller, Duration refreshInterval) {
         super("bithon-cfg-sync", refreshInterval, false);
 
         this.appName = appName;

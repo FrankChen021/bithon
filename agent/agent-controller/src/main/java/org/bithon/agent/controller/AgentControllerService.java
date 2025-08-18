@@ -22,8 +22,8 @@ import org.bithon.agent.controller.cmd.IAgentCommand;
 import org.bithon.agent.controller.cmd.InstrumentationCommand;
 import org.bithon.agent.controller.cmd.JvmCommand;
 import org.bithon.agent.controller.cmd.LoggingCommand;
-import org.bithon.agent.controller.config.AgentConfigurationSyncTask;
-import org.bithon.agent.controller.config.ConfigurationCommandImpl;
+import org.bithon.agent.controller.configuration.ConfigurationCommandImpl;
+import org.bithon.agent.controller.configuration.ConfigurationSyncTask;
 import org.bithon.agent.controller.impl.brpc.BrpcAgentControllerFactory;
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
 import org.bithon.agent.instrumentation.loader.PluginClassLoader;
@@ -42,7 +42,7 @@ public class AgentControllerService implements IAgentService {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(AgentControllerService.class);
 
     private static IAgentController controller;
-    private AgentConfigurationSyncTask syncTask;
+    private ConfigurationSyncTask syncTask;
 
     @Override
     public void start() {
@@ -69,10 +69,10 @@ public class AgentControllerService implements IAgentService {
         // Start fetcher
         //
         AppConfig appConfig = ConfigurationManager.getInstance().getConfig(AppConfig.class);
-        syncTask = new AgentConfigurationSyncTask(appConfig.getName(),
-                                                  appConfig.getEnv(),
-                                                  controller,
-                                                  Duration.ofSeconds(ctrlConfig.getRefreshInterval()));
+        syncTask = new ConfigurationSyncTask(appConfig.getName(),
+                                             appConfig.getEnv(),
+                                             controller,
+                                             Duration.ofSeconds(ctrlConfig.getRefreshInterval()));
         syncTask.start();
     }
 
