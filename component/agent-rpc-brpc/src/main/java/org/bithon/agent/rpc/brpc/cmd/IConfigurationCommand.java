@@ -55,6 +55,9 @@ public interface IConfigurationCommand {
          */
         private boolean changed;
 
+        private boolean dynamic;
+        private boolean required;
+
         public String getPath() {
             return path;
         }
@@ -101,6 +104,22 @@ public interface IConfigurationCommand {
 
         public void setChanged(boolean changed) {
             this.changed = changed;
+        }
+
+        public boolean isDynamic() {
+            return dynamic;
+        }
+
+        public void setDynamic(boolean dynamic) {
+            this.dynamic = dynamic;
+        }
+
+        public boolean isRequired() {
+            return required;
+        }
+
+        public void setRequired(boolean required) {
+            this.required = required;
         }
     }
 
