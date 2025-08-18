@@ -17,7 +17,6 @@
 package org.bithon.agent.controller.config;
 
 import org.bithon.agent.configuration.ConfigurationManager;
-import org.bithon.agent.configuration.metadata.ConfigurationPropertyRegistry;
 import org.bithon.agent.configuration.metadata.DefaultValueExtractor;
 import org.bithon.agent.configuration.metadata.PropertyMetadata;
 import org.bithon.agent.controller.cmd.IAgentCommand;
