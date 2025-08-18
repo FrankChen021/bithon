@@ -17,19 +17,16 @@
 package org.bithon.agent.controller.configuration;
 
 import org.bithon.agent.configuration.ConfigurationManager;
-import org.bithon.agent.configuration.metadata.DefaultValueExtractor;
 import org.bithon.agent.configuration.metadata.PropertyMetadata;
 import org.bithon.agent.controller.cmd.IAgentCommand;
-import org.bithon.agent.instrumentation.loader.AgentClassLoader;
-import org.bithon.agent.instrumentation.loader.PluginClassLoader;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.agent.rpc.brpc.cmd.IConfigurationCommand;
 import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of configuration command that provides access to agent configuration
@@ -52,43 +49,25 @@ public class ConfigurationCommandImpl implements IConfigurationCommand, IAgentCo
             // Use the new compile-time generated metadata
             List<PropertyMetadata> properties = ConfigurationPropertyLoader.loadAllProperties();
 
-            // Extract default values from configuration class instances
-            new DefaultValueExtractor((className -> {
-                try {
-                    return Class.forName(className, true, PluginClassLoader.getClassLoader());
-                } catch (ClassNotFoundException e) {
-                    return Class.forName(className, true, AgentClassLoader.getClassLoader());
-                }
-            })).extract(properties);
+            return properties.stream()
+                             .map(property -> {
+                                 IConfigurationCommand.ConfigurationMetadata metadata = new IConfigurationCommand.ConfigurationMetadata();
 
-            List<IConfigurationCommand.ConfigurationMetadata> metadataList = new ArrayList<>();
+                                 metadata.setPath(property.getPath());
+                                 metadata.setType(property.getType());
+                                 metadata.setDescription(property.getDescription());
+                                 metadata.setRequired(property.isRequired());
+                                 metadata.setDynamic(property.isDynamic());
 
-            ConfigurationManager configManager = ConfigurationManager.getInstance();
+                                 metadata.setDefaultValue(property.getDefaultValue());
 
-            // Convert PropertyMetadata to ConfigurationMetadata and merge runtime values
-            for (PropertyMetadata property : properties) {
-                IConfigurationCommand.ConfigurationMetadata metadata = new IConfigurationCommand.ConfigurationMetadata();
-                metadata.setPath(property.getPath());
-                metadata.setType(property.getType());
-                metadata.setDescription(property.getDescription());
-                metadata.setDefaultValue(property.getDefaultValue());
+                                 // Use the runtime value from ConfigurationManager
+                                 metadata.setValue(getRuntimeValue(property.getPath()));
+                                 metadata.setChanged(isValueChanged(property.getDefaultValue(), metadata.getValue()));
 
-                // Get runtime value from all property sources
-                String runtimeValue = getRuntimeValue(configManager, property.getPath());
-                metadata.setValue(runtimeValue);
-
-                // Determine if the value has changed from default
-                boolean changed = isValueChanged(property.getDefaultValue(), runtimeValue);
-                metadata.setChanged(changed);
-
-                metadataList.add(metadata);
-            }
-
-            LoggerFactory.getLogger(ConfigurationCommandImpl.class)
-                         .info("Loaded {} configuration properties from compile-time metadata with runtime values", metadataList.size());
-
-            return metadataList;
-
+                                 return metadata;
+                             })
+                             .collect(Collectors.toList());
         } catch (Exception e) {
             // Log the error and return empty list
             LoggerFactory.getLogger(ConfigurationCommandImpl.class)
@@ -100,13 +79,12 @@ public class ConfigurationCommandImpl implements IConfigurationCommand, IAgentCo
     /**
      * Get the runtime value for a property path from the configuration manager.
      *
-     * @param configManager the configuration manager instance
-     * @param propertyPath  the property path to look up
+     * @param propertyPath the property path to look up
      * @return the runtime value as a string, or null if not found
      */
-    private String getRuntimeValue(ConfigurationManager configManager, String propertyPath) {
+    private String getRuntimeValue(String propertyPath) {
         try {
-            JsonNode value = configManager.getPropertyValue(propertyPath);
+            JsonNode value = ConfigurationManager.getInstance().getPropertyValue(propertyPath);
             if (value == null || value.isNull()) {
                 return null;
             }

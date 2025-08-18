@@ -16,6 +16,7 @@
 
 package org.bithon.agent.controller.configuration;
 
+import org.bithon.agent.configuration.metadata.DefaultValueExtractor;
 import org.bithon.agent.configuration.metadata.PropertyMetadata;
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
 import org.bithon.agent.instrumentation.loader.JarClassLoader;
@@ -112,6 +113,15 @@ public class ConfigurationPropertyLoader {
 
         // Sort for better readability
         allProperties.sort(Comparator.comparing(PropertyMetadata::getPath));
+
+        // Extract default values from configuration class instances
+        new DefaultValueExtractor((className -> {
+            try {
+                return Class.forName(className, true, PluginClassLoader.getClassLoader());
+            } catch (ClassNotFoundException e) {
+                return Class.forName(className, true, AgentClassLoader.getClassLoader());
+            }
+        })).extract(allProperties);
 
         return Collections.unmodifiableList(allProperties);
     }
