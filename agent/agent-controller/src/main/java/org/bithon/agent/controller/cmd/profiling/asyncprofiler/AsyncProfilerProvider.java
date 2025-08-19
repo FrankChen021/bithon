@@ -18,7 +18,6 @@ package org.bithon.agent.controller.cmd.profiling.asyncprofiler;
 
 
 import org.bithon.agent.controller.cmd.profiling.IProfilerProvider;
-import org.bithon.agent.controller.cmd.profiling.ProfilerFactory;
 import org.bithon.agent.controller.cmd.profiling.ProfilingException;
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.JfrEventConsumer;
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.JfrFileReader;
@@ -26,9 +25,11 @@ import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.TimestampedFi
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingRequest;
+import org.bithon.agent.rpc.brpc.profiling.Progress;
 import org.bithon.component.brpc.StreamResponse;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.time.Clock;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.component.commons.uuid.UUIDv7Generator;
 
@@ -50,16 +51,23 @@ import java.util.regex.Pattern;
  * @date 19/8/25 3:56 pm
  */
 public class AsyncProfilerProvider implements IProfilerProvider {
-    private static final ILogAdaptor LOG = LoggerFactory.getLogger(ProfilerFactory.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(AsyncProfilerProvider.class);
 
+    /**
+     * Make sure only one profiling session can run at a time.
+     */
     private static volatile boolean isProfiling = false;
+
+    private final Clock clock = new Clock();
 
     @Override
     public void start(ProfilingRequest request, StreamResponse<ProfilingEvent> streamResponse) {
         synchronized (AsyncProfilerProvider.class) {
             if (isProfiling) {
-                throw new ProfilingException("A profiling session is already running");
+                streamResponse.onException(new ProfilingException("A profiling session is already running"));
+                return;
             }
+
             isProfiling = true;
         }
         try {
@@ -79,22 +87,19 @@ public class AsyncProfilerProvider implements IProfilerProvider {
         String toolLocation = getToolLocation();
         String pid = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
 
+        //
         // Check if requested events are supported
-        Set<String> supportedEvents = getSupportedEvents(toolLocation, pid);
-        if (supportedEvents.isEmpty()) {
-            throw new ProfilingException("Failed to get supported events from async-profiler");
-        }
-
-        // Validate requested events
-        Set<String> unsupportedEvents = new HashSet<>(request.getProfileEventsList());
-        unsupportedEvents.removeAll(supportedEvents);
-        if (!unsupportedEvents.isEmpty()) {
-            isProfiling = false;
-            String errorMsg = String.format("Unsupported profiling events: %s. Supported events: %s",
-                                            String.join(", ", unsupportedEvents),
-                                            String.join(", ", supportedEvents));
-            streamResponse.onException(new ProfilingException(errorMsg));
-            return;
+        //
+        sendProgress(streamResponse, "Validating supported profiling events" + pid);
+        {
+            Set<String> supportedEvents = getSupportedEvents(toolLocation, pid);
+            Set<String> unsupportedEvents = new HashSet<>(request.getProfileEventsList());
+            unsupportedEvents.removeAll(supportedEvents);
+            if (!unsupportedEvents.isEmpty()) {
+                throw new ProfilingException(StringUtils.format("Unsupported profiling events: %s. Supported events: %s",
+                                                                String.join(", ", unsupportedEvents),
+                                                                String.join(", ", supportedEvents)));
+            }
         }
 
         String uuid = UUIDv7Generator.create(UUIDv7Generator.INCREMENT_TYPE_DEFAULT)
@@ -111,13 +116,11 @@ public class AsyncProfilerProvider implements IProfilerProvider {
         long startTime = System.currentTimeMillis();
         long endTime = startTime + (durationSeconds + 5) * 1000L;
 
-        new Thread(() -> {
+        Thread proflingThread = new Thread(() -> {
             try {
-                Thread.currentThread().setDaemon(true);
-                Thread.currentThread().setName("bithon-profiling");
-
                 tryStopProfiling(toolLocation, pid);
 
+                sendProgress(streamResponse, "Starting profiling for PID " + pid);
                 startProfiling(toolLocation, pid, durationSeconds, intervalSeconds, dir, String.join(",", request.getProfileEventsList()));
 
                 collectProfilingData(dir, intervalSeconds, endTime, streamResponse);
@@ -144,10 +147,13 @@ public class AsyncProfilerProvider implements IProfilerProvider {
                 }
 
                 // Terminate the profiler process after the duration
-                LOG.info("Stopping profiler for PID {} after {} seconds", pid, durationSeconds);
+                sendProgress(streamResponse, "Stopping profiler for PID {}", pid);
                 tryStopProfiling(toolLocation, pid);
             }
-        }).start();
+        });
+        proflingThread.setName("bithon-profiler");
+        proflingThread.setDaemon(true);
+        proflingThread.start();
     }
 
     private void tryStopProfiling(String toolLocation, String pid) {
@@ -225,7 +231,7 @@ public class AsyncProfilerProvider implements IProfilerProvider {
                     TimestampedFile timestampedFile = TimestampedFile.fromFile(file, timestampPattern);
                     if (timestampedFile != null) {
                         queue.offer(timestampedFile);
-                        LOG.info("Added existing JFR file to queue: {} with timestamp {}", file.getName(), timestampedFile.getTimestamp());
+                        sendProgress(streamResponse, "Captured profiling data to queue. name = %s, timestamp = %d", file.getName(), timestampedFile.getTimestamp());
                     }
                 }
             }
@@ -250,8 +256,9 @@ public class AsyncProfilerProvider implements IProfilerProvider {
                 long waitTime = readyTime - currentTime;
 
                 if (waitTime > 0) {
-                    LOG.info("JFR file {} is not ready yet, waiting {}ms (file timestamp: {}, current: {}, ready at: {})",
-                             jfrFileName, waitTime, fileTimestamp, currentTime, readyTime);
+                    sendProgress(streamResponse,
+                                 "%s is not ready, waiting %dms...",
+                                 jfrFileName, waitTime, fileTimestamp, currentTime, readyTime);
                     try {
                         Thread.sleep(waitTime);
                     } catch (InterruptedException e) {
@@ -267,7 +274,7 @@ public class AsyncProfilerProvider implements IProfilerProvider {
 
                     // File is ready - process it
                     try {
-                        LOG.info("Processing JFR file from queue: {}", jfrFileName);
+                        sendProgress(streamResponse, "%s is ready for streaming", jfrFileName);
                         JfrFileReader.read(jfrFile,
                                            new JfrEventConsumer() {
                                                @Override
@@ -290,7 +297,7 @@ public class AsyncProfilerProvider implements IProfilerProvider {
                                            }
                         );
                     } catch (IOException e) {
-                        LOG.error("Failed to read JFR file {}: {}", jfrFileName, e.getMessage());
+                        sendProgress(streamResponse, "Failed to read profiling events from file %s: %s", jfrFileName, e.getMessage());
                     } finally {
                         if (!jfrFile.delete()) {
                             LOG.warn("Failed to delete JFR file: {}", jfrFileName);
@@ -330,7 +337,6 @@ public class AsyncProfilerProvider implements IProfilerProvider {
 
         // File is complete if size and last modified time haven't changed
         boolean isStable = (size1 == size2) && (lastModified1 == lastModified2) && (size1 > 0);
-
         if (!isStable) {
             LOG.debug("File {} is still changing: size {} -> {}, lastModified {} -> {}",
                       filePath, size1, size2, lastModified1, lastModified2);
@@ -377,16 +383,16 @@ public class AsyncProfilerProvider implements IProfilerProvider {
             }
 
             if (process.exitValue() != 0) {
-                LOG.error("Failed to get supported events from async-profiler. Exit code: {}", process.exitValue());
-                return new HashSet<>();
+                throw new ProfilingException(StringUtils.format("Failed to get supported events. Exit code: %d", process.exitValue()));
             }
 
-            LOG.info("Supported events by async-profiler: {}", String.join(", ", supportedEvents));
-            return supportedEvents;
+            if (supportedEvents.isEmpty()) {
+                throw new ProfilingException("Failed to get supported events.");
+            }
 
+            return supportedEvents;
         } catch (IOException e) {
-            LOG.error("Failed to get supported events from async-profiler", e);
-            return new HashSet<>();
+            throw new ProfilingException(StringUtils.format("Failed to get supported events: %s", e.getMessage()));
         }
     }
 
@@ -414,6 +420,30 @@ public class AsyncProfilerProvider implements IProfilerProvider {
         if (!osDir.exists()) {
             throw new ProfilingException("Async profiler tool directory for " + dir + " does not exist: " + osDir.getAbsolutePath());
         }
-        return new File(osDir, "bin/asprof").getAbsolutePath();
+        File toolPath = new File(osDir, "bin/asprof");
+        if (!toolPath.exists()) {
+            throw new ProfilingException(StringUtils.format("Unable to locate profiling tool located at [%s]. Please report it to agent maintainers.", toolPath));
+        }
+        return toolPath.getAbsolutePath();
+    }
+
+    private void sendProgress(StreamResponse<ProfilingEvent> streamResponse, String message) {
+        ProfilingEvent event = ProfilingEvent.newBuilder()
+                                             .setProgress(Progress.newBuilder()
+                                                                  .setTime(clock.currentNanoseconds())
+                                                                  .setMessage(message)
+                                                                  .build())
+                                             .build();
+        streamResponse.onNext(event);
+    }
+
+    private void sendProgress(StreamResponse<ProfilingEvent> streamResponse, String messageFormat, Object... args) {
+        ProfilingEvent event = ProfilingEvent.newBuilder()
+                                             .setProgress(Progress.newBuilder()
+                                                                  .setTime(clock.currentNanoseconds())
+                                                                  .setMessage(StringUtils.format(messageFormat, args))
+                                                                  .build())
+                                             .build();
+        streamResponse.onNext(event);
     }
 }

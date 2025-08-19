@@ -37,6 +37,10 @@ public class Clock {
         return this.millis;
     }
 
+    public long currentNanoseconds() {
+        return (System.nanoTime() - this.nanos) + this.millis * 1_000_000L;
+    }
+
     @Override
     public String toString() {
         return "Clock{millis=" + this.millis + ", nanos=" + this.nanos + "}";

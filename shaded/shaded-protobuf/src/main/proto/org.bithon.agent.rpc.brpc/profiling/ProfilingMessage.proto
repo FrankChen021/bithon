@@ -17,14 +17,15 @@ message ProfilingRequest {
 /**************************************************************************/
 message ProfilingEvent {
   oneof event {
-    CPUUsage cpuUsage = 10;
+    CPULoad cpuUsage = 10;
     SystemProperties systemProperties = 20;
-    CallStackSample callStackSample = 30;  // Including this as it appears to be another relevant event type
+    CallStackSample callStackSample = 30;
     GCHeapSummary heapSummary = 40;
+    Progress progress = 50;
   }
 }
 
-message CPUUsage {
+message CPULoad {
   int64 time = 1;
   float user = 2;
   float system = 3;
@@ -60,4 +61,9 @@ message GCHeapSummary {
   int64 committed = 10;
   int64 used = 11;
   int64 reserved = 12;
+}
+
+message Progress {
+  int64 time = 1;
+  string message = 10;
 }

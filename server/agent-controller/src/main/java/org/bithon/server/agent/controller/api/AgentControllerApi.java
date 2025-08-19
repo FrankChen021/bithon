@@ -266,7 +266,7 @@ public class AgentControllerApi implements IAgentControllerApi {
                     emitter.send(SseEmitter.event()
                                            .name("data")
                                            .data(Base64.getEncoder().encode(dataMessage.toByteArray())));
-                } catch (IOException ignored) {
+                } catch (IOException | IllegalStateException ignored) {
                 }
             }
 
@@ -277,7 +277,8 @@ public class AgentControllerApi implements IAgentControllerApi {
                     emitter.send(SseEmitter.event()
                                            .name("error")
                                            .data(Base64.getEncoder().encode(endMessage.toByteArray())));
-                } catch (IOException ignored) {
+                } catch (IOException | IllegalStateException ignored) {
+                    // IllegalStateException may happen when the client has closed the connection
                 }
 
                 emitter.complete();

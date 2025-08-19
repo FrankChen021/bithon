@@ -19,7 +19,7 @@ package org.bithon.agent.controller.cmd.profiling;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 19/8/25 4:54 pm
+ * @date 19/8/25 4:54 pm
  */
 public class ProfilingException extends RuntimeException {
     public ProfilingException(String message) {

@@ -18,9 +18,6 @@ package org.bithon.agent.controller.cmd.profiling;
 
 
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.AsyncProfilerProvider;
-import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
-import org.bithon.agent.rpc.brpc.profiling.ProfilingRequest;
-import org.bithon.component.brpc.StreamResponse;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -34,7 +31,7 @@ public class ProfilerFactory {
     /**
      * called by {@link org.bithon.agent.controller.cmd.ProfilingCommand} by reflection
      */
-    public static void start(ProfilingRequest request, StreamResponse<ProfilingEvent> streamResponse) {
-        new AsyncProfilerProvider().start(request, streamResponse);
+    public static IProfilerProvider create() {
+        return new AsyncProfilerProvider();
     }
 }

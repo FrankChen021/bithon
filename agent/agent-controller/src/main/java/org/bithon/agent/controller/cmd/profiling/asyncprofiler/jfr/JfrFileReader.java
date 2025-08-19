@@ -29,7 +29,6 @@ import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.Initial
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.InitialSystemProperty;
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.JVMInformation;
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.OSInformation;
-import org.bithon.agent.rpc.brpc.profiling.CPUUsage;
 import org.bithon.agent.rpc.brpc.profiling.CallStackSample;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 import org.bithon.agent.rpc.brpc.profiling.StackFrame;
@@ -67,12 +66,12 @@ public class JfrFileReader {
                                                       .setCallStackSample(toCallStackSample(jfr, (ExecutionSample) jfrEvent))
                                                       .build();
                     } else if (jfrEvent instanceof CPULoad) {
-                        CPUUsage cpuUsage = CPUUsage.newBuilder()
-                                                    .setTime(TimeConverter.toEpochNano(jfr, jfrEvent.time))
-                                                    .setUser(((CPULoad) jfrEvent).jvmUser)
-                                                    .setSystem(((CPULoad) jfrEvent).jvmSystem)
-                                                    .setMachine(((CPULoad) jfrEvent).machineTotal)
-                                                    .build();
+                        org.bithon.agent.rpc.brpc.profiling.CPULoad cpuUsage = org.bithon.agent.rpc.brpc.profiling.CPULoad.newBuilder()
+                                                                                                                          .setTime(TimeConverter.toEpochNano(jfr, jfrEvent.time))
+                                                                                                                          .setUser(((CPULoad) jfrEvent).jvmUser)
+                                                                                                                          .setSystem(((CPULoad) jfrEvent).jvmSystem)
+                                                                                                                          .setMachine(((CPULoad) jfrEvent).machineTotal)
+                                                                                                                          .build();
                         responseEvent = ProfilingEvent.newBuilder()
                                                       .setCpuUsage(cpuUsage)
                                                       .build();

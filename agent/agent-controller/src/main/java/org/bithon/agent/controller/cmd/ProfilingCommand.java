@@ -17,6 +17,7 @@
 package org.bithon.agent.controller.cmd;
 
 
+import org.bithon.agent.controller.cmd.profiling.IProfilerProvider;
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
 import org.bithon.agent.instrumentation.loader.JarClassLoader;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
@@ -41,8 +42,9 @@ public class ProfilingCommand implements IProfilingCommand, IAgentCommand {
     public void start(ProfilingRequest request, StreamResponse<ProfilingEvent> response) {
         try {
             Class<?> clazz = Class.forName("org.bithon.agent.controller.cmd.profiling.ProfilerFactory", true, classLoader);
-            Method method = clazz.getDeclaredMethod("start", ProfilingRequest.class, StreamResponse.class);
-            method.invoke(null, request, response);
+            Method method = clazz.getDeclaredMethod("create");
+            IProfilerProvider provider = (IProfilerProvider) method.invoke(null);
+            provider.start(request, response);
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException e) {
             response.onException(e);
         } catch (InvocationTargetException e) {

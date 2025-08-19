@@ -162,6 +162,7 @@ public class JfrApi {
                         case SYSTEMPROPERTIES -> event.getSystemProperties();
                         case CALLSTACKSAMPLE -> event.getCallStackSample();
                         case HEAPSUMMARY -> event.getHeapSummary();
+                        case PROGRESS -> event.getProgress();
                         default -> null;
                     };
 
@@ -222,7 +223,8 @@ public class JfrApi {
                         case SYSTEMPROPERTIES -> event.getSystemProperties();
                         case CALLSTACKSAMPLE -> event.getCallStackSample();
                         case HEAPSUMMARY -> event.getHeapSummary();
-                        case EVENT_NOT_SET -> null;
+                        case PROGRESS -> event.getProgress();
+                        default -> null;
                     };
 
                     emitter.send(SseEmitter.event()
