@@ -31,6 +31,7 @@ import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.brpc.message.in.ServiceStreamingDataMessageIn;
 import org.bithon.component.brpc.message.in.ServiceStreamingEndMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
+import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.IOException;
@@ -176,7 +177,8 @@ public class InvocationManager {
                 inflightRequest = new InflightRequest(serviceRequest.getServiceName(),
                                                       serviceRequest.getMethodName(),
                                                       streamingDataType,
-                                                      (StreamResponse<Object>) streamResponse);
+                                                      (StreamResponse<Object>) streamResponse,
+                                                      channel);
             } else {
                 inflightRequest = new InflightRequest(serviceRequest.getServiceName(),
                                                       serviceRequest.getMethodName(),
@@ -190,8 +192,10 @@ public class InvocationManager {
             for (int i = 0; i < 3; i++) {
                 try {
                     channel.writeAsync(serviceRequest);
-                    exception = null; // Success, clear exception
-                    break;          // Exit retry loop
+
+                    // Success, clear exception
+                    exception = null;
+                    break;
                 } catch (ChannelException e) {
                     exception = e;
                     if (i < 2) {
@@ -289,17 +293,19 @@ public class InvocationManager {
 
         try {
             Object data = inflightRequest.streamingDataType == null ? dataMessage.getRawData() : dataMessage.getData(inflightRequest.streamingDataType);
-            //noinspection DataFlowIssue
+
             inflightRequest.streamResponse.onNext(data);
 
             // Check if client wants to cancel
-            if (inflightRequest.streamResponse.isCancelled()) {
+            if (inflightRequest.streamResponse.isCancelled() && inflightRequest.channel != null) {
+                // Remove from our local tracking and send cancel message
                 cancelStreaming(txId);
             }
         } catch (Exception e) {
+            inflightRequests.remove(txId);
+
             //noinspection DataFlowIssue
             inflightRequest.streamResponse.onException(e);
-            inflightRequests.remove(txId);
         }
     }
 
@@ -324,13 +330,32 @@ public class InvocationManager {
 
     /**
      * Cancel a streaming request
+     *
+     * @param txId The transaction ID of the streaming request to cancel
      */
     public void cancelStreaming(long txId) {
         InflightRequest inflightRequest = inflightRequests.remove(txId);
-        if (inflightRequest != null && inflightRequest.isStreaming()) {
-            // Send cancel message to server
-            // This would need access to the channel, which we'd need to store in StreamingRequest
-            // For now, just remove from local tracking
+        if (inflightRequest == null || !inflightRequest.isStreaming()) {
+            return;
+        }
+
+        try {
+            IBrpcChannel channel = inflightRequest.channel;
+            if (channel != null && channel.isActive()) {
+                // Send cancel message to server
+                ServiceRequestMessageOut cancelRequest = ServiceRequestMessageOut.builder()
+                                                                                 .messageType(ServiceMessageType.CLIENT_STREAMING_CANCEL)
+                                                                                 .transactionId(txId)
+                                                                                 .applicationName("brpc-client")
+                                                                                 .serviceName(inflightRequest.serviceName)
+                                                                                 .methodName(inflightRequest.methodName)
+                                                                                 .build();
+
+                channel.writeAsync(cancelRequest);
+            }
+        } catch (Exception e) {
+            LoggerFactory.getLogger(InvocationManager.class)
+                         .warn("Failed to send streaming cancel message for txId: " + txId, e);
         }
     }
 
@@ -420,6 +445,9 @@ public class InvocationManager {
         final String methodName;
         final long requestAt;
 
+        // Channel used for this request - needed for cancellation
+        final IBrpcChannel channel;
+
         // For streaming calls
         final Type streamingDataType;
         final StreamResponse<Object> streamResponse;
@@ -442,6 +470,7 @@ public class InvocationManager {
             this.requestAt = System.currentTimeMillis();
             this.streamingDataType = null;
             this.streamResponse = null;
+            this.channel = null;
         }
 
         /**
@@ -457,6 +486,24 @@ public class InvocationManager {
             this.returnObjectType = null;
             this.streamingDataType = streamingDataType;
             this.streamResponse = streamResponse;
+            this.channel = null;
+        }
+
+        /**
+         * Constructor for streaming calls with channel reference
+         */
+        private InflightRequest(String serviceName,
+                                String methodName,
+                                Type streamingDataType,
+                                StreamResponse<Object> streamResponse,
+                                IBrpcChannel channel) {
+            this.serviceName = serviceName;
+            this.methodName = methodName;
+            this.requestAt = System.currentTimeMillis();
+            this.returnObjectType = null;
+            this.streamingDataType = streamingDataType;
+            this.streamResponse = streamResponse;
+            this.channel = channel;
         }
 
         boolean isStreaming() {
