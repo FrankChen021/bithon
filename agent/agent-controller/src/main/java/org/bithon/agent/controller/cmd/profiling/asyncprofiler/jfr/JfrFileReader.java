@@ -134,10 +134,6 @@ public class JfrFileReader {
         }
     }
 
-    public static void main(String[] args) throws IOException {
-        dump(new File("/Users/frank.chenling/source/open/bithon/agent/agent-distribution/tools/async-profiler/macos/bin/20250804-150143.jfr"));
-    }
-
     public static CallStackSample toCallStackSample(JfrReader jfr, ExecutionSample event) {
         if (event.stackTraceId == 0) {
             return null; // no stack trace
