@@ -40,7 +40,7 @@ public class ProfilingCommand implements IProfilingCommand, IAgentCommand {
     @Override
     public void start(ProfilingRequest request, StreamResponse<ProfilingEvent> response) {
         try {
-            Class<?> clazz = Class.forName("org.bithon.agent.controller.cmd.profiling.Profiler", true, classLoader);
+            Class<?> clazz = Class.forName("org.bithon.agent.controller.cmd.profiling.ProfilerFactory", true, classLoader);
             Method method = clazz.getDeclaredMethod("start", ProfilingRequest.class, StreamResponse.class);
             method.invoke(null, request, response);
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException e) {

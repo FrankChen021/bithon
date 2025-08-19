@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.controller.cmd.profiling.jfr;
+package org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr;
 
 
 import java.io.File;

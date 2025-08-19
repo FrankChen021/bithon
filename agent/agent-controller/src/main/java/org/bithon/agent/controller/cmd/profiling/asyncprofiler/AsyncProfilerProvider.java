@@ -14,12 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.controller.cmd.profiling;
+package org.bithon.agent.controller.cmd.profiling.asyncprofiler;
 
 
-import org.bithon.agent.controller.cmd.profiling.jfr.JfrEventConsumer;
-import org.bithon.agent.controller.cmd.profiling.jfr.JfrFileReader;
-import org.bithon.agent.controller.cmd.profiling.jfr.TimestampedFile;
+import org.bithon.agent.controller.cmd.profiling.IProfilerProvider;
+import org.bithon.agent.controller.cmd.profiling.ProfilerFactory;
+import org.bithon.agent.controller.cmd.profiling.ProfilingException;
+import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.JfrEventConsumer;
+import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.JfrFileReader;
+import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.TimestampedFile;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingRequest;
@@ -44,74 +47,89 @@ import java.util.regex.Pattern;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 16/7/25 8:11 pm
+ * @date 19/8/25 3:56 pm
  */
-public class Profiler {
-    private static final ILogAdaptor LOG = LoggerFactory.getLogger(Profiler.class);
+public class AsyncProfilerProvider implements IProfilerProvider {
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(ProfilerFactory.class);
 
-    public static final Profiler INSTANCE = new Profiler();
+    private static volatile boolean isProfiling = false;
 
-    static class ProfilingException extends RuntimeException {
-        ProfilingException(String message) {
-            super(message);
+    @Override
+    public void start(ProfilingRequest request, StreamResponse<ProfilingEvent> streamResponse) {
+        synchronized (AsyncProfilerProvider.class) {
+            if (isProfiling) {
+                throw new ProfilingException("A profiling session is already running");
+            }
+            isProfiling = true;
         }
-
-        ProfilingException(String message, Throwable cause) {
-            super(message, cause);
+        try {
+            startProfilingTask(request, streamResponse);
+        } catch (Exception e) {
+            isProfiling = false;
+            streamResponse.onException(e);
         }
     }
 
-    /**
-     * called by {@link org.bithon.agent.controller.cmd.ProfilingCommand} by reflection
-     */
-    public static void start(ProfilingRequest request, StreamResponse<ProfilingEvent> streamResponse) {
-        INSTANCE.start(request.getIntervalInSeconds(),
-                       request.getDurationInSeconds(),
-                       streamResponse);
-    }
+    private void startProfilingTask(ProfilingRequest request, StreamResponse<ProfilingEvent> streamResponse) {
+        if (request.getIntervalInSeconds() <= 0 || request.getDurationInSeconds() <= 0) {
+            throw new ProfilingException("Interval and duration must be greater than 0");
+        }
 
-    public void start(int intervalSeconds, int durationSeconds, StreamResponse<ProfilingEvent> streamResponse) {
-        if (intervalSeconds <= 0 || durationSeconds <= 0) {
-            streamResponse.onException(new IllegalArgumentException("Interval and duration must be greater than 0"));
+        // Determine OS and arch
+        String toolLocation = getToolLocation();
+        String pid = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+
+        // Check if requested events are supported
+        Set<String> supportedEvents = getSupportedEvents(toolLocation, pid);
+        if (supportedEvents.isEmpty()) {
+            throw new ProfilingException("Failed to get supported events from async-profiler");
+        }
+
+        // Validate requested events
+        Set<String> unsupportedEvents = new HashSet<>(request.getProfileEventsList());
+        unsupportedEvents.removeAll(supportedEvents);
+        if (!unsupportedEvents.isEmpty()) {
+            isProfiling = false;
+            String errorMsg = String.format("Unsupported profiling events: %s. Supported events: %s",
+                                            String.join(", ", unsupportedEvents),
+                                            String.join(", ", supportedEvents));
+            streamResponse.onException(new ProfilingException(errorMsg));
             return;
         }
 
         String uuid = UUIDv7Generator.create(UUIDv7Generator.INCREMENT_TYPE_DEFAULT)
                                      .generate()
                                      .toCompactFormat();
-
-        // Determine OS and arch
-        String toolLocation = getToolLocation();
-        String pid = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
-
         File dir = new File(System.getProperty("java.io.tmpdir", "/tmp"), uuid);
         if (!dir.exists() && !dir.mkdirs()) {
-            streamResponse.onException(new RuntimeException("Failed to create temporary directory: " + dir.getAbsolutePath()));
-            return;
+            throw new ProfilingException("Failed to create temporary directory: " + dir.getAbsolutePath());
         }
 
         // Configuration
+        int durationSeconds = request.getDurationInSeconds();
+        int intervalSeconds = request.getIntervalInSeconds();
         long startTime = System.currentTimeMillis();
         long endTime = startTime + (durationSeconds + 5) * 1000L;
 
         new Thread(() -> {
-            tryStopProfiling(toolLocation, pid);
-
             try {
-                startProfiling(toolLocation, pid, durationSeconds, intervalSeconds, dir);
-            } catch (ProfilingException e) {
-                streamResponse.onException(e);
-                return;
-            }
+                Thread.currentThread().setDaemon(true);
+                Thread.currentThread().setName("bithon-profiling");
 
-            try {
+                tryStopProfiling(toolLocation, pid);
+
+                startProfiling(toolLocation, pid, durationSeconds, intervalSeconds, dir, String.join(",", request.getProfileEventsList()));
+
                 collectProfilingData(dir, intervalSeconds, endTime, streamResponse);
-            } catch (Exception e) {
-                LOG.error("File processor thread failed", e);
-            } finally {
-                streamResponse.onComplete();
 
-                LOG.info("File processor thread completed, deleting directory: {}", dir.getAbsolutePath());
+                streamResponse.onComplete();
+            } catch (Exception e) {
+                streamResponse.onException(e);
+            } finally {
+                isProfiling = false;
+
+                // Cleanup
+                LOG.debug("File processor thread completed, deleting directory: {}", dir.getAbsolutePath());
                 try {
                     if (dir.exists() && dir.isDirectory()) {
                         File[] files = dir.listFiles();
@@ -124,35 +142,37 @@ public class Profiler {
                     }
                 } catch (Exception ignored) {
                 }
+
+                // Terminate the profiler process after the duration
+                LOG.info("Stopping profiler for PID {} after {} seconds", pid, durationSeconds);
+                tryStopProfiling(toolLocation, pid);
             }
-
-            LOG.info("Stopping profiler for PID {} after {} seconds", pid, durationSeconds);
-
-            // Terminate the profiler process after the duration
-            tryStopProfiling(toolLocation, pid);
         }).start();
     }
 
     private void tryStopProfiling(String toolLocation, String pid) {
         try {
             Process process = new ProcessBuilder(toolLocation, "stop", pid).start();
-            try {
-                process.waitFor();
-            } catch (InterruptedException ignored) {
-            }
-        } catch (IOException ignored) {
+            process.waitFor();
+        } catch (IOException | InterruptedException ignored) {
         }
     }
 
-    private void startProfiling(String toolLocation, String pid, long durationSecond, long intervalSecond, File outputDir) {
-        ProcessBuilder pb = new ProcessBuilder(
-            toolLocation,
-            "-d", String.valueOf(durationSecond),
-            "--loop", intervalSecond + "s",
-            "-f", new File(outputDir, "%t.jfr").getAbsolutePath(),
-            "-e", "cpu",
-            pid
-        );
+    private void startProfiling(String toolLocation,
+                                String pid,
+                                long durationSecond,
+                                long intervalSecond,
+                                File outputDir,
+                                String requestedEvents) {
+        // Use the requested events or default to "cpu" if none specified
+        String events = requestedEvents.isEmpty() ? "cpu" : requestedEvents;
+
+        ProcessBuilder pb = new ProcessBuilder(toolLocation,
+                                               "-d", String.valueOf(durationSecond),
+                                               "--loop", intervalSecond + "s",
+                                               "-f", new File(outputDir, "%t.jfr").getAbsolutePath(),
+                                               "-e", events,
+                                               pid);
         try {
             Process process = pb.start();
             try {
@@ -319,6 +339,57 @@ public class Profiler {
         return isStable;
     }
 
+    /**
+     * return the supported event names by the target application. The tool returns an example as follows:
+     * Basic events:
+     * cpu
+     * alloc
+     * nativemem
+     * lock
+     * wall
+     * itimer
+     * Java method calls:
+     * ClassName.methodName
+     *
+     * @param toolLocation The location of the async-profiler tool
+     * @return A set of supported event names
+     */
+    private Set<String> getSupportedEvents(String toolLocation, String pid) {
+        Set<String> supportedEvents = new HashSet<>();
+        try {
+            Process process = new ProcessBuilder(toolLocation, "list", pid).start();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.length() > 2 && line.charAt(0) == ' ' && line.charAt(1) == ' ' && Character.isAlphabetic(line.charAt(2))) {
+                        String eventName = line.substring(2).trim();
+                        if (!eventName.isEmpty()) {
+                            supportedEvents.add(eventName);
+                        }
+                    }
+                }
+            }
+
+            try {
+                process.waitFor();
+            } catch (InterruptedException ignored) {
+                Thread.currentThread().interrupt();
+            }
+
+            if (process.exitValue() != 0) {
+                LOG.error("Failed to get supported events from async-profiler. Exit code: {}", process.exitValue());
+                return new HashSet<>();
+            }
+
+            LOG.info("Supported events by async-profiler: {}", String.join(", ", supportedEvents));
+            return supportedEvents;
+
+        } catch (IOException e) {
+            LOG.error("Failed to get supported events from async-profiler", e);
+            return new HashSet<>();
+        }
+    }
+
     private static String getToolLocation() {
         String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
         String arch = System.getProperty("os.arch").toLowerCase(Locale.ENGLISH);
@@ -333,15 +404,15 @@ public class Profiler {
                 dir = "linux-amd64";
             }
         } else {
-            throw new RuntimeException("Unsupported OS: " + os);
+            throw new ProfilingException("Unsupported OS: " + os);
         }
         File toolHome = AgentDirectory.getSubDirectory("tools/async-profiler");
         if (!toolHome.exists()) {
-            throw new RuntimeException("Async profiler tool directory does not exist: " + toolHome.getAbsolutePath());
+            throw new ProfilingException("Async profiler tool directory does not exist: " + toolHome.getAbsolutePath());
         }
         File osDir = new File(toolHome, dir);
         if (!osDir.exists()) {
-            throw new RuntimeException("Async profiler tool directory for " + dir + " does not exist: " + osDir.getAbsolutePath());
+            throw new ProfilingException("Async profiler tool directory for " + dir + " does not exist: " + osDir.getAbsolutePath());
         }
         return new File(osDir, "bin/asprof").getAbsolutePath();
     }

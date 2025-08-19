@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.controller.cmd.profiling.jfr;
+package org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr;
 
 
 import one.jfr.ClassRef;
@@ -24,11 +24,11 @@ import one.jfr.event.CPULoad;
 import one.jfr.event.Event;
 import one.jfr.event.ExecutionSample;
 import one.jfr.event.GCHeapSummary;
-import org.bithon.agent.controller.cmd.profiling.jfr.event.CPUInformation;
-import org.bithon.agent.controller.cmd.profiling.jfr.event.InitialEnvironmentVariable;
-import org.bithon.agent.controller.cmd.profiling.jfr.event.InitialSystemProperty;
-import org.bithon.agent.controller.cmd.profiling.jfr.event.JVMInformation;
-import org.bithon.agent.controller.cmd.profiling.jfr.event.OSInformation;
+import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.CPUInformation;
+import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.InitialEnvironmentVariable;
+import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.InitialSystemProperty;
+import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.JVMInformation;
+import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.OSInformation;
 import org.bithon.agent.rpc.brpc.profiling.CPUUsage;
 import org.bithon.agent.rpc.brpc.profiling.CallStackSample;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
