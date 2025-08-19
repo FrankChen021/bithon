@@ -31,6 +31,7 @@ import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.agent.controller.service.AgentControllerServer;
 import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
@@ -98,8 +99,8 @@ public class JfrApi {
 
     @GetMapping("/api/diagnosis/profiling")
     public SseEmitter profiling(@Valid @ModelAttribute AgentDiagnosisApi.ProfileRequest request) {
-        long timeout = (request.getDuration() + 10) * 1000L; // 10 seconds more than the profiling duration
-        SseEmitter emitter = new SseEmitter(timeout);
+        long profilingTaskTimeout = (request.getDuration() + 10) * 1000L; // 10 seconds more than the profiling duration
+        SseEmitter emitter = new SseEmitter(profilingTaskTimeout);
 
         //
         // Find the controller where the target instance is connected to
@@ -142,14 +143,15 @@ public class JfrApi {
                                                                                          controller,
                                                                                          request.getAppName(),
                                                                                          request.getInstanceName(),
-                                                                                         timeout);
+                                                                                         profilingTaskTimeout);
 
-        ProfilingRequest req = ProfilingRequest.newBuilder()
-                                               .setDurationInSeconds(30)
-                                               .setIntervalInSeconds(3)
-                                               .build();
+        ProfilingRequest profilingRequest = ProfilingRequest.newBuilder()
+                                                            .setDurationInSeconds(request.getDuration())
+                                                            .setIntervalInSeconds(request.getInterval())
+                                                            .addAllProfileEvents(CollectionUtils.isEmpty(request.getProfileEvents()) ? List.of("cpu") : request.getProfileEvents())
+                                                            .build();
 
-        profilingCommand.start(req, new StreamResponse<>() {
+        profilingCommand.start(profilingRequest, new StreamResponse<>() {
             private boolean isCancelled = false;
 
             @Override

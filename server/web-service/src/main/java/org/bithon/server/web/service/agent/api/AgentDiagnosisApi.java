@@ -77,6 +77,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -254,7 +255,7 @@ public class AgentDiagnosisApi {
          */
         @Min(3)
         @Max(10)
-        private long interval;
+        private int interval;
 
         /**
          * how long the profiling should last for in seconds
@@ -262,6 +263,13 @@ public class AgentDiagnosisApi {
         @Max(5 * 60)
         @Min(10)
         private int duration;
+
+        /**
+         * Can be null or empty. if so, it defaults to cpu events.
+         *
+         * Available events: cpu|alloc|nativemem|lock|cache-misses
+         */
+        private Set<String> profileEvents;
     }
 
     @SuppressForbidden
@@ -336,7 +344,6 @@ public class AgentDiagnosisApi {
 
                                       @Override
                                       public void run() {
-
                                           try {
                                               emitter.send(SseEmitter.event()
                                                                      .id(String.valueOf(elapsed))

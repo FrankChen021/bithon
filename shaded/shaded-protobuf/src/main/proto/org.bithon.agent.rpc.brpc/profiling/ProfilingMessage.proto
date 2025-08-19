@@ -9,6 +9,7 @@ option java_multiple_files = true;
 message ProfilingRequest {
   int32 durationInSeconds = 1;
   int32 intervalInSeconds = 2;
+  repeated string profileEvents = 3;
 }
 
 /**************************************************************************/
