@@ -188,14 +188,14 @@ public class Profiler {
     private void collectProfilingData(File dir,
                                       int loopIntervalSeconds,
                                       long endTime,
-                                      StreamResponse<ProfilingEvent> outputStream) {
+                                      StreamResponse<ProfilingEvent> streamResponse) {
         Set<String> skipped = new HashSet<>();
 
         // Pattern to extract timestamp from filename (format: YYYYMMDD-HHMMSS.jfr)
         Pattern timestampPattern = Pattern.compile("(\\d{8}-\\d{6})\\.jfr");
 
         PriorityQueue<TimestampedFile> queue = new PriorityQueue<>();
-        while (System.currentTimeMillis() < endTime) {
+        while (System.currentTimeMillis() < endTime && !streamResponse.isCancelled()) {
             File[] files = dir.listFiles((file, name) -> name.endsWith(".jfr"));
             if (files != null) {
                 for (File file : files) {
@@ -210,7 +210,7 @@ public class Profiler {
                 }
             }
 
-            while (!queue.isEmpty()) {
+            while (!queue.isEmpty() && !streamResponse.isCancelled()) {
                 TimestampedFile timestampedFile = queue.peek();
 
                 File jfrFile = timestampedFile.getFile();
@@ -256,11 +256,16 @@ public class Profiler {
 
                                                @Override
                                                public void onEvent(ProfilingEvent event) {
-                                                   outputStream.onNext(event);
+                                                   streamResponse.onNext(event);
                                                }
 
                                                @Override
                                                public void onComplete() {
+                                               }
+
+                                               @Override
+                                               public boolean isCancelled() {
+                                                   return streamResponse.isCancelled();
                                                }
                                            }
                         );

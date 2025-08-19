@@ -25,6 +25,7 @@ import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
 import org.bithon.component.brpc.message.Headers;
+import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.in.ServiceMessageIn;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
@@ -42,7 +43,6 @@ import org.bithon.server.commons.exception.ErrorResponse;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.web.security.jwt.JwtConfig;
 import org.bithon.server.web.security.jwt.JwtTokenComponent;
-import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -176,7 +176,7 @@ public class AgentControllerApi implements IAgentControllerApi {
         ServiceRequestMessageOut toTarget = ServiceRequestMessageOut.builder()
                                                                     .applicationName(rawRequest.getApplicationName())
                                                                     .headers(rawRequest.getHeaders())
-                                                                    .isOneway(false)
+                                                                    .isOneway(rawRequest.getMessageType() == ServiceMessageType.CLIENT_STREAMING_CANCEL)
                                                                     .messageType(rawRequest.getMessageType())
                                                                     .serviceName(rawRequest.getServiceName())
                                                                     .methodName(rawRequest.getMethodName())
@@ -218,9 +218,12 @@ public class AgentControllerApi implements IAgentControllerApi {
         //
         // Parse input request stream so that we get the request object that the user is going to access
         //
-        CodedInputStream input = CodedInputStream.newInstance(message);
-        input.pushLimit(message.length);
-        ServiceRequestMessageIn rawRequest = ServiceRequestMessageIn.from(input);
+        ServiceRequestMessageIn rawRequest;
+        try {
+            rawRequest = (ServiceRequestMessageIn) ServiceMessageIn.from(message);
+        } catch (ClassCastException e) {
+            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Invalid message format: " + e.getMessage());
+        }
 
         // Verify if the user has permission if the permission checking is ENABLE on this service
         if (permissionConfig != null && permissionConfig.isEnabled()) {

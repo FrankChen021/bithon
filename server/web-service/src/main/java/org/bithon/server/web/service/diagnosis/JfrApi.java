@@ -150,6 +150,8 @@ public class JfrApi {
                                                .build();
 
         profilingCommand.start(req, new StreamResponse<>() {
+            private boolean isCancelled = false;
+
             @Override
             public void onNext(ProfilingEvent event) {
                 try {
@@ -167,6 +169,7 @@ public class JfrApi {
                                            .data(JsonFormat.printer().omittingInsignificantWhitespace().print(data), MediaType.TEXT_PLAIN)
                                            .build());
                 } catch (IOException | IllegalStateException ignored) {
+                    isCancelled = true;
                 }
             }
 
@@ -178,6 +181,11 @@ public class JfrApi {
             @Override
             public void onComplete() {
                 emitter.complete();
+            }
+
+            @Override
+            public boolean isCancelled() {
+                return isCancelled;
             }
         });
 

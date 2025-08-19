@@ -60,7 +60,7 @@ public class JfrFileReader {
             final Map<String, String> systemProperties = new TreeMap<>();
             eventConsumer.onStart();
             {
-                for (Event jfrEvent; (jfrEvent = jfr.readEvent()) != null; ) {
+                for (Event jfrEvent; !eventConsumer.isCancelled() && (jfrEvent = jfr.readEvent()) != null; ) {
                     ProfilingEvent responseEvent = null;
                     if (jfrEvent instanceof ExecutionSample) {
                         responseEvent = ProfilingEvent.newBuilder()

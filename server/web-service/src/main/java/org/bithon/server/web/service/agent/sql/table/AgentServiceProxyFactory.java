@@ -369,6 +369,7 @@ public class AgentServiceProxyFactory {
             if (serviceRequest.getMessageType() == ServiceMessageType.CLIENT_STREAMING_REQUEST) {
                 sendStreamingRpc(serviceRequest);
             } else {
+                // The one way streaming cancellation is also processed here
                 sendRequestResponseRpc(serviceRequest);
             }
         }
@@ -402,11 +403,14 @@ public class AgentServiceProxyFactory {
                                           },
                                           discoveryServiceInvoker.getExecutor())
                              .thenAccept((responseBytes) -> {
-                                 try {
-                                     ServiceResponseMessageIn response = ServiceResponseMessageIn.from(new ByteArrayInputStream(responseBytes));
-                                     invocationManager.handleResponse(response);
-                                 } catch (IOException e) {
-                                     invocationManager.handleException(txId, e);
+                                 // For message type like streaming canllelation, there's no returning body
+                                 if (responseBytes != null) {
+                                     try {
+                                         ServiceResponseMessageIn response = ServiceResponseMessageIn.from(new ByteArrayInputStream(responseBytes));
+                                         invocationManager.handleResponse(response);
+                                     } catch (IOException e) {
+                                         invocationManager.handleException(txId, e);
+                                     }
                                  }
                              })
                              .whenComplete((v, ex) -> {
@@ -456,7 +460,6 @@ public class AgentServiceProxyFactory {
                                              String line;
                                              String eventType = null;
                                              while ((line = reader.readLine()) != null) {
-                                                 log.info("=========>{}", line);
                                                  if (line.startsWith("event:")) {
                                                      eventType = line.substring("event:".length()).trim();
                                                  } else if (line.startsWith("data:")) {

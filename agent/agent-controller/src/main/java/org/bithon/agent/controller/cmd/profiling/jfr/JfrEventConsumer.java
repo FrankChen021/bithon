@@ -33,5 +33,7 @@ public interface JfrEventConsumer {
      */
     void onEvent(ProfilingEvent event);
 
+    boolean isCancelled();
+
     void onComplete();
 }

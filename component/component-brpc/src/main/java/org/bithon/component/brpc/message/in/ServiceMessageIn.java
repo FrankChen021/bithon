@@ -46,26 +46,27 @@ public abstract class ServiceMessageIn extends ServiceMessage {
         }
     }
 
-    public static ServiceMessageIn from(byte[] bytes) throws IOException {
-        CodedInputStream inputStream = CodedInputStream.newInstance(bytes);
-        int messageType = inputStream.readInt32();
+    public static ServiceMessageIn from(byte[] messageBytes) throws IOException {
+        CodedInputStream messageStream = CodedInputStream.newInstance(messageBytes);
+        int messageType = messageStream.readInt32();
         if (messageType == ServiceMessageType.CLIENT_REQUEST
             || messageType == ServiceMessageType.CLIENT_REQUEST_ONEWAY
             || messageType == ServiceMessageType.CLIENT_REQUEST_V2
             || messageType == ServiceMessageType.CLIENT_STREAMING_REQUEST
+            || messageType == ServiceMessageType.CLIENT_STREAMING_CANCEL
         ) {
-            return (ServiceMessageIn) new ServiceRequestMessageIn(messageType, inputStream).decode();
+            return (ServiceMessageIn) new ServiceRequestMessageIn(messageType, messageStream).decode();
         }
 
         if (messageType == ServiceMessageType.SERVER_STREAMING_DATA) {
-            return (ServiceMessageIn) new ServiceStreamingDataMessageIn(inputStream).decode();
+            return (ServiceMessageIn) new ServiceStreamingDataMessageIn(messageStream).decode();
         }
 
         if (messageType == ServiceMessageType.SERVER_STREAMING_END) {
-            return (ServiceMessageIn) new ServiceStreamingEndMessageIn(inputStream).decode();
+            return (ServiceMessageIn) new ServiceStreamingEndMessageIn(messageStream).decode();
         }
 
-        throw new BadRequestException("messageType [%x] is not a valid ServiceRequest message", messageType);
+        throw new BadRequestException("messageType [0x%x] is not a valid ServiceRequest message", messageType);
 
     }
 }
