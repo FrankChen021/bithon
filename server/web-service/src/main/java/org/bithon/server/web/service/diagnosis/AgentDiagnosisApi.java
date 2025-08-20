@@ -266,7 +266,7 @@ public class AgentDiagnosisApi {
 
         /**
          * Can be null or empty. if so, it defaults to cpu events.
-         *
+         * <p>
          * Available events: cpu|alloc|nativemem|lock|cache-misses
          */
         private Set<String> profileEvents;

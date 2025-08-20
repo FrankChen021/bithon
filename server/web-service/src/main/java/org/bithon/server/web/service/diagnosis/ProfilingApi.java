@@ -18,21 +18,13 @@ package org.bithon.server.web.service.diagnosis;
 
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.cmd.IProfilingCommand;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingRequest;
 import org.bithon.component.brpc.StreamResponse;
-import org.bithon.component.brpc.channel.BrpcServer;
-import org.bithon.component.brpc.exception.SessionNotFoundException;
-import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.CollectionUtils;
-import org.bithon.server.agent.controller.service.AgentControllerServer;
 import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
@@ -60,40 +52,15 @@ import java.util.concurrent.atomic.AtomicReference;
 @Slf4j
 @CrossOrigin
 @RestController
-public class JfrApi {
+public class ProfilingApi {
 
     private final DiscoveredServiceInvoker discoveredServiceInvoker;
     private final ApplicationContext applicationContext;
-    private final AgentControllerServer agentControllerServer;
 
-    public JfrApi(DiscoveredServiceInvoker discoveredServiceInvoker,
-                  ApplicationContext applicationContext, AgentControllerServer agentControllerServer) {
+    public ProfilingApi(DiscoveredServiceInvoker discoveredServiceInvoker,
+                        ApplicationContext applicationContext) {
         this.discoveredServiceInvoker = discoveredServiceInvoker;
         this.applicationContext = applicationContext;
-        this.agentControllerServer = agentControllerServer;
-    }
-
-    @Data
-    public static class ProfileRequest {
-        @NotEmpty
-        private String appName;
-
-        @NotEmpty
-        private String instanceName;
-
-        /**
-         * streaming in seconds
-         */
-        @Min(3)
-        @Max(10)
-        private long interval;
-
-        /**
-         * how long the profiling should last for in seconds
-         */
-        @Max(5 * 60)
-        @Min(10)
-        private int duration;
     }
 
     @GetMapping("/api/diagnosis/profiling")
@@ -188,60 +155,6 @@ public class JfrApi {
             @Override
             public boolean isCancelled() {
                 return isCancelled;
-            }
-        });
-
-        return emitter;
-    }
-
-    @GetMapping("/api/diagnosis/profiling2")
-    public SseEmitter profiling2(@Valid @ModelAttribute AgentDiagnosisApi.ProfileRequest request) {
-        SseEmitter emitter = new SseEmitter((30 + 10) * 1000L); // 30 seconds timeout
-
-        BrpcServer.Session agentSession = agentControllerServer.getBrpcServer()
-                                                               .getSessions()
-                                                               .stream()
-                                                               .filter((session) -> request.getAppName().equals(session.getRemoteApplicationName())
-                                                                                    && request.getInstanceName().equals(session.getRemoteAttribute(Headers.HEADER_APP_ID)))
-                                                               .findFirst()
-                                                               .orElseThrow(() -> new SessionNotFoundException("No session found for target application [app=%s, instance=%s] ", request.getAppName(), request.getInstanceName()));
-
-        IProfilingCommand agentJvmCommand = agentSession.getRemoteService(IProfilingCommand.class, 30);
-
-
-        ProfilingRequest req = ProfilingRequest.newBuilder()
-                                               .setDurationInSeconds(30)
-                                               .setIntervalInSeconds(3)
-                                               .build();
-        agentJvmCommand.start(req, new StreamResponse<>() {
-            @Override
-            public void onNext(ProfilingEvent event) {
-                try {
-                    GeneratedMessageV3 data = switch (event.getEventCase()) {
-                        case CPULOAD -> event.getCpuLoad();
-                        case SYSTEMPROPERTIES -> event.getSystemProperties();
-                        case CALLSTACKSAMPLE -> event.getCallStackSample();
-                        case HEAPSUMMARY -> event.getHeapSummary();
-                        case PROGRESS -> event.getProgress();
-                        default -> null;
-                    };
-
-                    emitter.send(SseEmitter.event()
-                                           .name(data.getClass().getSimpleName())
-                                           .data(JsonFormat.printer().omittingInsignificantWhitespace().print(data), MediaType.TEXT_PLAIN)
-                                           .build());
-                } catch (IOException | IllegalStateException ignored) {
-                }
-            }
-
-            @Override
-            public void onException(Throwable throwable) {
-                emitter.completeWithError(throwable);
-            }
-
-            @Override
-            public void onComplete() {
-                emitter.complete();
             }
         });
 
