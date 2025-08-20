@@ -32,11 +32,11 @@ public class AgentControllerConfig {
     @Validated
     private RpcClientConfig client;
 
-    @PropertyDescriptor("The list of the agent controller endpoint separated in comma, e.g. host1:port1,host2:port2...")
+    @PropertyDescriptor(description = "The list of the agent controller endpoint separated in comma, e.g. host1:port1,host2:port2...")
     private String servers;
 
     @PropertyDescriptor(
-        value = "The interval in seconds that how long the agent sync its configuration with the remote controller",
+        description = "The interval in seconds that how long the agent sync its configuration with the remote controller",
         required = false
     )
     @GreaterThan(value = 0)

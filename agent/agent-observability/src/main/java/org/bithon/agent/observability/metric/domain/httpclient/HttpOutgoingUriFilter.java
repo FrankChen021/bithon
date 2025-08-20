@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 @ConfigurationProperties(path = "agent.plugin.http.outgoing.filter.uri")
 public class HttpOutgoingUriFilter {
     @PropertyDescriptor(
-        value = "A set of URI suffixes that will be filtered out from the outgoing HTTP client metrics.",
+        description = "A set of URI suffixes that will be filtered out from the outgoing HTTP client metrics.",
         required = false
     )
     @JsonProperty

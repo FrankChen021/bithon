@@ -41,7 +41,7 @@ public class HttpIncomingFilter {
     @ConfigurationProperties(path = "agent.plugin.http.incoming.filter.uri")
     public static class UriFilterConfiguration {
         @PropertyDescriptor(
-            value = "A set of URI suffixes that will be filtered out from the incoming HTTP metrics.",
+            description = "A set of URI suffixes that will be filtered out from the incoming HTTP metrics.",
             required = false
         )
         @JsonProperty
@@ -70,7 +70,7 @@ public class HttpIncomingFilter {
     @ConfigurationProperties(path = "agent.plugin.http.incoming.filter.user-agent")
     public static class UserAgentFilterConfiguration {
         @PropertyDescriptor(
-            value = "A list of user agent matchers that will be used to filter out incoming HTTP requests.",
+            description = "A list of user agent matchers that will be used to filter out incoming HTTP requests.",
             required = false
         )
         @JsonProperty

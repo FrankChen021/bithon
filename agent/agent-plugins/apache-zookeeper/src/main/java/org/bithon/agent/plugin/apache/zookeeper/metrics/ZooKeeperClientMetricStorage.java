@@ -39,7 +39,7 @@ public class ZooKeeperClientMetricStorage extends AbstractMetricStorage<ZooKeepe
     @ConfigurationProperties(path = "agent.observability.metrics.zookeeper-client-metrics")
     public static class ZKClientMetricsConfig {
         @PropertyDescriptor(
-            value = "The response time threshold to record detailed log for a ZooKeeper operation",
+            description = "The response time threshold to record detailed log for a ZooKeeper operation",
             required = false
         )
         private HumanReadableDuration responseTime = HumanReadableDuration.of(Duration.ofSeconds(3), TimeUnit.SECONDS);

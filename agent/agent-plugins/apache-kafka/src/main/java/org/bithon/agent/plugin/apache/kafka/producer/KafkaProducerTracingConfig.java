@@ -29,7 +29,7 @@ import java.util.List;
 @ConfigurationProperties(path = "agent.plugin.kafka.producer.tracing")
 public class KafkaProducerTracingConfig {
     @PropertyDescriptor(
-        value = "Kafka headers that will be recorded into tracing logs",
+        description = "Kafka headers that will be recorded into tracing logs",
         required = false
     )
     private List<String> headers = Collections.emptyList();

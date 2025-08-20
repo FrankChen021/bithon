@@ -27,7 +27,7 @@ import org.bithon.agent.observability.aop.BeanMethodAopInstaller;
 @ConfigurationProperties(path = "agent.plugin.spring.bean")
 public class SpringBeanPluginConfig extends BeanMethodAopInstaller.BeanTransformationConfig {
     @PropertyDescriptor(
-        value = "Whether to enable Spring Service/Repository/Component only. If true, only these components will be instrumented.",
+        description = "Whether to enable Spring Service/Repository/Component only. If true, only these components will be instrumented.",
         required = false
     )
     private boolean enableServiceComponentOnly = false;

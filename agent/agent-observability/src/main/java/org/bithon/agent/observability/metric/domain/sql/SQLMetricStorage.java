@@ -42,7 +42,7 @@ public class SQLMetricStorage extends AbstractMetricStorage<SQLMetrics> {
     @ConfigurationProperties(path = "agent.observability.metrics." + NAME)
     public static class SQLMetricsConfig {
         @PropertyDescriptor(
-            value = "The response time threshold to record detailed execution log for a SQL operation",
+            description = "The response time threshold to record detailed execution log for a SQL operation",
             required = false
         )
         private HumanReadableDuration responseTime = HumanReadableDuration.of(5, TimeUnit.SECONDS);
