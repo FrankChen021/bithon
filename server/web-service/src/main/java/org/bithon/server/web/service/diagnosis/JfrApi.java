@@ -83,7 +83,7 @@ public class JfrApi {
         private String instanceName;
 
         /**
-         * in seconds
+         * streaming in seconds
          */
         @Min(3)
         @Max(10)
@@ -99,7 +99,7 @@ public class JfrApi {
 
     @GetMapping("/api/diagnosis/profiling")
     public SseEmitter profiling(@Valid @ModelAttribute AgentDiagnosisApi.ProfileRequest request) {
-        long profilingTaskTimeout = (request.getDuration() + 10) * 1000L; // 10 seconds more than the profiling duration
+        long profilingTaskTimeout = (request.getDuration() + request.getInterval() + 5) * 1000L; // 5 seconds more than the profiling duration
         SseEmitter emitter = new SseEmitter(profilingTaskTimeout);
 
         //
@@ -158,7 +158,7 @@ public class JfrApi {
             public void onNext(ProfilingEvent event) {
                 try {
                     GeneratedMessageV3 data = switch (event.getEventCase()) {
-                        case CPUUSAGE -> event.getCpuUsage();
+                        case CPULOAD -> event.getCpuLoad();
                         case SYSTEMPROPERTIES -> event.getSystemProperties();
                         case CALLSTACKSAMPLE -> event.getCallStackSample();
                         case HEAPSUMMARY -> event.getHeapSummary();
@@ -219,7 +219,7 @@ public class JfrApi {
             public void onNext(ProfilingEvent event) {
                 try {
                     GeneratedMessageV3 data = switch (event.getEventCase()) {
-                        case CPUUSAGE -> event.getCpuUsage();
+                        case CPULOAD -> event.getCpuLoad();
                         case SYSTEMPROPERTIES -> event.getSystemProperties();
                         case CALLSTACKSAMPLE -> event.getCallStackSample();
                         case HEAPSUMMARY -> event.getHeapSummary();

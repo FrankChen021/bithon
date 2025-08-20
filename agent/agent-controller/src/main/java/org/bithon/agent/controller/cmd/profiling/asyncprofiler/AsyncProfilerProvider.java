@@ -114,7 +114,7 @@ public class AsyncProfilerProvider implements IProfilerProvider {
         int durationSeconds = request.getDurationInSeconds();
         int intervalSeconds = request.getIntervalInSeconds();
         long startTime = System.currentTimeMillis();
-        long endTime = startTime + (durationSeconds + 5) * 1000L;
+        long endTime = startTime + (durationSeconds + intervalSeconds + 3) * 1000L;
 
         Thread proflingThread = new Thread(() -> {
             try {
@@ -231,7 +231,7 @@ public class AsyncProfilerProvider implements IProfilerProvider {
                     TimestampedFile timestampedFile = TimestampedFile.fromFile(file, timestampPattern);
                     if (timestampedFile != null) {
                         queue.offer(timestampedFile);
-                        sendProgress(streamResponse, "Captured profiling data to queue. name = %s, timestamp = %d", file.getName(), timestampedFile.getTimestamp());
+                        sendProgress(streamResponse, "%s captured, timestamp = %d", file.getName(), timestampedFile.getTimestamp());
                     }
                 }
             }
@@ -239,28 +239,30 @@ public class AsyncProfilerProvider implements IProfilerProvider {
             while (!queue.isEmpty() && !streamResponse.isCancelled()) {
                 TimestampedFile timestampedFile = queue.peek();
 
+                //noinspection DataFlowIssue
                 File jfrFile = timestampedFile.getFile();
-                String jfrFileName = jfrFile.getName();
 
                 // Skip if file doesn't exist anymore
                 if (!jfrFile.exists()) {
-                    LOG.debug("Skipping non-existent file: {}", jfrFileName);
                     queue.poll();
                     continue;
                 }
 
+                //
                 // Check if enough time has passed since the file's timestamp
+                //
+                String jfrFileName = jfrFile.getName();
                 long currentTime = System.currentTimeMillis();
                 long fileTimestamp = timestampedFile.getTimestamp();
                 long readyTime = fileTimestamp + loopIntervalSeconds * 1000L + 500; // Add 500ms buffer
                 long waitTime = readyTime - currentTime;
+                while (waitTime > 0 && !streamResponse.isCancelled() && !Thread.currentThread().isInterrupted()) {
+                    sendProgress(streamResponse, "%s is under generation. Waiting...", jfrFileName);
 
-                if (waitTime > 0) {
-                    sendProgress(streamResponse,
-                                 "%s is not ready, waiting %dms...",
-                                 jfrFileName, waitTime, fileTimestamp, currentTime, readyTime);
+                    long sleepTime = Math.min(waitTime, 1000); // Sleep in chunks of 1 second
+                    waitTime -= sleepTime;
                     try {
-                        Thread.sleep(waitTime);
+                        Thread.sleep(sleepTime);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         break;
@@ -268,41 +270,42 @@ public class AsyncProfilerProvider implements IProfilerProvider {
                 }
 
                 // Additional check: verify file is complete and stable
-                if (waitForComplete(jfrFile.toPath())) {
-                    // Pop the file from the queue
-                    queue.poll();
+                if (!waitForComplete(jfrFile.toPath())) {
+                    continue;
+                }
 
-                    // File is ready - process it
-                    try {
-                        sendProgress(streamResponse, "%s is ready for streaming", jfrFileName);
-                        JfrFileReader.read(jfrFile,
-                                           new JfrEventConsumer() {
-                                               @Override
-                                               public void onStart() {
-                                               }
+                // Pop the file from the queue
+                queue.poll();
 
-                                               @Override
-                                               public void onEvent(ProfilingEvent event) {
-                                                   streamResponse.onNext(event);
-                                               }
-
-                                               @Override
-                                               public void onComplete() {
-                                               }
-
-                                               @Override
-                                               public boolean isCancelled() {
-                                                   return streamResponse.isCancelled();
-                                               }
+                try {
+                    sendProgress(streamResponse, "%s is ready. Now streaming profiling data...", jfrFileName);
+                    JfrFileReader.read(jfrFile,
+                                       new JfrEventConsumer() {
+                                           @Override
+                                           public void onStart() {
                                            }
-                        );
-                    } catch (IOException e) {
-                        sendProgress(streamResponse, "Failed to read profiling events from file %s: %s", jfrFileName, e.getMessage());
-                    } finally {
-                        if (!jfrFile.delete()) {
-                            LOG.warn("Failed to delete JFR file: {}", jfrFileName);
-                            skipped.add(jfrFile.getAbsolutePath());
-                        }
+
+                                           @Override
+                                           public void onEvent(ProfilingEvent event) {
+                                               streamResponse.onNext(event);
+                                           }
+
+                                           @Override
+                                           public void onComplete() {
+                                           }
+
+                                           @Override
+                                           public boolean isCancelled() {
+                                               return streamResponse.isCancelled();
+                                           }
+                                       }
+                    );
+                } catch (IOException e) {
+                    sendProgress(streamResponse, "Failed to read profiling events from file %s: %s", jfrFileName, e.getMessage());
+                } finally {
+                    if (!jfrFile.delete()) {
+                        LOG.warn("Failed to delete JFR file: {}", jfrFileName);
+                        skipped.add(jfrFile.getAbsolutePath());
                     }
                 }
             }
@@ -410,19 +413,20 @@ public class AsyncProfilerProvider implements IProfilerProvider {
                 dir = "linux-amd64";
             }
         } else {
-            throw new ProfilingException("Unsupported OS: " + os);
+            throw new ProfilingException(StringUtils.format("The profiling does not support the this system. os = %s, arch = %s ", os, arch));
         }
+
         File toolHome = AgentDirectory.getSubDirectory("tools/async-profiler");
         if (!toolHome.exists()) {
-            throw new ProfilingException("Async profiler tool directory does not exist: " + toolHome.getAbsolutePath());
+            throw new ProfilingException("Cannot find the profiling tool at [%s]. Please report it to the agent maintainers." + toolHome.getAbsolutePath());
         }
         File osDir = new File(toolHome, dir);
         if (!osDir.exists()) {
-            throw new ProfilingException("Async profiler tool directory for " + dir + " does not exist: " + osDir.getAbsolutePath());
+            throw new ProfilingException("Cannot find the profiling tool at [%s]. Please report it to the agent maintainers. " + osDir.getAbsolutePath());
         }
         File toolPath = new File(osDir, "bin/asprof");
         if (!toolPath.exists()) {
-            throw new ProfilingException(StringUtils.format("Unable to locate profiling tool located at [%s]. Please report it to agent maintainers.", toolPath));
+            throw new ProfilingException(StringUtils.format("Cannot locate the profiling tool at [%s]. Please report it to agent maintainers.", toolPath));
         }
         return toolPath.getAbsolutePath();
     }

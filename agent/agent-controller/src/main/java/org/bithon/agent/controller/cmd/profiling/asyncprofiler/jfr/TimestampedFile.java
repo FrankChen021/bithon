@@ -18,6 +18,7 @@ package org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr;
 
 
 import java.io.File;
+import java.time.LocalDateTime;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -75,7 +76,7 @@ public class TimestampedFile implements Comparable<TimestampedFile> {
         int second = Integer.parseInt(timeStr.substring(4, 6));
 
         // Convert to milliseconds since epoch
-        java.time.LocalDateTime dateTime = java.time.LocalDateTime.of(year, month, day, hour, minute, second);
+        LocalDateTime dateTime = LocalDateTime.of(year, month, day, hour, minute, second);
         return dateTime.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
     }
 }
