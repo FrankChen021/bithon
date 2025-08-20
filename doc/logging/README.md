@@ -49,4 +49,21 @@ Following entries are supported to initialize a trace id for logging.
 - Spring Kafka Listener
 - Spring Scheduler
 - Quartz2
+- xxl-job
 
+### Disable trace id injection
+If you want to disable the auto trace id injection, you can set the `bithon.logging.disableTraceIdAutoInjection` property to `true` in the configuration file or JVM argument.
+
+```text
+# In JVM argument
+-Dbithon.logging.disableTraceIdAutoInjection=true
+```
+
+```yaml
+# In configuration file
+bithon:
+  logging:
+    disableTraceIdAutoInjection: true
+```
+
+After the disabling, you can still use MDC to get the trace id but do the trace id injection by yourself.

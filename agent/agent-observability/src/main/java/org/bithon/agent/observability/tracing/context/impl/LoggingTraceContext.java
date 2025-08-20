@@ -24,7 +24,6 @@ import org.bithon.agent.observability.tracing.context.TraceContextListener;
 import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationSetter;
 import org.bithon.agent.observability.tracing.id.ISpanIdGenerator;
-import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
 import org.bithon.component.commons.time.Clock;
 
 /**
@@ -65,16 +64,6 @@ public class LoggingTraceContext implements ITraceContext {
     @Override
     public Clock clock() {
         return clock;
-    }
-
-    @Override
-    public ITraceReporter reporter() {
-        return null;
-    }
-
-    @Override
-    public ITraceContext reporter(ITraceReporter reporter) {
-        return this;
     }
 
     @Override

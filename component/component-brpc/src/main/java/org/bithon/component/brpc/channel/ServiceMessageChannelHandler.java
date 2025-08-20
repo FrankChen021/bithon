@@ -35,6 +35,7 @@ import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.component.commons.utils.TimeWindowBasedCounter;
 import org.bithon.shaded.io.netty.channel.Channel;
 import org.bithon.shaded.io.netty.channel.ChannelHandler;
 import org.bithon.shaded.io.netty.channel.ChannelHandlerContext;
@@ -43,6 +44,7 @@ import org.bithon.shaded.io.netty.handler.codec.DecoderException;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.time.Duration;
 import java.util.concurrent.Executor;
 
 /**
@@ -60,6 +62,7 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
      * client or server id for logging purpose
      */
     private final String id;
+    private final TimeWindowBasedCounter unwritableCounter = new TimeWindowBasedCounter(Duration.ofMinutes(1));
 
     /**
      * Instantiate an instance which calls the service in specified executor.
@@ -195,17 +198,20 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
             // Set auto read to true if the channel is writable.
             ctx.channel().config().setAutoRead(true);
         } else {
-            LOG.warn("[{}] - Channel is not writable, disable auto reading for back pressing", this.id);
             ctx.channel().config().setAutoRead(false);
+
+            long accumulatedCount = this.unwritableCounter.add(1);
+            if (accumulatedCount > 0) {
+                LOG.warn("[{}] - Channel is not writable for {} times in the past 1 min", this.id, accumulatedCount);
+            }
         }
+
         ctx.fireChannelWritabilityChanged();
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         try {
-            LOG.info("[{}] Channel became inactive: {}", id, ctx.channel().remoteAddress());
-
             // Clean up streaming contexts on server side
             ServiceStreamingInvocationRunnable.cleanupForChannel(ctx.channel());
 

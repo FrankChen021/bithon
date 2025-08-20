@@ -20,7 +20,6 @@ import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDe
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
-import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +27,8 @@ import java.util.List;
 import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptorBuilder.forClass;
 
 /**
+ * {@link redis.clients.jedis.Jedis}
+ *
  * @author frankchen
  */
 public class Jedis4Plugin implements IPlugin {
@@ -54,7 +55,15 @@ public class Jedis4Plugin implements IPlugin {
                 .build(),
 
             forClass("redis.clients.jedis.Jedis")
-                .onMethod(ElementMatchers.isOverriddenFrom(Matchers.endsWith("Commands")))
+                .onMethod(Matchers.implement("redis.clients.jedis.commands.ServerCommands",
+                                             "redis.clients.jedis.commands.DatabaseCommands",
+                                             "redis.clients.jedis.commands.JedisCommands",
+                                             "redis.clients.jedis.commands.JedisBinaryCommands",
+                                             "redis.clients.jedis.commands.ControlCommands",
+                                             "redis.clients.jedis.commands.ControlBinaryCommands",
+                                             "redis.clients.jedis.commands.ClusterCommands",
+                                             "redis.clients.jedis.commands.ModuleCommands",
+                                             "redis.clients.jedis.commands.SentinelCommands"))
                 .interceptedBy("org.bithon.agent.plugin.redis.jedis4.interceptor.OnCommand")
                 .build(),
 

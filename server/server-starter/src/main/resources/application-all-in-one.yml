@@ -1,14 +1,14 @@
 #
 # This all-in-one profile is just an example.
-# It combines other profiles to enable webapp, collector and use the H2 database as storage.
+# It combines other profiles to enable all modules in a single application.
 #
 spring:
   config:
     import:
-      - classpath:application-controller.yml
-      - classpath:application-receiver.yml
-      - classpath:application-pipeline-to-local.yml
-      - classpath:application-storage-h2.yml
-      - classpath:application-webapp.yml
-      - classpath:application-alerting.yml
-      - classpath:application-security.yml
+      - classpath:application-module-controller.yml
+      - classpath:application-module-receiver.yml
+      - classpath:application-module-pipeline-to-local.yml
+      - classpath:application-module-storage-h2.yml
+      - classpath:application-module-webapp.yml
+      - classpath:application-module-alerting.yml
+      - classpath:application-module-security.yml

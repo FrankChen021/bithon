@@ -135,6 +135,8 @@ By default, the agent connects collector running at local(127.0.0.1).
 Collector address could be changed in file `agent/agent-main/src/main/resources/agent.yml`.
 Make sure to re-build the project after changing the configuration file above.
 
+> For production deployment, please refer to the [agent deployment doc](doc/deployment/agent-deployment.md) to deploy the agent to your target Java applications.
+
 # JDKs Compatibility
 
 Even the project is built by JDK 17 and above, the agent is compatible with JDK 1.8+.
@@ -177,7 +179,7 @@ If the target application runs under JDK 11 and above, the following arguments s
 | JDK - Thread Pool                                            | 1.8         |             | &check;                                        | &check; |
 | JDK - HTTP Client                                            | 1.8         |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
 | Apache Druid(1)                                              | 0.16        | 31.0        |                                                | &check; |
-| Apache Kafka(2)                                              | 0.10.0.0    | 3.9.0       | &check;                                        | &check; |
+| Apache Kafka(2)                                              | 0.10.0.0    | 4.0         | &check;                                        | &check; |
 | Apache OZone                                                 | 1.3.0       |             |                                                | &check; |
 | Apache ZooKeeper Client                                      | 3.5         | 3.9         | &check;                                        |         |
 | Eclipse Glassfish                                            | 2.34        |             |                                                | &check; |

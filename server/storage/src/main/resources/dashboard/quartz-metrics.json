@@ -67,7 +67,7 @@
           {
             "name": "traceId",
             "formatter": "template",
-            "template": "<a target='_blank' href='/web/trace/detail/?id={value}'><span class='fa fa-forward'></span></a>"
+            "template": "<a target='_blank' href='/web/trace/detail/?_sidebar=collapsed&type=trace&id={value}'><span class='fa fa-forward'></span></a>"
           }
         ],
         "pagination": [25, 50, 100],

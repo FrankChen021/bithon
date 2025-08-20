@@ -16,22 +16,27 @@
 
 package org.bithon.agent.instrumentation.aop.debug;
 
-import org.bithon.agent.instrumentation.logging.ILogger;
-import org.bithon.agent.instrumentation.logging.LoggerFactory;
-import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
-import org.bithon.shaded.net.bytebuddy.utility.JavaModule;
-
-import java.util.Locale;
-
 /**
  * @author frank.chen021@outlook.com
- * @date 26/12/21 1:50 PM
+ * @date 2021/8/7 13:53
  */
-public class AopTransformationListener extends AgentBuilder.Listener.Adapter {
-    protected static final ILogger log = LoggerFactory.getLogger(AopTransformationListener.class);
+public class DebugConfig {
+    private boolean outputClassFile = false;
+    private boolean profiling = false;
 
-    @Override
-    public void onError(String s, ClassLoader classLoader, JavaModule javaModule, boolean b, Throwable throwable) {
-        log.error(String.format(Locale.ENGLISH, "Failed to transform %s", s), throwable);
+    public boolean isOutputClassFile() {
+        return outputClassFile;
+    }
+
+    public void setOutputClassFile(boolean outputClassFile) {
+        this.outputClassFile = outputClassFile;
+    }
+
+    public boolean isProfiling() {
+        return profiling;
+    }
+
+    public void setProfiling(boolean profiling) {
+        this.profiling = profiling;
     }
 }

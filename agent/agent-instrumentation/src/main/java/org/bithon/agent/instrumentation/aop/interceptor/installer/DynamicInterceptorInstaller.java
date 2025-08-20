@@ -98,7 +98,7 @@ public class DynamicInterceptorInstaller {
                 AopDescriptor descriptor = descriptors.get(typeDescription.getTypeName());
                 if (descriptor == null) {
                     // this must be an error
-                    LOG.error("Can't find BeanAopDescriptor for [{}]", typeDescription.getTypeName());
+                    LOG.error("Can't find BeanAopDescriptor for [{}]. Please report it to agent maintainers.", typeDescription.getTypeName());
                     return builder;
                 }
 
@@ -128,7 +128,7 @@ public class DynamicInterceptorInstaller {
         int interceptorIndex = InterceptorManager.INSTANCE.getOrCreateSupplier(descriptor.interceptorName, classLoader);
         LOG.info("Dynamic interceptor installed for [{}], index={}, name={}", descriptor.targetClass, interceptorIndex, descriptor.interceptorName);
         return builder.visit(InterceptorInstaller.newInstaller(Advice.withCustomMapping()
-                                                                     .bind(AdviceAnnotation.InterceptorName.class, new AdviceAnnotation.InterceptorNameResolver(descriptor.interceptorName))
+                                                                     .bind(AdviceAnnotation.InterceptorName.class, new AdviceAnnotation.InterceptorNameResolver(interceptorIndex, descriptor.interceptorName))
                                                                      .bind(AdviceAnnotation.InterceptorIndex.class, new AdviceAnnotation.InterceptorIndexResolver(interceptorIndex))
                                                                      .to(AroundAdvice.class),
                                                                descriptor.methodMatcher));

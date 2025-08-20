@@ -21,14 +21,13 @@
         "war" - Creates a WAR format
     -->
     <format>dir</format>
-    <format>zip</format>
-    <format>tar</format>
   </formats>
   <includeBaseDirectory>true</includeBaseDirectory>
 
   <dependencySets>
     <!-- agent entry point -->
     <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
       <includes>
         <include>${project.parent.groupId}:agent-main</include>
       </includes>
@@ -38,6 +37,7 @@
 
     <!-- boot-class-path -->
     <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
       <includes>
         <include>${project.parent.groupId}:agent-instrumentation</include>
       </includes>
@@ -45,6 +45,7 @@
       <outputFileNameMapping>agent-instrumentation.jar</outputFileNameMapping>
     </dependencySet>
     <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
       <includes>
         <include>org.bithon.shaded:shaded-bytebuddy</include>
       </includes>
@@ -54,6 +55,7 @@
 
     <!-- lib -->
     <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
       <excludes>
         <exclude>org.bithon.shaded:shaded-bytebuddy</exclude>
         <exclude>${project.parent.groupId}:agent-instrumentation</exclude>
@@ -62,7 +64,6 @@
 
         <!-- Plugins are in a dedicated directory, exclude them from lib -->
         <exclude>${project.parent.groupId}:agent-plugin-*</exclude>
-        <exclude>${project.parent.groupId}:agent-plugins</exclude>
 
         <!--async profiler -->
         <exclude>tools.profiler:jfr-converter</exclude>
@@ -80,19 +81,12 @@
 
     <!-- sdk -->
     <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
       <includes>
         <include>${project.parent.groupId}:agent-sdk</include>
       </includes>
       <outputDirectory>/sdk</outputDirectory>
       <outputFileNameMapping>agent-sdk.jar</outputFileNameMapping>
-    </dependencySet>
-
-    <dependencySet>
-      <includes>
-        <include>${project.parent.groupId}:agent-plugins</include>
-      </includes>
-      <outputDirectory>/plugins</outputDirectory>
-      <outputFileNameMapping>all-in-one.jar</outputFileNameMapping>
     </dependencySet>
   </dependencySets>
 
@@ -115,5 +109,18 @@
       </includes>
     </fileSet>
   </fileSets>
+
+  <files>
+    <file>
+      <source>target/agent-distribution-plugins.jar</source>
+      <outputDirectory>plugins</outputDirectory>
+      <destName>all-in-one.jar</destName>
+    </file>
+    <file>
+      <source>target/plugins.meta</source>
+      <outputDirectory>plugins</outputDirectory>
+      <destName>plugins.meta</destName>
+    </file>
+  </files>
 
 </assembly>

@@ -272,10 +272,12 @@ public class BrpcClient implements IBrpcChannel, Closeable {
     class ClientChannelManager extends ChannelInboundHandlerAdapter {
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
-            LOG.info("[{}] Channel {} to {} is active",
-                     BrpcClient.this.clientId,
-                     ctx.channel().id().asLongText(),
-                     ctx.channel().remoteAddress());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("[{}] Channel {} to {} is active",
+                          BrpcClient.this.clientId,
+                          ctx.channel().id().asLongText(),
+                          ctx.channel().remoteAddress());
+            }
 
             BrpcClient.this.channelRef.getAndSet(ctx.channel());
 
@@ -284,9 +286,11 @@ public class BrpcClient implements IBrpcChannel, Closeable {
 
         @Override
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-            LOG.info("[{}] Channel {} is inactive",
-                     BrpcClient.this.clientId,
-                     ctx.channel().id().asLongText());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("[{}] Channel {} is inactive",
+                          BrpcClient.this.clientId,
+                          ctx.channel().id().asLongText());
+            }
 
             BrpcClient.this.channelRef.getAndSet(null);
 

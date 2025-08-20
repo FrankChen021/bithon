@@ -266,19 +266,20 @@ public class Matchers {
 
     public static <T extends MethodDescription> ElementMatcher.Junction<T> implement(String interfaceName) {
         return ElementMatchers.isPublic()
-                              .and(ElementMatchers.isOverriddenFrom(ElementMatchers.named(interfaceName)))
-                              .and(ElementMatchers.not(ElementMatchers.isDefaultMethod()));
+                              .and(ElementMatchers.not(ElementMatchers.isDefaultMethod()))
+                              .and(new IsMethodOverriddenFrom<>(interfaceName));
     }
 
     public static <T extends MethodDescription> ElementMatcher.Junction<T> implement(String... interfaceNames) {
         return ElementMatchers.isPublic()
-                              .and(ElementMatchers.isOverriddenFrom(ElementMatchers.namedOneOf(interfaceNames)))
-                              .and(ElementMatchers.not(ElementMatchers.isDefaultMethod()));
+                              .and(ElementMatchers.not(ElementMatchers.isDefaultMethod()))
+                              .and(new IsMethodOverriddenFrom<>(interfaceNames));
     }
 
     public static <T extends MethodDescription> ElementMatcher.Junction<T> declared(String... interfaceNames) {
         return ElementMatchers.isPublic()
-                              .and(ElementMatchers.isDeclaredBy(ElementMatchers.namedOneOf(interfaceNames)))
-                              .and(ElementMatchers.not(ElementMatchers.isDefaultMethod()));
+                              .and(ElementMatchers.not(ElementMatchers.isDefaultMethod()))
+                              .and(ElementMatchers.isDeclaredBy(ElementMatchers.namedOneOf(interfaceNames)));
+
     }
 }

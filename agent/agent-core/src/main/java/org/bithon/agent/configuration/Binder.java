@@ -20,6 +20,7 @@ import org.bithon.agent.configuration.validation.Validator;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.shaded.com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.bithon.shaded.com.fasterxml.jackson.databind.node.NullNode;
 
 import java.lang.reflect.Array;
@@ -32,6 +33,8 @@ import java.util.function.Supplier;
  * @date 21/2/24 10:14 am
  */
 public class Binder {
+
+    private static final ObjectMapper OBJECT_MAPPER = ObjectMapperConfigurer.configure(new ObjectMapper());
 
     public static <T> T bind(String propertyPath, JsonNode configuration, Class<T> clazz) {
         return bind(propertyPath,
@@ -70,12 +73,21 @@ public class Binder {
 
         T value;
         try {
-            value = ObjectMapperConfigurer.configure(new ObjectMapper())
-                                          .convertValue(configuration, clazz);
+            value = OBJECT_MAPPER.convertValue(configuration, clazz);
         } catch (IllegalArgumentException e) {
+            if (e.getCause() instanceof InvalidFormatException) {
+                // No need to wrap the exception, just throw it
+                throw new AgentException("Unable to read value for type of [%s] from configuration for property [bithon.%s]: %s",
+                                         clazz.getSimpleName(),
+                                         propertyPath,
+                                         e.getMessage());
+            }
+
+            // Wrap the exception to provide more context
             throw new AgentException(e,
-                                     "Unable to read type of [%s] from configuration: %s",
+                                     "Unable to read value for type of [%s] from configuration for property [bithon.%s]: %s",
                                      clazz.getSimpleName(),
+                                     propertyPath,
                                      e.getMessage());
         }
 

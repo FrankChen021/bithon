@@ -17,12 +17,12 @@
 package org.bithon.agent.starter;
 
 import org.bithon.agent.AgentBuildVersion;
-import org.bithon.agent.config.AopConfig;
 import org.bithon.agent.config.AppConfig;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.PluginConfiguration;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
-import org.bithon.agent.instrumentation.aop.debug.AopDebugger;
+import org.bithon.agent.instrumentation.aop.debug.DebugConfig;
+import org.bithon.agent.instrumentation.aop.debug.Debugger;
 import org.bithon.agent.instrumentation.aop.interceptor.installer.InterceptorInstaller;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.PluginResolver;
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
@@ -73,10 +73,11 @@ public class AgentStarter {
                         .forEach(name -> LOG.info("Found lib {}", name));
 
         ConfigurationManager.create();
+        AppConfig appConfig = ConfigurationManager.getInstance().getConfig(AppConfig.class);
 
         // Initialize instrumentation after configuration initialized
         InstrumentationHelper.setInstance(inst);
-        InstrumentationHelper.setAopDebugger(createAopDebugger());
+        InstrumentationHelper.setAopDebugger(createAopDebugger(appConfig));
 
         // Install interceptors for plugins
         new InterceptorInstaller(new PluginResolver() {
@@ -117,10 +118,8 @@ public class AgentStarter {
         }, "agentShutdown"));
     }
 
-    private AopDebugger createAopDebugger() {
-        boolean isDebug = ConfigurationManager.getInstance().getConfig(AopConfig.class).isDebug();
-
-        AppConfig appConfig = ConfigurationManager.getInstance().getConfig(AppConfig.class);
+    private Debugger createAopDebugger(AppConfig appConfig) {
+        DebugConfig debugConfig = ConfigurationManager.getInstance().getConfig("instrumentation", DebugConfig.class);
 
         File targetDirectory = AgentDirectory.getSubDirectory(AgentDirectory.TMP_DIR
                                                               + separator
@@ -128,7 +127,7 @@ public class AgentStarter {
                                                               + separator
                                                               + "classes");
 
-        return new AopDebugger(isDebug, targetDirectory);
+        return new Debugger(debugConfig, targetDirectory);
     }
 
     private void notifyShutdown() {

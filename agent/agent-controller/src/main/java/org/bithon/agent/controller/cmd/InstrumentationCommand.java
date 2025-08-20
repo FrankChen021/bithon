@@ -24,7 +24,6 @@ import org.bithon.agent.rpc.brpc.cmd.IInstrumentationCommand;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Frank Chen
@@ -36,31 +35,23 @@ public class InstrumentationCommand implements IInstrumentationCommand, IAgentCo
         List<InstrumentedMethod> returning = new ArrayList<>();
 
         for (InstallerRecorder.InstrumentedMethod method : InstallerRecorder.INSTANCE.getInstrumentedMethods()) {
-            Map<String, InterceptorSupplier> interceptorSuppliers = InterceptorManager.INSTANCE.getSuppliers(method.getInterceptor());
+            InterceptorSupplier supplier = InterceptorManager.INSTANCE.getSupplier(method.getInterceptorIndex());
 
-            if (!interceptorSuppliers.isEmpty()) {
-                for (Map.Entry<String, InterceptorSupplier> entry : interceptorSuppliers.entrySet()) {
-                    String clazzLoaderId = entry.getKey();
-                    InterceptorSupplier supplier = entry.getValue();
-
-                    InstrumentedMethod m = new InstrumentedMethod();
-                    m.interceptor = method.getInterceptor();
-                    m.clazzLoader = clazzLoaderId;
-                    m.hitCount = supplier.get() == null ? -1 : supplier.get().getHitCount();
-                    m.clazzName = method.getType();
-                    m.returnType = method.getReturnType();
-                    m.methodName = method.getMethodName();
-                    m.isStatic = method.isStatic();
-                    m.parameters = method.getParameters();
-                    m.instrumentException = supplier.getException();
-                    m.exceptionCount = supplier.get() == null ? -1 : supplier.get().getExceptionCount();
-                    m.lastExceptionTime = new Timestamp(supplier.get() == null ? 0 : supplier.get().getLastExceptionTime());
-                    m.lastException = supplier.get() == null ? null : InterceptorSupplier.getStackTrace(supplier.get().getLastException());
-                    returning.add(m);
-                }
+            InstrumentedMethod m = new InstrumentedMethod();
+            m.interceptor = method.getInterceptorName();
+            if (supplier != null) {
+                m.clazzLoader = supplier.getClassLoaderId();
+                m.hitCount = supplier.isInterceptorInstantiated() ? supplier.get().getHitCount() : 0;
+                m.clazzName = method.getType();
+                m.returnType = method.getReturnType();
+                m.methodName = method.getMethodName();
+                m.isStatic = method.isStatic();
+                m.parameters = method.getParameters();
+                m.instrumentException = supplier.getException();
+                m.exceptionCount = supplier.isInterceptorInstantiated() ? supplier.get().getExceptionCount() : 0;
+                m.lastExceptionTime = new Timestamp(supplier.isInterceptorInstantiated() ? supplier.get().getLastExceptionTime() : 0L);
+                m.lastException = supplier.isInterceptorInstantiated() ? InterceptorSupplier.getStackTrace(supplier.get().getLastException()) : null;
             } else {
-                InstrumentedMethod m = new InstrumentedMethod();
-                m.interceptor = method.getInterceptor();
                 m.clazzLoader = null;
                 m.hitCount = 0;
                 m.clazzName = method.getType();
@@ -68,8 +59,8 @@ public class InstrumentationCommand implements IInstrumentationCommand, IAgentCo
                 m.methodName = method.getMethodName();
                 m.isStatic = method.isStatic();
                 m.parameters = method.getParameters();
-                returning.add(m);
             }
+            returning.add(m);
         }
         return returning;
     }

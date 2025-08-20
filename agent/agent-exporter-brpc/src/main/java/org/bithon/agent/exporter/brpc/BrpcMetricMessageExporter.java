@@ -152,6 +152,7 @@ public class BrpcMetricMessageExporter implements IMessageExporter {
 
         Method method = sendMethods.get(messageClass);
         if (null == method) {
+            // this might be an agent bug
             LOG.error("No service method found for entity: " + messageClass);
             return;
         }
@@ -167,7 +168,7 @@ public class BrpcMetricMessageExporter implements IMessageExporter {
             if (e.getTargetException() instanceof CallerSideException
                 || e.getTargetException() instanceof CalleeSideException) {
                 //suppress client exception
-                LOG.error("Failed to send metric: {}", e.getTargetException().getMessage());
+                LOG.warn("Failed to send metric: {}", e.getTargetException().getMessage());
             } else {
                 throw new RuntimeException(e.getTargetException());
             }

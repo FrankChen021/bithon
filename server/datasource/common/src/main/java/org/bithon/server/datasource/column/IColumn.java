@@ -42,6 +42,7 @@ import org.bithon.server.datasource.query.ast.Selector;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = StringColumn.class)
 @JsonSubTypes(value = {
     @JsonSubTypes.Type(name = "long", value = LongColumn.class),
+    @JsonSubTypes.Type(name = "double", value = DoubleColumn.class),
     @JsonSubTypes.Type(name = "string", value = StringColumn.class),
     @JsonSubTypes.Type(name = "datetime", value = DateTimeColumn.class),
     @JsonSubTypes.Type(name = "object", value = ObjectColumn.class),

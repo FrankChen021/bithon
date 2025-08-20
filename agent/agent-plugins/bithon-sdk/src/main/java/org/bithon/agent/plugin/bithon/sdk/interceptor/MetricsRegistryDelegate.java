@@ -211,7 +211,7 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
                 IMetricValueProvider provider = (IMetricValueProvider) this.metricFields.get(index).get(metricObject);
                 return provider.value();
             } catch (IllegalAccessException e) {
-                LOG.error("Can't get value of [{}] on class [{}]: {}",
+                LOG.error("Can't get value of [{}] on class [{}]: {}. This might be a bug. Please report it to agent maintainers.",
                           field.getName(),
                           metricObject.getClass().getName(),
                           e.getMessage());

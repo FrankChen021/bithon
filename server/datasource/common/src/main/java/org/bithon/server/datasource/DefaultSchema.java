@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.datasource.column.DateTimeColumn;
 import org.bithon.server.datasource.column.ExpressionColumn;
@@ -147,6 +148,10 @@ public class DefaultSchema implements ISchema {
         });
 
         this.metricsSpec.forEach((metricSpec) -> {
+            if (metricSpec.getDataType() == IDataType.STRING) {
+                throw new IllegalArgumentException("Metric column [" + metricSpec.getName() + "] cannot be of type string.");
+            }
+
             columnMap.put(metricSpec.getName(), metricSpec);
 
             if (!metricSpec.getAlias().equals(metricSpec.getName())) {

@@ -62,7 +62,7 @@ import static java.io.File.separator;
  * 1. When getting configuration properties,
  * the manager will collect properties with the same key prefixes from all sources and merge them in the above list order.
  *
- * Let p1 has the following configuration defined(Note it's just example, not reflected real configuration):
+ * Assuming p1 has the following configuration defined(Note it's just example, not reflected real configuration):
  * <pre>
  * -- p1
  *   tracing:
@@ -114,6 +114,13 @@ public class ConfigurationManager {
         if (INSTANCE == null) {
             INSTANCE = create(AgentDirectory.getSubDirectory(AgentDirectory.CONF_DIR + separator + "agent.yml"), true);
         }
+        return INSTANCE;
+    }
+
+    public static ConfigurationManager createForTesting() {
+        INSTANCE = new ConfigurationManager(ExternalSource.build(),
+                                            CommandLineArgsSource.build("bithon."),
+                                            EnvironmentSource.build("bithon_"));
         return INSTANCE;
     }
 
@@ -198,12 +205,12 @@ public class ConfigurationManager {
      * NOTE: The clazz must have a non-private default ctor if it's annotated by {@link ConfigurationProperties}
      */
     public <T> T getConfig(Class<T> clazz) {
-        ConfigurationProperties cfg = clazz.getAnnotation(ConfigurationProperties.class);
-        if (cfg == null || StringUtils.isEmpty(cfg.path())) {
+        ConfigurationProperties cfgAnnotation = clazz.getAnnotation(ConfigurationProperties.class);
+        if (cfgAnnotation == null || StringUtils.isEmpty(cfgAnnotation.path())) {
             throw new AgentException("Class [%s] does not have valid ConfigurationProperties.", clazz.getName());
         }
 
-        return getConfig(cfg.path(), clazz, cfg.dynamic());
+        return getConfig(cfgAnnotation.path(), clazz, cfgAnnotation.dynamic());
     }
 
     public <T> T getDynamicConfig(String propertyPath, Class<T> clazz) {
@@ -220,7 +227,9 @@ public class ConfigurationManager {
     @SuppressWarnings("unchecked")
     public <T> T getConfig(String propertyPath, Class<T> clazz, boolean isDynamic) {
         if (clazz.isPrimitive() || clazz.equals(String.class) || clazz.isArray() || !isDynamic) {
-            return Binder.bind(propertyPath, collect(propertyPath), clazz);
+            return Binder.bind(propertyPath,
+                               collect(propertyPath),
+                               clazz);
         }
 
         // If this configuration clazz is defined as dynamic (it means configuration changes will dynamically reflect on its corresponding configuration clazz object),
@@ -228,7 +237,9 @@ public class ConfigurationManager {
         return (T) proxiedBeans.computeIfAbsent(propertyPath, (k) -> {
             Class<?> proxyClass = ProxyClassGenerator.create(clazz);
 
-            T val = Binder.bind(propertyPath, collect(propertyPath), clazz);
+            T val = Binder.bind(propertyPath,
+                                collect(propertyPath),
+                                clazz);
             try {
                 // For each generated
                 return (IProxyObject) proxyClass.getConstructor(clazz)

@@ -16,10 +16,14 @@
 
 package org.bithon.server.collector.http;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.datasource.DefaultSchema;
+import org.bithon.server.datasource.TimestampSpec;
+import org.bithon.server.datasource.column.IColumn;
 import org.bithon.server.pipeline.metrics.IMetricProcessor;
 import org.bithon.server.pipeline.metrics.MetricMessage;
 import org.bithon.server.pipeline.metrics.SchemaMetricMessage;
@@ -50,15 +54,17 @@ public class MetricHttpCollector {
 
         processor.process(metrics.getSchema().getName(),
                           SchemaMetricMessage.builder()
-                                        .schema(metrics.getSchema())
-                                        .metrics(metrics.getMetrics().stream().map((m) -> {
-                                            MetricMessage message = new MetricMessage();
-                                            message.put("timestamp", m.getTimestamp());
-                                            message.putAll(m.getDimensions());
-                                            message.putAll(m.getMetrics());
-                                            return message;
-                                        }).collect(Collectors.toList()))
-                                        .build());
+                                             .schema(metrics.getSchema().toDefaultSchema())
+                                             .metrics(metrics.getMetrics()
+                                                             .stream()
+                                                             .map((m) -> {
+                                                                 MetricMessage message = new MetricMessage();
+                                                                 message.put("timestamp", m.getTimestamp());
+                                                                 message.putAll(m.getDimensions());
+                                                                 message.putAll(m.getMetrics());
+                                                                 return message;
+                                                             }).collect(Collectors.toList()))
+                                             .build());
     }
 
     @Data
@@ -71,7 +77,31 @@ public class MetricHttpCollector {
 
     @Data
     public static class MetricOverHttp {
-        private DefaultSchema schema;
+        private Schema schema;
         private List<Measurement> metrics;
+    }
+
+    @Data
+    public static class Schema {
+        private String name;
+        private List<IColumn> dimensionsSpec;
+        private List<IColumn> metricsSpec;
+
+        @JsonCreator
+        public Schema(@JsonProperty("name") String name,
+                      @JsonProperty("dimensionsSpec") List<IColumn> dimensionsSpec,
+                      @JsonProperty("metricsSpec") List<IColumn> metricsSpec) {
+            this.name = name;
+            this.dimensionsSpec = dimensionsSpec;
+            this.metricsSpec = metricsSpec;
+        }
+
+        public DefaultSchema toDefaultSchema() {
+            return new DefaultSchema(name,
+                                     name,
+                                     new TimestampSpec("timestamp"),
+                                     dimensionsSpec,
+                                     metricsSpec);
+        }
     }
 }

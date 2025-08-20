@@ -1,0 +1,12 @@
+#
+# This file demonstrates how to deploy the pipeline module independently to receive data from Kafka topics
+# and sink them into local storage.
+# The web-service is also enabled in this application to provide query service, it's optional.
+#
+spring:
+  config:
+    import:
+      # Note: the controller module is optional to be deployed with the collector module.
+      - classpath:application-module-pipeline-from-kafka.yml
+      - classpath:application-module-storage-h2.yml
+      - classpath:application-module-webapp.yml

@@ -102,13 +102,15 @@ public class ToKafkaExporter implements IMetricExporter {
             return;
         }
 
-        String appName = message.getMetrics().get(0).getColAsString("appName");
-        String instanceName = message.getMetrics().get(0).getColAsString("instanceName");
-        if (appName == null || instanceName == null) {
-            return;
+        ByteBuffer messageKey = null;
+        {
+            String appName = message.getMetrics().get(0).getColAsString("appName");
+            String instanceName = message.getMetrics().get(0).getColAsString("instanceName");
+            if (appName != null && instanceName != null) {
+                messageKey = ByteBuffer.wrap((messageType + "/" + appName + "/" + instanceName).getBytes(StandardCharsets.UTF_8));
+            }
         }
 
-        ByteBuffer messageKey = ByteBuffer.wrap((messageType + "/" + appName + "/" + instanceName).getBytes(StandardCharsets.UTF_8));
         RecordHeader header = new RecordHeader("type", messageType.getBytes(StandardCharsets.UTF_8));
 
         FixedSizeOutputStream messageBuffer = this.bufferThreadLocal.get();
@@ -171,7 +173,7 @@ public class ToKafkaExporter implements IMetricExporter {
         messageBuffer.writeAsciiChar(']');
         messageBuffer.writeAsciiChar('}');
 
-        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, messageKey.array(), messageBuffer.toBytes());
+        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, messageKey == null ? null : messageKey.array(), messageBuffer.toBytes());
         record.headers().add(header);
         try {
             producer.send(record);

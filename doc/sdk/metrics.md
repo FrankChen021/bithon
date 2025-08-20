@@ -15,8 +15,7 @@ Following steps guides how to use this SDK
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-sdk</artifactId>
-      <version>1.0-SNAPSHOT</version>
-      <scope>provided</scope>
+      <version>1.2.1</version>
     </dependency>
    ```
 2. Define metrics in your application
@@ -40,7 +39,7 @@ Following steps guides how to use this SDK
     @Bean("GatewayMetricsRegistry")
     IMetricsRegistry<GatewayMetrics> createRegistry() {
         return MetricRegistryFactory.create("gateway-forwarding",
-                                            // demensions
+                                            // dimensions
                                             Arrays.asList("sourceIp", 
                                                           "url", 
                                                           "cluster", 

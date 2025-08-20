@@ -16,27 +16,29 @@
 
 package org.bithon.agent.plugin.mongodb.interceptor;
 
-import com.mongodb.connection.ServerId;
-import com.mongodb.connection.StreamFactory;
-import com.mongodb.event.ConnectionListener;
+
+import com.mongodb.MongoNamespace;
+import com.mongodb.WriteConcern;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
+
+import java.util.List;
 
 /**
+ * {@link com.mongodb.connection.UpdateCommandProtocol#UpdateCommandProtocol(MongoNamespace, boolean, WriteConcern, Boolean, List)}
+ *
  * @author frank.chen021@outlook.com
- * @date 2021/3/30 11:29 上午
+ * @date 2021/3/28 11:40
  */
-public class InternalStreamConnection {
-
-    /**
-     * {@link com.mongodb.connection.InternalStreamConnection#InternalStreamConnection(ServerId, StreamFactory, com.mongodb.connection.InternalConnectionInitializer, ConnectionListener)}
-     */
-    public static class Constructor extends AfterInterceptor {
-        @Override
-        public void after(AopContext aopContext) {
-            IBithonObject bithonObject = aopContext.getTargetAs();
-            bithonObject.setInjectedObject(((ServerId) aopContext.getArgAs(0)).getAddress().toString());
-        }
+public class UpdateCommandProtocol$Ctor extends AfterInterceptor {
+    @Override
+    public void after(AopContext aopContext) {
+        MongoNamespace ns = aopContext.getArgAs(0);
+        IBithonObject bithonObject = aopContext.getTargetAs();
+        bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),
+                                                        ns.getCollectionName(),
+                                                        "UpdateCommand"));
     }
 }

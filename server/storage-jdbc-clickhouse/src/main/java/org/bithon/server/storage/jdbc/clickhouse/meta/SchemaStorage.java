@@ -34,7 +34,6 @@ import org.jooq.Record;
 
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -76,17 +75,16 @@ public class SchemaStorage extends SchemaJdbcStorage {
                                .getSQL() + " FINAL WHERE ";
         sql += dslContext.renderInlined(Tables.BITHON_META_SCHEMA.TIMESTAMP.ge(new Timestamp(afterTimestamp).toLocalDateTime()));
 
-        List<Record> records = dslContext.fetch(sql);
-        if (records == null) {
-            return Collections.emptyList();
-        }
-
-        return records.stream().map((mapper) -> {
-            String name = mapper.get(0, String.class);
-            String schema = mapper.get(1, String.class);
-            String signature = mapper.get(2, String.class);
-            return toSchema(name, schema, signature);
-        }).filter(Objects::nonNull).collect(Collectors.toList());
+        return dslContext.fetch(sql)
+                         .stream()
+                         .map((mapper) -> {
+                             String name = mapper.get(0, String.class);
+                             String schema = mapper.get(1, String.class);
+                             String signature = mapper.get(2, String.class);
+                             return toSchema(name, schema, signature);
+                         })
+                         .filter(Objects::nonNull)
+                         .collect(Collectors.toList());
     }
 
     @Override
@@ -95,25 +93,21 @@ public class SchemaStorage extends SchemaJdbcStorage {
                                        Tables.BITHON_META_SCHEMA.SCHEMA,
                                        Tables.BITHON_META_SCHEMA.SIGNATURE).from(Tables.BITHON_META_SCHEMA).getSQL() + " FINAL";
 
-        List<Record> records = dslContext.fetch(sql);
-        if (records == null) {
-            return Collections.emptyList();
-        }
-
-        return records.stream()
-                      .map(record -> toSchema(record.get(0, String.class),
-                                              record.get(1, String.class),
-                                              record.get(2, String.class)))
-                      .filter(Objects::nonNull)
-                      .collect(Collectors.toList());
+        return dslContext.fetch(sql)
+                         .stream()
+                         .map(record -> toSchema(record.get(0, String.class),
+                                                 record.get(1, String.class),
+                                                 record.get(2, String.class)))
+                         .filter(Objects::nonNull)
+                         .collect(Collectors.toList());
     }
 
     @Override
     public ISchema getSchemaByName(String name) {
         String sql = dslContext.select(Tables.BITHON_META_SCHEMA.SCHEMA,
                                        Tables.BITHON_META_SCHEMA.SIGNATURE).from(Tables.BITHON_META_SCHEMA).getSQL()
-            + " FINAL where "
-            + Tables.BITHON_META_SCHEMA.NAME.eq(name).toString();
+                     + " FINAL where "
+                     + Tables.BITHON_META_SCHEMA.NAME.eq(name);
 
         Record record = dslContext.fetchOne(sql);
         return record == null ? null : toSchema(name, record.get(0, String.class), record.get(1, String.class));

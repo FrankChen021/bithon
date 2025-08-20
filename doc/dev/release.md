@@ -1,9 +1,14 @@
-# Step 1. Configure maven settings.xml
+The artifacts are published to https://central.sonatype.com/ (FrankChen021)
+
+# Step 1. Configure authentication in settings.xml
+
+Goto https://central.sonatype.com/ to get token.
+
 ```xml
 <server>
-  <id>sonatype-nexus</id>
-  <username>FrankChen021</username>
-  <password>password</password>
+  <id>central</id>
+  <username>YOUR_NAME</username>
+  <password>YOUR_PASSWORD</password>
 </server>
 ```
 
@@ -32,7 +37,3 @@ export GPG_TTY=$(tty)
 mvn clean deploy -DskipTests -Pdist -P-server
 ```
 
-# Step 4.
-
-1. CLOSE the project at [staging repository](https://s01.oss.sonatype.org). The repository will perform some checks. Once all checks are passed, we can go to next step.
-2. RELEASE the closed project. After release, the artifacts will be available Sonatype public repository, but it may take up to hours to be available at the central maven repository.

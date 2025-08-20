@@ -22,10 +22,8 @@ import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import java.util.function.Predicate;
 
 /**
@@ -37,25 +35,28 @@ public class InstallerRecorder {
     public static final InstallerRecorder INSTANCE = new InstallerRecorder();
 
     public static class InstrumentedMethod {
+        private final int interceptorIndex;
         private final String interceptor;
         private final String type;
-        private final String returnType;
-        private final String methodName;
-        private final boolean isStatic;
-        private final String parameters;
+        private final MethodDescription instrumentedMethod;
 
+        public InstrumentedMethod(int interceptorIndex,
+                                  String interceptorClassName,
+                                  TypeDescription instrumentedType,
+                                  MethodDescription instrumentedMethod) {
+            this.interceptorIndex = interceptorIndex;
+            this.interceptor = interceptorClassName;
 
-        public InstrumentedMethod(String interceptor, String type, String returnType, String methodName, boolean aStatic, String parameters) {
-            this.interceptor = interceptor;
-            this.returnType = returnType;
-            this.methodName = methodName;
-            this.isStatic = aStatic;
-            this.parameters = parameters;
-            this.type = type;
+            this.type = instrumentedType.getTypeName();
+            this.instrumentedMethod = instrumentedMethod;
         }
 
-        public String getInterceptor() {
-            return interceptor;
+        public int getInterceptorIndex() {
+            return this.interceptorIndex;
+        }
+
+        public String getInterceptorName() {
+            return this.interceptor;
         }
 
         public String getType() {
@@ -63,41 +64,32 @@ public class InstallerRecorder {
         }
 
         public String getReturnType() {
-            return returnType;
+            return instrumentedMethod.getReturnType().getTypeName();
         }
 
         public String getMethodName() {
-            return methodName;
+            return instrumentedMethod.isConstructor() ? "<ctor>" : instrumentedMethod.getName();
         }
 
         public boolean isStatic() {
-            return isStatic;
+            return instrumentedMethod.isStatic();
         }
 
         public String getParameters() {
-            return parameters;
-        }
+            StringBuilder parameters = new StringBuilder(32);
+            for (ParameterDescription parameter : instrumentedMethod.getParameters()) {
+                if (parameters.length() > 0) {
+                    parameters.append(", ");
+                }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
+                String str = parameter.toString();
+                if (parameter.getType().isArray()) {
+                    str = str.substring(2);
+                    str = str.replace(";", "[]");
+                }
+                parameters.append(str);
             }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            InstrumentedMethod that = (InstrumentedMethod) o;
-            return isStatic == that.isStatic
-                && Objects.equals(interceptor, that.interceptor)
-                && Objects.equals(type, that.type)
-                && Objects.equals(returnType, that.returnType)
-                && Objects.equals(methodName, that.methodName)
-                && Objects.equals(parameters, that.parameters);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(interceptor, type, returnType, methodName, isStatic, parameters);
+            return parameters.toString();
         }
     }
 
@@ -105,7 +97,7 @@ public class InstallerRecorder {
      * key - interceptor name
      * val - instrumented method
      */
-    private final Set<InstrumentedMethod> instrumentedMethods = Collections.synchronizedSet(new HashSet<>());
+    private final List<InstrumentedMethod> instrumentedMethods = Collections.synchronizedList(new LinkedList<>());
 
     /**
      * A snapshot of instrumented methods
@@ -118,27 +110,11 @@ public class InstallerRecorder {
      * An interceptor can be applied to the same class which are loaded into two different class loaders.
      * For the given parameters of this method, in above case, actually they're the same
      */
-    public void addInterceptedMethod(String interceptor, TypeDescription instrumentedType, MethodDescription instrumentedMethod) {
-        StringBuilder parameters = new StringBuilder(32);
-        for (ParameterDescription parameter : instrumentedMethod.getParameters()) {
-            if (parameters.length() > 0) {
-                parameters.append(", ");
-            }
-
-            String str = parameter.toString();
-            if (parameter.getType().isArray()) {
-                str = str.substring(2);
-                str = str.replace(";", "[]");
-            }
-            parameters.append(str);
-        }
-
-        InstrumentedMethod method = new InstrumentedMethod(interceptor,
-                                                           instrumentedType.getName(),
-                                                           instrumentedMethod.getReturnType().getTypeName(),
-                                                           instrumentedMethod.isConstructor() ? "<ctor>" : instrumentedMethod.getName(),
-                                                           instrumentedMethod.isStatic(),
-                                                           parameters.toString());
+    public void addInterceptedMethod(int interceptorIndex,
+                                     String interceptorClassName,
+                                     TypeDescription instrumentedType,
+                                     MethodDescription instrumentedMethod) {
+        InstrumentedMethod method = new InstrumentedMethod(interceptorIndex, interceptorClassName, instrumentedType, instrumentedMethod);
         this.instrumentedMethods.add(method);
     }
 

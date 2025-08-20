@@ -14,13 +14,13 @@ Add the Bithon Tracing API dependency to your project. The dependency is availab
 <dependency>
     <groupId>org.bithon.agent</groupId>
     <artifactId>agent-sdk</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
 </dependency>
 ```
 
 > NOTE:
 > 
-> 1.2.0 is the current release version. You can find the latest version in [Maven Central](https://search.maven.org/artifact/org.bithon.agent/agent-sdk).
+> 1.2.1 is the current release version. You can find the latest version in [Maven Central](https://search.maven.org/artifact/org.bithon.agent/agent-sdk).
 
 ### Step.2: Create a trace span
 
@@ -37,7 +37,8 @@ public class UserApi {
         Long uid;
         try (ISpan span = TraceContext.newScopedSpan()) {
             span.name("dao#create").start();
-            
+
+            // The business logic code
             uid = userDao.create(request.getUserName(), request.getPassword());
             if (uid == null) {
                 return RegisterUserResponse.builder().error(String.format("User [%s] exists.", request.getUserName())).build();
@@ -47,7 +48,12 @@ public class UserApi {
         logService.addLog(request.getUserName(), "REGISTER");
         
         try (ISpan span = TraceContext.newScopedSpan()) {
-            span.name("event#publish").start();
+            span.name("event#publish")
+                // Can use the 'tag' method to record custom information into the tracing logs
+                .tag("user", request.getUserName())
+                .start();
+
+            // The business logic code
             eventPublisher.publishEvent("REGISTER");
         }
 

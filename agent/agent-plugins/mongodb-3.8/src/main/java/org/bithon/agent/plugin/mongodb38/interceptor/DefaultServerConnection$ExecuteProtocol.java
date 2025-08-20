@@ -80,9 +80,10 @@ public class DefaultServerConnection$ExecuteProtocol extends AroundInterceptor {
         if (span != null) {
             span.tag(aopContext.getException())
                 .tag(Tags.Net.PEER, hostAndPort)
-                .tag(Tags.Database.NAME, command == null ? null : command.getDatabase())
+                .tag(Tags.Database.SYSTEM, "mongodb")
+                .tag(Tags.Database.NAMESPACE, command == null ? null : command.getDatabase())
                 .tag(Tags.Database.MONGODB_DB_COLLECTION, command == null ? null : command.getCollection())
-                .tag(Tags.Database.MONGODB_DB_COMMAND, command == null ? null : command.getCommand())
+                .tag(Tags.Database.OPERATION, command == null ? null : command.getCommand())
                 .finish();
         }
 

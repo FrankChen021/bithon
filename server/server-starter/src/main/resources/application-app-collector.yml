@@ -1,0 +1,37 @@
+#
+# This file demonstrates how to deploy the collector module independently.
+# The collector module collects all data and forwards them into different Kafka topics.
+#
+spring:
+  config:
+    import:
+      # Note: the controller module is optional to be deployed with the collector module.
+      - classpath:application-module-controller.yml
+      - classpath:application-module-receiver.yml
+      - classpath:application-module-pipeline-to-kafka.yml
+
+bithon:
+  storage:
+    meta:
+      enabled: true
+      provider: h2-local
+      ttl:
+        enabled: true
+        ttl: PT5M
+        cleanPeriod: PT1M
+    # If the controller module is deployed, the following 'setting' is required
+    setting:
+      enabled: true
+      provider: h2-local
+
+    providers:
+      h2-local:
+        type: h2
+        url: jdbc:h2:mem:bithon_meta;DB_CLOSE_DELAY=-1;MODE=mysql;
+        username: sa
+
+server:
+  port: 19897
+  compression:
+    enabled: true
+    min-response-size: 4096

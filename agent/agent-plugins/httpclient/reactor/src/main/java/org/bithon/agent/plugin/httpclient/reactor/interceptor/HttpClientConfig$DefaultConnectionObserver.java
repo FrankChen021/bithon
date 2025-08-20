@@ -62,8 +62,11 @@ public class HttpClientConfig$DefaultConnectionObserver extends AfterInterceptor
 
         @Override
         public void onUncaughtException(Connection connection, Throwable error) {
-            span.tag(error).finish();
-            span.context().finish();
+            if (span != null) {
+                span.tag(error).finish();
+                span.context().finish();
+                span = null;
+            }
         }
 
         @Override
