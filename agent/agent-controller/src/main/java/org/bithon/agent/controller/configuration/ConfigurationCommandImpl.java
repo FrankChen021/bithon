@@ -44,7 +44,7 @@ public class ConfigurationCommandImpl implements IConfigurationCommand, IAgentCo
     }
 
     @Override
-    public List<IConfigurationCommand.ConfigurationMetadata> getConfigurationMetadata() {
+    public List<IConfigurationCommand.ConfigurationMetadata> getConfigurationProperties() {
         try {
             // Use the new compile-time generated metadata
             List<PropertyMetadata> properties = ConfigurationPropertyLoader.loadAllProperties();

@@ -39,7 +39,7 @@ public interface IConfigurationCommand {
         private String path;
         private String type;
         private String description;
-
+        private String suggestion;
         /**
          * Serialized value based on the type
          */
@@ -80,6 +80,14 @@ public interface IConfigurationCommand {
 
         public void setDescription(String description) {
             this.description = description;
+        }
+
+        public String getSuggestion() {
+            return suggestion;
+        }
+
+        public void setSuggestion(String suggestion) {
+            this.suggestion = suggestion;
         }
 
         public String getDefaultValue() {
@@ -123,5 +131,5 @@ public interface IConfigurationCommand {
         }
     }
 
-    List<ConfigurationMetadata> getConfigurationMetadata();
+    List<ConfigurationMetadata> getConfigurationProperties();
 }
