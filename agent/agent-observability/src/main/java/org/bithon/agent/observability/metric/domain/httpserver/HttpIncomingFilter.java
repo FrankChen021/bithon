@@ -21,7 +21,6 @@ import org.bithon.agent.configuration.annotation.ConfigurationProperties;
 import org.bithon.agent.configuration.annotation.PropertyDescriptor;
 import org.bithon.agent.observability.utils.filter.IMatcher;
 import org.bithon.agent.observability.utils.filter.StringSuffixMatcher;
-import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,13 +40,17 @@ public class HttpIncomingFilter {
     @ConfigurationProperties(path = "agent.plugin.http.incoming.filter.uri")
     public static class UriFilterConfiguration {
         @PropertyDescriptor(
-            description = "A set of URI suffixes that will be filtered out from the incoming HTTP metrics.",
+            description = "A set of URI suffixes that will be filtered out from the incoming HTTP metrics and tracing.",
+            suggestion = "static resources like .html, .js etc.",
             required = false
         )
-        @JsonProperty
         private String suffixes = ".html,.js,.css,.jpg,.gif,.png,.swf,.ttf,.ico,.woff,.woff2,.eot,.svg,.map";
 
-        @JsonProperty
+        @PropertyDescriptor(
+            description = "A list of URI endpoints that will be filtered out from the incoming HTTP metrics and tracing.",
+            suggestion = "/health,/metrics,/info",
+            required = false
+        )
         private String endpoints = "";
 
         public String getSuffixes() {
@@ -73,11 +76,13 @@ public class HttpIncomingFilter {
             description = "A list of user agent matchers that will be used to filter out incoming HTTP requests.",
             required = false
         )
-        @JsonProperty
         private List<IMatcher> matchers = Collections.emptyList();
 
         public List<IMatcher> getMatchers() {
             return matchers;
+        }
+        public void setMatchers(List<IMatcher> matchers) {
+            this.matchers = matchers;
         }
     }
 

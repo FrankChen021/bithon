@@ -68,14 +68,14 @@ public class DefaultValueExtractor {
         Map<String, Map<String, PropertyMetadata>> propertiesByClass = new HashMap<>();
 
         for (PropertyMetadata property : properties) {
-            String configClass = property.getConfigurationClass();
+            String configClass = property.configurationClass;
             if (configClass == null || configClass.isEmpty()) {
                 continue;
             }
 
             propertiesByClass
                 .computeIfAbsent(configClass, k -> new HashMap<>())
-                .put(property.getPath(), property);
+                .put(property.path, property);
         }
 
         // Process each configuration class
@@ -173,7 +173,7 @@ public class DefaultValueExtractor {
                     // Convert to string representation
                     String defaultValue = convertToString(value);
                     if (defaultValue != null) {
-                        metadata.setDefaultValue(defaultValue);
+                        metadata.defaultValue = defaultValue;
                     }
                 } catch (Exception e) {
                     log.debug("Failed to extract default value for field {}.{}: {}",
@@ -214,14 +214,6 @@ public class DefaultValueExtractor {
             return null;
         }
 
-        // Handle primitive types and strings
-        if (value instanceof String ||
-            value instanceof Number ||
-            value instanceof Boolean ||
-            value instanceof Character) {
-            return value.toString();
-        }
-
         // Handle special utility classes
         if (value instanceof HumanReadableNumber) {
             return value.toString();
@@ -230,6 +222,14 @@ public class DefaultValueExtractor {
             return value.toString();
         }
         if (value instanceof HumanReadablePercentage) {
+            return value.toString();
+        }
+
+        // Handle primitive types and strings
+        if (value instanceof String ||
+            value instanceof Number ||
+            value instanceof Boolean ||
+            value instanceof Character) {
             return value.toString();
         }
 

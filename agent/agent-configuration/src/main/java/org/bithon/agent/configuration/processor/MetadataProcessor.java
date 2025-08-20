@@ -41,6 +41,7 @@ import javax.tools.StandardLocation;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -190,31 +191,22 @@ public class MetadataProcessor extends AbstractProcessor {
         String fullPath = basePath + "." + fieldName;
 
         PropertyMetadata property = new PropertyMetadata();
-        property.setPath(fullPath);
-        property.setDynamic(isDynamic);
-        property.setConfigurationClass(configurationClass);
-
-        // Set type information
-        TypeMirror fieldType = field.asType();
-        property.setType(getSimpleTypeName(fieldType.toString()));
+        property.path = fullPath;
+        property.dynamic = isDynamic;
+        property.configurationClass = configurationClass;
+        property.type = getSimpleTypeName(field.asType().toString());
+        property.required = isFieldRequired(field);
 
         // Extract description from @PropertyDescriptor if present
-        String description = extractPropertyDescription(field);
-        if (description != null && !description.isEmpty()) {
-            property.setDescription(description);
-        } else {
-            // Generate description from field name
-            property.setDescription(generateDescriptionFromFieldName(fieldName));
-        }
+        Map<String, String> descriptorAnnotation = extractPropertyDescriptor(field);
+        property.description = descriptorAnnotation.get("description");
+        property.suggestion = descriptorAnnotation.get("suggestion");
 
         // Extract default value from field initialization
         Object constantValue = field.getConstantValue();
         if (constantValue != null) {
-            property.setDefaultValue(constantValue.toString());
+            property.defaultValue = constantValue.toString();
         }
-
-        // Check if field is required based on validation annotations
-        property.setRequired(isFieldRequired(field));
 
         return property;
     }
@@ -336,23 +328,6 @@ public class MetadataProcessor extends AbstractProcessor {
             return fullTypeName.substring(lastDot + 1);
         }
         return fullTypeName;
-    }
-
-    private String generateDescriptionFromFieldName(String fieldName) {
-        // Convert camelCase to readable description
-        StringBuilder description = new StringBuilder();
-        for (int i = 0; i < fieldName.length(); i++) {
-            char c = fieldName.charAt(i);
-            if (i > 0 && Character.isUpperCase(c)) {
-                description.append(' ');
-            }
-            if (i == 0) {
-                description.append(Character.toUpperCase(c));
-            } else {
-                description.append(Character.toLowerCase(c));
-            }
-        }
-        return description.toString();
     }
 
     private boolean isFieldRequired(VariableElement field) {
@@ -495,7 +470,10 @@ public class MetadataProcessor extends AbstractProcessor {
         return false;
     }
 
-    private String extractPropertyDescription(VariableElement field) {
+
+    private Map<String, String> extractPropertyDescriptor(VariableElement field) {
+        Map<String, String> properties = new HashMap<>();
+
         // Look for @PropertyDescriptor annotation using annotation mirrors
         for (AnnotationMirror annotationMirror : field.getAnnotationMirrors()) {
             String annotationName = annotationMirror.getAnnotationType().toString();
@@ -504,16 +482,15 @@ public class MetadataProcessor extends AbstractProcessor {
                 Map<? extends ExecutableElement, ? extends AnnotationValue> elementValues = annotationMirror.getElementValues();
 
                 for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : elementValues.entrySet()) {
-                    if ("value".equals(entry.getKey().getSimpleName().toString())) {
-                        Object value = entry.getValue().getValue();
-                        if (value instanceof String) {
-                            return (String) value;
-                        }
-                    }
+                    String name = entry.getKey().getSimpleName().toString();
+                    String value = entry.getValue().getValue().toString();
+
+                    properties.put(name, value);
                 }
             }
         }
-        return null;
+
+        return properties;
     }
 
     private void generateMetadataFile(List<PropertyMetadata> properties) throws IOException {
@@ -541,7 +518,7 @@ public class MetadataProcessor extends AbstractProcessor {
         }
 
         // Extract module name from the configuration class package
-        String configClass = properties.get(0).getConfigurationClass();
+        String configClass = properties.get(0).configurationClass;
 
         // For plugin classes like "org.bithon.agent.plugin.bithon.brpc.BithonBrpcPlugin.ServiceProviderConfig"
         // or "org.bithon.agent.plugin.spring.bean.installer.SpringBeanPluginConfig"

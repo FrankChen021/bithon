@@ -53,17 +53,14 @@ public class ConfigurationCommandImpl implements IConfigurationCommand, IAgentCo
                              .map(property -> {
                                  IConfigurationCommand.ConfigurationMetadata metadata = new IConfigurationCommand.ConfigurationMetadata();
 
-                                 metadata.setPath(property.getPath());
-                                 metadata.setType(property.getType());
-                                 metadata.setDescription(property.getDescription());
-                                 metadata.setRequired(property.isRequired());
-                                 metadata.setDynamic(property.isDynamic());
-
-                                 metadata.setDefaultValue(property.getDefaultValue());
-
-                                 // Use the runtime value from ConfigurationManager
-                                 metadata.setValue(getRuntimeValue(property.getPath()));
-                                 metadata.setChanged(isValueChanged(property.getDefaultValue(), metadata.getValue()));
+                                 metadata.setPath(property.path);
+                                 metadata.setType(property.type);
+                                 metadata.setDescription(property.description);
+                                 metadata.setRequired(property.required);
+                                 metadata.setDynamic(property.dynamic);
+                                 metadata.setDefaultValue(property.defaultValue);
+                                 metadata.setValue(getRuntimeValue(property.path)); // Use the runtime value from ConfigurationManager
+                                 metadata.setChanged(isValueChanged(property.defaultValue, metadata.getValue()));
 
                                  return metadata;
                              })

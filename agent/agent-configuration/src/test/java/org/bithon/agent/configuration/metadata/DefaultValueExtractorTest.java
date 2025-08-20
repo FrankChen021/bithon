@@ -23,6 +23,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -58,11 +60,11 @@ public class DefaultValueExtractorTest {
 
         // Extract default values
         new DefaultValueExtractor(result.compiledClasses::get).extract(props.values());
-        Assertions.assertEquals("default-string", props.get("test.basic.stringValue").getDefaultValue());
-        Assertions.assertEquals("42", props.get("test.basic.intValue").getDefaultValue());
-        Assertions.assertEquals("1000000", props.get("test.basic.longValue").getDefaultValue());
-        Assertions.assertEquals("true", props.get("test.basic.booleanValue").getDefaultValue());
-        Assertions.assertEquals("3.14159", props.get("test.basic.doubleValue").getDefaultValue());
+        Assertions.assertEquals("default-string", props.get("test.basic.stringValue").defaultValue);
+        Assertions.assertEquals("42", props.get("test.basic.intValue").defaultValue);
+        Assertions.assertEquals("1000000", props.get("test.basic.longValue").defaultValue);
+        Assertions.assertEquals("true", props.get("test.basic.booleanValue").defaultValue);
+        Assertions.assertEquals("3.14159", props.get("test.basic.doubleValue").defaultValue);
     }
 
     @Test
@@ -85,9 +87,9 @@ public class DefaultValueExtractorTest {
         Map<String, PropertyMetadata> props = result.properties;
 
         new DefaultValueExtractor(result.compiledClasses::get).extract(props.values());
-        Assertions.assertEquals("10M", props.get("test.utility.number").getDefaultValue());
-        Assertions.assertEquals("5m", props.get("test.utility.duration").getDefaultValue());
-        Assertions.assertEquals("75%", props.get("test.utility.percentage").getDefaultValue());
+        Assertions.assertEquals("10M", props.get("test.utility.number").defaultValue);
+        Assertions.assertEquals("5m", props.get("test.utility.duration").defaultValue);
+        Assertions.assertEquals("75%", props.get("test.utility.percentage").defaultValue);
     }
 
     @Test
@@ -98,32 +100,45 @@ public class DefaultValueExtractorTest {
                      "@ConfigurationProperties(path=\"test.collections\")\n" +
                      "public class CollectionsConfig {\n" +
                      "  private List<String> stringList = new ArrayList<>(Arrays.asList(\"item1\", \"item2\", \"item3\"));\n" +
+                     "  private Set<String> stringSet = new HashSet<>(Arrays.asList(\"item1\", \"item2\", \"item3\"));\n" +
                      "  private Map<String, Integer> integerMap = new HashMap<>();\n" +
                      "  private String[] stringArray = {\"array1\", \"array2\", \"array3\"};\n" +
                      "  public CollectionsConfig() { integerMap.put(\"key1\", 1); integerMap.put(\"key2\", 2); integerMap.put(\"key3\", 3); }\n" +
                      "  public List<String> getStringList() { return stringList; }\n" +
                      "  public Map<String, Integer> getIntegerMap() { return integerMap; }\n" +
                      "  public String[] getStringArray() { return stringArray; }\n" +
+                     "  public Set<String> getStringSet() { return stringSet; }\n" +
                      "}";
         MetadataProcessorTest.CompiledConfigResult result = MetadataProcessorTest.compileConfigurationPropertyClass("org.bithon.agent.configuration.test.CollectionsConfig", src);
         Map<String, PropertyMetadata> props = result.properties;
 
         // Extract default values
         new DefaultValueExtractor(result.compiledClasses::get).extract(props.values());
-        String listValue = props.get("test.collections.stringList").getDefaultValue();
+        String listValue = props.get("test.collections.stringList").defaultValue;
         Assertions.assertNotNull(listValue);
         Assertions.assertEquals("[\"item1\",\"item2\",\"item3\"]", listValue);
-        String mapValue = props.get("test.collections.integerMap").getDefaultValue();
-        Assertions.assertNotNull(mapValue);
 
-        // Normalize the map value to ensure consistent formatting
-        ObjectMapper om = new ObjectMapper();
-        JsonNode mapNode = om.readTree(mapValue);
-        String normalizedMapValue = om.writeValueAsString(mapNode);
-        Assertions.assertEquals("{\"key1\":1,\"key2\":2,\"key3\":3}", normalizedMapValue);
-        String arrayValue = props.get("test.collections.stringArray").getDefaultValue();
-        Assertions.assertNotNull(arrayValue);
-        Assertions.assertEquals("[\"array1\",\"array2\",\"array3\"]", arrayValue);
+        {
+            String mapValue = props.get("test.collections.integerMap").defaultValue;
+            Assertions.assertNotNull(mapValue);
+            ObjectMapper om = new ObjectMapper();
+            JsonNode mapNode = om.readTree(mapValue);
+            String normalizedMapValue = om.writeValueAsString(mapNode);
+            Assertions.assertEquals("{\"key1\":1,\"key2\":2,\"key3\":3}", normalizedMapValue);
+        }
+        {
+            String arrayValue = props.get("test.collections.stringArray").defaultValue;
+            Assertions.assertNotNull(arrayValue);
+            Assertions.assertEquals("[\"array1\",\"array2\",\"array3\"]", arrayValue);
+        }
+        {
+            String stringSet = props.get("test.collections.stringSet").defaultValue;
+            Assertions.assertNotNull(stringSet);
+            HashSet<?> defaultValueSet = new ObjectMapper().readValue(stringSet, HashSet.class);
+
+            Assertions.assertEquals(new HashSet<>(Arrays.asList("item1", "item2", "item3")),
+                                    defaultValueSet);
+        }
     }
 
     @Test
@@ -149,8 +164,8 @@ public class DefaultValueExtractorTest {
 
         // Extract default values
         new DefaultValueExtractor(result.compiledClasses::get).extract(props.values());
-        Assertions.assertEquals("nested-config", props.get("test.nested.name").getDefaultValue());
-        String nestedValue = props.get("test.nested.nestedObject").getDefaultValue();
+        Assertions.assertEquals("nested-config", props.get("test.nested.name").defaultValue);
+        String nestedValue = props.get("test.nested.nestedObject").defaultValue;
         Assertions.assertNotNull(nestedValue);
         Assertions.assertEquals("NestedObject{nestedValue='nested-default', nestedInt=500}", nestedValue);
         Assertions.assertTrue(nestedValue.contains("nestedValue='nested-default'"));
@@ -179,9 +194,9 @@ public class DefaultValueExtractorTest {
 
         // Extract default values
         new DefaultValueExtractor(result.compiledClasses::get).extract(props.values());
-        Assertions.assertEquals("200", props.get("test.inheritance.childValue").getDefaultValue());
-        Assertions.assertEquals("child-default", props.get("test.inheritance.childString").getDefaultValue());
-        Assertions.assertEquals("100", props.get("test.inheritance.parentValue").getDefaultValue());
-        Assertions.assertEquals("parent-default", props.get("test.inheritance.parentString").getDefaultValue());
+        Assertions.assertEquals("200", props.get("test.inheritance.childValue").defaultValue);
+        Assertions.assertEquals("child-default", props.get("test.inheritance.childString").defaultValue);
+        Assertions.assertEquals("100", props.get("test.inheritance.parentValue").defaultValue);
+        Assertions.assertEquals("parent-default", props.get("test.inheritance.parentString").defaultValue);
     }
 }

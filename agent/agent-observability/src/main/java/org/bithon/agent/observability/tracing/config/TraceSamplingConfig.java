@@ -54,8 +54,10 @@ public class TraceSamplingConfig {
      * Supported precision: [0.001%, 100%]
      * The precision is limited because we're using a more definitive way to calculate if a request should be sampled.
      */
-    @PropertyDescriptor(description = "The sampling percentage for tracing. The value is in range of [0, 100%]. 100% means all requests are sampled. "
-                                      + "The precision is 0.001%, that is 0.00001")
+    @PropertyDescriptor(
+        description = "The sampling percentage for tracing. The value is in range of [0, 100%]. 100% means all requests are sampled. "
+                      + "The precision is 0.001%, that is 0.00001"
+    )
     private HumanReadablePercentage samplingPercentage = new HumanReadablePercentage(0);
 
     /**

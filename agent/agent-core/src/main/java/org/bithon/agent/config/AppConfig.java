@@ -61,8 +61,8 @@ public class AppConfig {
      */
     @PropertyDescriptor(
         description = "The name of the application instance. "
-                      + "If not set, the agent will generate the instance name automatically by using the current host ip address and the port property."
-                      + "It's recommended to set this property if the application is deployed in Docker or K8S to use the container or pod name as the instance name.",
+                      + "If not set, the agent will generate the instance name automatically by using the current host ip address and the port property.",
+        suggestion = "If the application is deployed in Docker or K8S, you can set this property to use the container or pod name as the instance name. ",
         required = false
     )
     private String instance;
@@ -80,7 +80,8 @@ public class AppConfig {
      * The default value of this field is set to 'false' to keep backward compatibility.
      */
     @PropertyDescriptor(
-        description = "Whether to use the bithon.application.instance property as the instance name. ",
+        description = "Whether to use the bithon.application.instance property as the instance name.",
+        suggestion = "Don't set this property unless you know what you are doing.",
         required = false
     )
     private boolean noUseExternalInstanceName = false;
