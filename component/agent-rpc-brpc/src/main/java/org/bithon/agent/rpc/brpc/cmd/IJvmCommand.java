@@ -170,7 +170,4 @@ public interface IJvmCommand {
      * @return value in JSON format
      */
     String getBeanAttribute(String beanName, String attributeName);
-
-    void startProfiling();
-
 }

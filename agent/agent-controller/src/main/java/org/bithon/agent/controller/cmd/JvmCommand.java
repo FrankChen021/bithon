@@ -216,11 +216,6 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
         }
     }
 
-    @Override
-    public void startProfiling() {
-
-    }
-
     static class AttributeValue {
         String compositeType;
         String jsonValue;
