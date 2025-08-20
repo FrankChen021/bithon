@@ -28,12 +28,12 @@ import org.bithon.agent.configuration.validation.RegExpr;
 @ConfigurationProperties(path = "application", dynamic = false)
 public class AppConfig {
 
-    @PropertyDescriptor("The environment of the application, e.g. dev, test, prod")
+    @PropertyDescriptor(description = "The environment of the application, e.g. dev, test, prod")
     @NotBlank(message = "'bithon.application.env' should not be blank")
     @RegExpr(expr = "^[\\w_-]+$", message = "The 'bithon.application.env' [%s] is illegally configured. Only letter/digit/underscore/hyphen is allowed")
     private String env;
 
-    @PropertyDescriptor("The name of the application, e.g. bithon")
+    @PropertyDescriptor(description = "The name of the application, e.g. bithon")
     @NotBlank(message = "'bithon.application.name' should not be blank")
     @RegExpr(expr = "^[\\w_-]+$", message = "The 'bithon.application.name' [%s] is illegally configured. Only letter/digit/underscore/hyphen is allowed")
     private String name;
@@ -43,8 +43,8 @@ public class AppConfig {
      * In this case, to make the agent work, the port needs to be specified manually.
      */
     @PropertyDescriptor(
-        value = "The port of the application that is used to distinguish instance of the same application. "
-                + "The agent will automatically detect the port if the application is a web application. If the port cannot be detected, you should set this property manually.",
+        description = "The port of the application that is used to distinguish instance of the same application. "
+                      + "The agent will automatically detect the port if the application is a web application. If the port cannot be detected, you should set this property manually.",
         required = false
     )
     private int port = 0;
@@ -60,9 +60,9 @@ public class AppConfig {
      * Case 2: If application is deployed in K8S, if you want to use the pod name as the instance name, you can set this configuration.
      */
     @PropertyDescriptor(
-        value = "The name of the application instance. "
-                + "If not set, the agent will generate the instance name automatically by using the current host ip address and the port property."
-                + "It's recommended to set this property if the application is deployed in Docker or K8S to use the container or pod name as the instance name.",
+        description = "The name of the application instance. "
+                      + "If not set, the agent will generate the instance name automatically by using the current host ip address and the port property."
+                      + "It's recommended to set this property if the application is deployed in Docker or K8S to use the container or pod name as the instance name.",
         required = false
     )
     private String instance;
@@ -80,7 +80,7 @@ public class AppConfig {
      * The default value of this field is set to 'false' to keep backward compatibility.
      */
     @PropertyDescriptor(
-        value = "Whether to use the bithon.application.instance property as the instance name. ",
+        description = "Whether to use the bithon.application.instance property as the instance name. ",
         required = false
     )
     private boolean noUseExternalInstanceName = false;

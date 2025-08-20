@@ -29,7 +29,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface PropertyDescriptor {
-    String value() default "";
+    String description() default "";
+
+    String suggestion() default "";
 
     boolean required() default true;
 }

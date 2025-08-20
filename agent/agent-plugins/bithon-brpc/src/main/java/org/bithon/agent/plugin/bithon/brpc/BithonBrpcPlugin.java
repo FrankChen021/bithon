@@ -39,7 +39,7 @@ public class BithonBrpcPlugin implements IPlugin {
     @ConfigurationProperties(path = "agent.plugin.bithon.brpc", dynamic = false)
     public static class ServiceProviderConfig {
         @PropertyDescriptor(
-            value = "The BRPC services that will be instrumented. The key is the service class name while the value is the BRPC interfaces that the service implements, separated by comma.",
+            description = "The BRPC services that will be instrumented. The key is the service class name while the value is the BRPC interfaces that the service implements, separated by comma.",
             required = false
         )
         private Map<String, String> providers = Collections.emptyMap();

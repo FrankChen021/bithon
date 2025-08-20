@@ -26,7 +26,7 @@ import org.bithon.agent.configuration.annotation.PropertyDescriptor;
 @ConfigurationProperties(path = "agent.sentinel")
 public class SentinelConfig {
     @PropertyDescriptor(
-        value = "Whether to enable Sentinel component. Currently it's only supported for Tomcat-based web applications.",
+        description = "Whether to enable Sentinel component. Currently it's only supported for Tomcat-based web applications.",
         required = false)
     private boolean enabled = false;
 

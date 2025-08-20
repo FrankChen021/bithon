@@ -29,13 +29,13 @@ import java.util.stream.Collectors;
  */
 public class HeaderConfig {
     @PropertyDescriptor(
-        value = "The HTTP headers that will be added to the tracing span logs when a HTTP request is received from a client. ",
+        description = "The HTTP headers that will be added to the tracing span logs when a HTTP request is received from a client. ",
         required = false
     )
     private List<String> request = Collections.emptyList();
 
     @PropertyDescriptor(
-        value = "The HTTP headers that will be added to the tracing span logs when a HTTP response is received from a remote HTTP server.",
+        description = "The HTTP headers that will be added to the tracing span logs when a HTTP response is received from a remote HTTP server.",
         required = false
     )
     private List<String> response = Collections.emptyList();

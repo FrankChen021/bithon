@@ -33,8 +33,8 @@ public class ReporterConfig {
      * This provides a balance between memory usage and performance.
      */
     @PropertyDescriptor(
-        value = "The maximum number of spans that can be batched per tracing context. The larger the number, the more memory will be used by the tracing context. " +
-                "However, it can improve performance by reducing the number of times the tracing context is flushed to the reporter.",
+        description = "The maximum number of spans that can be batched per tracing context. The larger the number, the more memory will be used by the tracing context. " +
+                      "However, it can improve performance by reducing the number of times the tracing context is flushed to the reporter.",
         required = false
     )
     private int batchSize = 64;
