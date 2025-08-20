@@ -17,21 +17,24 @@
 package org.bithon.agent.controller.cmd.profiling;
 
 
-import org.bithon.agent.controller.cmd.profiling.asyncprofiler.AsyncProfilerProvider;
-import org.bithon.component.commons.logging.ILogAdaptor;
-import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.agent.instrumentation.loader.AgentClassLoader;
+import org.bithon.agent.instrumentation.loader.JarClassLoader;
+import org.bithon.agent.instrumentation.utils.AgentDirectory;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 16/7/25 8:11 pm
  */
 public class ProfilerFactory {
-    private static final ILogAdaptor LOG = LoggerFactory.getLogger(ProfilerFactory.class);
 
-    /**
-     * called by {@link org.bithon.agent.controller.cmd.ProfilingCommand} by reflection
-     */
-    public static IProfilerProvider create() {
-        return new AsyncProfilerProvider();
+    private static final JarClassLoader CLASS_LOADER = new JarClassLoader("async-profiler",
+                                                                          AgentDirectory.getSubDirectory("tools/async-profiler"),
+                                                                          AgentClassLoader.getClassLoader());
+
+    public static IProfilerProvider create() throws Throwable {
+        Class<?> clazz = Class.forName("org.bithon.agent.controller.cmd.profiling.asyncprofiler.AsyncProfilerProvider",
+                                       true,
+                                       CLASS_LOADER);
+        return (IProfilerProvider) clazz.getConstructor().newInstance();
     }
 }

@@ -103,7 +103,7 @@ public class DiagnosisApi {
     }
 
     @SuppressForbidden
-    @GetMapping("/api/diagnosis/continuous-dump-thread")
+    @GetMapping("/api/diagnosis/continuous-thread-dump")
     public SseEmitter profile(@Valid @ModelAttribute ContinuousDumpThreadRequest request) {
         //
         // Find the controller where the target instance is connected to

@@ -18,37 +18,29 @@ package org.bithon.agent.controller.cmd;
 
 
 import org.bithon.agent.controller.cmd.profiling.IProfilerProvider;
-import org.bithon.agent.instrumentation.loader.AgentClassLoader;
-import org.bithon.agent.instrumentation.loader.JarClassLoader;
-import org.bithon.agent.instrumentation.utils.AgentDirectory;
+import org.bithon.agent.controller.cmd.profiling.ProfilerFactory;
 import org.bithon.agent.rpc.brpc.cmd.IProfilingCommand;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingRequest;
 import org.bithon.component.brpc.StreamResponse;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 16/7/25 8:51 pm
  */
 public class ProfilingCommand implements IProfilingCommand, IAgentCommand {
-    private final JarClassLoader classLoader = new JarClassLoader("async-profiler",
-                                                                  AgentDirectory.getSubDirectory("tools/async-profiler"),
-                                                                  AgentClassLoader.getClassLoader());
 
     @Override
     public void start(ProfilingRequest request, StreamResponse<ProfilingEvent> response) {
         try {
-            Class<?> clazz = Class.forName("org.bithon.agent.controller.cmd.profiling.ProfilerFactory", true, classLoader);
-            Method method = clazz.getDeclaredMethod("create");
-            IProfilerProvider provider = (IProfilerProvider) method.invoke(null);
+            IProfilerProvider provider = ProfilerFactory.create();
             provider.start(request, response);
-        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException e) {
-            response.onException(e);
         } catch (InvocationTargetException e) {
             response.onException(e.getCause());
+        } catch (Throwable e) {
+            response.onException(e);
         }
     }
 }
