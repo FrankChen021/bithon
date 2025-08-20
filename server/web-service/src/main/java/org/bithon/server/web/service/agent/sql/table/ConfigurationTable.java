@@ -31,8 +31,16 @@ import java.util.stream.Collectors;
  */
 public class ConfigurationTable extends AbstractBaseTable implements IPushdownPredicateProvider {
 
-    public static class ConfigurationRecord {
-        public String payload;
+    public static class ConfigurationPropertyRecord {
+        public String path;
+        public String type;
+        public boolean dynamic;
+        public boolean required;
+        public String value;
+        public String defaultValue;
+        public boolean changed;
+        public String description;
+        public String suggestion;
     }
 
     private final AgentServiceProxyFactory proxyFactory;
@@ -44,15 +52,26 @@ public class ConfigurationTable extends AbstractBaseTable implements IPushdownPr
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
         return proxyFactory.createBroadcastProxy(executionContext.getParameters(), IConfigurationCommand.class)
-                           .getConfiguration("YAML", true)
+                           .getConfigurationProperties()
                            .stream()
-                           .map((cfg) -> new Object[]{cfg})
+                           .map((cfg) -> new Object[]
+                               {
+                                   cfg.getPath(),
+                                   cfg.getType(),
+                                   cfg.isDynamic(),
+                                   cfg.isRequired(),
+                                   cfg.getValue(),
+                                   cfg.getDefaultValue(),
+                                   cfg.isChanged(),
+                                   cfg.getDescription(),
+                                   cfg.getSuggestion()
+                               })
                            .collect(Collectors.toList());
     }
 
     @Override
     protected Class<?> getRecordClazz() {
-        return ConfigurationRecord.class;
+        return ConfigurationPropertyRecord.class;
     }
 
     @Override
