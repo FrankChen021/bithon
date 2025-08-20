@@ -28,6 +28,7 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
+import org.bithon.server.web.service.agent.api.AgentDiagnosisApi;
 import org.bithon.server.web.service.agent.sql.table.AgentServiceProxyFactory;
 import org.bithon.shaded.com.google.protobuf.GeneratedMessageV3;
 import org.bithon.shaded.com.google.protobuf.util.JsonFormat;
