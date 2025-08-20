@@ -49,7 +49,7 @@ public class TraceConfig {
     }
 
     @PropertyDescriptor(
-        description = "Whether to disable tracing. If true, the tracing is DISABLED, and no span logs will be recorded.",
+        description = "Whether to disable tracing feature. If true, the tracing is DISABLED, and no span logs will be recorded.",
         required = false
     )
     private boolean disabled = false;
@@ -67,7 +67,9 @@ public class TraceConfig {
      * The header name is the value of this field, header value is the trace id.
      * For example, X-Bithon-TraceId
      */
-    @PropertyDescriptor(description = "The response header name that contains tracing information. -Id and -Mode will be appended to this header name to keep trace id and trace mode.")
+    @PropertyDescriptor(
+        description = "The response header name that contains tracing information. -Id and -Mode will be appended to this header name to keep trace id and trace mode."
+    )
     private String traceResponseHeader = "X-Bithon-Trace";
 
     @JsonIgnore

@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 public class HttpOutgoingUriFilter {
     @PropertyDescriptor(
         description = "A set of URI suffixes that will be filtered out from the outgoing HTTP client metrics.",
+        suggestion = "static resources like .html, .js etc.",
         required = false
     )
     @JsonProperty

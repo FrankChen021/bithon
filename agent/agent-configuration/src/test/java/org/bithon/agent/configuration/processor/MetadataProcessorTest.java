@@ -65,16 +65,16 @@ public class MetadataProcessorTest {
         {
             PropertyMetadata metadata = props.get("demo.config.name");
             Assertions.assertNotNull(metadata);
-            Assertions.assertEquals("demo.config.name", metadata.getPath());
-            Assertions.assertEquals("String", metadata.getType());
-            Assertions.assertTrue(metadata.isDynamic());
+            Assertions.assertEquals("demo.config.name", metadata.path);
+            Assertions.assertEquals("String", metadata.type);
+            Assertions.assertTrue(metadata.dynamic);
         }
         {
             PropertyMetadata metadata = props.get("demo.config.size");
             Assertions.assertNotNull(metadata);
-            Assertions.assertEquals("demo.config.size", metadata.getPath());
-            Assertions.assertEquals("int", metadata.getType());
-            Assertions.assertTrue(metadata.isDynamic());
+            Assertions.assertEquals("demo.config.size", metadata.path);
+            Assertions.assertEquals("int", metadata.type);
+            Assertions.assertTrue(metadata.dynamic);
         }
     }
 
@@ -170,7 +170,7 @@ public class MetadataProcessorTest {
                                                                new TypeReference<List<PropertyMetadata>>() {
                                                                });
             properties = propertyList.stream()
-                                     .collect(Collectors.toMap(PropertyMetadata::getPath, p -> p));
+                                     .collect(Collectors.toMap((p) -> p.path, p -> p));
         } catch (Exception e) {
             throw new RuntimeException("Failed to deserialize PropertyMetadata from meta file", e);
         }

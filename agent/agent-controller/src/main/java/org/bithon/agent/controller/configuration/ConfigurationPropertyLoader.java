@@ -112,7 +112,7 @@ public class ConfigurationPropertyLoader {
         }
 
         // Sort for better readability
-        allProperties.sort(Comparator.comparing(PropertyMetadata::getPath));
+        allProperties.sort(Comparator.comparing(a -> a.path));
 
         // Extract default values from configuration class instances
         new DefaultValueExtractor((className -> {
