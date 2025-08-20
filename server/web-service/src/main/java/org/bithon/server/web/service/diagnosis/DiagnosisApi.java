@@ -68,12 +68,12 @@ import java.util.concurrent.atomic.AtomicReference;
 @Slf4j
 @CrossOrigin
 @RestController
-public class ProfilingApi {
+public class DiagnosisApi {
 
     private final DiscoveredServiceInvoker discoveredServiceInvoker;
     private final ApplicationContext applicationContext;
 
-    public ProfilingApi(DiscoveredServiceInvoker discoveredServiceInvoker,
+    public DiagnosisApi(DiscoveredServiceInvoker discoveredServiceInvoker,
                         ApplicationContext applicationContext) {
         this.discoveredServiceInvoker = discoveredServiceInvoker;
         this.applicationContext = applicationContext;
