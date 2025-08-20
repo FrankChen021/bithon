@@ -72,14 +72,14 @@ import java.util.Map;
 @CrossOrigin
 @RestController
 @Conditional(WebServiceModuleEnabler.class)
-public class AgentDiagnosisApi {
+public class AgentApi {
 
     private final SqlExecutionEngine sqlExecutionEngine;
     private final ObjectMapper objectMapper;
 
-    public AgentDiagnosisApi(DiscoveredServiceInvoker discoveredServiceInvoker,
-                             ObjectMapper objectMapper,
-                             ApplicationContext applicationContext) {
+    public AgentApi(DiscoveredServiceInvoker discoveredServiceInvoker,
+                    ObjectMapper objectMapper,
+                    ApplicationContext applicationContext) {
         this.objectMapper = objectMapper;
         this.sqlExecutionEngine = new SqlExecutionEngine();
         this.sqlExecutionEngine.addSchema("agent", new AgentSchema(discoveredServiceInvoker, applicationContext));
