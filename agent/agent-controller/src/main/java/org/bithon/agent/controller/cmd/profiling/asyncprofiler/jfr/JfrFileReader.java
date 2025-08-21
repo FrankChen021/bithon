@@ -20,10 +20,12 @@ package org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr;
 import one.jfr.ClassRef;
 import one.jfr.JfrReader;
 import one.jfr.MethodRef;
+import one.jfr.event.AllocationSample;
 import one.jfr.event.CPULoad;
 import one.jfr.event.Event;
 import one.jfr.event.ExecutionSample;
 import one.jfr.event.GCHeapSummary;
+import one.jfr.event.MallocEvent;
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.CPUInformation;
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.InitialEnvironmentVariable;
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.InitialSystemProperty;
@@ -31,6 +33,7 @@ import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.JVMInfo
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.OSInformation;
 import org.bithon.agent.rpc.brpc.profiling.CallStackSample;
 import org.bithon.agent.rpc.brpc.profiling.HeapSummary;
+import org.bithon.agent.rpc.brpc.profiling.Malloc;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 import org.bithon.agent.rpc.brpc.profiling.StackFrame;
 import org.bithon.agent.rpc.brpc.profiling.SystemProperties;
@@ -66,6 +69,7 @@ public class JfrFileReader {
                         responseEvent = ProfilingEvent.newBuilder()
                                                       .setCallStackSample(toCallStackSample(jfr, (ExecutionSample) jfrEvent))
                                                       .build();
+
                     } else if (jfrEvent instanceof CPULoad) {
                         org.bithon.agent.rpc.brpc.profiling.CPULoad cpuLoad = org.bithon.agent.rpc.brpc.profiling.CPULoad.newBuilder()
                                                                                                                          .setTime(TimeConverter.toEpochNano(jfr, jfrEvent.time))
@@ -76,9 +80,11 @@ public class JfrFileReader {
                         responseEvent = ProfilingEvent.newBuilder()
                                                       .setCpuLoad(cpuLoad)
                                                       .build();
+
                     } else if (jfrEvent instanceof InitialSystemProperty) {
-                        systemProperties.put(((InitialSystemProperty) jfrEvent).key,
-                                             ((InitialSystemProperty) jfrEvent).value);
+
+                        systemProperties.put(((InitialSystemProperty) jfrEvent).key, ((InitialSystemProperty) jfrEvent).value);
+
                     } else if (jfrEvent instanceof GCHeapSummary) {
                         GCHeapSummary heap = (GCHeapSummary) jfrEvent;
                         responseEvent = ProfilingEvent.newBuilder()
@@ -90,6 +96,39 @@ public class JfrFileReader {
                                                                                  .setReserved(heap.reserved)
                                                                                  .build())
                                                       .build();
+
+                    } else if (jfrEvent instanceof MallocEvent) { // The native memory allocation event
+                        MallocEvent mallocEvent = (MallocEvent) jfrEvent;
+                        if (mallocEvent.stackTraceId == 0 || mallocEvent.size == 0) {
+                            continue;
+                        }
+
+                        Malloc malloc = Malloc.newBuilder()
+                                              .setTime(TimeConverter.toEpochNano(jfr, mallocEvent.time))
+                                              .setThreadId(mallocEvent.tid)
+                                              .setThreadName(jfr.threads.get(mallocEvent.tid))
+                                              .setSize(mallocEvent.size)
+                                              .addAllStackTrace(toStackTrace(jfr, mallocEvent.stackTraceId))
+                                              .build();
+                        responseEvent = ProfilingEvent.newBuilder().setMalloc(malloc).build();
+
+                    } else if (jfrEvent instanceof AllocationSample) {
+                        AllocationSample allocationSample = (AllocationSample) jfrEvent;
+                        if (allocationSample.stackTraceId == 0) {
+                            continue;
+                        }
+
+                        org.bithon.agent.rpc.brpc.profiling.AllocationSample sample = org.bithon.agent.rpc.brpc.profiling.AllocationSample.newBuilder()
+                                                                                                                                          .setTime(TimeConverter.toEpochNano(jfr, allocationSample.time))
+                                                                                                                                          .setThreadId(allocationSample.tid)
+                                                                                                                                          .setThreadName(jfr.threads.get(allocationSample.tid))
+                                                                                                                                          .addAllStackTrace(toStackTrace(jfr, allocationSample.stackTraceId))
+                                                                                                                                          .setAllocationSize(allocationSample.allocationSize)
+                                                                                                                                          .setTlabSize(allocationSample.tlabSize)
+                                                                                                                                          .setClazz(getClassName(jfr, allocationSample.classId))
+                                                                                                                                          .build();
+                        responseEvent = ProfilingEvent.newBuilder().setAllocationSample(sample).build();
+
                     }
                     if (responseEvent != null) {
                         eventConsumer.onEvent(responseEvent);
@@ -130,30 +169,52 @@ public class JfrFileReader {
         }
     }
 
-    public static CallStackSample toCallStackSample(JfrReader jfr, ExecutionSample event) {
-        if (event.stackTraceId == 0) {
-            return null; // no stack trace
+    public static void main(String[] args) throws IOException {
+        File f = new File("/Users/frank.chenling/source/open/bithon/agent/agent-distribution/tools/async-profiler/macos/bin/output.jfr");
+        read(f, new JfrEventConsumer() {
+            @Override
+            public void onStart() {
+                System.out.println("JFR reading started");
+            }
+
+            @Override
+            public void onEvent(ProfilingEvent event) {
+                System.out.println(event);
+            }
+
+            @Override
+            public void onComplete() {
+                System.out.println("JFR reading completed");
+            }
+
+            @Override
+            public boolean isCancelled() {
+                return false;
+            }
+        });
+    }
+
+    private static CallStackSample toCallStackSample(JfrReader jfr, ExecutionSample event) {
+        List<StackFrame> frames = toStackTrace(jfr, event.stackTraceId);
+        if (frames == null) {
+            return null;
         }
-
-        long time = TimeConverter.toEpochNano(jfr, event.time);
-        int threadId = event.tid;
-        String threadName = jfr.threads.get(event.tid);
-
-        one.jfr.StackTrace stackTrace = jfr.stackTraces.get(event.stackTraceId);
-        List<StackFrame> frames = toStackTrace(jfr, stackTrace);
-
         CallStackSample.Builder builder = CallStackSample.newBuilder()
-                                                         .setTime(time)
-                                                         .setThreadId(threadId)
-                                                         .setThreadName(threadName)
+                                                         .setTime(TimeConverter.toEpochNano(jfr, event.time))
+                                                         .setThreadId(event.tid)
+                                                         .setThreadName(jfr.threads.get(event.tid))
                                                          .setThreadState(event.threadState)
                                                          .addAllStackTrace(frames)
                                                          .setSamples(event.samples);
         return builder.build();
     }
 
-    public static List<StackFrame> toStackTrace(JfrReader jfr,
-                                                one.jfr.StackTrace stackTrace) {
+    private static List<StackFrame> toStackTrace(JfrReader jfr, int stackTraceId) {
+        if (stackTraceId == 0) {
+            return null;
+        }
+
+        one.jfr.StackTrace stackTrace = jfr.stackTraces.get(stackTraceId);
         List<StackFrame> frames = new ArrayList<>();
         for (int i = 0; i < stackTrace.methods.length; i++) {
             frames.add(toStackFrame(jfr, stackTrace, i).build());
@@ -183,27 +244,23 @@ public class JfrFileReader {
             return frame;
         }
 
-        // NOTE: MethodRef does not store modifier now
-
-        ClassRef cls = jfr.classes.get(method.cls);
-        byte[] className = jfr.symbols.get(cls.name);
+        String className = getClassName(jfr, method.cls);
         byte[] methodName = jfr.symbols.get(method.name);
         byte[] sig = jfr.symbols.get(method.sig);
-        if (className == null || className.length == 0) {
+        if (className.isEmpty()) {
             frame.setMethod(new String(methodName, StandardCharsets.UTF_8));
             return frame;
         } else {
-            String classStr = toJavaClassName(className, 0, true);
             if (methodName == null || methodName.length == 0) {
-                frame.setTypeName(classStr);
+                frame.setTypeName(className);
                 frame.setMethod("Unknown");
                 return frame;
             }
             String methodStr = new String(methodName, StandardCharsets.UTF_8);
-            String sigStr = sig != null ? new String(sig, StandardCharsets.UTF_8) : "";
-
-            frame.setTypeName(classStr);
+            frame.setTypeName(className);
             frame.setMethod(methodStr);
+
+            String sigStr = sig != null ? new String(sig, StandardCharsets.UTF_8) : "";
             if (!sigStr.isEmpty()) {
                 Type methodType = Type.getMethodType(sigStr);
                 Type[] argTypes = methodType.getArgumentTypes();
@@ -214,6 +271,18 @@ public class JfrFileReader {
             }
             return frame;
         }
+    }
+
+    private static String getClassName(JfrReader jfr, long classId) {
+        ClassRef clazzRef = jfr.classes.get(classId);
+        if (clazzRef == null) {
+            return "";
+        }
+        byte[] className = jfr.symbols.get(clazzRef.name);
+        if (className == null || className.length == 0) {
+            return "";
+        }
+        return toJavaClassName(className, 0, true);
     }
 
     private static String toJavaClassName(byte[] symbol, int start, boolean dotted) {

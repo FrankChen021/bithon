@@ -17,11 +17,14 @@ message ProfilingRequest {
 /**************************************************************************/
 message ProfilingEvent {
   oneof event {
+    Progress progress = 1;
+    SystemProperties systemProperties = 2;
+
     CPULoad cpuLoad = 10;
-    SystemProperties systemProperties = 20;
     CallStackSample callStackSample = 30;
     HeapSummary heapSummary = 40;
-    Progress progress = 50;
+    Malloc malloc = 50;
+    AllocationSample allocationSample = 60;
   }
 }
 
@@ -66,4 +69,25 @@ message HeapSummary {
 message Progress {
   int64 time = 1;
   string message = 10;
+}
+
+/**
+ * a native memory allocation event.
+ */
+message Malloc {
+  int64 time = 1;
+  int32 threadId = 2;
+  string threadName = 3;
+  int64 size = 4;
+  repeated StackFrame stackTrace = 5;
+}
+
+message AllocationSample {
+  int64 time = 1;
+  int32 threadId = 2;
+  string threadName = 3;
+  string clazz = 4;
+  int64 allocationSize = 5;
+  int64 tlabSize = 6;
+  repeated StackFrame stackTrace = 7;
 }
