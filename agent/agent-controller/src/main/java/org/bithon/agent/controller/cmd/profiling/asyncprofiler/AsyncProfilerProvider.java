@@ -19,8 +19,7 @@ package org.bithon.agent.controller.cmd.profiling.asyncprofiler;
 
 import org.bithon.agent.controller.cmd.profiling.IProfilerProvider;
 import org.bithon.agent.controller.cmd.profiling.ProfilingException;
-import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.JfrEventConsumer;
-import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.JfrFileReader;
+import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.JfrFileConsumer;
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.TimestampedFile;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
@@ -279,26 +278,18 @@ public class AsyncProfilerProvider implements IProfilerProvider {
 
                 try {
                     sendProgress(streamResponse, "%s is ready. Now streaming profiling data...", jfrFileName);
-                    JfrFileReader.read(jfrFile,
-                                       new JfrEventConsumer() {
-                                           @Override
-                                           public void onStart() {
-                                           }
+                    JfrFileConsumer.consume(jfrFile,
+                                            new JfrFileConsumer.EventConsumer() {
+                                                @Override
+                                                public void onEvent(ProfilingEvent event) {
+                                                    streamResponse.onNext(event);
+                                                }
 
-                                           @Override
-                                           public void onEvent(ProfilingEvent event) {
-                                               streamResponse.onNext(event);
-                                           }
-
-                                           @Override
-                                           public void onComplete() {
-                                           }
-
-                                           @Override
-                                           public boolean isCancelled() {
-                                               return streamResponse.isCancelled();
-                                           }
-                                       }
+                                                @Override
+                                                public boolean isCancelled() {
+                                                    return streamResponse.isCancelled();
+                                                }
+                                            }
                     );
                 } catch (IOException e) {
                     sendProgress(streamResponse, "Failed to read profiling events from file %s: %s", jfrFileName, e.getMessage());

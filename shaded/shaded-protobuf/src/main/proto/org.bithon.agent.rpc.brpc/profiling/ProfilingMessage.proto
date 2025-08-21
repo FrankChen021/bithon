@@ -21,10 +21,11 @@ message ProfilingEvent {
     SystemProperties systemProperties = 2;
 
     CPULoad cpuLoad = 10;
-    CallStackSample callStackSample = 30;
-    HeapSummary heapSummary = 40;
-    Malloc malloc = 50;
-    AllocationSample allocationSample = 60;
+    CallStackSample callStackSample = 11;
+    HeapSummary heapSummary = 12;
+    Malloc malloc = 13;
+    AllocationSample allocationSample = 14;
+    Lock lock = 15;
   }
 }
 
@@ -89,5 +90,17 @@ message AllocationSample {
   string clazz = 4;
   int64 allocationSize = 5;
   int64 tlabSize = 6;
+  repeated StackFrame stackTrace = 7;
+}
+
+message Lock {
+  int64 time = 1;
+  int32 threadId = 2;
+  string threadName = 3;
+  string lockClass = 4;
+  /**
+   * The time waiting for acquiring a lock in nanoseconds.
+   */
+  int64 waitTime = 5;
   repeated StackFrame stackTrace = 7;
 }
