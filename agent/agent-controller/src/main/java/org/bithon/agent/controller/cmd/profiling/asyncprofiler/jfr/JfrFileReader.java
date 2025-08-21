@@ -40,6 +40,7 @@ import org.bithon.agent.rpc.brpc.profiling.SystemProperties;
 import org.bithon.component.commons.forbidden.SuppressForbidden;
 import org.bithon.shaded.net.bytebuddy.jar.asm.Type;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -56,23 +57,38 @@ import static one.convert.Frame.TYPE_NATIVE;
  * @author frank.chen021@outlook.com
  * @date 4/8/25 11:07 am
  */
-public class JfrFileReader {
+public class JfrFileReader implements Closeable {
+    private final JfrReader delegate;
+
+    public JfrFileReader(JfrReader delegate) {
+        this.delegate = delegate;
+    }
+
+    public Event readEvent() throws IOException {
+        return delegate.readEvent();
+    }
+
+    @Override
+    public void close() throws IOException {
+        delegate.close();
+    }
+
     public static void read(File jfrFile, JfrEventConsumer eventConsumer) throws IOException {
-        try (JfrReader jfr = createJfrReader(jfrFile.getAbsolutePath())) {
+        try (JfrFileReader reader = createJfrReader(jfrFile.getAbsolutePath())) {
             // Use TreeMap to ensure the system properties are sorted by key
             final Map<String, String> systemProperties = new TreeMap<>();
             eventConsumer.onStart();
             {
-                for (Event jfrEvent; !eventConsumer.isCancelled() && (jfrEvent = jfr.readEvent()) != null; ) {
+                for (Event jfrEvent; !eventConsumer.isCancelled() && (jfrEvent = reader.readEvent()) != null; ) {
                     ProfilingEvent responseEvent = null;
                     if (jfrEvent instanceof ExecutionSample) {
                         responseEvent = ProfilingEvent.newBuilder()
-                                                      .setCallStackSample(toCallStackSample(jfr, (ExecutionSample) jfrEvent))
+                                                      .setCallStackSample(reader.toCallStackSample((ExecutionSample) jfrEvent))
                                                       .build();
 
                     } else if (jfrEvent instanceof CPULoad) {
                         org.bithon.agent.rpc.brpc.profiling.CPULoad cpuLoad = org.bithon.agent.rpc.brpc.profiling.CPULoad.newBuilder()
-                                                                                                                         .setTime(TimeConverter.toEpochNano(jfr, jfrEvent.time))
+                                                                                                                         .setTime(reader.toEpochNano(jfrEvent.time))
                                                                                                                          .setUser(((CPULoad) jfrEvent).jvmUser)
                                                                                                                          .setSystem(((CPULoad) jfrEvent).jvmSystem)
                                                                                                                          .setMachine(((CPULoad) jfrEvent).machineTotal)
@@ -89,7 +105,7 @@ public class JfrFileReader {
                         GCHeapSummary heap = (GCHeapSummary) jfrEvent;
                         responseEvent = ProfilingEvent.newBuilder()
                                                       .setHeapSummary(HeapSummary.newBuilder()
-                                                                                 .setTime(TimeConverter.toEpochNano(jfr, jfrEvent.time))
+                                                                                 .setTime(reader.toEpochNano(jfrEvent.time))
                                                                                  .setGcId(heap.gcId)
                                                                                  .setUsed(heap.used)
                                                                                  .setCommitted(heap.committed)
@@ -104,11 +120,11 @@ public class JfrFileReader {
                         }
 
                         Malloc malloc = Malloc.newBuilder()
-                                              .setTime(TimeConverter.toEpochNano(jfr, mallocEvent.time))
+                                              .setTime(reader.toEpochNano(mallocEvent.time))
                                               .setThreadId(mallocEvent.tid)
-                                              .setThreadName(jfr.threads.get(mallocEvent.tid))
+                                              .setThreadName(reader.getThreadName(mallocEvent.tid))
                                               .setSize(mallocEvent.size)
-                                              .addAllStackTrace(toStackTrace(jfr, mallocEvent.stackTraceId))
+                                              .addAllStackTrace(reader.toStackTrace(mallocEvent.stackTraceId))
                                               .build();
                         responseEvent = ProfilingEvent.newBuilder().setMalloc(malloc).build();
 
@@ -119,13 +135,13 @@ public class JfrFileReader {
                         }
 
                         org.bithon.agent.rpc.brpc.profiling.AllocationSample sample = org.bithon.agent.rpc.brpc.profiling.AllocationSample.newBuilder()
-                                                                                                                                          .setTime(TimeConverter.toEpochNano(jfr, allocationSample.time))
+                                                                                                                                          .setTime(reader.toEpochNano(allocationSample.time))
                                                                                                                                           .setThreadId(allocationSample.tid)
-                                                                                                                                          .setThreadName(jfr.threads.get(allocationSample.tid))
-                                                                                                                                          .addAllStackTrace(toStackTrace(jfr, allocationSample.stackTraceId))
+                                                                                                                                          .setThreadName(reader.getThreadName(allocationSample.tid))
+                                                                                                                                          .addAllStackTrace(reader.toStackTrace(allocationSample.stackTraceId))
                                                                                                                                           .setAllocationSize(allocationSample.allocationSize)
                                                                                                                                           .setTlabSize(allocationSample.tlabSize)
-                                                                                                                                          .setClazz(getClassName(jfr, allocationSample.classId))
+                                                                                                                                          .setClazz(reader.getClassName(allocationSample.classId))
                                                                                                                                           .build();
                         responseEvent = ProfilingEvent.newBuilder().setAllocationSample(sample).build();
 
@@ -150,19 +166,19 @@ public class JfrFileReader {
         }
     }
 
-    private static JfrReader createJfrReader(String filePath) throws IOException {
-        JfrReader jfrReader = new JfrReader(filePath);
-        jfrReader.registerEvent("jdk.CPUInformation", CPUInformation.class);
-        jfrReader.registerEvent("jdk.InitialSystemProperty", InitialSystemProperty.class);
-        jfrReader.registerEvent("jdk.InitialEnvironmentVariable", InitialEnvironmentVariable.class);
-        jfrReader.registerEvent("jdk.OSInformation", OSInformation.class);
-        jfrReader.registerEvent("jdk.JVMInformation", JVMInformation.class);
-        return jfrReader;
+    private static JfrFileReader createJfrReader(String filePath) throws IOException {
+        JfrReader delegate = new JfrReader(filePath);
+        delegate.registerEvent("jdk.CPUInformation", CPUInformation.class);
+        delegate.registerEvent("jdk.InitialSystemProperty", InitialSystemProperty.class);
+        delegate.registerEvent("jdk.InitialEnvironmentVariable", InitialEnvironmentVariable.class);
+        delegate.registerEvent("jdk.OSInformation", OSInformation.class);
+        delegate.registerEvent("jdk.JVMInformation", JVMInformation.class);
+        return new JfrFileReader(delegate);
     }
 
     @SuppressForbidden
     public static void dump(File f) throws IOException {
-        try (JfrReader jfr = createJfrReader(f.getAbsolutePath())) {
+        try (JfrFileReader jfr = createJfrReader(f.getAbsolutePath())) {
             for (Event jfrEvent; (jfrEvent = jfr.readEvent()) != null; ) {
                 System.out.println(jfrEvent);
             }
@@ -194,91 +210,89 @@ public class JfrFileReader {
         });
     }
 
-    private static CallStackSample toCallStackSample(JfrReader jfr, ExecutionSample event) {
-        List<StackFrame> frames = toStackTrace(jfr, event.stackTraceId);
+    public CallStackSample toCallStackSample(ExecutionSample event) {
+        List<StackFrame> frames = toStackTrace(event.stackTraceId);
         if (frames == null) {
             return null;
         }
         CallStackSample.Builder builder = CallStackSample.newBuilder()
-                                                         .setTime(TimeConverter.toEpochNano(jfr, event.time))
+                                                         .setTime(TimeConverter.toEpochNano(this.delegate, event.time))
                                                          .setThreadId(event.tid)
-                                                         .setThreadName(jfr.threads.get(event.tid))
+                                                         .setThreadName(this.delegate.threads.get(event.tid))
                                                          .setThreadState(event.threadState)
                                                          .addAllStackTrace(frames)
                                                          .setSamples(event.samples);
         return builder.build();
     }
 
-    private static List<StackFrame> toStackTrace(JfrReader jfr, int stackTraceId) {
+    private List<StackFrame> toStackTrace(int stackTraceId) {
         if (stackTraceId == 0) {
             return null;
         }
 
-        one.jfr.StackTrace stackTrace = jfr.stackTraces.get(stackTraceId);
+        one.jfr.StackTrace stackTrace = delegate.stackTraces.get(stackTraceId);
         List<StackFrame> frames = new ArrayList<>();
         for (int i = 0; i < stackTrace.methods.length; i++) {
-            frames.add(toStackFrame(jfr, stackTrace, i).build());
+            frames.add(toStackFrame(stackTrace, i).build());
         }
         return frames;
     }
 
-    private static StackFrame.Builder toStackFrame(JfrReader jfr, one.jfr.StackTrace stackTrace, int frameIndex) {
+    private StackFrame.Builder toStackFrame(one.jfr.StackTrace stackTrace, int frameIndex) {
         long methodId = stackTrace.methods[frameIndex];
 
-        StackFrame.Builder frame = StackFrame.newBuilder();
+        StackFrame.Builder stackFrame = StackFrame.newBuilder();
 
         int location;
         if ((location = stackTrace.locations[frameIndex] >>> 16) != 0) {
-            frame.setLocation(location);
+            stackFrame.setLocation(location);
         } else if ((location = stackTrace.locations[frameIndex] & 0xffff) != 0) {
-            frame.setLocation(location);
+            stackFrame.setLocation(location);
         } else {
-            frame.setLocation(location);
+            stackFrame.setLocation(location);
         }
 
-        frame.setType(stackTrace.types[frameIndex]);
+        stackFrame.setType(stackTrace.types[frameIndex]);
 
-        MethodRef method = jfr.methods.get(methodId);
+        MethodRef method = this.delegate.methods.get(methodId);
         if (method == null) {
-            frame.setMethod("Unknown");
-            return frame;
+            stackFrame.setMethod("Unknown");
+            return stackFrame;
         }
 
-        String className = getClassName(jfr, method.cls);
-        byte[] methodName = jfr.symbols.get(method.name);
-        byte[] sig = jfr.symbols.get(method.sig);
-        if (className.isEmpty()) {
-            frame.setMethod(new String(methodName, StandardCharsets.UTF_8));
-            return frame;
-        } else {
-            if (methodName == null || methodName.length == 0) {
-                frame.setTypeName(className);
-                frame.setMethod("Unknown");
-                return frame;
-            }
-            String methodStr = new String(methodName, StandardCharsets.UTF_8);
-            frame.setTypeName(className);
-            frame.setMethod(methodStr);
-
-            String sigStr = sig != null ? new String(sig, StandardCharsets.UTF_8) : "";
-            if (!sigStr.isEmpty()) {
-                Type methodType = Type.getMethodType(sigStr);
-                Type[] argTypes = methodType.getArgumentTypes();
-                for (Type argType : argTypes) {
-                    frame.addParameters(argType.getClassName());
-                }
-                frame.setReturnType(methodType.getReturnType().getClassName());
-            }
-            return frame;
+        String className = getClassName(method.cls);
+        if (!className.isEmpty()) {
+            stackFrame.setTypeName(className);
         }
+
+        byte[] methodName = this.delegate.symbols.get(method.name);
+        if (methodName == null || methodName.length == 0) {
+            stackFrame.setTypeName(className);
+            stackFrame.setMethod("Unknown");
+            return stackFrame;
+        }
+        stackFrame.setTypeName(className);
+        stackFrame.setMethod(new String(methodName, StandardCharsets.UTF_8));
+
+        byte[] sig = this.delegate.symbols.get(method.sig);
+        String sigStr = sig != null ? new String(sig, StandardCharsets.UTF_8) : "";
+        if (!sigStr.isEmpty()) {
+            Type methodType = Type.getMethodType(sigStr);
+            Type[] argTypes = methodType.getArgumentTypes();
+            for (Type argType : argTypes) {
+                stackFrame.addParameters(argType.getClassName());
+            }
+            stackFrame.setReturnType(methodType.getReturnType().getClassName());
+        }
+        return stackFrame;
     }
 
-    private static String getClassName(JfrReader jfr, long classId) {
-        ClassRef clazzRef = jfr.classes.get(classId);
+    public String getClassName(long classId) {
+        ClassRef clazzRef = delegate.classes.get(classId);
         if (clazzRef == null) {
             return "";
         }
-        byte[] className = jfr.symbols.get(clazzRef.name);
+        byte[] className = delegate.symbols.get(clazzRef.name);
         if (className == null || className.length == 0) {
             return "";
         }
@@ -346,5 +360,14 @@ public class JfrFileReader {
         return methodType == TYPE_NATIVE && jfr.getEnumValue("jdk.types.FrameType", TYPE_KERNEL) != null ||
                methodType == TYPE_CPP ||
                methodType == TYPE_KERNEL;
+    }
+
+    private long toEpochNano(long eventTime) {
+        return delegate.startNanos + ((eventTime - delegate.startTicks) / delegate.ticksPerSec);
+    }
+
+    public String getThreadName(int tid) {
+        String threadName = delegate.threads.get(tid);
+        return threadName != null ? threadName : "Unknown Thread";
     }
 }
