@@ -17,9 +17,7 @@
 package org.bithon.agent.controller.cmd.profiling;
 
 
-import org.bithon.agent.instrumentation.loader.AgentClassLoader;
-import org.bithon.agent.instrumentation.loader.JarClassLoader;
-import org.bithon.agent.instrumentation.utils.AgentDirectory;
+import org.bithon.agent.controller.cmd.profiling.asyncprofiler.AsyncProfilerProvider;
 
 /**
  * @author frank.chen021@outlook.com
@@ -27,14 +25,7 @@ import org.bithon.agent.instrumentation.utils.AgentDirectory;
  */
 public class ProfilerFactory {
 
-    private static final JarClassLoader CLASS_LOADER = new JarClassLoader("async-profiler",
-                                                                          AgentDirectory.getSubDirectory("tools/async-profiler"),
-                                                                          AgentClassLoader.getClassLoader());
-
-    public static IProfilerProvider create() throws Throwable {
-        Class<?> clazz = Class.forName("org.bithon.agent.controller.cmd.profiling.asyncprofiler.AsyncProfilerProvider",
-                                       true,
-                                       CLASS_LOADER);
-        return (IProfilerProvider) clazz.getConstructor().newInstance();
+    public static IProfilerProvider create() {
+        return new AsyncProfilerProvider();
     }
 }

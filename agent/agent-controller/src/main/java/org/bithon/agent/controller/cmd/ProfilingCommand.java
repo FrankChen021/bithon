@@ -24,8 +24,6 @@ import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingRequest;
 import org.bithon.component.brpc.StreamResponse;
 
-import java.lang.reflect.InvocationTargetException;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 16/7/25 8:51 pm
@@ -37,8 +35,6 @@ public class ProfilingCommand implements IProfilingCommand, IAgentCommand {
         try {
             IProfilerProvider provider = ProfilerFactory.create();
             provider.start(request, response);
-        } catch (InvocationTargetException e) {
-            response.onException(e.getCause());
         } catch (Throwable e) {
             response.onException(e);
         }

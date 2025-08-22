@@ -206,10 +206,8 @@ public class AgentServiceProxyFactory {
                 throw e;
             } catch (ServiceNotFoundException e) {
                 throw new HttpMappableException(HttpStatus.NOT_FOUND.value(),
-                                                "Can't find service [%s] on target application [appName = %s, instance = %s]. You may need to upgrade the agent of the target application.",
-                                                e.getServiceName(),
-                                                targetApplication,
-                                                targetInstance);
+                                                "The agent of the target application does not provide the service [%s]. You may need to upgrade the agent of the target application.",
+                                                e.getServiceName());
             } catch (RuntimeException e) {
                 throw e;
             } catch (Throwable e) {

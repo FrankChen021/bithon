@@ -21,7 +21,6 @@ import org.bithon.agent.instrumentation.utils.AgentDirectory;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.util.Locale;
 
 /**
  * @author frank.chen021@outlook.com
@@ -36,8 +35,10 @@ public class AgentClassLoader {
             synchronized (AgentClassLoader.class) {
                 if (instance == null) {
                     final Thread mainThread = Thread.currentThread();
-                    instance = new JarClassLoader("agent-library",
-                                                  JarResolver.resolve(new LibraryJarFilter(), AgentDirectory.getSubDirectory("lib")),
+                    instance = new JarClassLoader("bithon-agent",
+                                                  JarResolver.resolve(new LibraryJarFilter(),
+                                                                      AgentDirectory.getSubDirectory("lib"),
+                                                                      AgentDirectory.getSubDirectory("tools/async-profiler")),
                                                   mainThread::getContextClassLoader);
                 }
             }
@@ -60,14 +61,14 @@ public class AgentClassLoader {
         public boolean accept(File dir, String name) {
             if (name.startsWith("agent-")
                 || name.startsWith("component-")
-                || name.startsWith("shaded-")) {
+                || name.startsWith("shaded-")
+                || name.startsWith("jfr-converter-")) {
                 {
                     return true;
                 }
             }
 
-            throw new AgentException(String.format(Locale.ENGLISH,
-                                                   "Unexpected jar [%s] under the agent library found. Contact developers to check the dependencies of the agent and make a fix.", name));
+            throw new AgentException("Unexpected jar [%s] under the agent library found. Please report it to agent maintainers to fix it.", name);
         }
     }
 }

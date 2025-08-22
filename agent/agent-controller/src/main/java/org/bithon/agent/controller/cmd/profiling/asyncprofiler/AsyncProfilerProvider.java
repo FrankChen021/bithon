@@ -29,6 +29,7 @@ import org.bithon.component.brpc.StreamResponse;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.time.Clock;
+import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.component.commons.uuid.UUIDv7Generator;
 
@@ -66,14 +67,15 @@ public class AsyncProfilerProvider implements IProfilerProvider {
                 streamResponse.onException(new ProfilingException("A profiling session is already running"));
                 return;
             }
-
             isProfiling = true;
         }
+
         try {
             startProfilingTask(request, streamResponse);
-        } catch (Exception e) {
-            isProfiling = false;
+        } catch (Throwable e) {
             streamResponse.onException(e);
+        } finally {
+            isProfiling = false;
         }
     }
 
@@ -89,7 +91,7 @@ public class AsyncProfilerProvider implements IProfilerProvider {
         //
         // Check if requested events are supported
         //
-        sendProgress(streamResponse, "Validating supported profiling events" + pid);
+        sendProgress(streamResponse, "Validating if target application supports profiling events");
         {
             Set<String> supportedEvents = getSupportedEvents(toolLocation, pid);
             Set<String> unsupportedEvents = new HashSet<>(request.getProfileEventsList());
@@ -125,13 +127,12 @@ public class AsyncProfilerProvider implements IProfilerProvider {
                 collectProfilingData(dir, intervalSeconds, endTime, streamResponse);
 
                 streamResponse.onComplete();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 streamResponse.onException(e);
             } finally {
                 isProfiling = false;
 
                 // Cleanup
-                LOG.debug("File processor thread completed, deleting directory: {}", dir.getAbsolutePath());
                 try {
                     if (dir.exists() && dir.isDirectory()) {
                         File[] files = dir.listFiles();
@@ -146,8 +147,9 @@ public class AsyncProfilerProvider implements IProfilerProvider {
                 }
 
                 // Terminate the profiler process after the duration
-                sendProgress(streamResponse, "Stopping profiler for PID {}", pid);
                 tryStopProfiling(toolLocation, pid);
+                sendProgress(streamResponse, "Stopping profiler for PID %s", pid);
+                LOG.info("Stopped profiling for PID {}", pid);
             }
         });
         proflingThread.setName("bithon-profiler");
@@ -251,10 +253,10 @@ public class AsyncProfilerProvider implements IProfilerProvider {
                 // Check if enough time has passed since the file's timestamp
                 //
                 String jfrFileName = jfrFile.getName();
-                long currentTime = System.currentTimeMillis();
+                long now = System.currentTimeMillis();
                 long fileTimestamp = timestampedFile.getTimestamp();
-                long readyTime = fileTimestamp + loopIntervalSeconds * 1000L + 500; // Add 500ms buffer
-                long waitTime = readyTime - currentTime;
+                long expectedReadyTime = fileTimestamp + loopIntervalSeconds * 1000L + 500; // Add 500ms buffer
+                long waitTime = expectedReadyTime - now;
                 while (waitTime > 0 && !streamResponse.isCancelled() && !Thread.currentThread().isInterrupted()) {
                     sendProgress(streamResponse, "%s is under generation. Waiting...", jfrFileName);
 
@@ -269,7 +271,8 @@ public class AsyncProfilerProvider implements IProfilerProvider {
                 }
 
                 // Additional check: verify file is complete and stable
-                if (!waitForComplete(jfrFile.toPath())) {
+                long size = waitForCompleteAndReturnSize(jfrFile.toPath());
+                if (size < 0) {
                     continue;
                 }
 
@@ -277,9 +280,15 @@ public class AsyncProfilerProvider implements IProfilerProvider {
                 queue.poll();
 
                 try {
-                    sendProgress(streamResponse, "%s is ready. Now streaming profiling data...", jfrFileName);
                     JfrFileConsumer.consume(jfrFile,
                                             new JfrFileConsumer.EventConsumer() {
+                                                @Override
+                                                public void onStart() {
+                                                    sendProgress(streamResponse, "%s is ready and has a size of %s data. Streaming profiling data...",
+                                                                 jfrFileName,
+                                                                 HumanReadableNumber.format(size, 2, HumanReadableNumber.UnitSystem.BINARY_BYTE));
+                                                }
+
                                                 @Override
                                                 public void onEvent(ProfilingEvent event) {
                                                     streamResponse.onNext(event);
@@ -289,13 +298,19 @@ public class AsyncProfilerProvider implements IProfilerProvider {
                                                 public boolean isCancelled() {
                                                     return streamResponse.isCancelled();
                                                 }
+
+                                                @Override
+                                                public void onComplete() {
+                                                    sendProgress(streamResponse, "%s end of collection and streaming.", jfrFileName);
+                                                }
                                             }
                     );
                 } catch (IOException e) {
-                    sendProgress(streamResponse, "Failed to read profiling events from file %s: %s", jfrFileName, e.getMessage());
+                    // Only catch IOException for this file to ignore it
+                    sendProgress(streamResponse, "Failed to collect profiling events from %s: %s", jfrFileName, e.getMessage());
                 } finally {
                     if (!jfrFile.delete()) {
-                        LOG.warn("Failed to delete JFR file: {}", jfrFileName);
+                        LOG.warn("Failed to delete profiling file: {}", jfrFileName);
                         skipped.add(jfrFile.getAbsolutePath());
                     }
                 }
@@ -307,12 +322,12 @@ public class AsyncProfilerProvider implements IProfilerProvider {
      * Check if a file is complete by checking if its size is stable
      * This is a simple and reliable approach that works across all platforms
      */
-    private boolean waitForComplete(Path filePath) {
+    private long waitForCompleteAndReturnSize(Path filePath) {
         File file = filePath.toFile();
 
         // First check if file exists and has content
         if (!file.exists() || file.length() == 0) {
-            return false;
+            return -1;
         }
 
         // Check if file size is stable (hasn't changed in the last 500ms)
@@ -323,7 +338,7 @@ public class AsyncProfilerProvider implements IProfilerProvider {
             Thread.sleep(500); // Wait 500ms
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return false;
+            return -1;
         }
 
         long size2 = file.length();
@@ -336,7 +351,7 @@ public class AsyncProfilerProvider implements IProfilerProvider {
                       filePath, size1, size2, lastModified1, lastModified2);
         }
 
-        return isStable;
+        return isStable ? size1 : -1;
     }
 
     /**

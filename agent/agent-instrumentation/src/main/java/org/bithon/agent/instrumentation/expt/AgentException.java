@@ -31,8 +31,8 @@ public class AgentException extends RuntimeException {
         super(message);
     }
 
-    public AgentException(String format, Object... args) {
-        super(String.format(Locale.ENGLISH, format, args));
+    public AgentException(String messageFormat, Object... args) {
+        super(String.format(Locale.ENGLISH, messageFormat, args));
     }
 
     public AgentException(Throwable e, String format, Object... args) {
