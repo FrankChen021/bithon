@@ -16,6 +16,7 @@
 
 package org.bithon.component.brpc.message.in;
 
+import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.message.ServiceMessage;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
@@ -58,7 +59,7 @@ public class ServiceStreamingEndMessageIn extends ServiceMessageIn {
         if (hasException == 1) {
             // Read exception as string (matching the encoding format)
             String exceptionMessage = in.readString();
-            this.exception = new RuntimeException(exceptionMessage);
+            this.exception = new ServiceInvocationException(exceptionMessage);
         }
 
         return this;
