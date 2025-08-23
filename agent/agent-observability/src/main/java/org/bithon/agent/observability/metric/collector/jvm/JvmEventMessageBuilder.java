@@ -112,12 +112,14 @@ public class JvmEventMessageBuilder {
         static Pattern[] SECRET_NAME_PATTERNS = new Pattern[]{
             Pattern.compile("password", Pattern.CASE_INSENSITIVE),
             Pattern.compile("secret", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("accessKey", Pattern.CASE_INSENSITIVE)
+            Pattern.compile("accessKey", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("token", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("pwd", Pattern.CASE_INSENSITIVE)
         };
 
         static Pattern[] SECRET_PATTERNS = new Pattern[]{
-            Pattern.compile("(password|secret|accessKey)\\s*=\\s*'([^']*)'", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("(password|secret|accessKey)\\s*=(\\S*)", Pattern.CASE_INSENSITIVE)
+            Pattern.compile("(password|secret|accessKey|token|pwd)\\s*=\\s*'([^']*)'", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("(password|secret|accessKey|token|pwd)\\s*=(\\S*)", Pattern.CASE_INSENSITIVE)
         };
 
         static Map<String, String> sanitizeProperties(Map<String, String> map) {
