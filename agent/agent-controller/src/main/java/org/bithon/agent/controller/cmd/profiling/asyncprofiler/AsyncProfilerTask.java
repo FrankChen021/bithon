@@ -82,7 +82,7 @@ public class AsyncProfilerTask implements Runnable {
         LOG.info("Started profiling for {} seconds, end at {}", durationSecond, DateTime.formatDateTime("MM-dd HH:mm:ss.SSS", endTimestamp));
         collectProfilingData();
 
-        progressNotifier.sendProgress("Profiling complete for PID %s", pid);
+        progressNotifier.sendProgress("Profiling completed for PID %s", pid);
         streamResponse.onComplete();
     }
 
