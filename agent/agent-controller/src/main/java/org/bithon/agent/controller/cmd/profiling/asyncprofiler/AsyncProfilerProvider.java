@@ -19,17 +19,12 @@ package org.bithon.agent.controller.cmd.profiling.asyncprofiler;
 
 import org.bithon.agent.controller.cmd.profiling.IProfilerProvider;
 import org.bithon.agent.controller.cmd.profiling.ProfilingException;
-import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.JfrFileConsumer;
-import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.TimestampedFile;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingRequest;
-import org.bithon.agent.rpc.brpc.profiling.Progress;
 import org.bithon.component.brpc.StreamResponse;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
-import org.bithon.component.commons.time.Clock;
-import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.component.commons.uuid.UUIDv7Generator;
 
@@ -39,12 +34,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.management.ManagementFactory;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.PriorityQueue;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 /**
  * @author frank.chen021@outlook.com
@@ -58,7 +50,6 @@ public class AsyncProfilerProvider implements IProfilerProvider {
      */
     private static volatile boolean isProfiling = false;
 
-    private final Clock clock = new Clock();
 
     @Override
     public void start(ProfilingRequest request, StreamResponse<ProfilingEvent> streamResponse) {
@@ -91,7 +82,8 @@ public class AsyncProfilerProvider implements IProfilerProvider {
         //
         // Check if requested events are supported
         //
-        sendProgress(streamResponse, "Validating if target application supports profiling events");
+        ProgressNotifier progressNotifier = new ProgressNotifier(streamResponse);
+        progressNotifier.sendProgress("Validating if target application supports profiling events");
         {
             Set<String> supportedEvents = getSupportedEvents(toolLocation, pid);
             Set<String> unsupportedEvents = new HashSet<>(request.getProfileEventsList());
@@ -119,18 +111,18 @@ public class AsyncProfilerProvider implements IProfilerProvider {
 
         Thread proflingThread = new Thread(() -> {
             try {
-                tryStopProfiling(toolLocation, pid);
+                this.tryStopProfiling(toolLocation, pid);
 
-                sendProgress(streamResponse, "Starting profiling for PID " + pid);
-                startProfiling(toolLocation, pid, durationSeconds, intervalSeconds, dir, String.join(",", request.getProfileEventsList()));
-
-                collectProfilingData(dir, intervalSeconds, endTime, streamResponse);
-
-                streamResponse.onComplete();
+                AsyncProfilerTask task = new AsyncProfilerTask(toolLocation, pid, dir, request, endTime, streamResponse);
+                task.run();
             } catch (Throwable e) {
                 streamResponse.onException(e);
             } finally {
                 isProfiling = false;
+
+                // Terminate the profiler process after the duration
+                tryStopProfiling(toolLocation, pid);
+                LOG.info("Stopped profiling for PID {}", pid);
 
                 // Cleanup
                 try {
@@ -145,11 +137,6 @@ public class AsyncProfilerProvider implements IProfilerProvider {
                     }
                 } catch (Exception ignored) {
                 }
-
-                // Terminate the profiler process after the duration
-                tryStopProfiling(toolLocation, pid);
-                sendProgress(streamResponse, "Stopping profiler for PID %s", pid);
-                LOG.info("Stopped profiling for PID {}", pid);
             }
         });
         proflingThread.setName("bithon-profiler");
@@ -163,195 +150,6 @@ public class AsyncProfilerProvider implements IProfilerProvider {
             process.waitFor();
         } catch (IOException | InterruptedException ignored) {
         }
-    }
-
-    private void startProfiling(String toolLocation,
-                                String pid,
-                                long durationSecond,
-                                long intervalSecond,
-                                File outputDir,
-                                String requestedEvents) {
-        // Use the requested events or default to "cpu" if none specified
-        String events = requestedEvents.isEmpty() ? "cpu" : requestedEvents;
-
-        ProcessBuilder pb = new ProcessBuilder(toolLocation,
-                                               "-d", String.valueOf(durationSecond),
-                                               "--loop", intervalSecond + "s",
-                                               "-f", new File(outputDir, "%t.jfr").getAbsolutePath(),
-                                               "-e", events,
-                                               pid);
-        try {
-            Process process = pb.start();
-            try {
-                process.waitFor();
-            } catch (InterruptedException ignored) {
-            }
-
-            // Read the process output
-            try (BufferedReader stderrReader = new BufferedReader(new InputStreamReader(process.getErrorStream(), StandardCharsets.UTF_8))) {
-                while (!stderrReader.ready()) {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        break;
-                    }
-                }
-
-                // Check for success indicators
-                String stderrLine = stderrReader.readLine();
-                boolean started = (stderrLine != null && stderrLine.contains("started"));
-                if (!started) {
-                    String errorMsg = StringUtils.format("Failed to start async-profiler - output: %s, alive: %s", stderrLine);
-                    throw new ProfilingException(errorMsg);
-                }
-            }
-        } catch (IOException e) {
-            String errorMsg = StringUtils.format("Failed to start async-profiler for PID {}: {}", pid, e.getMessage());
-            throw new ProfilingException(errorMsg, e);
-        }
-        LOG.info("Started profiling for {} seconds", durationSecond);
-    }
-
-    private void collectProfilingData(File dir,
-                                      int loopIntervalSeconds,
-                                      long endTime,
-                                      StreamResponse<ProfilingEvent> streamResponse) {
-        Set<String> skipped = new HashSet<>();
-
-        // Pattern to extract timestamp from filename (format: YYYYMMDD-HHMMSS.jfr)
-        Pattern timestampPattern = Pattern.compile("(\\d{8}-\\d{6})\\.jfr");
-
-        PriorityQueue<TimestampedFile> queue = new PriorityQueue<>();
-        while (System.currentTimeMillis() < endTime && !streamResponse.isCancelled()) {
-            File[] files = dir.listFiles((file, name) -> name.endsWith(".jfr"));
-            if (files != null) {
-                for (File file : files) {
-                    if (skipped.contains(file.getAbsolutePath())) {
-                        continue;
-                    }
-                    TimestampedFile timestampedFile = TimestampedFile.fromFile(file, timestampPattern);
-                    if (timestampedFile != null) {
-                        queue.offer(timestampedFile);
-                        sendProgress(streamResponse, "%s captured, timestamp = %d", file.getName(), timestampedFile.getTimestamp());
-                    }
-                }
-            }
-
-            while (!queue.isEmpty() && !streamResponse.isCancelled()) {
-                TimestampedFile timestampedFile = queue.peek();
-
-                //noinspection DataFlowIssue
-                File jfrFile = timestampedFile.getFile();
-
-                // Skip if file doesn't exist anymore
-                if (!jfrFile.exists()) {
-                    queue.poll();
-                    continue;
-                }
-
-                //
-                // Check if enough time has passed since the file's timestamp
-                //
-                String jfrFileName = jfrFile.getName();
-                long now = System.currentTimeMillis();
-                long fileTimestamp = timestampedFile.getTimestamp();
-                long expectedReadyTime = fileTimestamp + loopIntervalSeconds * 1000L + 500; // Add 500ms buffer
-                long waitTime = expectedReadyTime - now;
-                while (waitTime > 0 && !streamResponse.isCancelled() && !Thread.currentThread().isInterrupted()) {
-                    sendProgress(streamResponse, "%s is under generation. Waiting...", jfrFileName);
-
-                    long sleepTime = Math.min(waitTime, 1000); // Sleep in chunks of 1 second
-                    waitTime -= sleepTime;
-                    try {
-                        Thread.sleep(sleepTime);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        break;
-                    }
-                }
-
-                // Additional check: verify file is complete and stable
-                long size = waitForCompleteAndReturnSize(jfrFile.toPath());
-                if (size < 0) {
-                    continue;
-                }
-
-                // Pop the file from the queue
-                queue.poll();
-
-                try {
-                    JfrFileConsumer.consume(jfrFile,
-                                            new JfrFileConsumer.EventConsumer() {
-                                                @Override
-                                                public void onStart() {
-                                                    sendProgress(streamResponse, "%s is ready and has a size of %s data. Streaming profiling data...",
-                                                                 jfrFileName,
-                                                                 HumanReadableNumber.format(size, 2, HumanReadableNumber.UnitSystem.BINARY_BYTE));
-                                                }
-
-                                                @Override
-                                                public void onEvent(ProfilingEvent event) {
-                                                    streamResponse.onNext(event);
-                                                }
-
-                                                @Override
-                                                public boolean isCancelled() {
-                                                    return streamResponse.isCancelled();
-                                                }
-
-                                                @Override
-                                                public void onComplete() {
-                                                    sendProgress(streamResponse, "%s end of collection and streaming.", jfrFileName);
-                                                }
-                                            }
-                    );
-                } catch (IOException e) {
-                    // Only catch IOException for this file to ignore it
-                    sendProgress(streamResponse, "Failed to collect profiling events from %s: %s", jfrFileName, e.getMessage());
-                } finally {
-                    if (!jfrFile.delete()) {
-                        LOG.warn("Failed to delete profiling file: {}", jfrFileName);
-                        skipped.add(jfrFile.getAbsolutePath());
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Check if a file is complete by checking if its size is stable
-     * This is a simple and reliable approach that works across all platforms
-     */
-    private long waitForCompleteAndReturnSize(Path filePath) {
-        File file = filePath.toFile();
-
-        // First check if file exists and has content
-        if (!file.exists() || file.length() == 0) {
-            return -1;
-        }
-
-        // Check if file size is stable (hasn't changed in the last 500ms)
-        long size1 = file.length();
-        long lastModified1 = file.lastModified();
-
-        try {
-            Thread.sleep(500); // Wait 500ms
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return -1;
-        }
-
-        long size2 = file.length();
-        long lastModified2 = file.lastModified();
-
-        // File is complete if size and last modified time haven't changed
-        boolean isStable = (size1 == size2) && (lastModified1 == lastModified2) && (size1 > 0);
-        if (!isStable) {
-            LOG.debug("File {} is still changing: size {} -> {}, lastModified {} -> {}",
-                      filePath, size1, size2, lastModified1, lastModified2);
-        }
-
-        return isStable ? size1 : -1;
     }
 
     /**
@@ -435,25 +233,5 @@ public class AsyncProfilerProvider implements IProfilerProvider {
             throw new ProfilingException(StringUtils.format("Cannot locate the profiling tool at [%s]. Please report it to agent maintainers.", toolPath));
         }
         return toolPath.getAbsolutePath();
-    }
-
-    private void sendProgress(StreamResponse<ProfilingEvent> streamResponse, String message) {
-        ProfilingEvent event = ProfilingEvent.newBuilder()
-                                             .setProgress(Progress.newBuilder()
-                                                                  .setTime(clock.currentNanoseconds())
-                                                                  .setMessage(message)
-                                                                  .build())
-                                             .build();
-        streamResponse.onNext(event);
-    }
-
-    private void sendProgress(StreamResponse<ProfilingEvent> streamResponse, String messageFormat, Object... args) {
-        ProfilingEvent event = ProfilingEvent.newBuilder()
-                                             .setProgress(Progress.newBuilder()
-                                                                  .setTime(clock.currentNanoseconds())
-                                                                  .setMessage(StringUtils.format(messageFormat, args))
-                                                                  .build())
-                                             .build();
-        streamResponse.onNext(event);
     }
 }
