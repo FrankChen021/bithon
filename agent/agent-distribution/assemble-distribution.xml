@@ -111,14 +111,6 @@
       </includes>
     </fileSet>
 
-    <!-- tools -->
-    <fileSet>
-      <directory>tools</directory>
-      <outputDirectory>tools</outputDirectory>
-      <includes>
-        <include>**/*</include>
-      </includes>
-    </fileSet>
   </fileSets>
 
   <files>
