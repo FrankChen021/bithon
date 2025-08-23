@@ -34,12 +34,12 @@ public class SanitizerTest {
         input.put("normalKey", "normalValue");
 
         Map<String, String> sanitized = JvmEventMessageBuilder.Sanitizer.sanitizeProperties(input);
-    Assertions.assertEquals("HIDDEN", sanitized.get("password"));
-    Assertions.assertEquals("HIDDEN", sanitized.get("secret"));
-    Assertions.assertEquals("HIDDEN", sanitized.get("accessKey"));
-    Assertions.assertEquals("HIDDEN", sanitized.get("token"));
-    Assertions.assertEquals("HIDDEN", sanitized.get("pwd"));
-    Assertions.assertEquals("normalValue", sanitized.get("normalKey"));
+        Assertions.assertEquals("HIDDEN", sanitized.get("password"));
+        Assertions.assertEquals("HIDDEN", sanitized.get("secret"));
+        Assertions.assertEquals("HIDDEN", sanitized.get("accessKey"));
+        Assertions.assertEquals("HIDDEN", sanitized.get("token"));
+        Assertions.assertEquals("HIDDEN", sanitized.get("pwd"));
+        Assertions.assertEquals("normalValue", sanitized.get("normalKey"));
     }
 
     @Test
@@ -53,12 +53,12 @@ public class SanitizerTest {
         input.put("key3", "noSecretHere");
 
         Map<String, String> sanitized = JvmEventMessageBuilder.Sanitizer.sanitizeProperties(input);
-    Assertions.assertEquals("password=HIDDEN", sanitized.get("normalKey"));
-    Assertions.assertEquals("token='HIDDEN'", sanitized.get("anotherKey"));
-    Assertions.assertEquals("secret=HIDDEN", sanitized.get("yetAnotherKey"));
-    Assertions.assertEquals("pwd=HIDDEN", sanitized.get("key"));
-    Assertions.assertEquals("accessKey=HIDDEN", sanitized.get("key2"));
-        Assert.assertEquals("noSecretHere", sanitized.get("key3"));
+        Assertions.assertEquals("password=HIDDEN", sanitized.get("normalKey"));
+        Assertions.assertEquals("token='HIDDEN'", sanitized.get("anotherKey"));
+        Assertions.assertEquals("secret=HIDDEN", sanitized.get("yetAnotherKey"));
+        Assertions.assertEquals("pwd=HIDDEN", sanitized.get("key"));
+        Assertions.assertEquals("accessKey=HIDDEN", sanitized.get("key2"));
+        Assertions.assertEquals("noSecretHere", sanitized.get("key3"));
     }
 
     @Test
@@ -72,11 +72,11 @@ public class SanitizerTest {
         input.put("normalKey", "password=shouldHide");
 
         Map<String, String> sanitized = JvmEventMessageBuilder.Sanitizer.sanitizeProperties(input);
-        Assert.assertEquals("HIDDEN", sanitized.get("Password"));
-        Assert.assertEquals("HIDDEN", sanitized.get("SECRET"));
-        Assert.assertEquals("HIDDEN", sanitized.get("AccessKey"));
-        Assert.assertEquals("HIDDEN", sanitized.get("TOKEN"));
-        Assert.assertEquals("HIDDEN", sanitized.get("PWD"));
-        Assert.assertEquals("password=HIDDEN", sanitized.get("normalKey"));
+        Assertions.assertEquals("HIDDEN", sanitized.get("Password"));
+        Assertions.assertEquals("HIDDEN", sanitized.get("SECRET"));
+        Assertions.assertEquals("HIDDEN", sanitized.get("AccessKey"));
+        Assertions.assertEquals("HIDDEN", sanitized.get("TOKEN"));
+        Assertions.assertEquals("HIDDEN", sanitized.get("PWD"));
+        Assertions.assertEquals("password=HIDDEN", sanitized.get("normalKey"));
     }
 }
