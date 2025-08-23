@@ -17,6 +17,7 @@
 package org.bithon.agent.controller.cmd.profiling.asyncprofiler;
 
 
+import one.profiler.AsyncProfiler;
 import org.bithon.agent.controller.cmd.profiling.ProfilingException;
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.JfrFileConsumer;
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.TimestampedFile;
@@ -29,11 +30,8 @@ import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.StringUtils;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.PriorityQueue;
@@ -47,8 +45,6 @@ import java.util.regex.Pattern;
 public class AsyncProfilerTask implements Runnable {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(AsyncProfilerTask.class);
 
-    private final String toolLocation;
-    private final String pid;
     private final File outputDir;
     private final int durationSecond;
     private final int intervalSecond;
@@ -56,15 +52,12 @@ public class AsyncProfilerTask implements Runnable {
     private final long endTimestamp;
     private final StreamResponse<ProfilingEvent> streamResponse;
     private final ProgressNotifier progressNotifier;
+    private final AsyncProfiler profiler;
 
-    public AsyncProfilerTask(String toolLocation,
-                             String pid,
-                             File outputDir,
+    public AsyncProfilerTask(File outputDir,
                              ProfilingRequest profilingRequest,
                              long endTimestamp,
                              StreamResponse<ProfilingEvent> streamResponse) {
-        this.toolLocation = toolLocation;
-        this.pid = pid;
         this.outputDir = outputDir;
         this.durationSecond = profilingRequest.getDurationInSeconds();
         this.intervalSecond = profilingRequest.getIntervalInSeconds();
@@ -72,17 +65,19 @@ public class AsyncProfilerTask implements Runnable {
         this.streamResponse = streamResponse;
         this.progressNotifier = new ProgressNotifier(streamResponse);
         this.endTimestamp = endTimestamp;
+
+        this.profiler = AsyncProfiler.getInstance(null);
     }
 
     @Override
     public void run() {
-        this.progressNotifier.sendProgress("Starting profiling for PID " + pid);
+        this.progressNotifier.sendProgress("Starting profiling");
         startProfiling();
 
         LOG.info("Started profiling for {} seconds, end at {}", durationSecond, DateTime.formatDateTime("MM-dd HH:mm:ss.SSS", endTimestamp));
         collectProfilingData();
 
-        progressNotifier.sendProgress("Profiling completed for PID %s", pid);
+        progressNotifier.sendProgress("Profiling completed");
         streamResponse.onComplete();
     }
 
@@ -90,41 +85,41 @@ public class AsyncProfilerTask implements Runnable {
         return this.streamResponse.isCancelled() || this.endTimestamp <= System.currentTimeMillis();
     }
 
-    private void startProfiling() {
-        ProcessBuilder pb = new ProcessBuilder(toolLocation,
-                                               "-d", String.valueOf(durationSecond),
-                                               "--loop", intervalSecond + "s",
-                                               "-f", new File(outputDir, "%t.jfr").getAbsolutePath(),
-                                               // Use the requested events or default to "cpu" if none specified
-                                               "-e", profilingEvents.isEmpty() ? "cpu" : profilingEvents,
-                                               pid);
+    /**
+     * Stop the profiler and clean up resources
+     */
+    public void stopProfiling() {
         try {
-            Process process = pb.start();
+            profiler.stop();
+        } catch (IllegalStateException e) {
+            // Ignore if profiler wasn't running
+        }
+    }
+
+    private void startProfiling() {
+        try {
+            // First ensure profiler is stopped
             try {
-                process.waitFor();
-            } catch (InterruptedException ignored) {
+                profiler.stop();
+            } catch (IllegalStateException e) {
+                // Ignore if profiler wasn't running
             }
 
-            // Read the process output
-            try (BufferedReader stderrReader = new BufferedReader(new InputStreamReader(process.getErrorStream(), StandardCharsets.UTF_8))) {
-                while (!stderrReader.ready()) {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        break;
-                    }
-                }
+            // Configure the profiler for JFR output with loop mode
+            String jfrOutputPattern = new File(outputDir, "%t.jfr").getAbsolutePath();
+            String events = profilingEvents.isEmpty() ? "cpu" : profilingEvents;
+            // Add jfr.settings=none to disable default JFR settings which include CPULoad events
+            // Add jfr.threads=true to capture thread information
+            String command = StringUtils.format("start,event=%s,jfr,file=%s,duration=%ds,loop=%ds,jfr.settings=none,jfr.threads=true",
+                                                events,
+                                                jfrOutputPattern,
+                                                durationSecond,
+                                                intervalSecond);
 
-                // Check for success indicators
-                String stderrLine = stderrReader.readLine();
-                boolean started = (stderrLine != null && stderrLine.contains("started"));
-                if (!started) {
-                    String errorMsg = StringUtils.format("Failed to start async-profiler - output: %s, alive: %s", stderrLine);
-                    throw new ProfilingException(errorMsg);
-                }
-            }
-        } catch (IOException e) {
-            String errorMsg = StringUtils.format("Failed to start async-profiler for PID {}: {}", pid, e.getMessage());
+            profiler.execute(command);
+            progressNotifier.sendProgress("Profiler started successfully with events: %s", events);
+        } catch (IOException | IllegalStateException e) {
+            String errorMsg = "Failed to start profiling: " + e.getMessage();
             throw new ProfilingException(errorMsg, e);
         }
     }
@@ -146,7 +141,7 @@ public class AsyncProfilerTask implements Runnable {
                     TimestampedFile timestampedFile = TimestampedFile.fromFile(file, timestampPattern);
                     if (timestampedFile != null) {
                         queue.offer(timestampedFile);
-                        this.progressNotifier.sendProgress("%s captured, timestamp = %d", timestampedFile.getName(), timestampedFile.getTimestamp());
+                        this.progressNotifier.sendProgress("%s profiling data captured", timestampedFile.getName());
                     }
                 }
             }
@@ -215,7 +210,7 @@ public class AsyncProfilerTask implements Runnable {
 
                                                 @Override
                                                 public void onComplete() {
-                                                    progressNotifier.sendProgress("%s end of collection and streaming.", name);
+                                                    progressNotifier.sendProgress("%s end of streaming.", name);
                                                 }
                                             }
                     );
@@ -249,7 +244,7 @@ public class AsyncProfilerTask implements Runnable {
         long lastModified1 = file.lastModified();
 
         try {
-            Thread.sleep(500); // Wait 500ms
+            Thread.sleep(200); // Wait 200ms
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return -1;

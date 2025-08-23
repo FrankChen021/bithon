@@ -18,6 +18,9 @@ package org.bithon.agent.controller.cmd.profiling;
 
 
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.AsyncProfilerProvider;
+import org.bithon.agent.instrumentation.loader.AgentClassLoader;
+
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * @author frank.chen021@outlook.com
@@ -26,6 +29,16 @@ import org.bithon.agent.controller.cmd.profiling.asyncprofiler.AsyncProfilerProv
 public class ProfilerFactory {
 
     public static IProfilerProvider create() {
+        if (!AgentClassLoader.class.getName().equals(ProfilerFactory.class.getClassLoader().getClass().getName())) {
+            try {
+                Class<?> impl = AgentClassLoader.getClassLoader().loadClass("org.bithon.agent.controller.cmd.profiling.asyncprofiler.AsyncProfilerProvider");
+                return (IProfilerProvider) impl.getConstructor().newInstance();
+            } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException e) {
+                throw new RuntimeException(e);
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e.getTargetException() == null ? e : e.getTargetException());
+            }
+        }
         return new AsyncProfilerProvider();
     }
 }

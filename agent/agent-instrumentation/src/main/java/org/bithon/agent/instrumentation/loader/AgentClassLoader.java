@@ -62,7 +62,7 @@ public class AgentClassLoader {
             if (name.startsWith("agent-")
                 || name.startsWith("component-")
                 || name.startsWith("shaded-")
-                || name.startsWith("jfr-converter-")) {
+                || name.startsWith("async-profiler")) {
                 {
                     return true;
                 }

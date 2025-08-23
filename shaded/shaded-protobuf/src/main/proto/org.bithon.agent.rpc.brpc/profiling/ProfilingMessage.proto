@@ -22,7 +22,7 @@ message ProfilingEvent {
 
     CPULoad cpuLoad = 10;
     CallStackSample callStackSample = 11;
-    HeapSummary heapSummary = 12;
+    HeapUsage heap = 12;
     Malloc malloc = 13;
     AllocationSample allocationSample = 14;
     Lock lock = 15;
@@ -30,7 +30,7 @@ message ProfilingEvent {
 }
 
 message CPULoad {
-  int64 time = 1;
+  int64 timestamp = 1;
   float user = 2;
   float system = 3;
   float machine = 4;
@@ -50,7 +50,7 @@ message StackFrame {
 }
 
 message CallStackSample {
-  int64 time = 1;
+  int64 timestamp = 1;
   int32 threadId = 2;
   string threadName = 3;
   int32 threadState = 4;
@@ -58,17 +58,17 @@ message CallStackSample {
   int32 samples = 6;
 }
 
-message HeapSummary {
-  int64 time = 1;
-  int32 gcId = 2;
+message HeapUsage {
+  int64 timestamp = 1;
 
+  int32 gcId = 5;
   int64 committed = 10;
   int64 used = 11;
   int64 reserved = 12;
 }
 
 message Progress {
-  int64 time = 1;
+  int64 timestamp = 1;
   string message = 10;
 }
 
@@ -76,7 +76,7 @@ message Progress {
  * a native memory allocation event.
  */
 message Malloc {
-  int64 time = 1;
+  int64 timestamp = 1;
   int32 threadId = 2;
   string threadName = 3;
   int64 size = 4;
@@ -84,7 +84,7 @@ message Malloc {
 }
 
 message AllocationSample {
-  int64 time = 1;
+  int64 timestamp = 1;
   int32 threadId = 2;
   string threadName = 3;
   string clazz = 4;
@@ -94,7 +94,7 @@ message AllocationSample {
 }
 
 message Lock {
-  int64 time = 1;
+  int64 timestamp = 1;
   int32 threadId = 2;
   string threadName = 3;
   string lockClass = 4;

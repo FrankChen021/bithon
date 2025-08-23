@@ -21,13 +21,11 @@ import one.jfr.ClassRef;
 import one.jfr.JfrReader;
 import one.jfr.MethodRef;
 import one.jfr.event.Event;
-import one.jfr.event.ExecutionSample;
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.CPUInformation;
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.InitialEnvironmentVariable;
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.InitialSystemProperty;
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.JVMInformation;
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.OSInformation;
-import org.bithon.agent.rpc.brpc.profiling.CallStackSample;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 import org.bithon.agent.rpc.brpc.profiling.StackFrame;
 import org.bithon.component.commons.forbidden.SuppressForbidden;
@@ -64,19 +62,42 @@ public class JfrFileReader implements Closeable {
         delegate.close();
     }
 
-    public static JfrFileReader createReader(String filePath) throws IOException {
-        JfrReader delegate = new JfrReader(filePath);
-        delegate.registerEvent("jdk.CPUInformation", CPUInformation.class);
-        delegate.registerEvent("jdk.InitialSystemProperty", InitialSystemProperty.class);
-        delegate.registerEvent("jdk.InitialEnvironmentVariable", InitialEnvironmentVariable.class);
-        delegate.registerEvent("jdk.OSInformation", OSInformation.class);
-        delegate.registerEvent("jdk.JVMInformation", JVMInformation.class);
-        return new JfrFileReader(delegate);
+    public static JfrFileReader createReader(String filePath, int maxRetries) throws IOException {
+        IOException lastException = null;
+
+        for (int i = 0; i < maxRetries; i++) {
+            try {
+                JfrReader delegate = new JfrReader(filePath);
+                delegate.registerEvent("jdk.CPUInformation", CPUInformation.class);
+                delegate.registerEvent("jdk.InitialSystemProperty", InitialSystemProperty.class);
+                delegate.registerEvent("jdk.InitialEnvironmentVariable", InitialEnvironmentVariable.class);
+                delegate.registerEvent("jdk.OSInformation", OSInformation.class);
+                delegate.registerEvent("jdk.JVMInformation", JVMInformation.class);
+                return new JfrFileReader(delegate);
+            } catch (IOException e) {
+                lastException = e;
+
+                // If it's an incomplete file error, wait and retry
+                if (e.getMessage().contains("Incomplete") || e.getMessage().contains("Invalid")) {
+                    try {
+                        Thread.sleep(300);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new IOException("Interrupted while waiting to retry", ie);
+                    }
+                } else {
+                    // Unknown exception, rethrow it directly
+                    throw e;
+                }
+            }
+        }
+
+        throw new IOException("Failed to process JFR file after " + maxRetries + " retries", lastException);
     }
 
     @SuppressForbidden
     public static void dumpRawEvents(File f) throws IOException {
-        try (JfrFileReader jfr = createReader(f.getAbsolutePath())) {
+        try (JfrFileReader jfr = createReader(f.getAbsolutePath(), 3)) {
             for (Event jfrEvent; (jfrEvent = jfr.readEvent()) != null; ) {
                 System.out.println(jfrEvent);
             }
@@ -84,9 +105,9 @@ public class JfrFileReader implements Closeable {
     }
 
     public static void main(String[] args) throws IOException {
-        File f = new File("/Users/frank.chenling/source/open/bithon/agent/agent-distribution/tools/async-profiler/macos/bin/output.jfr");
+        File f = new File("/Users/frank.chenling/source/open/bithon/agent/agent-distribution/target/agent-distribution/agent-distribution/tools/async-profiler/macos/bin/tmp.jfr");
 
-        dumpRawEvents(f);
+        //dumpRawEvents(f);
 
         JfrFileConsumer.consume(f, new JfrFileConsumer.EventConsumer() {
             @Override
@@ -96,7 +117,7 @@ public class JfrFileReader implements Closeable {
 
             @Override
             public void onEvent(ProfilingEvent event) {
-                if (event.getEventCase() == ProfilingEvent.EventCase.LOCK) {
+                if (event.getEventCase() == ProfilingEvent.EventCase.CPULOAD) {
                     System.out.println(event);
                 }
             }
@@ -111,21 +132,6 @@ public class JfrFileReader implements Closeable {
                 return false;
             }
         });
-    }
-
-    public CallStackSample toCallStackSample(ExecutionSample event) {
-        List<StackFrame> frames = getStackTrace(event.stackTraceId);
-        if (frames == null) {
-            return null;
-        }
-        CallStackSample.Builder builder = CallStackSample.newBuilder()
-                                                         .setTime(this.toEpochNano(event.time))
-                                                         .setThreadId(event.tid)
-                                                         .setThreadName(this.delegate.threads.get(event.tid))
-                                                         .setThreadState(event.threadState)
-                                                         .addAllStackTrace(frames)
-                                                         .setSamples(event.samples);
-        return builder.build();
     }
 
     public List<StackFrame> getStackTrace(int stackTraceId) {
@@ -254,8 +260,18 @@ public class JfrFileReader implements Closeable {
                methodType == TYPE_KERNEL;
     }
 
-    public long toEpochNano(long eventTime) {
-        return delegate.startNanos + ((eventTime - delegate.startTicks) / delegate.ticksPerSec);
+    /**
+     * Convert JFR event time to epoch milliseconds.
+     * JFR event times are in ticks, which is somehow based on seconds
+     */
+    public long toEpochMilliseconds(long eventTimeTicks) {
+        long elapsedTicks = eventTimeTicks - delegate.startTicks;
+
+        // Convert ticks to seconds
+        long elapsedMilliseconds = elapsedTicks * 1000L / delegate.ticksPerSec;
+
+        // Add to the start time in seconds
+        return delegate.startNanos / 1_000_000L + elapsedMilliseconds;
     }
 
     public String getThreadName(int tid) {

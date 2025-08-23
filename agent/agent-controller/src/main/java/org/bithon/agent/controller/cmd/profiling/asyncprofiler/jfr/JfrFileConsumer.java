@@ -25,7 +25,8 @@ import one.jfr.event.ExecutionSample;
 import one.jfr.event.GCHeapSummary;
 import one.jfr.event.MallocEvent;
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.InitialSystemProperty;
-import org.bithon.agent.rpc.brpc.profiling.HeapSummary;
+import org.bithon.agent.rpc.brpc.profiling.CallStackSample;
+import org.bithon.agent.rpc.brpc.profiling.HeapUsage;
 import org.bithon.agent.rpc.brpc.profiling.Lock;
 import org.bithon.agent.rpc.brpc.profiling.Malloc;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
@@ -42,7 +43,8 @@ import java.util.TreeMap;
  */
 public class JfrFileConsumer {
     public interface EventConsumer {
-        default void onStart() {}
+        default void onStart() {
+        }
 
         /**
          * Called when a JFR event is read.
@@ -53,11 +55,12 @@ public class JfrFileConsumer {
 
         boolean isCancelled();
 
-        default void onComplete() {}
+        default void onComplete() {
+        }
     }
 
     public static void consume(File jfrFile, EventConsumer eventConsumer) throws IOException {
-        try (JfrFileReader reader = JfrFileReader.createReader(jfrFile.getAbsolutePath())) {
+        try (JfrFileReader reader = JfrFileReader.createReader(jfrFile.getAbsolutePath(), 3)) {
             // Use TreeMap to ensure the system properties are sorted by key
             final Map<String, String> systemProperties = new TreeMap<>();
             eventConsumer.onStart();
@@ -65,13 +68,26 @@ public class JfrFileConsumer {
                 for (Event event; !eventConsumer.isCancelled() && (event = reader.readEvent()) != null; ) {
                     ProfilingEvent profilingEvent = null;
                     if (event instanceof ExecutionSample) {
+                        if (event.stackTraceId == 0) {
+                            continue;
+                        }
+
+                        CallStackSample callstack = CallStackSample.newBuilder()
+                                                                   .setTimestamp(reader.toEpochMilliseconds(event.time))
+                                                                   .setThreadId(event.tid)
+                                                                   .setThreadName(reader.getThreadName(event.tid))
+                                                                   .setThreadState(((ExecutionSample) event).threadState)
+                                                                   .addAllStackTrace(reader.getStackTrace(event.stackTraceId))
+                                                                   .setSamples(((ExecutionSample) event).samples)
+                                                                   .build();
+
                         profilingEvent = ProfilingEvent.newBuilder()
-                                                       .setCallStackSample(reader.toCallStackSample((ExecutionSample) event))
+                                                       .setCallStackSample(callstack)
                                                        .build();
 
                     } else if (event instanceof CPULoad) {
                         org.bithon.agent.rpc.brpc.profiling.CPULoad cpuLoad = org.bithon.agent.rpc.brpc.profiling.CPULoad.newBuilder()
-                                                                                                                         .setTime(reader.toEpochNano(event.time))
+                                                                                                                         .setTimestamp(reader.toEpochMilliseconds(event.time))
                                                                                                                          .setUser(((CPULoad) event).jvmUser)
                                                                                                                          .setSystem(((CPULoad) event).jvmSystem)
                                                                                                                          .setMachine(((CPULoad) event).machineTotal)
@@ -87,13 +103,13 @@ public class JfrFileConsumer {
                     } else if (event instanceof GCHeapSummary) {
                         GCHeapSummary heap = (GCHeapSummary) event;
                         profilingEvent = ProfilingEvent.newBuilder()
-                                                       .setHeapSummary(HeapSummary.newBuilder()
-                                                                                  .setTime(reader.toEpochNano(event.time))
-                                                                                  .setGcId(heap.gcId)
-                                                                                  .setUsed(heap.used)
-                                                                                  .setCommitted(heap.committed)
-                                                                                  .setReserved(heap.reserved)
-                                                                                  .build())
+                                                       .setHeap(HeapUsage.newBuilder()
+                                                                         .setTimestamp(reader.toEpochMilliseconds(event.time))
+                                                                         .setGcId(heap.gcId)
+                                                                         .setUsed(heap.used)
+                                                                         .setCommitted(heap.committed)
+                                                                         .setReserved(heap.reserved)
+                                                                         .build())
                                                        .build();
 
                     } else if (event instanceof MallocEvent) { // The native memory allocation event
@@ -103,7 +119,7 @@ public class JfrFileConsumer {
                         }
 
                         Malloc malloc = Malloc.newBuilder()
-                                              .setTime(reader.toEpochNano(mallocEvent.time))
+                                              .setTimestamp(reader.toEpochMilliseconds(mallocEvent.time))
                                               .setThreadId(mallocEvent.tid)
                                               .setThreadName(reader.getThreadName(mallocEvent.tid))
                                               .setSize(mallocEvent.size)
@@ -118,7 +134,7 @@ public class JfrFileConsumer {
                         }
 
                         org.bithon.agent.rpc.brpc.profiling.AllocationSample sample = org.bithon.agent.rpc.brpc.profiling.AllocationSample.newBuilder()
-                                                                                                                                          .setTime(reader.toEpochNano(allocationSample.time))
+                                                                                                                                          .setTimestamp(reader.toEpochMilliseconds(allocationSample.time))
                                                                                                                                           .setThreadId(allocationSample.tid)
                                                                                                                                           .setThreadName(reader.getThreadName(allocationSample.tid))
                                                                                                                                           .addAllStackTrace(reader.getStackTrace(allocationSample.stackTraceId))
@@ -127,7 +143,6 @@ public class JfrFileConsumer {
                                                                                                                                           .setClazz(reader.getClassName(allocationSample.classId))
                                                                                                                                           .build();
                         profilingEvent = ProfilingEvent.newBuilder().setAllocationSample(sample).build();
-
                     } else if (event instanceof ContendedLock) {
                         ContendedLock contendedLock = (ContendedLock) event;
                         if (contendedLock.stackTraceId == 0) {
@@ -135,7 +150,7 @@ public class JfrFileConsumer {
                         }
 
                         Lock lock = Lock.newBuilder()
-                                        .setTime(reader.toEpochNano(contendedLock.time))
+                                        .setTimestamp(reader.toEpochMilliseconds(contendedLock.time))
                                         .setThreadId(contendedLock.tid)
                                         .setThreadName(reader.getThreadName(contendedLock.tid))
                                         .addAllStackTrace(reader.getStackTrace(event.stackTraceId))

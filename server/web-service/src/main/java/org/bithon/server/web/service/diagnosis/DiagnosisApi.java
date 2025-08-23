@@ -334,7 +334,7 @@ public class DiagnosisApi {
                         case CPULOAD -> event.getCpuLoad();
                         case SYSTEMPROPERTIES -> event.getSystemProperties();
                         case CALLSTACKSAMPLE -> event.getCallStackSample();
-                        case HEAPSUMMARY -> event.getHeapSummary();
+                        case HEAP -> event.getHeap();
                         case PROGRESS -> event.getProgress();
                         default -> null;
                     };

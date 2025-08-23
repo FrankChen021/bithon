@@ -17,9 +17,9 @@
 package org.bithon.agent.controller.cmd.profiling.asyncprofiler;
 
 
+import one.profiler.AsyncProfiler;
 import org.bithon.agent.controller.cmd.profiling.IProfilerProvider;
 import org.bithon.agent.controller.cmd.profiling.ProfilingException;
-import org.bithon.agent.instrumentation.utils.AgentDirectory;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingRequest;
 import org.bithon.component.brpc.StreamResponse;
@@ -28,17 +28,14 @@ import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.component.commons.uuid.UUIDv7Generator;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.management.ManagementFactory;
-import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Set;
 
 /**
+ * The class provides the profiling implementation based on async-profiler.
+ *
  * @author frank.chen021@outlook.com
  * @date 19/8/25 3:56 pm
  */
@@ -46,46 +43,29 @@ public class AsyncProfilerProvider implements IProfilerProvider {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(AsyncProfilerProvider.class);
 
     /**
-     * Make sure only one profiling session can run at a time.
+     * The async-profiler guarantees that only one instance is running at a time, so we don't need to worry about concurrent profiling requests.
      */
-    private static volatile boolean isProfiling = false;
-
-
     @Override
     public void start(ProfilingRequest request, StreamResponse<ProfilingEvent> streamResponse) {
-        synchronized (AsyncProfilerProvider.class) {
-            if (isProfiling) {
-                streamResponse.onException(new ProfilingException("A profiling session is already running"));
-                return;
-            }
-            isProfiling = true;
-        }
-
-        try {
-            startProfilingTask(request, streamResponse);
-        } catch (Throwable e) {
-            streamResponse.onException(e);
-        } finally {
-            isProfiling = false;
-        }
-    }
-
-    private void startProfilingTask(ProfilingRequest request, StreamResponse<ProfilingEvent> streamResponse) {
         if (request.getIntervalInSeconds() <= 0 || request.getDurationInSeconds() <= 0) {
             throw new ProfilingException("Interval and duration must be greater than 0");
         }
 
-        // Determine OS and arch
-        String toolLocation = getToolLocation();
-        String pid = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
-
-        //
-        // Check if requested events are supported
-        //
+        // Create a progress notifier
         ProgressNotifier progressNotifier = new ProgressNotifier(streamResponse);
-        progressNotifier.sendProgress("Validating if target application supports profiling events");
-        {
-            Set<String> supportedEvents = getSupportedEvents(toolLocation, pid);
+        progressNotifier.sendProgress("Validating if profiling events are supported for this application...");
+
+        // Validate requested events
+        try {
+            String[] availableEvents = AsyncProfiler.getInstance().execute("list").split("\n");
+            Set<String> supportedEvents = new HashSet<>();
+            for (String line : availableEvents) {
+                line = line.trim();
+                if (!line.isEmpty() && !line.startsWith("Basic events:") && !line.startsWith("Java method")) {
+                    supportedEvents.add(line);
+                }
+            }
+
             Set<String> unsupportedEvents = new HashSet<>(request.getProfileEventsList());
             unsupportedEvents.removeAll(supportedEvents);
             if (!unsupportedEvents.isEmpty()) {
@@ -93,12 +73,17 @@ public class AsyncProfilerProvider implements IProfilerProvider {
                                                                 String.join(", ", unsupportedEvents),
                                                                 String.join(", ", supportedEvents)));
             }
+        } catch (IOException e) {
+            throw new ProfilingException("Failed to check supported events: " + e.getMessage(), e);
         }
 
+        //
+        // Start profiling and streaming
+        //
         String uuid = UUIDv7Generator.create(UUIDv7Generator.INCREMENT_TYPE_DEFAULT)
                                      .generate()
                                      .toCompactFormat();
-        File dir = new File(System.getProperty("java.io.tmpdir", "/tmp"), uuid);
+        File dir = new File(System.getProperty("java.io.tmpdir", "/tmp"), "org.bithon.agent/profiling/" + uuid);
         if (!dir.exists() && !dir.mkdirs()) {
             throw new ProfilingException("Failed to create temporary directory: " + dir.getAbsolutePath());
         }
@@ -110,19 +95,18 @@ public class AsyncProfilerProvider implements IProfilerProvider {
         long endTime = startTime + (durationSeconds + intervalSeconds + 3) * 1000L;
 
         Thread proflingThread = new Thread(() -> {
+            AsyncProfilerTask task = null;
             try {
-                this.tryStopProfiling(toolLocation, pid);
-
-                AsyncProfilerTask task = new AsyncProfilerTask(toolLocation, pid, dir, request, endTime, streamResponse);
+                task = new AsyncProfilerTask(dir, request, endTime, streamResponse);
                 task.run();
             } catch (Throwable e) {
                 streamResponse.onException(e);
             } finally {
-                // Terminate the profiler process after the duration
-                tryStopProfiling(toolLocation, pid);
-                LOG.info("Stopped profiling for PID {}", pid);
-
-                isProfiling = false;
+                // Stop the profiler if task was created
+                if (task != null) {
+                    task.stopProfiling();
+                }
+                LOG.info("Stopped profiling");
 
                 // Cleanup
                 try {
@@ -142,96 +126,5 @@ public class AsyncProfilerProvider implements IProfilerProvider {
         proflingThread.setName("bithon-profiler");
         proflingThread.setDaemon(true);
         proflingThread.start();
-    }
-
-    private void tryStopProfiling(String toolLocation, String pid) {
-        try {
-            Process process = new ProcessBuilder(toolLocation, "stop", pid).start();
-            process.waitFor();
-        } catch (IOException | InterruptedException ignored) {
-        }
-    }
-
-    /**
-     * return the supported event names by the target application. The tool returns an example as follows:
-     * Basic events:
-     * cpu
-     * alloc
-     * nativemem
-     * lock
-     * wall
-     * itimer
-     * Java method calls:
-     * ClassName.methodName
-     *
-     * @param toolLocation The location of the async-profiler tool
-     * @return A set of supported event names
-     */
-    private Set<String> getSupportedEvents(String toolLocation, String pid) {
-        Set<String> supportedEvents = new HashSet<>();
-        try {
-            Process process = new ProcessBuilder(toolLocation, "list", pid).start();
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    if (line.length() > 2 && line.charAt(0) == ' ' && line.charAt(1) == ' ' && Character.isAlphabetic(line.charAt(2))) {
-                        String eventName = line.substring(2).trim();
-                        if (!eventName.isEmpty()) {
-                            supportedEvents.add(eventName);
-                        }
-                    }
-                }
-            }
-
-            try {
-                process.waitFor();
-            } catch (InterruptedException ignored) {
-                Thread.currentThread().interrupt();
-            }
-
-            if (process.exitValue() != 0) {
-                throw new ProfilingException(StringUtils.format("Failed to get supported events. Exit code: %d", process.exitValue()));
-            }
-
-            if (supportedEvents.isEmpty()) {
-                throw new ProfilingException("Failed to get supported events.");
-            }
-
-            return supportedEvents;
-        } catch (IOException e) {
-            throw new ProfilingException(StringUtils.format("Failed to get supported events: %s", e.getMessage()));
-        }
-    }
-
-    private static String getToolLocation() {
-        String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
-        String arch = System.getProperty("os.arch").toLowerCase(Locale.ENGLISH);
-
-        String dir;
-        if (os.contains("mac")) {
-            dir = "macos";
-        } else if (os.contains("linux")) {
-            if (arch.contains("aarch64") || arch.contains("arm64")) {
-                dir = "linux-arm64";
-            } else {
-                dir = "linux-amd64";
-            }
-        } else {
-            throw new ProfilingException(StringUtils.format("The profiling does not support the this system. os = %s, arch = %s ", os, arch));
-        }
-
-        File toolHome = AgentDirectory.getSubDirectory("tools/async-profiler");
-        if (!toolHome.exists()) {
-            throw new ProfilingException("Cannot find the profiling tool at [%s]. Please report it to the agent maintainers." + toolHome.getAbsolutePath());
-        }
-        File osDir = new File(toolHome, dir);
-        if (!osDir.exists()) {
-            throw new ProfilingException("Cannot find the profiling tool at [%s]. Please report it to the agent maintainers. " + osDir.getAbsolutePath());
-        }
-        File toolPath = new File(osDir, "bin/asprof");
-        if (!toolPath.exists()) {
-            throw new ProfilingException(StringUtils.format("Cannot locate the profiling tool at [%s]. Please report it to agent maintainers.", toolPath));
-        }
-        return toolPath.getAbsolutePath();
     }
 }

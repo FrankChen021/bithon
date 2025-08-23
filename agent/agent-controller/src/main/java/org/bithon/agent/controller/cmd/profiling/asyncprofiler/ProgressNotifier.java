@@ -20,7 +20,6 @@ package org.bithon.agent.controller.cmd.profiling.asyncprofiler;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 import org.bithon.agent.rpc.brpc.profiling.Progress;
 import org.bithon.component.brpc.StreamResponse;
-import org.bithon.component.commons.time.Clock;
 import org.bithon.component.commons.utils.StringUtils;
 
 /**
@@ -29,17 +28,15 @@ import org.bithon.component.commons.utils.StringUtils;
  */
 public class ProgressNotifier {
     private final StreamResponse<ProfilingEvent> streamResponse;
-    private final Clock clock;
 
     public ProgressNotifier(StreamResponse<ProfilingEvent> streamResponse) {
         this.streamResponse = streamResponse;
-        this.clock = new Clock();
     }
 
     public void sendProgress(String message) {
         ProfilingEvent event = ProfilingEvent.newBuilder()
                                              .setProgress(Progress.newBuilder()
-                                                                  .setTime(clock.currentNanoseconds())
+                                                                  .setTimestamp(System.currentTimeMillis())
                                                                   .setMessage(message)
                                                                   .build())
                                              .build();
@@ -49,7 +46,7 @@ public class ProgressNotifier {
     public void sendProgress(String messageFormat, Object... args) {
         ProfilingEvent event = ProfilingEvent.newBuilder()
                                              .setProgress(Progress.newBuilder()
-                                                                  .setTime(clock.currentNanoseconds())
+                                                                  .setTimestamp(System.currentTimeMillis())
                                                                   .setMessage(StringUtils.format(messageFormat, args))
                                                                   .build())
                                              .build();
