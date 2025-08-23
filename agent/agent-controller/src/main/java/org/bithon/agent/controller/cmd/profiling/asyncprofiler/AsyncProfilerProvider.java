@@ -118,11 +118,11 @@ public class AsyncProfilerProvider implements IProfilerProvider {
             } catch (Throwable e) {
                 streamResponse.onException(e);
             } finally {
-                isProfiling = false;
-
                 // Terminate the profiler process after the duration
                 tryStopProfiling(toolLocation, pid);
                 LOG.info("Stopped profiling for PID {}", pid);
+
+                isProfiling = false;
 
                 // Cleanup
                 try {

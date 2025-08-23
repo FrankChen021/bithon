@@ -146,7 +146,7 @@ public class AsyncProfilerTask implements Runnable {
                     TimestampedFile timestampedFile = TimestampedFile.fromFile(file, timestampPattern);
                     if (timestampedFile != null) {
                         queue.offer(timestampedFile);
-                        this.progressNotifier.sendProgress("%s captured, timestamp = %d", file.getName(), timestampedFile.getTimestamp());
+                        this.progressNotifier.sendProgress("%s captured, timestamp = %d", timestampedFile.getName(), timestampedFile.getTimestamp());
                     }
                 }
             }
@@ -155,24 +155,24 @@ public class AsyncProfilerTask implements Runnable {
                 TimestampedFile timestampedFile = queue.peek();
 
                 //noinspection DataFlowIssue
-                File jfrFile = timestampedFile.getFile();
-
-                // Skip if file doesn't exist anymore
-                if (!jfrFile.exists()) {
+                File jfrFilePath = timestampedFile.getPath();
+                if (!jfrFilePath.exists()) {
                     queue.poll();
+
+                    // Skip if file doesn't exist anymore
                     continue;
                 }
 
                 //
                 // Check if enough time has passed since the file's timestamp
                 //
-                String jfrFileName = jfrFile.getName();
+                String name = timestampedFile.getName();
                 long now = System.currentTimeMillis();
                 long fileTimestamp = timestampedFile.getTimestamp();
                 long expectedReadyTime = fileTimestamp + this.intervalSecond * 1000L + 500; // Add 500ms buffer
                 long waitTime = expectedReadyTime - now;
                 while (waitTime > 0 && !this.isTaskCancelled() && !Thread.currentThread().isInterrupted()) {
-                    this.progressNotifier.sendProgress("%s is under collection. Waiting...", jfrFileName);
+                    this.progressNotifier.sendProgress("%s is under collection. Waiting...", name);
 
                     long sleepTime = Math.min(waitTime, 1000); // Sleep in chunks of 1 second
                     waitTime -= sleepTime;
@@ -185,7 +185,7 @@ public class AsyncProfilerTask implements Runnable {
                 }
 
                 // Additional check: verify file is complete and stable
-                long size = waitForCompleteAndReturnSize(jfrFile.toPath());
+                long size = waitForCompleteAndReturnSize(jfrFilePath.toPath());
                 if (size < 0) {
                     continue;
                 }
@@ -194,12 +194,12 @@ public class AsyncProfilerTask implements Runnable {
                 queue.poll();
 
                 try {
-                    JfrFileConsumer.consume(jfrFile,
+                    JfrFileConsumer.consume(jfrFilePath,
                                             new JfrFileConsumer.EventConsumer() {
                                                 @Override
                                                 public void onStart() {
                                                     progressNotifier.sendProgress("%s is ready and has a size of %s data. Streaming profiling data...",
-                                                                                  jfrFileName,
+                                                                                  name,
                                                                                   HumanReadableNumber.format(size, 2, HumanReadableNumber.UnitSystem.BINARY_BYTE));
                                                 }
 
@@ -215,17 +215,17 @@ public class AsyncProfilerTask implements Runnable {
 
                                                 @Override
                                                 public void onComplete() {
-                                                    progressNotifier.sendProgress("%s end of collection and streaming.", jfrFileName);
+                                                    progressNotifier.sendProgress("%s end of collection and streaming.", name);
                                                 }
                                             }
                     );
                 } catch (IOException e) {
                     // Only catch IOException for this file to ignore it
-                    progressNotifier.sendProgress("Failed to collect profiling events from %s: %s", jfrFileName, e.getMessage());
+                    progressNotifier.sendProgress("Failed to collect profiling events from %s: %s", name, e.getMessage());
                 } finally {
-                    if (!jfrFile.delete()) {
-                        LOG.warn("Failed to delete profiling file: {}", jfrFileName);
-                        skipped.add(jfrFile.getAbsolutePath());
+                    if (!jfrFilePath.delete()) {
+                        LOG.warn("Failed to delete profiling file: {}", name);
+                        skipped.add(jfrFilePath.getAbsolutePath());
                     }
                 }
             }

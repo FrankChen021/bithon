@@ -26,16 +26,22 @@ import java.util.regex.Pattern;
  * Represents a JFR file with its extracted timestamp
  */
 public class TimestampedFile implements Comparable<TimestampedFile> {
-    private final File file;
+    private final File path;
+    private final String name;
     private final long timestamp;
 
-    private TimestampedFile(File file, long timestamp) {
-        this.file = file;
+    private TimestampedFile(File path, String name, long timestamp) {
+        this.path = path;
+        this.name = name;
         this.timestamp = timestamp;
     }
 
-    public File getFile() {
-        return file;
+    public String getName() {
+        return name;
+    }
+
+    public File getPath() {
+        return path;
     }
 
     public long getTimestamp() {
@@ -44,7 +50,7 @@ public class TimestampedFile implements Comparable<TimestampedFile> {
 
     @Override
     public String toString() {
-        return file.getPath();
+        return path.getPath();
     }
 
     @Override
@@ -58,7 +64,7 @@ public class TimestampedFile implements Comparable<TimestampedFile> {
             String timestampText = matcher.group(1);
 
             // Parse timestamp from format YYYYMMDD-HHMMSS
-            return new TimestampedFile(file, parseTimestamp(timestampText));
+            return new TimestampedFile(file, timestampText, parseTimestamp(timestampText));
         }
         return null;
     }
