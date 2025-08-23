@@ -16,8 +16,8 @@
 
 package org.bithon.agent.observability.metric.collector.jvm;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,12 +34,12 @@ public class SanitizerTest {
         input.put("normalKey", "normalValue");
 
         Map<String, String> sanitized = JvmEventMessageBuilder.Sanitizer.sanitizeProperties(input);
-        Assert.assertEquals("HIDDEN", sanitized.get("password"));
-        Assert.assertEquals("HIDDEN", sanitized.get("secret"));
-        Assert.assertEquals("HIDDEN", sanitized.get("accessKey"));
-        Assert.assertEquals("HIDDEN", sanitized.get("token"));
-        Assert.assertEquals("HIDDEN", sanitized.get("pwd"));
-        Assert.assertEquals("normalValue", sanitized.get("normalKey"));
+    Assertions.assertEquals("HIDDEN", sanitized.get("password"));
+    Assertions.assertEquals("HIDDEN", sanitized.get("secret"));
+    Assertions.assertEquals("HIDDEN", sanitized.get("accessKey"));
+    Assertions.assertEquals("HIDDEN", sanitized.get("token"));
+    Assertions.assertEquals("HIDDEN", sanitized.get("pwd"));
+    Assertions.assertEquals("normalValue", sanitized.get("normalKey"));
     }
 
     @Test
@@ -53,11 +53,11 @@ public class SanitizerTest {
         input.put("key3", "noSecretHere");
 
         Map<String, String> sanitized = JvmEventMessageBuilder.Sanitizer.sanitizeProperties(input);
-        Assert.assertEquals("password=HIDDEN", sanitized.get("normalKey"));
-        Assert.assertEquals("token='HIDDEN'", sanitized.get("anotherKey"));
-        Assert.assertEquals("secret=HIDDEN", sanitized.get("yetAnotherKey"));
-        Assert.assertEquals("pwd=HIDDEN", sanitized.get("key"));
-        Assert.assertEquals("accessKey=HIDDEN", sanitized.get("key2"));
+    Assertions.assertEquals("password=HIDDEN", sanitized.get("normalKey"));
+    Assertions.assertEquals("token='HIDDEN'", sanitized.get("anotherKey"));
+    Assertions.assertEquals("secret=HIDDEN", sanitized.get("yetAnotherKey"));
+    Assertions.assertEquals("pwd=HIDDEN", sanitized.get("key"));
+    Assertions.assertEquals("accessKey=HIDDEN", sanitized.get("key2"));
         Assert.assertEquals("noSecretHere", sanitized.get("key3"));
     }
 
