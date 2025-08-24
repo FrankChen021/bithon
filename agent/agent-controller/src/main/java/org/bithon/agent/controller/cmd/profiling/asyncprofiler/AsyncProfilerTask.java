@@ -104,11 +104,10 @@ public class AsyncProfilerTask implements Runnable {
             // Configure the profiler for JFR output with loop mode
             String jfrOutputPattern = new File(outputDir, "%t.jfr").getAbsolutePath();
             String events = profilingEvents.isEmpty() ? "cpu" : profilingEvents;
-            String command = StringUtils.format("start,event=%s,jfr,file=%s,loop=%ds,duration=%s",
+            String command = StringUtils.format("start,event=%s,jfr,file=%s,loop=%ds",
                                                 events,
                                                 jfrOutputPattern,
-                                                intervalSecond,
-                                                durationSecond);
+                                                intervalSecond);
 
             profiler.execute(command);
             progressNotifier.sendProgress("Profiler started successfully with events: %s", events);

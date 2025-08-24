@@ -42,9 +42,8 @@ import java.util.Set;
 public class AsyncProfilerProvider implements IProfilerProvider {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(AsyncProfilerProvider.class);
 
-    /**
-     * The async-profiler guarantees that only one instance is running at a time, so we don't need to worry about concurrent profiling requests.
-     */
+    private static volatile boolean isProfilingRunning = false;
+
     @Override
     public void start(ProfilingRequest request, StreamResponse<ProfilingEvent> streamResponse) {
         if (request.getIntervalInSeconds() <= 0 || request.getDurationInSeconds() <= 0) {
@@ -77,24 +76,37 @@ public class AsyncProfilerProvider implements IProfilerProvider {
             throw new ProfilingException("Failed to check supported events: " + e.getMessage(), e);
         }
 
-        //
-        // Start profiling and streaming
-        //
-        String uuid = UUIDv7Generator.create(UUIDv7Generator.INCREMENT_TYPE_DEFAULT)
-                                     .generate()
-                                     .toCompactFormat();
-        File dir = new File(System.getProperty("java.io.tmpdir", "/tmp"), "org.bithon.agent/profiling/" + uuid);
-        if (!dir.exists() && !dir.mkdirs()) {
-            throw new ProfilingException("Failed to create temporary directory: " + dir.getAbsolutePath());
+        // Even though async-profiler guarantees that only one instance is running at a time,
+        // but it might take a while to stop the previous profiling session completely if the profiling is closed from the client
+        if (isProfilingRunning) {
+            throw new ProfilingException("Another profiling task is still running.");
+        } else {
+            synchronized (AsyncProfilerProvider.class) {
+                if (isProfilingRunning) {
+                    throw new ProfilingException("Another profiling task is still running.");
+                }
+                isProfilingRunning = true;
+            }
         }
 
-        // Configuration
-        int profilingDuration = request.getDurationInSeconds();
-        int profilingInterval = request.getIntervalInSeconds();
-        long startTime = System.currentTimeMillis();
-        long endTime = startTime + (profilingDuration + profilingInterval + 3) * 1000L;
-
         Thread proflingThread = new Thread(() -> {
+            String uuid = UUIDv7Generator.create(UUIDv7Generator.INCREMENT_TYPE_DEFAULT)
+                                         .generate()
+                                         .toCompactFormat();
+            File dir = new File(System.getProperty("java.io.tmpdir", "/tmp"), "org.bithon.agent/profiling/" + uuid);
+            if (!dir.exists() && !dir.mkdirs()) {
+                throw new ProfilingException("Failed to create temporary directory: " + dir.getAbsolutePath());
+            }
+
+            // Configuration
+            int profilingDuration = request.getDurationInSeconds();
+            int profilingInterval = request.getIntervalInSeconds();
+            long startTime = System.currentTimeMillis();
+            long endTime = startTime + (profilingDuration + profilingInterval + 3) * 1000L;
+
+            //
+            // Start profiling and streaming
+            //
             AsyncProfilerTask task = null;
             try {
                 task = new AsyncProfilerTask(dir, request, endTime, streamResponse);
@@ -102,6 +114,8 @@ public class AsyncProfilerProvider implements IProfilerProvider {
             } catch (Throwable e) {
                 streamResponse.onException(e);
             } finally {
+                isProfilingRunning = false;
+
                 // Stop the profiler if task was created
                 if (task != null) {
                     task.stopProfiling();
@@ -125,6 +139,7 @@ public class AsyncProfilerProvider implements IProfilerProvider {
         });
         proflingThread.setName("bithon-profiler");
         proflingThread.setDaemon(true);
+        proflingThread.setUncaughtExceptionHandler((t, e) -> isProfilingRunning = false);
         proflingThread.start();
     }
 }
