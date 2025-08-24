@@ -21,6 +21,7 @@ import feign.Contract;
 import feign.Feign;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -52,10 +53,13 @@ import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.client.ErrorResponseDecoder;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
+import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -83,9 +87,13 @@ import java.util.concurrent.CountDownLatch;
  * @date 2023/4/9 16:27
  */
 @Slf4j
+@Conditional(WebServiceModuleEnabler.class)
+@Component
 public class AgentServiceProxyFactory {
 
     private final InvocationManager invocationManager = new InvocationManager();
+
+    @Getter
     private final DiscoveredServiceInvoker discoveryServiceInvoker;
     private final ApplicationContext applicationContext;
 
@@ -368,7 +376,16 @@ public class AgentServiceProxyFactory {
                 sendStreamingRpc(serviceRequest);
             } else {
                 // The one way streaming cancellation is also processed here,
-                // When a streaming is cancelled by ueser code, the client InvocationManager will send a CANCELLATION message to server side from here.
+                // When a streaming is cancelled by user code, the client InvocationManager will send a CANCELLATION message to server side from here.
+                if (serviceRequest.getMessageType() == ServiceMessageType.CLIENT_STREAMING_CANCEL) {
+                    log.info("Sending streaming cancellation request to agent [{}|{}] via controller [{}|{}] for transaction [{}]",
+                             targetApplication,
+                             targetInstance,
+                             controller.getHost(),
+                             controller.getPort(),
+                             serviceRequest.getTransactionId());
+                }
+
                 sendRequestResponseRpc(serviceRequest);
             }
         }
@@ -402,7 +419,7 @@ public class AgentServiceProxyFactory {
                                           },
                                           discoveryServiceInvoker.getExecutor())
                              .thenAccept((responseBytes) -> {
-                                 // For message type like streaming canllelation, there's no returning body
+                                 // For message type like streaming cancellation, there's no returning body
                                  if (responseBytes != null) {
                                      try {
                                          ServiceResponseMessageIn response = ServiceResponseMessageIn.from(new ByteArrayInputStream(responseBytes));

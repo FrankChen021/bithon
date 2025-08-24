@@ -28,17 +28,18 @@ import org.bithon.agent.rpc.brpc.cmd.IProfilingCommand;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingRequest;
 import org.bithon.component.brpc.StreamResponse;
+import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.forbidden.SuppressForbidden;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.web.service.agent.sql.table.AgentServiceProxyFactory;
 import org.bithon.shaded.com.google.protobuf.GeneratedMessageV3;
 import org.bithon.shaded.com.google.protobuf.util.JsonFormat;
-import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -71,13 +72,12 @@ import java.util.concurrent.atomic.AtomicReference;
 @RestController
 public class DiagnosisApi {
 
+    private final AgentServiceProxyFactory agentServiceProxyFactory;
     private final DiscoveredServiceInvoker discoveredServiceInvoker;
-    private final ApplicationContext applicationContext;
 
-    public DiagnosisApi(DiscoveredServiceInvoker discoveredServiceInvoker,
-                        ApplicationContext applicationContext) {
-        this.discoveredServiceInvoker = discoveredServiceInvoker;
-        this.applicationContext = applicationContext;
+    public DiagnosisApi(AgentServiceProxyFactory agentServiceProxyFactory) {
+        this.agentServiceProxyFactory = agentServiceProxyFactory;
+        this.discoveredServiceInvoker = agentServiceProxyFactory.getDiscoveryServiceInvoker();
     }
 
     @Data
@@ -140,7 +140,6 @@ public class DiagnosisApi {
         //
         // Create service proxy to agent via controller
         //
-        AgentServiceProxyFactory agentServiceProxyFactory = new AgentServiceProxyFactory(discoveredServiceInvoker, applicationContext);
         IJvmCommand agentJvmCommand = agentServiceProxyFactory.createUnicastProxy(IJvmCommand.class,
                                                                                   controller,
                                                                                   request.getAppName(),
@@ -312,7 +311,6 @@ public class DiagnosisApi {
         //
         // Create service proxy to agent via controller
         //
-        AgentServiceProxyFactory agentServiceProxyFactory = new AgentServiceProxyFactory(discoveredServiceInvoker, applicationContext);
         IProfilingCommand profilingCommand = agentServiceProxyFactory.createUnicastProxy(IProfilingCommand.class,
                                                                                          controller,
                                                                                          request.getAppName(),
@@ -353,7 +351,20 @@ public class DiagnosisApi {
 
             @Override
             public void onException(Throwable throwable) {
-                emitter.completeWithError(throwable);
+                if (throwable instanceof ServiceInvocationException) {
+                    try {
+                        emitter.send(SseEmitter.event().name("error")
+                                               .data(StringUtils.format("""
+                                                                            {"message":"%s"}
+                                                                            """,
+                                                                        throwable.getMessage()))
+                                               .build());
+                    } catch (IOException ignored) {
+                    }
+                    emitter.complete();
+                } else {
+                    emitter.completeWithError(throwable);
+                }
             }
 
             @Override

@@ -19,7 +19,6 @@ package org.bithon.server.web.service.agent.sql;
 import com.google.common.collect.ImmutableMap;
 import org.apache.calcite.schema.Table;
 import org.apache.calcite.schema.impl.AbstractSchema;
-import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.web.service.agent.sql.table.AgentServiceProxyFactory;
 import org.bithon.server.web.service.agent.sql.table.AssemblyTable;
 import org.bithon.server.web.service.agent.sql.table.ClassTable;
@@ -32,7 +31,6 @@ import org.bithon.server.web.service.agent.sql.table.JmxBeanAttributeValueTable;
 import org.bithon.server.web.service.agent.sql.table.JmxBeanTable;
 import org.bithon.server.web.service.agent.sql.table.LoggerTable;
 import org.bithon.server.web.service.agent.sql.table.ThreadTable;
-import org.springframework.context.ApplicationContext;
 
 import java.util.Map;
 
@@ -43,11 +41,10 @@ import java.util.Map;
 public class AgentSchema extends AbstractSchema {
     private final ImmutableMap<String, Table> tableMap;
 
-    public AgentSchema(DiscoveredServiceInvoker serviceInvoker, ApplicationContext applicationContext) {
-        AgentServiceProxyFactory agentServiceProxyFactory = new AgentServiceProxyFactory(serviceInvoker, applicationContext);
+    public AgentSchema(AgentServiceProxyFactory agentServiceProxyFactory) {
         this.tableMap = ImmutableMap.<String, Table>builder()
                                     .put("configuration", new ConfigurationTable(agentServiceProxyFactory))
-                                    .put("instance", new InstanceTable(serviceInvoker))
+                                    .put("instance", new InstanceTable(agentServiceProxyFactory.getDiscoveryServiceInvoker()))
                                     .put("instrumented_method", new InstrumentedMethodTable(agentServiceProxyFactory))
                                     .put("loaded_class", new ClassTable(agentServiceProxyFactory))
                                     .put("logger", new LoggerTable(agentServiceProxyFactory))
