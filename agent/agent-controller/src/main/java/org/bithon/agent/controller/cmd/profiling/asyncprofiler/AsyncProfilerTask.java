@@ -30,6 +30,7 @@ import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.component.commons.uuid.UUIDv7Generator;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +42,7 @@ import java.io.IOException;
 public class AsyncProfilerTask implements Runnable {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(AsyncProfilerTask.class);
 
-    private final File outputDir;
+    private File outputDir;
     private final int durationSecond;
     private final int intervalSecond;
     private final String profilingEvents;
@@ -49,14 +50,14 @@ public class AsyncProfilerTask implements Runnable {
     private final StreamResponse<ProfilingEvent> streamResponse;
     private final ProgressNotifier progressNotifier;
     private final AsyncProfiler profiler;
+    private final String commandLineArgs;
 
-    public AsyncProfilerTask(File outputDir,
-                             ProfilingRequest profilingRequest,
+    public AsyncProfilerTask(ProfilingRequest profilingRequest,
                              long endTimestamp,
                              StreamResponse<ProfilingEvent> streamResponse) {
-        this.outputDir = outputDir;
         this.durationSecond = profilingRequest.getDurationInSeconds();
         this.intervalSecond = profilingRequest.getIntervalInSeconds();
+        this.commandLineArgs = profilingRequest.getArgs();
         this.profilingEvents = String.join(",", profilingRequest.getProfileEventsList());
         this.streamResponse = streamResponse;
         this.progressNotifier = new ProgressNotifier(streamResponse);
@@ -67,7 +68,16 @@ public class AsyncProfilerTask implements Runnable {
 
     @Override
     public void run() {
-        this.progressNotifier.sendProgress("Starting profiling");
+        // Prepare output directory
+        String uuid = UUIDv7Generator.create(UUIDv7Generator.INCREMENT_TYPE_DEFAULT)
+                                     .generate()
+                                     .toCompactFormat();
+        this.outputDir = new File(System.getProperty("java.io.tmpdir", "/tmp"), "org.bithon.agent/profiling/" + uuid);
+        if (!outputDir.exists() && !outputDir.mkdirs()) {
+            throw new ProfilingException("Failed to create temporary directory: " + outputDir.getAbsolutePath());
+        }
+
+        this.progressNotifier.sendProgress("Starting profiling at temporary directory: %s", outputDir.getAbsolutePath());
         startProfiling();
 
         LOG.info("Started profiling for {} seconds, end at {}", durationSecond, DateTime.formatDateTime("MM-dd HH:mm:ss.SSS", endTimestamp));
@@ -77,7 +87,7 @@ public class AsyncProfilerTask implements Runnable {
         streamResponse.onComplete();
     }
 
-    public boolean isTaskCancelled() {
+    private boolean isTaskCancelled() {
         return this.streamResponse.isCancelled() || this.endTimestamp <= System.currentTimeMillis();
     }
 
@@ -108,6 +118,9 @@ public class AsyncProfilerTask implements Runnable {
                                                 events,
                                                 jfrOutputPattern,
                                                 intervalSecond);
+            if (StringUtils.hasText(commandLineArgs)) {
+                command += ("," + commandLineArgs);
+            }
 
             profiler.execute(command);
             progressNotifier.sendProgress("Profiler started successfully with events: %s", events);
@@ -168,6 +181,23 @@ public class AsyncProfilerTask implements Runnable {
                     LOG.warn("Failed to delete profiling file: {}", name);
                 }
             }
+        }
+    }
+
+    public void cleanup() {
+        this.stopProfiling();
+
+        try {
+            if (this.outputDir != null && this.outputDir.exists() && outputDir.isDirectory()) {
+                File[] files = outputDir.listFiles();
+                if (files != null) {
+                    for (File file : files) {
+                        file.delete();
+                    }
+                }
+                outputDir.delete();
+            }
+        } catch (Exception ignored) {
         }
     }
 }

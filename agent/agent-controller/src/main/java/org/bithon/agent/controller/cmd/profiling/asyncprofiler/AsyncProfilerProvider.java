@@ -26,9 +26,7 @@ import org.bithon.component.brpc.StreamResponse;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.component.commons.uuid.UUIDv7Generator;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -90,14 +88,6 @@ public class AsyncProfilerProvider implements IProfilerProvider {
         }
 
         Thread proflingThread = new Thread(() -> {
-            String uuid = UUIDv7Generator.create(UUIDv7Generator.INCREMENT_TYPE_DEFAULT)
-                                         .generate()
-                                         .toCompactFormat();
-            File dir = new File(System.getProperty("java.io.tmpdir", "/tmp"), "org.bithon.agent/profiling/" + uuid);
-            if (!dir.exists() && !dir.mkdirs()) {
-                throw new ProfilingException("Failed to create temporary directory: " + dir.getAbsolutePath());
-            }
-
             // Configuration
             int profilingDuration = request.getDurationInSeconds();
             int profilingInterval = request.getIntervalInSeconds();
@@ -109,7 +99,7 @@ public class AsyncProfilerProvider implements IProfilerProvider {
             //
             AsyncProfilerTask task = null;
             try {
-                task = new AsyncProfilerTask(dir, request, endTime, streamResponse);
+                task = new AsyncProfilerTask(request, endTime, streamResponse);
                 task.run();
             } catch (Throwable e) {
                 streamResponse.onException(e);
@@ -121,20 +111,6 @@ public class AsyncProfilerProvider implements IProfilerProvider {
                     task.stopProfiling();
                 }
                 LOG.info("Stopped profiling");
-
-                // Cleanup
-                try {
-                    if (dir.exists() && dir.isDirectory()) {
-                        File[] files = dir.listFiles();
-                        if (files != null) {
-                            for (File file : files) {
-                                file.delete();
-                            }
-                        }
-                        dir.delete();
-                    }
-                } catch (Exception ignored) {
-                }
             }
         });
         proflingThread.setName("bithon-profiler");

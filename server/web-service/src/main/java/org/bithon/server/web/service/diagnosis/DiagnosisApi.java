@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -321,6 +322,7 @@ public class DiagnosisApi {
         ProfilingRequest profilingRequest = ProfilingRequest.newBuilder()
                                                             .setDurationInSeconds(request.getDuration())
                                                             .setIntervalInSeconds(request.getInterval())
+                                                            .setRequestId(UUID.randomUUID().toString())
                                                             .addAllProfileEvents(CollectionUtils.isEmpty(request.getProfileEvents()) ? List.of("cpu") : request.getProfileEvents())
                                                             .build();
 
@@ -365,9 +367,7 @@ public class DiagnosisApi {
             }
         });
 
-        emitter.onError((e) -> {
-            isCancelled.set(true);
-        });
+        emitter.onError((e) -> isCancelled.set(true));
 
         return emitter;
     }

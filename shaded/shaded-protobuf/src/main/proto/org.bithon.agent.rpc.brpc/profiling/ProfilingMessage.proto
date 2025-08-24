@@ -7,9 +7,23 @@ import "google/protobuf/any.proto";
 option java_multiple_files = true;
 
 message ProfilingRequest {
-  int32 durationInSeconds = 1;
-  int32 intervalInSeconds = 2;
-  repeated string profileEvents = 3;
+  string requestId = 1;
+
+  /**
+   * The total duration of this profiling
+   */
+  int32 durationInSeconds = 5;
+
+  /**
+   * The interval between two profiling events, in seconds.
+   */
+  int32 intervalInSeconds = 6;
+  repeated string profileEvents = 7;
+
+  /**
+   * Extra arguments for profiling, e.g. the filters.
+   */
+  optional string args = 8;
 }
 
 /**************************************************************************/
