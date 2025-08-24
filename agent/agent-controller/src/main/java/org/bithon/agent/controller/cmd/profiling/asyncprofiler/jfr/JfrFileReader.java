@@ -105,7 +105,7 @@ public class JfrFileReader implements Closeable {
     }
 
     public static void main(String[] args) throws IOException {
-        File f = new File("/Users/frank.chenling/source/open/bithon/agent/agent-distribution/target/agent-distribution/agent-distribution/tools/async-profiler/macos/bin/tmp.jfr");
+        File f = new File(args[0]);
 
         //dumpRawEvents(f);
 

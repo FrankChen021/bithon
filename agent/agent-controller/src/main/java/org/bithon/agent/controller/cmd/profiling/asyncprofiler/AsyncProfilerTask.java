@@ -20,6 +20,7 @@ package org.bithon.agent.controller.cmd.profiling.asyncprofiler;
 import one.profiler.AsyncProfiler;
 import org.bithon.agent.controller.cmd.profiling.ProfilingException;
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.JfrFileConsumer;
+import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.JfrFileMonitor;
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.TimestampedFile;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingRequest;
@@ -32,11 +33,6 @@ import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.PriorityQueue;
-import java.util.Set;
-import java.util.regex.Pattern;
 
 /**
  * @author frank.chen021@outlook.com
@@ -123,148 +119,56 @@ public class AsyncProfilerTask implements Runnable {
     }
 
     private void collectProfilingData() {
-        Set<String> skipped = new HashSet<>();
+        JfrFileMonitor monitor = new JfrFileMonitor(outputDir, intervalSecond, this::isTaskCancelled, progressNotifier);
 
-        // Pattern to extract timestamp from filename (format: YYYYMMDD-HHMMSS.jfr)
-        Pattern timestampPattern = Pattern.compile("(\\d{8}-\\d{6})\\.jfr");
-
-        PriorityQueue<TimestampedFile> queue = new PriorityQueue<>();
         while (!isTaskCancelled()) {
-            File[] files = outputDir.listFiles((file, name) -> name.endsWith(".jfr"));
-            if (files != null) {
-                for (File file : files) {
-                    if (skipped.contains(file.getAbsolutePath())) {
-                        continue;
-                    }
-                    TimestampedFile timestampedFile = TimestampedFile.fromFile(file, timestampPattern);
-                    if (timestampedFile != null) {
-                        queue.offer(timestampedFile);
-                        this.progressNotifier.sendProgress("%s profiling data captured", timestampedFile.getName());
-                    }
-                }
+            TimestampedFile jfrFile = monitor.poll();
+            if (jfrFile == null) {
+                // No file ready or task cancelled
+                break;
             }
 
-            while (!queue.isEmpty() && !this.isTaskCancelled()) {
-                TimestampedFile timestampedFile = queue.peek();
+            File path = jfrFile.getPath();
+            String name = jfrFile.getName();
+            long size = jfrFile.getSize();
 
-                //noinspection DataFlowIssue
-                File jfrFilePath = timestampedFile.getPath();
-                if (!jfrFilePath.exists()) {
-                    queue.poll();
+            try {
+                JfrFileConsumer.consume(path,
+                                        new JfrFileConsumer.EventConsumer() {
+                                            private int eventCount = 0;
 
-                    // Skip if file doesn't exist anymore
-                    continue;
-                }
-
-                //
-                // Check if enough time has passed since the file's timestamp
-                //
-                String name = timestampedFile.getName();
-                long now = System.currentTimeMillis();
-                long fileTimestamp = timestampedFile.getTimestamp();
-                long expectedReadyTime = fileTimestamp + this.intervalSecond * 1000L + 500; // Add 500ms buffer
-                long waitTime = expectedReadyTime - now;
-                while (waitTime > 0 && !this.isTaskCancelled() && !Thread.currentThread().isInterrupted()) {
-                    this.progressNotifier.sendProgress("%s is under collection. Waiting...", name);
-
-                    long sleepTime = Math.min(waitTime, 1000); // Sleep in chunks of 1 second
-                    waitTime -= sleepTime;
-                    try {
-                        Thread.sleep(sleepTime);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        break;
-                    }
-                }
-                if (this.isTaskCancelled()) {
-                    // Exit the queue loop and collection
-                    return;
-                }
-
-                // Additional check: verify file is complete and stable
-                long size = waitForCompleteAndReturnSize(jfrFilePath.toPath());
-                if (size < 0) {
-                    continue;
-                }
-
-                // Pop the file from the queue
-                queue.poll();
-
-                try {
-                    JfrFileConsumer.consume(jfrFilePath,
-                                            new JfrFileConsumer.EventConsumer() {
-                                                private int eventCount = 0;
-
-                                                @Override
-                                                public void onStart() {
-                                                    progressNotifier.sendProgress("%s is ready and has a size of %s data. Streaming profiling data...",
-                                                                                  name,
-                                                                                  HumanReadableNumber.format(size, 2, HumanReadableNumber.UnitSystem.BINARY_BYTE));
-                                                }
-
-                                                @Override
-                                                public void onEvent(ProfilingEvent event) {
-                                                    streamResponse.onNext(event);
-                                                    eventCount++;
-                                                }
-
-                                                @Override
-                                                public boolean isCancelled() {
-                                                    return isTaskCancelled();
-                                                }
-
-                                                @Override
-                                                public void onComplete() {
-                                                    progressNotifier.sendProgress("%s end of streaming, %s events sent.", name, eventCount);
-                                                }
+                                            @Override
+                                            public void onStart() {
+                                                progressNotifier.sendProgress("%s is ready and has a size of %s data. Streaming profiling data...",
+                                                                              name,
+                                                                              HumanReadableNumber.format(size, 2, HumanReadableNumber.UnitSystem.BINARY_BYTE));
                                             }
-                    );
-                } catch (IOException e) {
-                    // Only catch IOException for this file to ignore it
-                    progressNotifier.sendProgress("Ignored profiling data %s: %s", name, e.getMessage());
-                } finally {
-                    if (!jfrFilePath.delete()) {
-                        LOG.warn("Failed to delete profiling file: {}", name);
-                        skipped.add(jfrFilePath.getAbsolutePath());
-                    }
+
+                                            @Override
+                                            public void onEvent(ProfilingEvent event) {
+                                                streamResponse.onNext(event);
+                                                eventCount++;
+                                            }
+
+                                            @Override
+                                            public boolean isCancelled() {
+                                                return isTaskCancelled();
+                                            }
+
+                                            @Override
+                                            public void onComplete() {
+                                                progressNotifier.sendProgress("%s end of streaming, %s events sent.", name, eventCount);
+                                            }
+                                        }
+                );
+            } catch (IOException e) {
+                // Only catch IOException for this file to ignore it
+                progressNotifier.sendProgress("Ignored profiling data %s: %s", name, e.getMessage());
+            } finally {
+                if (!path.delete()) {
+                    LOG.warn("Failed to delete profiling file: {}", name);
                 }
             }
         }
-    }
-
-    /**
-     * Check if a file is complete by checking if its size is stable
-     * This is a simple and reliable approach that works across all platforms
-     */
-    private long waitForCompleteAndReturnSize(Path filePath) {
-        File file = filePath.toFile();
-
-        // First check if file exists and has content
-        if (!file.exists() || file.length() == 0) {
-            return -1;
-        }
-
-        // Check if file size is stable (hasn't changed in the last 500ms)
-        long size1 = file.length();
-        long lastModified1 = file.lastModified();
-
-        try {
-            Thread.sleep(200); // Wait 200ms
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return -1;
-        }
-
-        long size2 = file.length();
-        long lastModified2 = file.lastModified();
-
-        // File is complete if size and last modified time haven't changed
-        boolean isStable = (size1 == size2) && (lastModified1 == lastModified2) && (size1 > 0);
-        if (!isStable) {
-            LOG.debug("File {} is still changing: size {} -> {}, lastModified {} -> {}",
-                      filePath, size1, size2, lastModified1, lastModified2);
-        }
-
-        return isStable ? size1 : -1;
     }
 }

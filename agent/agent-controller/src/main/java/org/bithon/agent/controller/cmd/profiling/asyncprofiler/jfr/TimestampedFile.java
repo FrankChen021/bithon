@@ -29,13 +29,18 @@ public class TimestampedFile implements Comparable<TimestampedFile> {
     private final File path;
     private final String name;
     private final long timestamp;
+    private long size;
 
     private TimestampedFile(File path, String name, long timestamp) {
         this.path = path;
         this.name = name;
         this.timestamp = timestamp;
+        this.size = -1;
     }
 
+    /**
+     * name without extension
+     */
     public String getName() {
         return name;
     }
@@ -46,6 +51,14 @@ public class TimestampedFile implements Comparable<TimestampedFile> {
 
     public long getTimestamp() {
         return timestamp;
+    }
+
+    public long getSize() {
+        return size;
+    }
+
+    public void setSize(long size) {
+        this.size = size;
     }
 
     @Override

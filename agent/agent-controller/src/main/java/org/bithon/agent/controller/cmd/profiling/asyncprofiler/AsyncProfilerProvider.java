@@ -89,10 +89,10 @@ public class AsyncProfilerProvider implements IProfilerProvider {
         }
 
         // Configuration
-        int durationSeconds = request.getDurationInSeconds();
-        int intervalSeconds = request.getIntervalInSeconds();
+        int profilingDuration = request.getDurationInSeconds();
+        int profilingInterval = request.getIntervalInSeconds();
         long startTime = System.currentTimeMillis();
-        long endTime = startTime + (durationSeconds + intervalSeconds + 3) * 1000L;
+        long endTime = startTime + (profilingDuration + profilingInterval + 3) * 1000L;
 
         Thread proflingThread = new Thread(() -> {
             AsyncProfilerTask task = null;
