@@ -60,6 +60,10 @@ public class JfrFileConsumer {
     }
 
     public static void consume(File jfrFile, EventConsumer eventConsumer) throws IOException {
+        if (eventConsumer.isCancelled()) {
+            return;
+        }
+
         try (JfrFileReader reader = JfrFileReader.createReader(jfrFile.getAbsolutePath(), 3)) {
             // Use TreeMap to ensure the system properties are sorted by key
             final Map<String, String> systemProperties = new TreeMap<>();

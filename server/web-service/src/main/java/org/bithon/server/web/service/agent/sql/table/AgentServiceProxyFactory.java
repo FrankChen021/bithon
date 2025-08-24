@@ -367,7 +367,8 @@ public class AgentServiceProxyFactory {
             if (serviceRequest.getMessageType() == ServiceMessageType.CLIENT_STREAMING_REQUEST) {
                 sendStreamingRpc(serviceRequest);
             } else {
-                // The one way streaming cancellation is also processed here
+                // The one way streaming cancellation is also processed here,
+                // When a streaming is cancelled by ueser code, the client InvocationManager will send a CANCELLATION message to server side from here.
                 sendRequestResponseRpc(serviceRequest);
             }
         }

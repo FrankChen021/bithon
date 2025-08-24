@@ -305,12 +305,12 @@ public class InvocationManager {
         try {
             Object data = inflightRequest.streamingDataType == null ? dataMessage.getRawData() : dataMessage.getData(inflightRequest.streamingDataType);
 
-            inflightRequest.streamResponse.onNext(data);
-
             // Check if client wants to cancel
-            if (inflightRequest.streamResponse.isCancelled() && inflightRequest.channel != null) {
+            if (inflightRequest.streamResponse.isCancelled()) {
                 // Remove from our local tracking and send cancel message
                 cancelStreaming(txId);
+            } else {
+                inflightRequest.streamResponse.onNext(data);
             }
         } catch (Exception e) {
             inflightRequests.remove(txId);

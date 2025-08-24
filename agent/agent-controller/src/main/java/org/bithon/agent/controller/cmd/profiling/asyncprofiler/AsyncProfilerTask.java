@@ -108,13 +108,11 @@ public class AsyncProfilerTask implements Runnable {
             // Configure the profiler for JFR output with loop mode
             String jfrOutputPattern = new File(outputDir, "%t.jfr").getAbsolutePath();
             String events = profilingEvents.isEmpty() ? "cpu" : profilingEvents;
-            // Add jfr.settings=none to disable default JFR settings which include CPULoad events
-            // Add jfr.threads=true to capture thread information
-            String command = StringUtils.format("start,event=%s,jfr,file=%s,duration=%ds,loop=%ds,jfr.settings=none,jfr.threads=true",
+            String command = StringUtils.format("start,event=%s,jfr,file=%s,loop=%ds,duration=%s",
                                                 events,
                                                 jfrOutputPattern,
-                                                durationSecond,
-                                                intervalSecond);
+                                                intervalSecond,
+                                                durationSecond);
 
             profiler.execute(command);
             progressNotifier.sendProgress("Profiler started successfully with events: %s", events);
@@ -178,6 +176,10 @@ public class AsyncProfilerTask implements Runnable {
                         break;
                     }
                 }
+                if (this.isTaskCancelled()) {
+                    // Exit the queue loop and collection
+                    return;
+                }
 
                 // Additional check: verify file is complete and stable
                 long size = waitForCompleteAndReturnSize(jfrFilePath.toPath());
@@ -191,6 +193,8 @@ public class AsyncProfilerTask implements Runnable {
                 try {
                     JfrFileConsumer.consume(jfrFilePath,
                                             new JfrFileConsumer.EventConsumer() {
+                                                private int eventCount = 0;
+
                                                 @Override
                                                 public void onStart() {
                                                     progressNotifier.sendProgress("%s is ready and has a size of %s data. Streaming profiling data...",
@@ -201,6 +205,7 @@ public class AsyncProfilerTask implements Runnable {
                                                 @Override
                                                 public void onEvent(ProfilingEvent event) {
                                                     streamResponse.onNext(event);
+                                                    eventCount++;
                                                 }
 
                                                 @Override
@@ -210,13 +215,13 @@ public class AsyncProfilerTask implements Runnable {
 
                                                 @Override
                                                 public void onComplete() {
-                                                    progressNotifier.sendProgress("%s end of streaming.", name);
+                                                    progressNotifier.sendProgress("%s end of streaming, %s events sent.", name, eventCount);
                                                 }
                                             }
                     );
                 } catch (IOException e) {
                     // Only catch IOException for this file to ignore it
-                    progressNotifier.sendProgress("Failed to collect profiling events from %s: %s", name, e.getMessage());
+                    progressNotifier.sendProgress("Ignored profiling data %s: %s", name, e.getMessage());
                 } finally {
                     if (!jfrFilePath.delete()) {
                         LOG.warn("Failed to delete profiling file: {}", name);

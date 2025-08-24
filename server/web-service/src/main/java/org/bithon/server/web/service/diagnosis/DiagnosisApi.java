@@ -324,8 +324,8 @@ public class DiagnosisApi {
                                                             .addAllProfileEvents(CollectionUtils.isEmpty(request.getProfileEvents()) ? List.of("cpu") : request.getProfileEvents())
                                                             .build();
 
+        final AtomicReference<Boolean> isCancelled = new AtomicReference<>(false);
         profilingCommand.start(profilingRequest, new StreamResponse<>() {
-            private boolean isCancelled = false;
 
             @Override
             public void onNext(ProfilingEvent event) {
@@ -345,7 +345,7 @@ public class DiagnosisApi {
                                            .data(JsonFormat.printer().omittingInsignificantWhitespace().print(data), MediaType.TEXT_PLAIN)
                                            .build());
                 } catch (IOException | IllegalStateException ignored) {
-                    isCancelled = true;
+                    isCancelled.set(true);
                 }
             }
 
@@ -361,8 +361,12 @@ public class DiagnosisApi {
 
             @Override
             public boolean isCancelled() {
-                return isCancelled;
+                return isCancelled.get();
             }
+        });
+
+        emitter.onError((e) -> {
+            isCancelled.set(true);
         });
 
         return emitter;
