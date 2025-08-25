@@ -413,7 +413,7 @@ public class InvocationManager {
      * Handle channel closure - clean up all active requests and streams
      */
     public void handleChannelClosure() {
-        ExceptionMessage e = new ExceptionMessage(ServiceInvocationException.class.getName(), "Channel closed");
+        ExceptionMessage e = new ExceptionMessage(ServiceInvocationException.class.getName(), "Channel is closed before request completes");
 
         // Clean up regular requests
         Exception ex = e.toException();
