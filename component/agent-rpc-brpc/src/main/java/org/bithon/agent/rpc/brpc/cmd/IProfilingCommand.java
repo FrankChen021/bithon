@@ -36,4 +36,12 @@ public interface IProfilingCommand {
      * @param response The response object to which profiling frames will be streamed.
      */
     void start(ProfilingRequest request, StreamResponse<ProfilingEvent> response);
+
+    void stop();
+
+    /**
+     * Checks if there's ongoing profiling task
+     * possible values: "IDLE", "RUNNING"
+     */
+    String getStatus();
 }

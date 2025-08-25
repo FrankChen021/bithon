@@ -51,9 +51,9 @@ public class AsyncProfilerTask implements Runnable {
     private final ProgressNotifier progressNotifier;
     private final AsyncProfiler profiler;
     private final String commandLineArgs;
+    private volatile boolean isUserStopped;
 
     public AsyncProfilerTask(ProfilingRequest profilingRequest,
-                             long endTimestamp,
                              StreamResponse<ProfilingEvent> streamResponse) {
         this.durationSecond = profilingRequest.getDurationInSeconds();
         this.intervalSecond = profilingRequest.getIntervalInSeconds();
@@ -61,7 +61,10 @@ public class AsyncProfilerTask implements Runnable {
         this.profilingEvents = String.join(",", profilingRequest.getProfileEventsList());
         this.streamResponse = streamResponse;
         this.progressNotifier = new ProgressNotifier(streamResponse);
-        this.endTimestamp = endTimestamp;
+        
+        // Calculate endTime based on duration and interval
+        long startTime = System.currentTimeMillis();
+        this.endTimestamp = startTime + (durationSecond + intervalSecond + 3) * 1000L;
 
         this.profiler = AsyncProfiler.getInstance(null);
     }
@@ -88,7 +91,7 @@ public class AsyncProfilerTask implements Runnable {
     }
 
     private boolean isTaskCancelled() {
-        return this.streamResponse.isCancelled() || this.endTimestamp <= System.currentTimeMillis();
+        return isUserStopped || this.streamResponse.isCancelled() || this.endTimestamp <= System.currentTimeMillis();
     }
 
     /**
@@ -199,5 +202,10 @@ public class AsyncProfilerTask implements Runnable {
             }
         } catch (Exception ignored) {
         }
+    }
+
+    public void stop() {
+        this.progressNotifier.sendProgress("Received stop request from user.");
+        isUserStopped = true;
     }
 }

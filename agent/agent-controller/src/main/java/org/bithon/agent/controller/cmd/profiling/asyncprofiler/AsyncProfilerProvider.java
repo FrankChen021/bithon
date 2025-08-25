@@ -40,7 +40,7 @@ import java.util.Set;
 public class AsyncProfilerProvider implements IProfilerProvider {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(AsyncProfilerProvider.class);
 
-    private static volatile boolean isProfilingRunning = false;
+    private AsyncProfilerTask task = null;
 
     @Override
     public void start(ProfilingRequest request, StreamResponse<ProfilingEvent> streamResponse) {
@@ -76,46 +76,45 @@ public class AsyncProfilerProvider implements IProfilerProvider {
 
         // Even though async-profiler guarantees that only one instance is running at a time,
         // but it might take a while to stop the previous profiling session completely if the profiling is closed from the client
-        if (isProfilingRunning) {
+        // So we still need to check if there's another profiling task is running
+        if (task != null) {
             throw new ProfilingException("Another profiling task is still running.");
         } else {
             synchronized (AsyncProfilerProvider.class) {
-                if (isProfilingRunning) {
+                if (task != null) {
                     throw new ProfilingException("Another profiling task is still running.");
                 }
-                isProfilingRunning = true;
+                task = new AsyncProfilerTask(request, streamResponse);
             }
         }
 
         Thread proflingThread = new Thread(() -> {
-            // Configuration
-            int profilingDuration = request.getDurationInSeconds();
-            int profilingInterval = request.getIntervalInSeconds();
-            long startTime = System.currentTimeMillis();
-            long endTime = startTime + (profilingDuration + profilingInterval + 3) * 1000L;
-
-            //
-            // Start profiling and streaming
-            //
-            AsyncProfilerTask task = null;
             try {
-                task = new AsyncProfilerTask(request, endTime, streamResponse);
                 task.run();
             } catch (Throwable e) {
                 streamResponse.onException(e);
             } finally {
-                isProfilingRunning = false;
+                task.stopProfiling();
 
-                // Stop the profiler if task was created
-                if (task != null) {
-                    task.stopProfiling();
-                }
+                task = null;
                 LOG.info("Stopped profiling");
             }
         });
         proflingThread.setName("bithon-profiler");
         proflingThread.setDaemon(true);
-        proflingThread.setUncaughtExceptionHandler((t, e) -> isProfilingRunning = false);
+        proflingThread.setUncaughtExceptionHandler((t, e) -> task = null);
         proflingThread.start();
+    }
+
+    @Override
+    public void stop() {
+        if (task != null) {
+            task.stop();
+        }
+    }
+
+    @Override
+    public boolean isRunning() {
+        return task != null;
     }
 }

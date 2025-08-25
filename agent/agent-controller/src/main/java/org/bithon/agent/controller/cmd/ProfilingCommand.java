@@ -30,13 +30,33 @@ import org.bithon.component.brpc.StreamResponse;
  */
 public class ProfilingCommand implements IProfilingCommand, IAgentCommand {
 
+    private volatile IProfilerProvider provider;
+
     @Override
     public void start(ProfilingRequest request, StreamResponse<ProfilingEvent> response) {
+        if (provider == null) {
+            synchronized (this) {
+                if (provider == null) {
+                    provider = ProfilerFactory.create();
+                }
+            }
+        }
         try {
-            IProfilerProvider provider = ProfilerFactory.create();
             provider.start(request, response);
         } catch (Throwable e) {
             response.onException(e);
         }
+    }
+
+    @Override
+    public void stop() {
+        if (provider != null) {
+            provider.stop();
+        }
+    }
+
+    @Override
+    public String getStatus() {
+        return provider != null && provider.isRunning() ? "RUNNING" : "IDLE";
     }
 }

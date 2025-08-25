@@ -22,6 +22,8 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import org.bithon.agent.rpc.brpc.cmd.IProfilingCommand;
@@ -270,8 +272,8 @@ public class DiagnosisApi {
         private Set<String> profileEvents;
     }
 
-    @GetMapping("/api/diagnosis/continuous-profiling")
-    public SseEmitter profiling(@Valid @ModelAttribute ContinuousProfilingRequest request) {
+    @GetMapping("/api/diagnosis/continuous-profiling/start")
+    public SseEmitter startProfiling(@Valid @ModelAttribute ContinuousProfilingRequest request) {
         long profilingTaskTimeout = (request.getDuration() + request.getInterval() + 5) * 1000L; // 5 seconds more than the profiling duration
         SseEmitter emitter = new SseEmitter(profilingTaskTimeout);
 
@@ -279,33 +281,11 @@ public class DiagnosisApi {
         // Find the controller where the target instance is connected to
         //
         DiscoveredServiceInstance controller;
-        {
-            AtomicReference<DiscoveredServiceInstance> controllerRef = new AtomicReference<>();
-            List<DiscoveredServiceInstance> controllerList = discoveredServiceInvoker.getInstanceList(IAgentControllerApi.class);
-            CountDownLatch countDownLatch = new CountDownLatch(controllerList.size());
-            for (DiscoveredServiceInstance controllerInstance : controllerList) {
-                discoveredServiceInvoker.getExecutor()
-                                        .submit(() -> discoveredServiceInvoker.createUnicastApi(IAgentControllerApi.class, () -> controllerInstance)
-                                                                              .getAgentInstanceList(request.getAppName(), request.getInstanceName()))
-                                        .thenAccept((returning) -> {
-                                            if (!returning.isEmpty()) {
-                                                controllerRef.set(controllerInstance);
-                                            }
-                                        })
-                                        .whenComplete((ret, ex) -> countDownLatch.countDown());
-            }
-
-            try {
-                countDownLatch.await();
-            } catch (InterruptedException e) {
-                emitter.completeWithError(new RuntimeException(e));
-                return emitter;
-            }
-            if (controllerRef.get() == null) {
-                emitter.completeWithError(new HttpMappableException(HttpStatus.NOT_FOUND.value(), "No controller found for application instance [appName = %s, instanceName = %s]", request.getAppName(), request.getInstanceName()));
-                return emitter;
-            }
-            controller = controllerRef.get();
+        try {
+            controller = findAgentController(request.getAppName(), request.getInstanceName());
+        } catch (Exception e) {
+            emitter.completeWithError(e);
+            return emitter;
         }
 
         //
@@ -378,5 +358,76 @@ public class DiagnosisApi {
                                streamResponse);
 
         return emitter;
+    }
+
+    @Getter
+    @Setter
+    public static class GetProfilingStatusRequest {
+        @NotEmpty
+        private String appName;
+
+        @NotEmpty
+        private String instanceName;
+    }
+
+    @GetMapping("/api/diagnosis/continuous-profiling/status")
+    public String getProfilingStatus(@Valid @ModelAttribute GetProfilingStatusRequest request) {
+        DiscoveredServiceInstance controller = findAgentController(request.getAppName(), request.getInstanceName());
+
+        IProfilingCommand profilingCommand = agentServiceProxyFactory.createUnicastProxy(IProfilingCommand.class,
+                                                                                         controller,
+                                                                                         request.getAppName(),
+                                                                                         request.getInstanceName(),
+                                                                                         10_000L);
+        return profilingCommand.getStatus();
+    }
+
+
+    @Getter
+    @Setter
+    public static class StopProfilingRequest {
+        @NotEmpty
+        private String appName;
+
+        @NotEmpty
+        private String instanceName;
+    }
+
+    @GetMapping("/api/diagnosis/continuous-profiling/stop")
+    public void stopProfiling(@Valid @ModelAttribute StopProfilingRequest request) {
+        DiscoveredServiceInstance controller = findAgentController(request.getAppName(), request.getInstanceName());
+
+        IProfilingCommand profilingCommand = agentServiceProxyFactory.createUnicastProxy(IProfilingCommand.class,
+                                                                                         controller,
+                                                                                         request.getAppName(),
+                                                                                         request.getInstanceName(),
+                                                                                         10_000L);
+        profilingCommand.stop();
+    }
+
+    private DiscoveredServiceInstance findAgentController(String appName, String instanceName) {
+        AtomicReference<DiscoveredServiceInstance> controllerRef = new AtomicReference<>();
+        List<DiscoveredServiceInstance> controllerList = discoveredServiceInvoker.getInstanceList(IAgentControllerApi.class);
+        CountDownLatch countDownLatch = new CountDownLatch(controllerList.size());
+        for (DiscoveredServiceInstance controllerInstance : controllerList) {
+            discoveredServiceInvoker.getExecutor()
+                                    .submit(() -> discoveredServiceInvoker.createUnicastApi(IAgentControllerApi.class, () -> controllerInstance)
+                                                                          .getAgentInstanceList(appName, instanceName))
+                                    .thenAccept((returning) -> {
+                                        if (!returning.isEmpty()) {
+                                            controllerRef.set(controllerInstance);
+                                        }
+                                    })
+                                    .whenComplete((ret, ex) -> countDownLatch.countDown());
+        }
+
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException ignored) {
+        }
+        if (controllerRef.get() == null) {
+            throw new HttpMappableException(HttpStatus.NOT_FOUND.value(), "No controller found for application instance [appName = %s, instanceName = %s]", appName, instanceName);
+        }
+        return controllerRef.get();
     }
 }

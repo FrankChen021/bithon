@@ -14,21 +14,27 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.controller.cmd.profiling;
-
-
-import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
-import org.bithon.agent.rpc.brpc.profiling.ProfilingRequest;
-import org.bithon.component.brpc.StreamResponse;
+package org.bithon.component.brpc;
 
 /**
+ * Interface for controlling streaming RPC cancellation.
+ * This object is returned by streaming RPC methods to allow clients to cancel the stream.
+ *
  * @author frank.chen021@outlook.com
- * @date 19/8/25 3:56 pm
+ * @date 2024/8/25 20:00
  */
-public interface IProfilerProvider {
-    void start(ProfilingRequest request, StreamResponse<ProfilingEvent> streamResponse);
-
-    void stop();
-
-    boolean isRunning();
+public interface StreamCancellation {
+    
+    /**
+     * Cancel the streaming RPC immediately.
+     * This will send a cancellation message to the server and stop the stream.
+     */
+    void cancel();
+    
+    /**
+     * Check if the stream has been cancelled.
+     * 
+     * @return true if the stream has been cancelled, false otherwise
+     */
+    boolean isCancelled();
 }
