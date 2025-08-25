@@ -17,13 +17,13 @@
 package org.bithon.component.brpc.invocation;
 
 import org.bithon.component.brpc.ServiceRegistryItem;
+import org.bithon.component.brpc.StreamCancellation;
 import org.bithon.component.brpc.StreamResponse;
 import org.bithon.component.brpc.channel.IBrpcChannel;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.exception.CallerSideException;
 import org.bithon.component.brpc.exception.ChannelException;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
-import org.bithon.component.brpc.exception.TimeoutException;
 import org.bithon.component.brpc.message.ExceptionMessage;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.ServiceMessageType;
@@ -79,22 +79,30 @@ public class InvocationManager {
             Object[] requestArgs = new Object[args.length - 1];
             System.arraycopy(args, 0, requestArgs, 0, args.length - 1);
 
+            long txId = transactionId.incrementAndGet();
             ServiceRequestMessageOut serviceMessageOut = ServiceRequestMessageOut.builder()
                                                                                  .messageType(ServiceMessageType.CLIENT_STREAMING_REQUEST)
                                                                                  .serviceName(serviceRegistryItem.getServiceName())
                                                                                  .methodName(serviceRegistryItem.getMethodName())
-                                                                                 .transactionId(transactionId.incrementAndGet())
+                                                                                 .transactionId(txId)
                                                                                  .serializer(serviceRegistryItem.getSerializer())
                                                                                  .applicationName(invokerName)
                                                                                  .headers(headers)
                                                                                  .args(requestArgs)
                                                                                  .build();
 
+            // Create cancellation object for client control
+            ClientStreamingCancellation cancellation = new ClientStreamingCancellation(txId, this);
+            
+            // Inject the cancellation object into the StreamResponse
+            streamResponse.setStreamCancellation(cancellation);
+
             invokeImpl(channel,
                        serviceMessageOut,
                        null,
                        serviceRegistryItem.getStreamingDataType(),
                        streamResponse,
+                       cancellation,
                        timeoutMillisecond);
 
             return null;
@@ -114,6 +122,7 @@ public class InvocationManager {
             return invokeImpl(channel,
                               serviceMessageOut,
                               method.getGenericReturnType(),
+                              null,
                               null,
                               null,
                               timeoutMillisecond);
@@ -153,7 +162,7 @@ public class InvocationManager {
                            ServiceRequestMessageOut serviceRequest,
                            long timeoutMillisecond) throws Throwable {
         //noinspection unchecked
-        return (T) invokeImpl(channel, serviceRequest, null, null, null, timeoutMillisecond);
+        return (T) invokeImpl(channel, serviceRequest, null, null, null, null, timeoutMillisecond);
     }
 
     public void invokeStreamingRpc(IBrpcChannel channel,
@@ -161,7 +170,13 @@ public class InvocationManager {
                                    Type streamingDataType,
                                    StreamResponse<?> response,
                                    long timeoutMilliseconds) throws Throwable {
-        invokeImpl(channel, streamingRequest, null, streamingDataType, response, timeoutMilliseconds);
+        // Create cancellation object for client control
+        ClientStreamingCancellation cancellation = new ClientStreamingCancellation(streamingRequest.getTransactionId(), this);
+        
+        // Inject the cancellation object into the StreamResponse
+        response.setStreamCancellation(cancellation);
+        
+        invokeImpl(channel, streamingRequest, null, streamingDataType, response, cancellation, timeoutMilliseconds);
     }
 
 
@@ -170,6 +185,7 @@ public class InvocationManager {
                               Type returnObjectType,
                               Type streamingDataType,
                               StreamResponse<?> streamResponse,
+                              StreamCancellation cancellation,
                               long timeoutMillisecond) throws Throwable {
         //
         // make sure a channel has been established
@@ -189,6 +205,7 @@ public class InvocationManager {
                                                       serviceRequest.getMethodName(),
                                                       streamingDataType,
                                                       (StreamResponse<Object>) streamResponse,
+                                                      cancellation,
                                                       channel);
             } else {
                 inflightRequest = new InflightRequest(serviceRequest.getServiceName(),
@@ -256,16 +273,18 @@ public class InvocationManager {
 
         if (inflightRequest.responseAt > 0) {
             // Response has been collected, then return the object.
-            // NOTE: The return object might be NULL
             return inflightRequest.returnObject;
+        } else {
+            throw new CallerSideException("Failed to invoke %s#%s at [%s] due to timeout",
+                                          serviceRequest.getServiceName(),
+                                          serviceRequest.getMethodName(),
+                                          channel.getRemoteAddress());
         }
-
-        throw new TimeoutException(channel.getRemoteAddress().toString(),
-                                   serviceRequest.getServiceName(),
-                                   serviceRequest.getMethodName(),
-                                   timeoutMillisecond);
     }
 
+    /**
+     * Handle response from server
+     */
     public void handleResponse(ServiceResponseMessageIn response) {
         long txId = response.getTransactionId();
         InflightRequest inflightRequest = inflightRequests.remove(txId);
@@ -293,7 +312,7 @@ public class InvocationManager {
     }
 
     /**
-     * Handle streaming data message
+     * Handle streaming data from server
      */
     public void handleStreamingData(ServiceStreamingDataMessageIn dataMessage) {
         long txId = dataMessage.getTransactionId();
@@ -306,10 +325,12 @@ public class InvocationManager {
             Object data = inflightRequest.streamingDataType == null ? dataMessage.getRawData() : dataMessage.getData(inflightRequest.streamingDataType);
 
             // Check if client wants to cancel
-            if (inflightRequest.streamResponse.isCancelled()) {
+            if (inflightRequest.cancellation != null && inflightRequest.cancellation.isCancelled()) {
                 // Remove from our local tracking and send cancel message
                 cancelStreaming(txId);
             } else {
+                // Pass the data to the client
+                //noinspection DataFlowIssue
                 inflightRequest.streamResponse.onNext(data);
             }
         } catch (Exception e) {
@@ -417,14 +438,6 @@ public class InvocationManager {
     }
 
     /**
-     * Check if a streaming request is still active (channel is open)
-     */
-    public boolean isStreamingActive(long txId) {
-        InflightRequest inflightRequest = inflightRequests.get(txId);
-        return inflightRequest != null && inflightRequest.isStreaming();
-    }
-
-    /**
      * Clean up inactive streaming requests
      */
     public void cleanupInactiveStreams() {
@@ -450,24 +463,36 @@ public class InvocationManager {
             return false;
         });
     }
+    
+    /**
+     * Get an inflight request by transaction ID.
+     * This is used by HTTP proxy to access the StreamResponse for cancellation.
+     * 
+     * @param txId The transaction ID to look up
+     * @return The InflightRequest, or null if not found
+     */
+    public InflightRequest getInflightRequest(long txId) {
+        return inflightRequests.get(txId);
+    }
 
-    static class InflightRequest {
-        final String serviceName;
-        final String methodName;
-        final long requestAt;
+    public static class InflightRequest {
+        public final String serviceName;
+        public final String methodName;
+        public final long requestAt;
 
         // Channel used for this request - needed for cancellation
-        final IBrpcChannel channel;
+        public final IBrpcChannel channel;
 
         // For streaming calls
-        final Type streamingDataType;
-        final StreamResponse<Object> streamResponse;
+        public final Type streamingDataType;
+        public final StreamResponse<Object> streamResponse;
+        public final StreamCancellation cancellation;
 
         // For non-streaming calls
-        final Type returnObjectType;
-        volatile long responseAt;
-        volatile Object returnObject;
-        volatile ExceptionMessage exception;
+        public final Type returnObjectType;
+        public volatile long responseAt;
+        public volatile Object returnObject;
+        public volatile ExceptionMessage exception;
 
         /**
          * Constructor for sync calls
@@ -481,6 +506,7 @@ public class InvocationManager {
             this.requestAt = System.currentTimeMillis();
             this.streamingDataType = null;
             this.streamResponse = null;
+            this.cancellation = null;
             this.channel = null;
         }
 
@@ -490,13 +516,15 @@ public class InvocationManager {
         private InflightRequest(String serviceName,
                                 String methodName,
                                 Type streamingDataType,
-                                StreamResponse<Object> streamResponse) {
+                                StreamResponse<Object> streamResponse,
+                                StreamCancellation cancellation) {
             this.serviceName = serviceName;
             this.methodName = methodName;
             this.requestAt = System.currentTimeMillis();
             this.returnObjectType = null;
             this.streamingDataType = streamingDataType;
             this.streamResponse = streamResponse;
+            this.cancellation = cancellation;
             this.channel = null;
         }
 
@@ -507,6 +535,7 @@ public class InvocationManager {
                                 String methodName,
                                 Type streamingDataType,
                                 StreamResponse<Object> streamResponse,
+                                StreamCancellation cancellation,
                                 IBrpcChannel channel) {
             this.serviceName = serviceName;
             this.methodName = methodName;
@@ -514,11 +543,40 @@ public class InvocationManager {
             this.returnObjectType = null;
             this.streamingDataType = streamingDataType;
             this.streamResponse = streamResponse;
+            this.cancellation = cancellation;
             this.channel = channel;
         }
 
         boolean isStreaming() {
             return this.streamResponse != null;
+        }
+    }
+    
+    /**
+     * Client-side streaming cancellation implementation that sends cancellation messages to server
+     */
+    static class ClientStreamingCancellation implements StreamCancellation {
+        private final long txId;
+        private final InvocationManager invocationManager;
+        private volatile boolean cancelled = false;
+        
+        ClientStreamingCancellation(long txId, InvocationManager invocationManager) {
+            this.txId = txId;
+            this.invocationManager = invocationManager;
+        }
+        
+        @Override
+        public void cancel() {
+            if (!cancelled) {
+                cancelled = true;
+                // Send immediate cancellation message to server
+                invocationManager.cancelStreaming(txId);
+            }
+        }
+        
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
         }
     }
 }

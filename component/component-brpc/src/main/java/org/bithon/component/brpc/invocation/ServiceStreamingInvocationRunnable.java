@@ -17,6 +17,7 @@
 package org.bithon.component.brpc.invocation;
 
 import org.bithon.component.brpc.ServiceRegistry;
+import org.bithon.component.brpc.StreamCancellation;
 import org.bithon.component.brpc.StreamResponse;
 import org.bithon.component.brpc.exception.BadRequestException;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
@@ -91,7 +92,7 @@ public class ServiceStreamingInvocationRunnable implements Runnable {
                         // Check channel status before sending
                         if (!channel.isActive() || !channel.isWritable()) {
                             // Channel is closed - mark as cancelled and return instead of throwing
-                            streamingContext.cancel();
+                            streamingContext.markCancelled();
                             return;
                         }
 
@@ -103,7 +104,7 @@ public class ServiceStreamingInvocationRunnable implements Runnable {
                         LOG.warn("Failed to send streaming data, marking as cancelled", e);
 
                         // Mark as cancelled instead of calling onError to avoid infinite recursion
-                        streamingContext.cancel();
+                        streamingContext.markCancelled();
 
                         // Remove the context from the channel
                         removeStreamingContext(channel, txId);
@@ -212,7 +213,7 @@ public class ServiceStreamingInvocationRunnable implements Runnable {
 
         StreamingContext ctx = removeStreamingContext(channel, txId);
         if (ctx != null) {
-            ctx.cancel();
+            ctx.markCancelled();
         }
     }
 
@@ -247,7 +248,7 @@ public class ServiceStreamingInvocationRunnable implements Runnable {
         // Cancel all active contexts for this channel
         for (Map.Entry<Long, StreamingContext> entry : contexts.entrySet()) {
             LOG.debug("Cancelling streaming context for txId: {}", entry.getKey());
-            entry.getValue().cancel();
+            entry.getValue().markCancelled();
         }
 
         // Clear the map
@@ -255,18 +256,27 @@ public class ServiceStreamingInvocationRunnable implements Runnable {
     }
 
     /**
-     * Context for managing streaming state
+     * Context for managing streaming state on server side.
+     * Implements StreamCancellation but cancel() does nothing as server-side cancellation
+     * is initiated by client messages, not by direct server calls.
      */
-    private static class StreamingContext {
+    private static class StreamingContext implements StreamCancellation {
         private volatile boolean cancelled = false;
         private volatile boolean completed = false;
 
+        @Override
         public void cancel() {
-            this.cancelled = true;
+            // NO-OP on server side - cancellation comes from client via protocol messages
+            // Server-side user code should not directly cancel streams
         }
 
+        @Override
         public boolean isCancelled() {
             return cancelled;
+        }
+
+        public void markCancelled() {
+            this.cancelled = true;
         }
 
         public void markCompleted() {

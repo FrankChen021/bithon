@@ -32,11 +32,13 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.bithon.component.brpc.StreamCancellation;
 import org.bithon.component.brpc.channel.IBrpcChannel;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.exception.ServiceNotFoundException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
 import org.bithon.component.brpc.invocation.InvocationManager;
+import org.bithon.component.brpc.invocation.InvocationManager.InflightRequest;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.in.ServiceMessageIn;
@@ -440,6 +442,62 @@ public class AgentServiceProxyFactory {
             final long txId = serviceRequest.getTransactionId();
             final byte[] message = serviceRequest.toByteArray();
 
+            // Create a custom StreamCancellation implementation for HTTP proxy
+            class HttpProxyStreamingCancellation implements StreamCancellation {
+                private final long txId;
+                private volatile boolean cancelled = false;
+                
+                HttpProxyStreamingCancellation(long txId) {
+                    this.txId = txId;
+                }
+                
+                @Override
+                public void cancel() {
+                    if (!cancelled) {
+                        cancelled = true;
+                        
+                        // Send cancellation message to the agent via controller
+                        try {
+                            log.info("Sending streaming cancellation request to agent [{}|{}] via controller [{}|{}] for transaction [{}]",
+                                     targetApplication,
+                                     targetInstance,
+                                     controller.getHost(),
+                                     controller.getPort(),
+                                     txId);
+                            
+                            // Create a cancellation message
+                            ServiceRequestMessageOut cancelRequest = ServiceRequestMessageOut.builder()
+                                                                                             .messageType(ServiceMessageType.CLIENT_STREAMING_CANCEL)
+                                                                                             .transactionId(txId)
+                                                                                             .applicationName("brpc-client")
+                                                                                             .serviceName(serviceRequest.getServiceName())
+                                                                                             .methodName(serviceRequest.getMethodName())
+                                                                                             .build();
+                            
+                            // Send it via the HTTP proxy
+                            sendRequestResponseRpc(cancelRequest);
+                        } catch (Exception e) {
+                            log.warn("Failed to send streaming cancellation message for txId: " + txId, e);
+                        }
+                    }
+                }
+                
+                @Override
+                public boolean isCancelled() {
+                    return cancelled;
+                }
+            }
+            
+            // Create cancellation object for this stream
+            HttpProxyStreamingCancellation cancellation = new HttpProxyStreamingCancellation(txId);
+            
+            // Extract the StreamResponse from the inflightRequests map
+            InflightRequest inflightRequest = invocationManager.getInflightRequest(txId);
+            if (inflightRequest != null && inflightRequest.streamResponse != null) {
+                // Inject our cancellation object into the StreamResponse
+                inflightRequest.streamResponse.setStreamCancellation(cancellation);
+            }
+            
             CompletableFuture.runAsync(() -> {
                                  try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
                                      URI uri = new URIBuilder(controller.getURL() + "/api/agent/service/proxy/streaming")

@@ -317,16 +317,7 @@ public class DiagnosisApi {
                                                                                          request.getInstanceName(),
                                                                                          profilingTaskTimeout);
 
-        ProfilingRequest profilingRequest = ProfilingRequest.newBuilder()
-                                                            .setDurationInSeconds(request.getDuration())
-                                                            .setIntervalInSeconds(request.getInterval())
-                                                            .setRequestId(UUID.randomUUID().toString())
-                                                            .addAllProfileEvents(CollectionUtils.isEmpty(request.getProfileEvents()) ? List.of("cpu") : request.getProfileEvents())
-                                                            .build();
-
-        final AtomicReference<Boolean> isCancelled = new AtomicReference<>(false);
-        profilingCommand.start(profilingRequest, new StreamResponse<>() {
-
+        StreamResponse<ProfilingEvent> streamResponse = new StreamResponse<>() {
             @Override
             public void onNext(ProfilingEvent event) {
                 try {
@@ -345,7 +336,8 @@ public class DiagnosisApi {
                                            .data(JsonFormat.printer().omittingInsignificantWhitespace().print(data), MediaType.TEXT_PLAIN)
                                            .build());
                 } catch (IOException | IllegalStateException ignored) {
-                    isCancelled.set(true);
+                    // Cancel streaming immediately when the client connection is broken
+                    this.cancel();
                 }
             }
 
@@ -371,14 +363,19 @@ public class DiagnosisApi {
             public void onComplete() {
                 emitter.complete();
             }
+        };
 
-            @Override
-            public boolean isCancelled() {
-                return isCancelled.get();
-            }
-        });
+        // Cancel upstream stream immediately when the client connection is broken
+        // It might take some time for the emitter to notice the broken connection
+        emitter.onError((e) -> streamResponse.cancel());
 
-        emitter.onError((e) -> isCancelled.set(true));
+        profilingCommand.start(ProfilingRequest.newBuilder()
+                                               .setDurationInSeconds(request.getDuration())
+                                               .setIntervalInSeconds(request.getInterval())
+                                               .setRequestId(UUID.randomUUID().toString())
+                                               .addAllProfileEvents(CollectionUtils.isEmpty(request.getProfileEvents()) ? List.of("cpu") : request.getProfileEvents())
+                                               .build(),
+                               streamResponse);
 
         return emitter;
     }

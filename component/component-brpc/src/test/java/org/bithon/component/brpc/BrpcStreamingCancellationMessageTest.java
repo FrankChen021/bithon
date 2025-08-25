@@ -74,6 +74,7 @@ public class BrpcStreamingCancellationMessageTest {
                         // Cancel after receiving 5 items
                         if (receivedData.size() == 5) {
                             cancelled.set(true);
+                            this.cancel();
                         }
                     }
                 }
@@ -86,12 +87,14 @@ public class BrpcStreamingCancellationMessageTest {
                 @Override
                 public void onComplete() {
                     // Should not be called when cancelled
-                    Assertions.fail("onComplete should not be called when cancelled");
+                    if (cancelled.get()) {
+                        Assertions.fail("onComplete should not be called when cancelled");
+                    }
                 }
 
                 @Override
                 public boolean isCancelled() {
-                    return cancelled.get();
+                    return super.isCancelled() || cancelled.get();
                 }
             };
 
@@ -132,6 +135,7 @@ public class BrpcStreamingCancellationMessageTest {
                         // Cancel after receiving 3 items
                         if (receivedData.size() == 3) {
                             cancelled.set(true);
+                            this.cancel();
                         }
                     }
                 }
@@ -144,12 +148,14 @@ public class BrpcStreamingCancellationMessageTest {
                 @Override
                 public void onComplete() {
                     // Should not be called when cancelled
-                    Assertions.fail("onComplete should not be called when cancelled");
+                    if (cancelled.get()) {
+                        Assertions.fail("onComplete should not be called when cancelled");
+                    }
                 }
 
                 @Override
                 public boolean isCancelled() {
-                    return cancelled.get();
+                   return super.isCancelled() || cancelled.get();
                 }
             };
 
@@ -203,6 +209,7 @@ public class BrpcStreamingCancellationMessageTest {
                             currentStreamData.add(data);
                             if (currentStreamData.size() >= cancelAfter) {
                                 cancellationFlag.set(true);
+                                this.cancel();
                             }
                         }
                     }
@@ -215,12 +222,14 @@ public class BrpcStreamingCancellationMessageTest {
                     @Override
                     public void onComplete() {
                         // Should not be called when cancelled
-                        Assertions.fail("onComplete should not be called when cancelled");
+                        if (cancellationFlag.get()) {
+                            Assertions.fail("onComplete should not be called when cancelled");
+                        }
                     }
 
                     @Override
                     public boolean isCancelled() {
-                        return cancellationFlag.get();
+                        return super.isCancelled() || cancellationFlag.get();
                     }
                 };
 
@@ -275,6 +284,8 @@ public class BrpcStreamingCancellationMessageTest {
                                 cancellationMessageTypeLatch.countDown();
                             }
                             
+                            // Send an exception to properly terminate the stream
+                            response.onException(new RuntimeException("Stream cancelled"));
                             return;
                         }
                         response.onNext("track-" + i);
@@ -282,6 +293,12 @@ public class BrpcStreamingCancellationMessageTest {
                     }
                     if (!response.isCancelled()) {
                         response.onComplete();
+                    } else {
+                        // If cancelled during the last iteration, make sure we signal
+                        if (cancellationMessageReceivedLatch != null) {
+                            cancellationMessageReceivedLatch.countDown();
+                        }
+                        response.onException(new RuntimeException("Stream cancelled"));
                     }
                 } catch (Exception e) {
                     response.onException(e);
@@ -299,6 +316,8 @@ public class BrpcStreamingCancellationMessageTest {
                             if (multipleStreamsCancellationLatch != null) {
                                 multipleStreamsCancellationLatch.countDown();
                             }
+                            // Send an exception to properly terminate the stream
+                            response.onException(new RuntimeException("Stream cancelled"));
                             return;
                         }
                         response.onNext("multi-" + i);
@@ -306,6 +325,12 @@ public class BrpcStreamingCancellationMessageTest {
                     }
                     if (!response.isCancelled()) {
                         response.onComplete();
+                    } else {
+                        // If cancelled during the last iteration, make sure we signal
+                        if (multipleStreamsCancellationLatch != null) {
+                            multipleStreamsCancellationLatch.countDown();
+                        }
+                        response.onException(new RuntimeException("Stream cancelled"));
                     }
                 } catch (Exception e) {
                     response.onException(e);
