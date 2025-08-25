@@ -49,6 +49,7 @@ import org.bithon.shaded.io.netty.handler.codec.LengthFieldPrepender;
 import org.bithon.shaded.io.netty.handler.timeout.IdleState;
 import org.bithon.shaded.io.netty.handler.timeout.IdleStateEvent;
 import org.bithon.shaded.io.netty.handler.timeout.IdleStateHandler;
+import org.bithon.shaded.io.netty.util.AttributeKey;
 
 import java.io.Closeable;
 import java.net.SocketAddress;
@@ -66,6 +67,8 @@ import java.util.stream.Collectors;
  * @author frankchen
  */
 public class BrpcServer implements Closeable {
+    // Define a constant for the InvocationManager attribute key
+    public static final AttributeKey<InvocationManager> INVOCATION_MANAGER_KEY = AttributeKey.valueOf("invocation-manager");
 
     private final ServerBootstrap serverBootstrap;
     private final NioEventLoopGroup acceptorGroup;
@@ -73,7 +76,6 @@ public class BrpcServer implements Closeable {
 
     private final ServiceRegistry serviceRegistry = new ServiceRegistry();
     private final SessionManager sessionManager;
-    private final InvocationManager invocationManager;
 
     BrpcServer(BrpcServerBuilder builder) {
         Preconditions.checkNotNull(builder.serverId, "serverId must be set");
@@ -81,8 +83,7 @@ public class BrpcServer implements Closeable {
         this.acceptorGroup = new NioEventLoopGroup(1, NamedThreadFactory.nonDaemonThreadFactory("brpc-server-" + builder.serverId));
         this.ioGroup = new NioEventLoopGroup(builder.ioThreads, NamedThreadFactory.nonDaemonThreadFactory("brpc-s-work-" + builder.serverId));
 
-        this.invocationManager = new InvocationManager();
-        this.sessionManager = new SessionManager(this.invocationManager);
+        this.sessionManager = new SessionManager();
 
         final Executor executor = builder.executor;
         this.serverBootstrap = new ServerBootstrap()
@@ -97,6 +98,12 @@ public class BrpcServer implements Closeable {
             .childHandler(new ChannelInitializer<NioSocketChannel>() {
                 @Override
                 protected void initChannel(NioSocketChannel ch) {
+                    // Create a new InvocationManager per channel
+                    InvocationManager invocationManager = new InvocationManager();
+
+                    // Store the InvocationManager in the channel's attribute map for easy access
+                    ch.attr(INVOCATION_MANAGER_KEY).set(invocationManager);
+
                     ChannelPipeline pipeline = ch.pipeline();
                     pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
                     pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
@@ -138,14 +145,14 @@ public class BrpcServer implements Closeable {
     public void close() {
         close(2, 15, TimeUnit.SECONDS);
     }
-    
+
     /**
      * Close the server with custom shutdown timeouts.
      * This is useful for tests that need faster shutdown.
-     * 
+     *
      * @param quietPeriod the quiet period for graceful shutdown
-     * @param timeout the maximum time to wait for shutdown
-     * @param unit the time unit
+     * @param timeout     the maximum time to wait for shutdown
+     * @param unit        the time unit
      */
     public void close(long quietPeriod, long timeout, TimeUnit unit) {
         try {
@@ -157,7 +164,7 @@ public class BrpcServer implements Closeable {
         } catch (InterruptedException ignored) {
         }
     }
-    
+
     /**
      * Fast shutdown for tests - uses minimal timeouts
      */
@@ -217,13 +224,13 @@ public class BrpcServer implements Closeable {
          */
         private Map<String, String> remoteAttribute = Collections.emptyMap();
 
-        private Session(String applicationName, Channel channel, InvocationManager invocationManager) {
+        private Session(String applicationName, Channel channel) {
             this.sessionStartTimestamp = System.currentTimeMillis();
             this.channel = channel;
             this.remoteApplicationName = applicationName;
             this.remoteEndpoint = EndPoint.of(channel.remoteAddress()).toString();
             this.localEndpoint = EndPoint.of(channel.localAddress()).toString();
-            this.invocationManager = invocationManager;
+            this.invocationManager = channel.attr(INVOCATION_MANAGER_KEY).get();
         }
 
         public String getRemoteApplicationName() {
@@ -280,12 +287,9 @@ public class BrpcServer implements Closeable {
      */
     @ChannelHandler.Sharable
     private static class SessionManager extends ChannelInboundHandlerAdapter {
-        private final InvocationManager invocationManager;
-
         private final Map<String, Session> sessions = new ConcurrentHashMap<>();
 
-        private SessionManager(InvocationManager invocationManager) {
-            this.invocationManager = invocationManager;
+        private SessionManager() {
         }
 
         public List<Session> getSessions() {
@@ -299,11 +303,10 @@ public class BrpcServer implements Closeable {
                 return;
             }
 
-            ServiceRequestMessageIn request = (ServiceRequestMessageIn) msg;
-
             // Create a session only if the ServiceRequestMessageIn has been successfully decoded
+            ServiceRequestMessageIn request = (ServiceRequestMessageIn) msg;
             Session session = sessions.computeIfAbsent(ctx.channel().id().asLongText(),
-                                                       key -> new Session(request.getApplicationName(), ctx.channel(), invocationManager));
+                                                       key -> new Session(request.getApplicationName(), ctx.channel()));
 
             // Update additional attributes
             session.setRemoteAttribute(request.getHeaders());
@@ -313,7 +316,8 @@ public class BrpcServer implements Closeable {
 
         @Override
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-            sessions.remove(ctx.channel().id().asLongText());
+            String channelId = ctx.channel().id().asLongText();
+            sessions.remove(channelId);
             super.channelInactive(ctx);
         }
 

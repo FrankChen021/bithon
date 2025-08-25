@@ -37,7 +37,6 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.component.commons.utils.TimeWindowBasedCounter;
 import org.bithon.shaded.io.netty.channel.Channel;
-import org.bithon.shaded.io.netty.channel.ChannelHandler;
 import org.bithon.shaded.io.netty.channel.ChannelHandlerContext;
 import org.bithon.shaded.io.netty.channel.SimpleChannelInboundHandler;
 import org.bithon.shaded.io.netty.handler.codec.DecoderException;
@@ -50,7 +49,6 @@ import java.util.concurrent.Executor;
 /**
  * @author frankchen
  */
-@ChannelHandler.Sharable
 class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMessage> {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(ServiceMessageChannelHandler.class);
 
@@ -185,7 +183,7 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
                       ctx.channel().localAddress().toString(),
                       cause.getMessage());
         } else {
-            LOG.error(StringUtils.format("[{}] - Exception occurred on channel(%s ---> %s) when processing message",
+            LOG.error(StringUtils.format("[%s] - Exception occurred on channel(%s ---> %s) when processing message",
                                          this.id,
                                          ctx.channel().remoteAddress().toString(),
                                          ctx.channel().localAddress().toString()), cause);
@@ -216,10 +214,7 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
             ServiceStreamingInvocationRunnable.cleanupForChannel(ctx.channel());
 
             // Clean up streaming requests on client side
-            if (invocationManager != null) {
-                invocationManager.handleChannelClosure();
-            }
-
+            invocationManager.handleChannelClosure();
         } catch (Exception e) {
             LOG.error("[{}] Error during channel cleanup", id, e);
         } finally {
