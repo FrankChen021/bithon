@@ -11,11 +11,6 @@
 
   <artifactId>agent-controller</artifactId>
 
-  <properties>
-    <maven.compiler.source>8</maven.compiler.source>
-    <maven.compiler.target>8</maven.compiler.target>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.bithon.component</groupId>
@@ -28,6 +23,23 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-observability</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>tools.profiler</groupId>
+      <artifactId>jfr-converter</artifactId>
+      <version>4.1</version>
+    </dependency>
+    <dependency>
+      <groupId>tools.profiler</groupId>
+      <artifactId>async-profiler</artifactId>
+      <version>4.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

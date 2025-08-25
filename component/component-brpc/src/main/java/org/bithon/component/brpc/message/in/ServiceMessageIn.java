@@ -16,7 +16,9 @@
 
 package org.bithon.component.brpc.message.in;
 
+import org.bithon.component.brpc.exception.BadRequestException;
 import org.bithon.component.brpc.message.ServiceMessage;
+import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 
 import java.io.IOException;
@@ -26,5 +28,45 @@ import java.io.IOException;
  */
 public abstract class ServiceMessageIn extends ServiceMessage {
 
-    public abstract ServiceMessage decode(CodedInputStream in) throws IOException;
+    protected final CodedInputStream in;
+
+    protected ServiceMessageIn(CodedInputStream in) {
+        this.in = in;
+    }
+
+    public abstract ServiceMessage decode() throws IOException;
+
+    /**
+     * Consume the message.
+     */
+    public void consume() throws IOException {
+        int unConsumedBytes = in.getBytesUntilLimit();
+        if (unConsumedBytes > 0) {
+            in.skipRawBytes(unConsumedBytes);
+        }
+    }
+
+    public static ServiceMessageIn from(byte[] messageBytes) throws IOException {
+        CodedInputStream messageStream = CodedInputStream.newInstance(messageBytes);
+        int messageType = messageStream.readInt32();
+        if (messageType == ServiceMessageType.CLIENT_REQUEST
+            || messageType == ServiceMessageType.CLIENT_REQUEST_ONEWAY
+            || messageType == ServiceMessageType.CLIENT_REQUEST_V2
+            || messageType == ServiceMessageType.CLIENT_STREAMING_REQUEST
+            || messageType == ServiceMessageType.CLIENT_STREAMING_CANCEL
+        ) {
+            return (ServiceMessageIn) new ServiceRequestMessageIn(messageType, messageStream).decode();
+        }
+
+        if (messageType == ServiceMessageType.SERVER_STREAMING_DATA) {
+            return (ServiceMessageIn) new ServiceStreamingDataMessageIn(messageStream).decode();
+        }
+
+        if (messageType == ServiceMessageType.SERVER_STREAMING_END) {
+            return (ServiceMessageIn) new ServiceStreamingEndMessageIn(messageStream).decode();
+        }
+
+        throw new BadRequestException("messageType [0x%x] is not a valid ServiceRequest message", messageType);
+
+    }
 }

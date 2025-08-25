@@ -16,6 +16,7 @@
 
 package org.bithon.component.brpc.message.in;
 
+import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.message.ServiceMessage;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
@@ -31,13 +32,26 @@ public class ServiceStreamingEndMessageIn extends ServiceMessageIn {
 
     private Throwable exception;
 
+    public ServiceStreamingEndMessageIn(CodedInputStream is) {
+        super(is);
+    }
+
+    /**
+     * @param exception CAN be nullable
+     */
+    public ServiceStreamingEndMessageIn(long txId, Throwable exception) {
+        super(null);
+        this.transactionId = txId;
+        this.exception = exception;
+    }
+
     @Override
     public int getMessageType() {
         return ServiceMessageType.SERVER_STREAMING_END;
     }
 
     @Override
-    public ServiceMessage decode(CodedInputStream in) throws IOException {
+    public ServiceMessage decode() throws IOException {
         this.transactionId = in.readInt64();
 
         // Read exception flag
@@ -45,7 +59,7 @@ public class ServiceStreamingEndMessageIn extends ServiceMessageIn {
         if (hasException == 1) {
             // Read exception as string (matching the encoding format)
             String exceptionMessage = in.readString();
-            this.exception = new RuntimeException(exceptionMessage);
+            this.exception = new ServiceInvocationException(exceptionMessage);
         }
 
         return this;

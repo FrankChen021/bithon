@@ -24,18 +24,22 @@ import java.io.IOException;
 
 /**
  * Message for receiving streaming cancel requests on the server side
- * 
+ *
  * @author frankchen
  */
 public class ServiceStreamingCancelMessageIn extends ServiceMessageIn {
-    
+
+    public ServiceStreamingCancelMessageIn(CodedInputStream is) {
+        super(is);
+    }
+
     @Override
     public int getMessageType() {
         return ServiceMessageType.CLIENT_STREAMING_CANCEL;
     }
-    
+
     @Override
-    public ServiceMessage decode(CodedInputStream in) throws IOException {
+    public ServiceMessage decode() throws IOException {
         this.transactionId = in.readInt64();
         return this;
     }

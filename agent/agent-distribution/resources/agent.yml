@@ -23,6 +23,7 @@ exporters:
       highWaterMark: 512KiB
     servers: 127.0.0.1:9898
     # No need to configure the metric client in batch because it's already batched. If doing so, there will be exceptions
+    flushTime: 1000
   tracing:
     client:
       factory: org.bithon.agent.exporter.brpc.BrpcExporterFactory
