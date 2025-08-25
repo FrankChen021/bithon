@@ -61,7 +61,7 @@ public class AsyncProfilerTask implements Runnable {
         this.profilingEvents = String.join(",", profilingRequest.getProfileEventsList());
         this.streamResponse = streamResponse;
         this.progressNotifier = new ProgressNotifier(streamResponse);
-        
+
         // Calculate endTime based on duration and interval
         long startTime = System.currentTimeMillis();
         this.endTimestamp = startTime + (durationSecond + intervalSecond + 3) * 1000L;
@@ -103,6 +103,19 @@ public class AsyncProfilerTask implements Runnable {
         } catch (IllegalStateException e) {
             // Ignore if profiler wasn't running
         }
+
+        try {
+            if (this.outputDir != null && this.outputDir.exists() && outputDir.isDirectory()) {
+                File[] files = outputDir.listFiles();
+                if (files != null) {
+                    for (File file : files) {
+                        file.delete();
+                    }
+                }
+                outputDir.delete();
+            }
+        } catch (Exception ignored) {
+        }
     }
 
     private void startProfiling() {
@@ -143,12 +156,12 @@ public class AsyncProfilerTask implements Runnable {
                 break;
             }
 
-            File path = jfrFile.getPath();
+            File filePath = jfrFile.getPath();
             String name = jfrFile.getName();
             long size = jfrFile.getSize();
 
             try {
-                JfrFileConsumer.consume(path,
+                JfrFileConsumer.consume(filePath,
                                         new JfrFileConsumer.EventConsumer() {
                                             private int eventCount = 0;
 
@@ -180,30 +193,16 @@ public class AsyncProfilerTask implements Runnable {
                 // Only catch IOException for this file to ignore it
                 progressNotifier.sendProgress("Ignored profiling data %s: %s", name, e.getMessage());
             } finally {
-                if (!path.delete()) {
+                if (!filePath.delete()) {
                     LOG.warn("Failed to delete profiling file: {}", name);
                 }
             }
         }
     }
 
-    public void cleanup() {
-        this.stopProfiling();
-
-        try {
-            if (this.outputDir != null && this.outputDir.exists() && outputDir.isDirectory()) {
-                File[] files = outputDir.listFiles();
-                if (files != null) {
-                    for (File file : files) {
-                        file.delete();
-                    }
-                }
-                outputDir.delete();
-            }
-        } catch (Exception ignored) {
-        }
-    }
-
+    /**
+     * A stop request
+     */
     public void stop() {
         this.progressNotifier.sendProgress("Received stop request from user.");
         isUserStopped = true;
