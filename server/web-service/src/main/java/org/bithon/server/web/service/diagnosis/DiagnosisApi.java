@@ -39,9 +39,11 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
+import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.agent.sql.table.AgentServiceProxyFactory;
 import org.bithon.shaded.com.google.protobuf.GeneratedMessageV3;
 import org.bithon.shaded.com.google.protobuf.util.JsonFormat;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -72,6 +74,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @Slf4j
 @CrossOrigin
 @RestController
+@Conditional(WebServiceModuleEnabler.class)
 public class DiagnosisApi {
 
     private final AgentServiceProxyFactory agentServiceProxyFactory;
@@ -111,34 +114,8 @@ public class DiagnosisApi {
         //
         // Find the controller where the target instance is connected to
         //
-        DiscoveredServiceInstance controller;
-        {
-            AtomicReference<DiscoveredServiceInstance> controllerRef = new AtomicReference<>();
-            List<DiscoveredServiceInstance> controllerList = discoveredServiceInvoker.getInstanceList(IAgentControllerApi.class);
-            CountDownLatch countDownLatch = new CountDownLatch(controllerList.size());
-            for (DiscoveredServiceInstance controllerInstance : controllerList) {
-                discoveredServiceInvoker.getExecutor()
-                                        .submit(() -> discoveredServiceInvoker.createUnicastApi(IAgentControllerApi.class, () -> controllerInstance)
-                                                                              .getAgentInstanceList(request.getAppName(), request.getInstanceName()))
-                                        .thenAccept((returning) -> {
-                                            if (!returning.isEmpty()) {
-                                                controllerRef.set(controllerInstance);
-                                            }
-                                        })
-                                        .whenComplete((ret, ex) -> countDownLatch.countDown());
-            }
-
-            try {
-                countDownLatch.await();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            if (controllerRef.get() == null) {
-                throw new HttpMappableException(HttpStatus.NOT_FOUND.value(), "No controller found for application instance [appName = %s, instanceName = %s]", request.getAppName(), request.getInstanceName());
-            }
-            controller = controllerRef.get();
-        }
-
+        DiscoveredServiceInstance controller = findAgentController(request.getAppName(), request.getInstanceName());
+        
         //
         // Create service proxy to agent via controller
         //
@@ -406,8 +383,11 @@ public class DiagnosisApi {
     }
 
     private DiscoveredServiceInstance findAgentController(String appName, String instanceName) {
-        AtomicReference<DiscoveredServiceInstance> controllerRef = new AtomicReference<>();
+        // Get all controllers
         List<DiscoveredServiceInstance> controllerList = discoveredServiceInvoker.getInstanceList(IAgentControllerApi.class);
+
+        // Find the controller where the target instance is connected to
+        AtomicReference<DiscoveredServiceInstance> controllerRef = new AtomicReference<>();
         CountDownLatch countDownLatch = new CountDownLatch(controllerList.size());
         for (DiscoveredServiceInstance controllerInstance : controllerList) {
             discoveredServiceInvoker.getExecutor()
