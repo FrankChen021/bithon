@@ -61,10 +61,26 @@ public class JfrFileMonitor {
      * @return A ready JFR file with its size, or null if no file is ready or cancelled
      */
     public TimestampedFile poll() {
-        scanNewFiles();
+        while (!cancellationCtrl.getAsBoolean()) {
+            scanNewFiles();
 
-        // Then, check if any queued file is ready for processing
-        return pollFromQueue();
+            // Then, check if any queued file is ready for processing
+            TimestampedFile file = dequeue();
+            if (file != null) {
+                return file;
+            }
+            if (cancellationCtrl.getAsBoolean()) {
+                return null;
+            }
+
+            progressNotifier.sendProgress("Waiting for new profiling data...");
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ignored) {
+                return null;
+            }
+        }
+        return null;
     }
 
     private void scanNewFiles() {
@@ -82,7 +98,7 @@ public class JfrFileMonitor {
         }
     }
 
-    private TimestampedFile pollFromQueue() {
+    private TimestampedFile dequeue() {
         while (!queue.isEmpty() && !cancellationCtrl.getAsBoolean()) {
             TimestampedFile timestampedFile = queue.peek();
 
@@ -102,7 +118,7 @@ public class JfrFileMonitor {
             long waitTime = expectedReadyTime - now;
 
             while (waitTime > 0 && !cancellationCtrl.getAsBoolean() && !Thread.currentThread().isInterrupted()) {
-                progressNotifier.sendProgress("%s is under collection. Waiting...", timestampedFile.getName());
+                progressNotifier.sendProgress("%s NOT ready. Waiting...", timestampedFile.getName());
 
                 long sleepTime = Math.min(waitTime, 1000); // Sleep in chunks of 1 second
                 waitTime -= sleepTime;
@@ -113,7 +129,6 @@ public class JfrFileMonitor {
                     break;
                 }
             }
-
             if (cancellationCtrl.getAsBoolean()) {
                 return null;
             }

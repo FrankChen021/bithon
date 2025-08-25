@@ -152,7 +152,6 @@ public class AsyncProfilerTask implements Runnable {
         while (!isTaskCancelled()) {
             TimestampedFile jfrFile = monitor.poll();
             if (jfrFile == null) {
-                // No file ready or task cancelled
                 break;
             }
 
@@ -167,7 +166,7 @@ public class AsyncProfilerTask implements Runnable {
 
                                             @Override
                                             public void onStart() {
-                                                progressNotifier.sendProgress("%s is ready and has a size of %s data. Streaming profiling data...",
+                                                progressNotifier.sendProgress("%s READY and has a size of %s data. Streaming profiling data...",
                                                                               name,
                                                                               HumanReadableNumber.format(size, 2, HumanReadableNumber.UnitSystem.BINARY_BYTE));
                                             }
