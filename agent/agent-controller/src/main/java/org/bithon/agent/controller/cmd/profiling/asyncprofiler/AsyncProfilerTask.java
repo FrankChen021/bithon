@@ -75,7 +75,7 @@ public class AsyncProfilerTask implements Runnable {
         String uuid = UUIDv7Generator.create(UUIDv7Generator.INCREMENT_TYPE_DEFAULT)
                                      .generate()
                                      .toCompactFormat();
-        this.outputDir = new File(System.getProperty("java.io.tmpdir", "/tmp"), "org.bithon.agent/profiling/" + uuid);
+        this.outputDir = new File(System.getProperty("java.io.tmpdir", "/tmp"), "org.bithon.agent/profiling/session" + uuid);
         if (!outputDir.exists() && !outputDir.mkdirs()) {
             throw new ProfilingException("Failed to create temporary directory: " + outputDir.getAbsolutePath());
         }
@@ -91,7 +91,10 @@ public class AsyncProfilerTask implements Runnable {
     }
 
     private boolean isTaskCancelled() {
-        return isUserStopped || this.streamResponse.isCancelled() || this.endTimestamp <= System.currentTimeMillis();
+        return isUserStopped
+               || this.streamResponse.isCancelled()
+               || this.endTimestamp <= System.currentTimeMillis()
+               || Thread.currentThread().isInterrupted();
     }
 
     /**

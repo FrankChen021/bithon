@@ -27,6 +27,7 @@ import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -41,6 +42,19 @@ public class AsyncProfilerProvider implements IProfilerProvider {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(AsyncProfilerProvider.class);
 
     private AsyncProfilerTask task = null;
+
+    public AsyncProfilerProvider() {
+        // Set the extraction path for async-profiler
+        // because it does not handle relative directory correctly, see: https://github.com/async-profiler/async-profiler/issues/1451
+        File location = new File(System.getProperty("java.io.tmpdir", "/tmp"), "org.bithon.agent/profiling/async-profiler");
+        if (!location.exists() && !location.mkdirs()) {
+            throw new ProfilingException("Failed to prepare directory: " + location.getAbsolutePath());
+        }
+        System.setProperty("one.profiler.extractPath", location.getAbsolutePath());
+
+        // Initialize async-profiler
+        AsyncProfiler.getInstance();
+    }
 
     @Override
     public void start(ProfilingRequest request, StreamResponse<ProfilingEvent> streamResponse) {

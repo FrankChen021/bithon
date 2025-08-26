@@ -33,10 +33,10 @@ public class ProfilerFactory {
             try {
                 Class<?> impl = AgentClassLoader.getClassLoader().loadClass("org.bithon.agent.controller.cmd.profiling.asyncprofiler.AsyncProfilerProvider");
                 return (IProfilerProvider) impl.getConstructor().newInstance();
-            } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException e) {
-                throw new RuntimeException(e);
             } catch (InvocationTargetException e) {
                 throw new RuntimeException(e.getTargetException() == null ? e : e.getTargetException());
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
             }
         }
         return new AsyncProfilerProvider();

@@ -34,14 +34,14 @@ public class ProfilingCommand implements IProfilingCommand, IAgentCommand {
 
     @Override
     public void start(ProfilingRequest request, StreamResponse<ProfilingEvent> response) {
-        if (provider == null) {
-            synchronized (this) {
-                if (provider == null) {
-                    provider = ProfilerFactory.create();
+        try {
+            if (provider == null) {
+                synchronized (this) {
+                    if (provider == null) {
+                        provider = ProfilerFactory.create();
+                    }
                 }
             }
-        }
-        try {
             provider.start(request, response);
         } catch (Throwable e) {
             response.onException(e);
