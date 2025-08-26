@@ -33,6 +33,7 @@ public class RetryableExceptions {
                    || message.contains("connect timed out")
                    || message.contains("Connection reset")
                    || message.contains("Connection refused")
+                   || message.contains("Broken pipe")
                    || message.startsWith("Unexpected end of file from server")
                    // The following is thrown from sun.net.www.protocol.http.HTTPURLConnection
                    || message.startsWith("Error writing request body to server")
