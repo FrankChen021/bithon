@@ -23,6 +23,7 @@ import feign.codec.Decoder;
 import feign.codec.Encoder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -35,6 +36,7 @@ import org.apache.http.util.EntityUtils;
 import org.bithon.component.brpc.StreamCancellation;
 import org.bithon.component.brpc.channel.IBrpcChannel;
 import org.bithon.component.brpc.endpoint.EndPoint;
+import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.ServiceNotFoundException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
 import org.bithon.component.brpc.invocation.InvocationManager;
@@ -50,6 +52,7 @@ import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.exception.ErrorResponse;
 import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.client.ErrorResponseDecoder;
@@ -59,6 +62,8 @@ import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -98,11 +103,14 @@ public class AgentServiceProxyFactory {
     @Getter
     private final DiscoveredServiceInvoker discoveryServiceInvoker;
     private final ApplicationContext applicationContext;
+    private final ObjectMapper objectMapper;
 
     public AgentServiceProxyFactory(DiscoveredServiceInvoker discoveryServiceInvoker,
-                                    ApplicationContext applicationContext) {
+                                    ApplicationContext applicationContext,
+                                    ObjectMapper objectMapper) {
         this.discoveryServiceInvoker = discoveryServiceInvoker;
         this.applicationContext = applicationContext;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -446,16 +454,16 @@ public class AgentServiceProxyFactory {
             class HttpProxyStreamingCancellation implements StreamCancellation {
                 private final long txId;
                 private volatile boolean cancelled = false;
-                
+
                 HttpProxyStreamingCancellation(long txId) {
                     this.txId = txId;
                 }
-                
+
                 @Override
                 public void cancel() {
                     if (!cancelled) {
                         cancelled = true;
-                        
+
                         // Send cancellation message to the agent via controller
                         try {
                             log.info("Sending streaming cancellation request to agent [{}|{}] via controller [{}|{}] for transaction [{}]",
@@ -464,7 +472,7 @@ public class AgentServiceProxyFactory {
                                      controller.getHost(),
                                      controller.getPort(),
                                      txId);
-                            
+
                             // Create a cancellation message
                             ServiceRequestMessageOut cancelRequest = ServiceRequestMessageOut.builder()
                                                                                              .messageType(ServiceMessageType.CLIENT_STREAMING_CANCEL)
@@ -473,7 +481,7 @@ public class AgentServiceProxyFactory {
                                                                                              .serviceName(serviceRequest.getServiceName())
                                                                                              .methodName(serviceRequest.getMethodName())
                                                                                              .build();
-                            
+
                             // Send it via the HTTP proxy
                             sendRequestResponseRpc(cancelRequest);
                         } catch (Exception e) {
@@ -481,23 +489,23 @@ public class AgentServiceProxyFactory {
                         }
                     }
                 }
-                
+
                 @Override
                 public boolean isCancelled() {
                     return cancelled;
                 }
             }
-            
+
             // Create cancellation object for this stream
             HttpProxyStreamingCancellation cancellation = new HttpProxyStreamingCancellation(txId);
-            
+
             // Extract the StreamResponse from the inflightRequests map
             InflightRequest inflightRequest = invocationManager.getInflightRequest(txId);
             if (inflightRequest != null && inflightRequest.streamResponse != null) {
                 // Inject our cancellation object into the StreamResponse
                 inflightRequest.streamResponse.setStreamCancellation(cancellation);
             }
-            
+
             CompletableFuture.runAsync(() -> {
                                  try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
                                      URI uri = new URIBuilder(controller.getURL() + "/api/agent/service/proxy/streaming")
@@ -518,7 +526,7 @@ public class AgentServiceProxyFactory {
                                          if (entity == null) {
                                              // No HTTP body, check status code for error
                                              if (statusCode < 200 || statusCode >= 300) {
-                                                 throw new HttpMappableException(statusCode, "Empty response from server with status: " + statusCode);
+                                                 throw new ServiceInvocationException("Empty response from controller with status: " + statusCode);
                                              }
 
                                              // what to do?
@@ -526,8 +534,18 @@ public class AgentServiceProxyFactory {
                                          }
 
                                          if (statusCode < 200 || statusCode >= 300) {
-                                             String errorBody = EntityUtils.toString(entity);
-                                             throw new HttpMappableException(statusCode, errorBody);
+                                             Header contentType = response.getLastHeader("Content-Type");
+                                             if (contentType != null) {
+                                                 try {
+                                                     boolean isJson = MediaType.APPLICATION_JSON.isCompatibleWith(MediaType.parseMediaType(contentType.getValue()));
+                                                     if (isJson) {
+                                                         ErrorResponse errorResponse = objectMapper.readValue(entity.getContent(), ErrorResponse.class);
+                                                         throw new ServiceInvocationException(errorResponse.getMessage());
+                                                     }
+                                                 } catch (InvalidMediaTypeException | IOException ignored) {
+                                                 }
+                                             }
+                                             throw new HttpMappableException(statusCode, EntityUtils.toString(entity));
                                          }
 
                                          try (BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent(), StandardCharsets.UTF_8))) {

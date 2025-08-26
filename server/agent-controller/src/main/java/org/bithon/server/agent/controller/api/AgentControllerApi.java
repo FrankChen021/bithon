@@ -243,7 +243,7 @@ public class AgentControllerApi implements IAgentControllerApi {
                 user = parsedToken.getBody().getSubject();
             }
 
-            Operation operation = rawRequest.getMethodName().startsWith("get") || rawRequest.getMethodName().startsWith("dump") ? Operation.READ : Operation.WRITE;
+            Operation operation = rawRequest.getServiceName().equals("agent.profiling") || rawRequest.getMethodName().startsWith("get") || rawRequest.getMethodName().startsWith("dump") ? Operation.READ : Operation.WRITE;
             permissionConfig.verifyPermission(operation,
                                               user,
                                               agentSession.getRemoteApplicationName(),
