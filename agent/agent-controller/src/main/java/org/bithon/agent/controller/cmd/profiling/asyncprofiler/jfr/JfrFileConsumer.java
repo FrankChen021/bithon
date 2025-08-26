@@ -183,4 +183,35 @@ public class JfrFileConsumer {
             }
         }
     }
+
+    public static void main(String[] args) throws IOException {
+        File f = new File("/Users/frank.chenling/source/open/bithon/20250824-165821.jfr");
+
+        //JfrFileReader.dumpRawEvents(f);
+
+        consume(f, new JfrFileConsumer.EventConsumer() {
+            @Override
+            public void onStart() {
+                System.out.println("JFR reading started");
+            }
+
+            @Override
+            public void onEvent(ProfilingEvent event) {
+                if (event.getEventCase() == ProfilingEvent.EventCase.CPULOAD) {
+                    System.out.println(event);
+                }
+            }
+
+            @Override
+            public void onComplete() {
+                System.out.println("JFR reading completed");
+            }
+
+            @Override
+            public boolean isCancelled() {
+                return false;
+            }
+        });
+    }
+
 }

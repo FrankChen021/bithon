@@ -26,7 +26,6 @@ import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.Initial
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.InitialSystemProperty;
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.JVMInformation;
 import org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.event.OSInformation;
-import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 import org.bithon.agent.rpc.brpc.profiling.StackFrame;
 import org.bithon.component.commons.forbidden.SuppressForbidden;
 import org.bithon.shaded.net.bytebuddy.jar.asm.Type;
@@ -36,7 +35,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.function.Function;
 
 import static one.convert.Frame.TYPE_CPP;
 import static one.convert.Frame.TYPE_KERNEL;
@@ -47,7 +48,59 @@ import static one.convert.Frame.TYPE_NATIVE;
  * @date 4/8/25 11:07 am
  */
 public class JfrFileReader implements Closeable {
+    private static class MetricsTrackingMap<K, V> extends HashMap<K, V> {
+        private long totalAccess = 0;
+        private long totalMiss = 0;
+
+        /**
+         * ONLY computeIfAbsent is overridden to track hits/misses
+         */
+        @Override
+        public V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
+            totalAccess++;
+            V value = super.get(key);
+            if (value == null) {
+                totalMiss++;
+                return super.computeIfAbsent(key, mappingFunction);
+            }
+            return value;
+        }
+
+        public long getTotalAccess() {
+            return totalAccess;
+        }
+
+        public long getTotalMiss() {
+            return totalMiss;
+        }
+
+        public long getTotalHits() {
+            return totalAccess - totalMiss;
+        }
+
+        public double getHitRate() {
+            return totalAccess == 0 ? 0.0 : (double) getTotalHits() / totalAccess;
+        }
+    }
+
+    /**
+     * Cache entry for parsed method signatures to avoid repeated parsing
+     */
+    private static class MethodSignature {
+        final String[] parameterTypes;
+        final String returnType;
+
+        MethodSignature(String[] parameterTypes, String returnType) {
+            this.parameterTypes = parameterTypes;
+            this.returnType = returnType;
+        }
+    }
+
     private final JfrReader delegate;
+    private final MetricsTrackingMap<Long, String> classNameCache = new MetricsTrackingMap<>();
+    private final MetricsTrackingMap<Long, String> methodNameCache = new MetricsTrackingMap<>();
+    private final MetricsTrackingMap<Long, MethodSignature> methodSignatureCache = new MetricsTrackingMap<>();
+    private final MetricsTrackingMap<Integer, String> threadNameCache = new MetricsTrackingMap<>();
 
     public JfrFileReader(JfrReader delegate) {
         this.delegate = delegate;
@@ -95,45 +148,6 @@ public class JfrFileReader implements Closeable {
         throw new IOException("Failed to process JFR file after " + maxRetries + " retries", lastException);
     }
 
-    @SuppressForbidden
-    public static void dumpRawEvents(File f) throws IOException {
-        try (JfrFileReader jfr = createReader(f.getAbsolutePath(), 3)) {
-            for (Event jfrEvent; (jfrEvent = jfr.readEvent()) != null; ) {
-                System.out.println(jfrEvent);
-            }
-        }
-    }
-
-    public static void main(String[] args) throws IOException {
-        File f = new File(args[0]);
-
-        //dumpRawEvents(f);
-
-        JfrFileConsumer.consume(f, new JfrFileConsumer.EventConsumer() {
-            @Override
-            public void onStart() {
-                System.out.println("JFR reading started");
-            }
-
-            @Override
-            public void onEvent(ProfilingEvent event) {
-                if (event.getEventCase() == ProfilingEvent.EventCase.CPULOAD) {
-                    System.out.println(event);
-                }
-            }
-
-            @Override
-            public void onComplete() {
-                System.out.println("JFR reading completed");
-            }
-
-            @Override
-            public boolean isCancelled() {
-                return false;
-            }
-        });
-    }
-
     public List<StackFrame> getStackTrace(int stackTraceId) {
         if (stackTraceId == 0) {
             return null;
@@ -174,38 +188,92 @@ public class JfrFileReader implements Closeable {
             stackFrame.setTypeName(className);
         }
 
-        byte[] methodName = this.delegate.symbols.get(method.name);
-        if (methodName == null || methodName.length == 0) {
+        // Use cached method name
+        String methodName = getMethodName(method.name);
+        if (methodName == null || methodName.isEmpty()) {
             stackFrame.setTypeName(className);
             stackFrame.setMethod("Unknown");
             return stackFrame;
         }
         stackFrame.setTypeName(className);
-        stackFrame.setMethod(new String(methodName, StandardCharsets.UTF_8));
+        stackFrame.setMethod(methodName);
 
-        byte[] sig = this.delegate.symbols.get(method.sig);
-        String sigStr = sig != null ? new String(sig, StandardCharsets.UTF_8) : "";
-        if (!sigStr.isEmpty()) {
-            Type methodType = Type.getMethodType(sigStr);
-            Type[] argTypes = methodType.getArgumentTypes();
-            for (Type argType : argTypes) {
-                stackFrame.addParameters(argType.getClassName());
+        // Use cached method signature parsing
+        MethodSignature parsedSig = getMethodSignature(method.sig);
+        if (parsedSig != null) {
+            for (String paramType : parsedSig.parameterTypes) {
+                stackFrame.addParameters(paramType);
             }
-            stackFrame.setReturnType(methodType.getReturnType().getClassName());
+            stackFrame.setReturnType(parsedSig.returnType);
         }
         return stackFrame;
     }
 
+    /**
+     * Get cached method name from symbol ID
+     */
+    private String getMethodName(long symbolId) {
+        return methodNameCache.computeIfAbsent(symbolId, id -> {
+            byte[] methodName = this.delegate.symbols.get(id);
+            if (methodName == null || methodName.length == 0) {
+                return "";
+            }
+            return new String(methodName, StandardCharsets.UTF_8);
+        });
+    }
+
+    /**
+     * Get cached parsed method signature directly from symbol ID
+     */
+    private MethodSignature getMethodSignature(long symbolId) {
+        return methodSignatureCache.computeIfAbsent(symbolId, id -> {
+
+            // Get raw signature bytes and convert to string
+            byte[] sig = this.delegate.symbols.get(id);
+            if (sig == null) {
+                return null;
+            }
+
+            String sigStr = new String(sig, StandardCharsets.UTF_8);
+            if (sigStr.isEmpty()) {
+                return null;
+            }
+
+            try {
+                Type methodType = Type.getMethodType(sigStr);
+                Type[] argTypes = methodType.getArgumentTypes();
+                String[] parameterTypes = new String[argTypes.length];
+                for (int i = 0; i < argTypes.length; i++) {
+                    parameterTypes[i] = argTypes[i].getClassName();
+                }
+                String returnType = methodType.getReturnType().getClassName();
+                return new MethodSignature(parameterTypes, returnType);
+            } catch (Exception e) {
+                // If signature parsing fails, return null to skip signature info
+                return null;
+            }
+        });
+    }
+
     public String getClassName(long classId) {
-        ClassRef clazzRef = delegate.classes.get(classId);
-        if (clazzRef == null) {
-            return "";
-        }
-        byte[] className = delegate.symbols.get(clazzRef.name);
-        if (className == null || className.length == 0) {
-            return "";
-        }
-        return toJavaClassName(className, 0, true);
+        return classNameCache.computeIfAbsent(classId, id -> {
+            ClassRef clazzRef = delegate.classes.get(id);
+            if (clazzRef == null) {
+                return "";
+            }
+            byte[] className = delegate.symbols.get(clazzRef.name);
+            if (className == null || className.length == 0) {
+                return "";
+            }
+            return toJavaClassName(className, 0, true);
+        });
+    }
+
+    public String getThreadName(int tid) {
+        return threadNameCache.computeIfAbsent(tid, id -> {
+            String threadName = delegate.threads.get(id);
+            return threadName != null ? threadName : "Unknown Thread";
+        });
     }
 
     private static String toJavaClassName(byte[] symbol, int start, boolean dotted) {
@@ -274,8 +342,12 @@ public class JfrFileReader implements Closeable {
         return delegate.startNanos / 1_000_000L + elapsedMilliseconds;
     }
 
-    public String getThreadName(int tid) {
-        String threadName = delegate.threads.get(tid);
-        return threadName != null ? threadName : "Unknown Thread";
+    @SuppressForbidden
+    public static void dumpRawEvents(File f) throws IOException {
+        try (JfrFileReader jfr = createReader(f.getAbsolutePath(), 3)) {
+            for (Event jfrEvent; (jfrEvent = jfr.readEvent()) != null; ) {
+                System.out.println(jfrEvent);
+            }
+        }
     }
 }
