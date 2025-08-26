@@ -414,7 +414,7 @@ public class AgentServiceProxyFactory {
                                                                                   .contract(applicationContext.getBean(Contract.class))
                                                                                   .encoder(applicationContext.getBean(Encoder.class))
                                                                                   .decoder(applicationContext.getBean(Decoder.class))
-                                                                                  .errorDecoder(new ErrorResponseDecoder(applicationContext.getBean(ObjectMapper.class)))
+                                                                                  .errorDecoder(new ErrorResponseDecoder(objectMapper))
                                                                                   .target(IAgentControllerApi.class, controller.getURL());
 
                                               try {

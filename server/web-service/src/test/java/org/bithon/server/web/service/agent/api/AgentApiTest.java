@@ -47,7 +47,7 @@ public class AgentApiTest {
     public static void setUp() {
         objectMapper = new ObjectMapper();
         DiscoveredServiceInvoker discoveredServiceInvoker = new DiscoveredServiceInvoker(Mockito.mock(IDiscoveryClient.class), new ServiceInvocationExecutor());
-        proxyFactory = new AgentServiceProxyFactory(discoveredServiceInvoker, null);
+        proxyFactory = new AgentServiceProxyFactory(discoveredServiceInvoker, null, new ObjectMapper());
     }
 
     @Test
