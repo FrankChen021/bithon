@@ -19,9 +19,16 @@ package org.bithon.agent.plugin.spring.webmvc.controller;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
+import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.method.support.InvocableHandlerMethod;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * {@link org.springframework.web.method.support.InvocableHandlerMethod#doInvoke(Object...)}
@@ -49,5 +56,91 @@ public class InvocableHandlerMethod$DoInvoke extends AroundInterceptor {
     public void after(AopContext aopContext) {
         ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException()).finish();
+        
+        // Handle StreamingResponseBody wrapping
+        wrapStreamingResponseBodyWithTracing(aopContext);
+    }
+    
+    /**
+     * Wrap StreamingResponseBody return values with tracing context
+     */
+    private void wrapStreamingResponseBodyWithTracing(AopContext aopContext) {
+        Object returnValue = aopContext.getReturning();
+        if (returnValue == null) {
+            return;
+        }
+
+        // Get current trace context before wrapping
+        ITraceContext currentContext = TraceContextHolder.current();
+        if (currentContext == null) {
+            return;
+        }
+
+        // Copy context to avoid thread interference
+        ITraceContext contextCopy = currentContext.copy();
+
+        if (returnValue instanceof StreamingResponseBody) {
+            // Direct StreamingResponseBody return
+            StreamingResponseBody original = (StreamingResponseBody) returnValue;
+            TracingStreamingResponseBodyWrapper wrapper = new TracingStreamingResponseBodyWrapper(original, contextCopy);
+            aopContext.setReturning(wrapper);
+            
+        } else if (returnValue instanceof ResponseEntity) {
+            // ResponseEntity<StreamingResponseBody> return
+            ResponseEntity<?> responseEntity = (ResponseEntity<?>) returnValue;
+            Object body = responseEntity.getBody();
+            
+            if (body instanceof StreamingResponseBody) {
+                StreamingResponseBody original = (StreamingResponseBody) body;
+                TracingStreamingResponseBodyWrapper wrapper = new TracingStreamingResponseBodyWrapper(original, contextCopy);
+                
+                // Create new ResponseEntity with wrapped body
+                ResponseEntity<StreamingResponseBody> newResponseEntity = ResponseEntity
+                    .status(responseEntity.getStatusCode())
+                    .headers(responseEntity.getHeaders())
+                    .body(wrapper);
+                
+                aopContext.setReturning(newResponseEntity);
+            }
+        }
+    }
+}
+
+/**
+ * Wrapper for StreamingResponseBody that preserves tracing context
+ * across thread boundaries during streaming operations.
+ */
+class TracingStreamingResponseBodyWrapper implements StreamingResponseBody {
+    
+    private final StreamingResponseBody delegate;
+    private final ITraceContext traceContext;
+    
+    public TracingStreamingResponseBodyWrapper(StreamingResponseBody delegate, ITraceContext traceContext) {
+        this.delegate = delegate;
+        this.traceContext = traceContext;
+    }
+    
+    @Override
+    public void writeTo(OutputStream outputStream) throws IOException {
+        if (traceContext == null) {
+            delegate.writeTo(outputStream);
+            return;
+        }
+
+        ITraceSpan streamingSpan = traceContext.newSpan()
+                                               .method(this.delegate.getClass(), "writeTo")
+                                               .start();
+
+        TraceContextHolder.attach(traceContext);
+        try {
+            delegate.writeTo(outputStream);
+        } catch (Exception e) {
+            streamingSpan.tag(e);
+            throw e;
+        } finally {
+            streamingSpan.finish();
+
+            TraceContextHolder.detach();
+        }
     }
 }
