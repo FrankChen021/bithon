@@ -22,6 +22,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterc
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.component.commons.tracing.Tags;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.method.support.InvocableHandlerMethod;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -55,15 +56,14 @@ public class InvocableHandlerMethod$DoInvoke extends AroundInterceptor {
     public void after(AopContext aopContext) {
         ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException()).finish();
-        
-        // Handle StreamingResponseBody wrapping
-        wrapStreamingResponseBodyWithTracing(aopContext, span);
+
+        traceStreamingResponseBody(aopContext, span);
     }
     
     /**
      * Wrap StreamingResponseBody return values with tracing context
      */
-    private void wrapStreamingResponseBodyWithTracing(AopContext aopContext, ITraceSpan parentSpan) {
+    private void traceStreamingResponseBody(AopContext aopContext, ITraceSpan parentSpan) {
         Object returnValue = aopContext.getReturning();
 
         if (returnValue instanceof StreamingResponseBody) {
@@ -87,7 +87,6 @@ public class InvocableHandlerMethod$DoInvoke extends AroundInterceptor {
                     // Can't use getStatus since it does not exist in higher versions of Spring
                     .status(responseEntity.getStatusCodeValue())
                     .headers(responseEntity.getHeaders())
-                    .contentType(responseEntity.getHeaders().getContentType())
                     .body(wrapper);
                 
                 aopContext.setReturning(newResponseEntity);
@@ -112,8 +111,11 @@ class TracedStreamingResponseBody implements StreamingResponseBody {
     
     @Override
     public void writeTo(OutputStream outputStream) throws IOException {
-        span.name("StreamingResponseBody")
+        // TODO: add newAsyncChildSpan on ITraceSpan
+        span.name("spring-controller")
             .method(this.delegate.getClass(), "writeTo")
+            .tag(Tags.Thread.NAME, Thread.currentThread().getName())
+            .tag(Tags.Thread.ID, Thread.currentThread().getId())
             .start();
 
         TraceContextHolder.attach(span.context());
