@@ -17,8 +17,16 @@
 package org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr;
 
 
+import org.bithon.component.commons.forbidden.SuppressForbidden;
+
 import java.io.File;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,6 +38,56 @@ public class TimestampedFile implements Comparable<TimestampedFile> {
     private final String name;
     private final long timestamp;
     private long size;
+
+    private static final ZoneId HOST_ZONE;
+
+    static {
+        ZoneId zone = null;
+
+        // 1) TZ environment variable has the highest priority (same as libc)
+        String tz = System.getenv("TZ");
+        if (tz != null && !tz.isEmpty()) {
+            try {
+                zone = ZoneId.of(tz);
+            } catch (Exception ignored) {
+            }
+        }
+
+        // 2) /etc/localtime symlink
+        if (zone == null) {
+            Path localtime = Paths.get("/etc/localtime");
+            if (Files.isSymbolicLink(localtime)) {
+                try {
+                    Path target = Files.readSymbolicLink(localtime);
+                    String id = target.toString().replace("\\", "/");
+                    int idx = id.indexOf("/usr/share/zoneinfo/");
+                    if (idx >= 0) {
+                        id = id.substring(idx + "/usr/share/zoneinfo/".length());
+                    }
+                    zone = ZoneId.of(id);
+                } catch (Exception ignored) {
+                }
+            }
+        }
+
+        // 3) /etc/timezone plain-text file (Debian/Ubuntu)
+        if (zone == null) {
+            Path tzFile = Paths.get("/etc/timezone");
+            if (Files.isReadable(tzFile)) {
+                try {
+                    byte[] content = Files.readAllBytes(tzFile);
+                    zone = ZoneId.of(new String(content, Charset.defaultCharset()).trim());
+                } catch (Exception ignored) {
+                }
+            }
+        }
+
+        if (zone == null) {
+            zone = ZoneOffset.UTC;
+        }
+
+        HOST_ZONE = zone;
+    }
 
     private TimestampedFile(File path, String name, long timestamp) {
         this.path = path;
@@ -82,20 +140,23 @@ public class TimestampedFile implements Comparable<TimestampedFile> {
         return null;
     }
 
-    private static long parseTimestamp(String timestampStr) {
-        // Parse YYYYMMDD-HHMMSS format
-        String dateStr = timestampStr.substring(0, 8); // YYYYMMDD
-        String timeStr = timestampStr.substring(9, 15); // HHMMSS
+    private static long parseTimestamp(String timestampText) {
+        // Parse YYYYMMDD-HHMMSS format directly from the text
+        int year = Integer.parseInt(timestampText.substring(0, 4));
+        int month = Integer.parseInt(timestampText.substring(4, 6));
+        int day = Integer.parseInt(timestampText.substring(6, 8));
+        int hour = Integer.parseInt(timestampText.substring(9, 11));
+        int minute = Integer.parseInt(timestampText.substring(11, 13));
+        int second = Integer.parseInt(timestampText.substring(13, 15));
 
-        int year = Integer.parseInt(dateStr.substring(0, 4));
-        int month = Integer.parseInt(dateStr.substring(4, 6));
-        int day = Integer.parseInt(dateStr.substring(6, 8));
-        int hour = Integer.parseInt(timeStr.substring(0, 2));
-        int minute = Integer.parseInt(timeStr.substring(2, 4));
-        int second = Integer.parseInt(timeStr.substring(4, 6));
-
-        // Convert to milliseconds since epoch
-        LocalDateTime dateTime = LocalDateTime.of(year, month, day, hour, minute, second);
-        return dateTime.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+        // According to async-profiler's implementation, the timestamp embedded in the JFR filename is
+        // always generated in UTC (see Timestamp::timeToString in async-profiler's source).
+        // If we convert it using the system default time-zone, the value will drift when the
+        // application is running in a non-UTC zone, which causes the monitor to think the file is
+        // older than it actually is and start consuming it immediately.
+        return LocalDateTime.of(year, month, day, hour, minute, second)
+                            .atZone(HOST_ZONE)
+                            .toInstant()
+                            .toEpochMilli();
     }
 }
