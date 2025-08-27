@@ -25,10 +25,10 @@ import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
-import java.util.logging.SimpleFormatter;
 import java.util.regex.Pattern;
 
 /**
@@ -117,10 +117,10 @@ public class JfrFileMonitor {
             // Check if enough time has passed since the file's timestamp
             long now = System.currentTimeMillis();
             long fileTimestamp = timestampedFile.getTimestamp();
-            long expectedReadyTime = fileTimestamp + this.fileDuration * 1000L + 300; // Add 300ms buffer
-            String readyTimeText = new SimpleDateFormat("HH:mm:ss").format(new Date(expectedReadyTime));
+            long readyTimestamp = fileTimestamp + this.fileDuration * 1000L + 300; // Add 300ms buffer
+            String readyTimeText = new SimpleDateFormat("HH:mm:ss", Locale.ENGLISH).format(new Date(readyTimestamp));
 
-            long waitTime = expectedReadyTime - now;
+            long waitTime = readyTimestamp - now;
             while (waitTime > 0 && !cancellationCtrl.getAsBoolean() && !Thread.currentThread().isInterrupted()) {
                 progressNotifier.sendProgress("%s NOT READY. Waiting to be ready until %s", timestampedFile.getName(), readyTimeText);
 
