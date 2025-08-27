@@ -17,8 +17,6 @@
 package org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr;
 
 
-import org.bithon.component.commons.forbidden.SuppressForbidden;
-
 import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -60,9 +58,12 @@ public class TimestampedFile implements Comparable<TimestampedFile> {
                 try {
                     Path target = Files.readSymbolicLink(localtime);
                     String id = target.toString().replace("\\", "/");
-                    int idx = id.indexOf("/usr/share/zoneinfo/");
+                    // Strip any leading path up to and including the "/zoneinfo/" directory so that
+                    // we end up with the pure zone ID like "Asia/Singapore".
+                    final String marker = "/zoneinfo/";
+                    int idx = id.indexOf(marker);
                     if (idx >= 0) {
-                        id = id.substring(idx + "/usr/share/zoneinfo/".length());
+                        id = id.substring(idx + marker.length());
                     }
                     zone = ZoneId.of(id);
                 } catch (Exception ignored) {
