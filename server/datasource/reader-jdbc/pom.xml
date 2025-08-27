@@ -57,6 +57,13 @@
       <artifactId>component-commons</artifactId>
     </dependency>
 
+    <!-- Jakarta XML Binding API for jOOQ JAXB classes to eliminate a compiling warning -->
+    <dependency>
+      <groupId>jakarta.xml.bind</groupId>
+      <artifactId>jakarta.xml.bind-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>

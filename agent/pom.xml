@@ -100,6 +100,22 @@
     <build>
         <pluginManagement>
             <plugins>
+                <!-- Maven Compiler Plugin with Java 8 compatibility -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.14.0</version>
+                    <configuration>
+                        <source>8</source>
+                        <target>8</target>
+                        <encoding>UTF-8</encoding>
+                        <!-- Suppress bootstrap classpath warning when compiling with older source version -->
+                        <compilerArgs>
+                            <arg>-Xlint:-options</arg>
+                        </compilerArgs>
+                    </configuration>
+                </plugin>
+
                 <!-- Package agent jars-->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
