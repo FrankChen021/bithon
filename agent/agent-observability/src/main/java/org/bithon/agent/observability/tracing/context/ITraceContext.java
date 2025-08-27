@@ -47,6 +47,10 @@ public interface ITraceContext {
         return newSpan(null, spanIdGenerator().newSpanId());
     }
 
+    default ITraceSpan newSpan(String parentSpanId) {
+        return newSpan(parentSpanId, spanIdGenerator().newSpanId());
+    }
+
     ITraceSpan newSpan(String parentSpanId, String spanId);
 
     void finish();
