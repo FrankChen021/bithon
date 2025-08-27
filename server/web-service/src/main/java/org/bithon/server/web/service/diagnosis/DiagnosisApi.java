@@ -34,12 +34,12 @@ import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.forbidden.SuppressForbidden;
 import org.bithon.component.commons.utils.CollectionUtils;
-import org.bithon.server.commons.exception.ErrorResponse;
 import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.agent.sql.table.AgentServiceProxyFactory;
+import org.bithon.server.commons.exception.SseExceptionHandler;
 import org.bithon.shaded.com.google.protobuf.GeneratedMessageV3;
 import org.bithon.shaded.com.google.protobuf.util.JsonFormat;
 import org.springframework.context.annotation.Conditional;
@@ -260,7 +260,7 @@ public class DiagnosisApi {
         try {
             controller = findAgentController(request.getAppName(), request.getInstanceName());
         } catch (Exception e) {
-            handleException(emitter, e);
+            SseExceptionHandler.sendExceptionAndEnd(emitter, e);
             return emitter;
         }
 
@@ -299,7 +299,7 @@ public class DiagnosisApi {
 
             @Override
             public void onException(Throwable throwable) {
-                handleException(emitter, throwable);
+                SseExceptionHandler.sendExceptionAndEnd(emitter, throwable);
             }
 
             @Override
@@ -395,20 +395,5 @@ public class DiagnosisApi {
             throw new HttpMappableException(HttpStatus.NOT_FOUND.value(), "No controller found for application instance [appName = %s, instanceName = %s]", appName, instanceName);
         }
         return controllerRef.get();
-    }
-
-    private void handleException(SseEmitter emitter, Throwable exception) {
-        ErrorResponse error = ErrorResponse.builder()
-                                           .exception(exception.getClass().getName())
-                                           .message(exception.getMessage())
-                                           .build();
-        try {
-            emitter.send(SseEmitter.event()
-                                   .name("error")
-                                   .data(error, MediaType.APPLICATION_JSON)
-                                   .build());
-        } catch (IOException ignored) {
-        }
-        emitter.complete();
     }
 }

@@ -40,6 +40,7 @@ import org.bithon.server.agent.controller.rbac.Operation;
 import org.bithon.server.agent.controller.service.AgentControllerServer;
 import org.bithon.server.agent.controller.service.AgentSettingLoader;
 import org.bithon.server.commons.exception.ErrorResponse;
+import org.bithon.server.commons.exception.SseExceptionHandler;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.web.security.jwt.JwtConfig;
 import org.bithon.server.web.security.jwt.JwtTokenComponent;
@@ -206,6 +207,8 @@ public class AgentControllerApi implements IAgentControllerApi {
                                            @RequestParam(name = PARAMETER_NAME_INSTANCE) String instance,
                                            @RequestParam(name = "timeout") long timeout,
                                            @RequestBody byte[] message) throws IOException {
+        SseEmitter emitter = new SseEmitter(timeout);
+
         // Get the session first
         BrpcServer.Session agentSession = agentControllerServer.getBrpcServer()
                                                                .getSessions()
@@ -222,7 +225,9 @@ public class AgentControllerApi implements IAgentControllerApi {
         try {
             rawRequest = (ServiceRequestMessageIn) ServiceMessageIn.from(message);
         } catch (ClassCastException e) {
-            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Invalid message format: " + e.getMessage());
+            return SseExceptionHandler.sendExceptionAndEnd(emitter,
+                                                           HttpMappableException.BadRequestException.class.getName(),
+                                                           "Invalid message format: " + e.getMessage());
         }
 
         // Verify if the user has permission if the permission checking is ENABLE on this service
@@ -255,7 +260,6 @@ public class AgentControllerApi implements IAgentControllerApi {
                                               rawRequest.getServiceName() + "#" + rawRequest.getMethodName());
         }
 
-        SseEmitter emitter = new SseEmitter(timeout);
         StreamResponse<byte[]> remoteResponse = new StreamResponse<>() {
             @Override
             public void onNext(byte[] data) {
@@ -267,6 +271,7 @@ public class AgentControllerApi implements IAgentControllerApi {
                                            .name("data")
                                            .data(Base64.getEncoder().encode(dataMessage.toByteArray())));
                 } catch (IOException | IllegalStateException ignored) {
+                    this.cancel();
                 }
             }
 
@@ -279,6 +284,7 @@ public class AgentControllerApi implements IAgentControllerApi {
                                            .data(Base64.getEncoder().encode(endMessage.toByteArray())));
                 } catch (IOException | IllegalStateException ignored) {
                     // IllegalStateException may happen when the client has closed the connection
+                    this.cancel();
                 }
 
                 emitter.complete();
@@ -289,6 +295,8 @@ public class AgentControllerApi implements IAgentControllerApi {
                 emitter.complete();
             }
         };
+
+        emitter.onError((e) -> remoteResponse.cancel());
 
         // Turn the input request stream to the request that is going to send to remote
         ServiceRequestMessageOut toTarget = ServiceRequestMessageOut.builder()
@@ -307,7 +315,8 @@ public class AgentControllerApi implements IAgentControllerApi {
                         .invokeStreaming(toTarget, remoteResponse, 30_000);
             return emitter;
         } catch (Throwable e) {
-            throw new RuntimeException(e);
+            log.error("Unexpected error when invoking remote streaming service", e);
+            return SseExceptionHandler.sendExceptionAndEnd(emitter, e);
         }
     }
 
@@ -323,7 +332,6 @@ public class AgentControllerApi implements IAgentControllerApi {
     @ExceptionHandler(ServiceInvocationException.class)
     ResponseEntity<ErrorResponse> handleException(HttpServletRequest request, ServiceInvocationException exception) {
         int statusCode = exception instanceof SessionNotFoundException ? HttpStatus.NOT_FOUND.value() : HttpStatus.INTERNAL_SERVER_ERROR.value();
-
         return ResponseEntity.status(statusCode)
                              .body(ErrorResponse.builder()
                                                 .path(request.getRequestURI())
