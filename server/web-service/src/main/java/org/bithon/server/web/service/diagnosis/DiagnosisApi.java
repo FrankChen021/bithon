@@ -34,12 +34,12 @@ import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.forbidden.SuppressForbidden;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.server.commons.exception.SseExceptionHandler;
 import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.agent.sql.table.AgentServiceProxyFactory;
-import org.bithon.server.commons.exception.SseExceptionHandler;
 import org.bithon.shaded.com.google.protobuf.GeneratedMessageV3;
 import org.bithon.shaded.com.google.protobuf.util.JsonFormat;
 import org.springframework.context.annotation.Conditional;
@@ -114,7 +114,7 @@ public class DiagnosisApi {
         // Find the controller where the target instance is connected to
         //
         DiscoveredServiceInstance controller = findAgentController(request.getAppName(), request.getInstanceName());
-        
+
         //
         // Create service proxy to agent via controller
         //
