@@ -254,6 +254,8 @@
                 <exclude>**/jooq/**</exclude>
                 <exclude>src/test/java/org/bithon/component/brpc/example/protobuf</exclude>
                 <exclude>**/*-generated/**</exclude>
+                <exclude>**/target/**</exclude>
+                <exclude>**/generated-sources/**</exclude>
                 <exclude>**/src/main/resources/static/**</exclude>
                 <exclude>**/*.properties</exclude>
                 <exclude>**/*.sh</exclude>
@@ -270,6 +272,13 @@
                 <exclude>**/*.txt</exclude>
                 <exclude>**/*.proto</exclude>
                 <exclude>**/*.g4</exclude>
+                <exclude>**/*.h</exclude>
+                <exclude>**/async-profiler/**</exclude>
+                <exclude>**/tools/**</exclude>
+                <exclude>**/RELEASE</exclude>
+                <exclude>**/*.dylib</exclude>
+                <exclude>**/*.so</exclude>
+                <exclude>**/*.dll</exclude>
 
                 <!--SpringBoot request file-->
                 <exclude>**/*.http</exclude>

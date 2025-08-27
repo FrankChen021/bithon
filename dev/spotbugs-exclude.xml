@@ -19,188 +19,192 @@
   -->
 
 <FindBugsFilter>
-    <!--
-        https://findbugs.sourceforge.net/bugDescriptions.html
-    -->
-    <Match>
-        <Class name="org.bithon.agent.instrumentation.bytecode.ClassCopier"/>
-        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.instrumentation.aop.advice.ConstructorAfterAdvice"/>
-        <Bug pattern="UWF_UNWRITTEN_FIELD" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.instrumentation.aop.advice.BeforeAdvice"/>
-        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.instrumentation.aop.advice.AfterAdvice"/>
-        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.instrumentation.aop.advice.AfterAdvice"/>
-        <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.instrumentation.aop.advice.AroundConstructorAdvice"/>
-        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.instrumentation.aop.advice.AroundConstructorAdvice"/>
-        <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.instrumentation.aop.advice.AroundAdvice"/>
-        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.instrumentation.aop.advice.AroundAdvice"/>
-        <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.instrumentation.aop.advice.ReplacementAdvice"/>
-        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.instrumentation.aop.advice.ReplacementAdvice"/>
-        <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
-    </Match>
+  <!--
+      https://findbugs.sourceforge.net/bugDescriptions.html
+  -->
+  <Match>
+    <Class name="org.bithon.agent.instrumentation.bytecode.ClassCopier"/>
+    <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE"/>
+  </Match>
+  <Match>
+    <Class name="org.bithon.agent.instrumentation.aop.advice.ConstructorAfterAdvice"/>
+    <Bug pattern="UWF_UNWRITTEN_FIELD"/>
+  </Match>
+  <Match>
+    <Class name="org.bithon.agent.instrumentation.aop.advice.BeforeAdvice"/>
+    <Bug pattern="DLS_DEAD_LOCAL_STORE"/>
+  </Match>
+  <Match>
+    <Class name="org.bithon.agent.instrumentation.aop.advice.AfterAdvice"/>
+    <Bug pattern="DLS_DEAD_LOCAL_STORE"/>
+  </Match>
+  <Match>
+    <Class name="org.bithon.agent.instrumentation.aop.advice.AfterAdvice"/>
+    <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN"/>
+  </Match>
+  <Match>
+    <Class name="org.bithon.agent.instrumentation.aop.advice.AroundConstructorAdvice"/>
+    <Bug pattern="DLS_DEAD_LOCAL_STORE"/>
+  </Match>
+  <Match>
+    <Class name="org.bithon.agent.instrumentation.aop.advice.AroundConstructorAdvice"/>
+    <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN"/>
+  </Match>
+  <Match>
+    <Class name="org.bithon.agent.instrumentation.aop.advice.AroundAdvice"/>
+    <Bug pattern="DLS_DEAD_LOCAL_STORE"/>
+  </Match>
+  <Match>
+    <Class name="org.bithon.agent.instrumentation.aop.advice.AroundAdvice"/>
+    <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN"/>
+  </Match>
+  <Match>
+    <Class name="org.bithon.agent.instrumentation.aop.advice.ReplacementAdvice"/>
+    <Bug pattern="DLS_DEAD_LOCAL_STORE"/>
+  </Match>
+  <Match>
+    <Class name="org.bithon.agent.instrumentation.aop.advice.ReplacementAdvice"/>
+    <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN"/>
+  </Match>
 
-    <!-- agent-observability -->
-    <Match>
-        <Class name="~org\.bithon\.agent\.observability\.metric\.domain.*"/>
-        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
-    </Match>
-    <Match>
-        <Class name="~org\.bithon\.agent\.observability\.metric\.domain.*"/>
-        <Bug pattern="UUF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
-    </Match>
-    <Match>
-        <Class name="~org\.bithon\.agent\.observability\.metric\.domain.*"/>
-        <Bug pattern="UUF_UNUSED_PUBLIC_OR_PROTECTED_FIELD" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.observability.aop.BeanMethodAopInstaller"/>
-        <Bug pattern="LI_LAZY_INIT_STATIC" />
-    </Match>
+  <!-- agent-observability -->
+  <Match>
+    <Class name="~org\.bithon\.agent\.observability\.metric\.domain.*"/>
+    <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"/>
+  </Match>
+  <Match>
+    <Class name="~org\.bithon\.agent\.observability\.metric\.domain.*"/>
+    <Bug pattern="UUF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"/>
+  </Match>
+  <Match>
+    <Class name="~org\.bithon\.agent\.observability\.metric\.domain.*"/>
+    <Bug pattern="UUF_UNUSED_PUBLIC_OR_PROTECTED_FIELD"/>
+  </Match>
+  <Match>
+    <Class name="org.bithon.agent.observability.aop.BeanMethodAopInstaller"/>
+    <Bug pattern="LI_LAZY_INIT_STATIC"/>
+  </Match>
 
-    <!-- agent-plugin -->
-    <Match>
-        <Class name="org.bithon.agent.plugin.httpserver.jetty.interceptor.HttpChannel$HandleException"/>
-        <Bug pattern="NM_CLASS_NOT_EXCEPTION" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.plugin.httpserver.tomcat.interceptor.StandardWrapperValve$Exception"/>
-        <Bug pattern="NM_CLASS_NOT_EXCEPTION" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.server.metric.DataSourceSchemaManager"/>
-        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.plugin.httpclient.reactor.interceptor.HttpClientFinalizer$Connect"/>
-        <Bug pattern="BC_IMPOSSIBLE_INSTANCEOF" />
-    </Match>
+  <!-- agent-plugin -->
+  <Match>
+    <Class name="org.bithon.agent.plugin.httpserver.jetty.interceptor.HttpChannel$HandleException"/>
+    <Bug pattern="NM_CLASS_NOT_EXCEPTION"/>
+  </Match>
+  <Match>
+    <Class name="org.bithon.agent.plugin.httpserver.tomcat.interceptor.StandardWrapperValve$Exception"/>
+    <Bug pattern="NM_CLASS_NOT_EXCEPTION"/>
+  </Match>
+  <Match>
+    <Class name="org.bithon.server.metric.DataSourceSchemaManager"/>
+    <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE"/>
+  </Match>
+  <Match>
+    <Class name="org.bithon.agent.plugin.httpclient.reactor.interceptor.HttpClientFinalizer$Connect"/>
+    <Bug pattern="BC_IMPOSSIBLE_INSTANCEOF"/>
+  </Match>
 
-    <!-- agent-controller -->
-    <Match>
-        <Class name="org.bithon.agent.controller.AgentControllerService" />
-        <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
-    </Match>
+  <!-- agent-controller -->
+  <Match>
+    <Class name="org.bithon.agent.controller.AgentControllerService"/>
+    <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD"/>
+  </Match>
+  <Match>
+    <Class name="org.bithon.agent.controller.cmd.profiling.asyncprofiler.jfr.JfrFileReader"/>
+    <Bug pattern="DB_DUPLICATE_BRANCHES"/>
+  </Match>
 
-    <!-- component-commons -->
-    <Match>
-        <Class name="org.bithon.component.commons.logging.LoggerConfiguration" />
-        <Bug pattern="UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.component.commons.logging.adaptor.jdk.JdkLoggerFactory" />
-        <Bug pattern="LG_LOST_LOGGER_DUE_TO_WEAK_REFERENCE" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.component.commons.tracing.Tags$Exception" />
-        <Bug pattern="NM_CLASS_NOT_EXCEPTION" />
-    </Match>
+  <!-- component-commons -->
+  <Match>
+    <Class name="org.bithon.component.commons.logging.LoggerConfiguration"/>
+    <Bug pattern="UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD"/>
+  </Match>
+  <Match>
+    <Class name="org.bithon.component.commons.logging.adaptor.jdk.JdkLoggerFactory"/>
+    <Bug pattern="LG_LOST_LOGGER_DUE_TO_WEAK_REFERENCE"/>
+  </Match>
+  <Match>
+    <Class name="org.bithon.component.commons.tracing.Tags$Exception"/>
+    <Bug pattern="NM_CLASS_NOT_EXCEPTION"/>
+  </Match>
 
-    <!-- Agent RPC -->
-    <Match>
-        <Class name="org.bithon.agent.rpc.brpc.cmd.IJvmCommand$VMOption"/>
-        <Bug pattern="UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD" />
-    </Match>
+  <!-- Agent RPC -->
+  <Match>
+    <Class name="org.bithon.agent.rpc.brpc.cmd.IJvmCommand$VMOption"/>
+    <Bug pattern="UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD"/>
+  </Match>
 
-    <Match>
-        <Class name="org.bithon.server.storage.jdbc.clickhouse.lb.LoadBalanceReviseTask" />
-        <Bug pattern="DC_PARTIALLY_CONSTRUCTED" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.server.storage.jdbc.clickhouse.lb.Shard" />
-        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
-    </Match>
+  <Match>
+    <Class name="org.bithon.server.storage.jdbc.clickhouse.lb.LoadBalanceReviseTask"/>
+    <Bug pattern="DC_PARTIALLY_CONSTRUCTED"/>
+  </Match>
+  <Match>
+    <Class name="org.bithon.server.storage.jdbc.clickhouse.lb.Shard"/>
+    <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"/>
+  </Match>
 
-    <Match>
-        <Class name="~io\.jaegertracing\..*"/>
-    </Match>
+  <Match>
+    <Class name="~io\.jaegertracing\..*"/>
+  </Match>
 
-    <Bug pattern="NM_SAME_SIMPLE_NAME_AS_SUPERCLASS" />
-    <Bug pattern="EI_EXPOSE_STATIC_REP2" />
-    <Bug pattern="MS_EXPOSE_REP" />
-    <Bug pattern="AT_OPERATION_SEQUENCE_ON_CONCURRENT_ABSTRACTION"/>
-    <Bug pattern="BC_UNCONFIRMED_CAST"/>
-    <Bug pattern="BIT_SIGNED_CHECK_HIGH_BIT"/>
-    <Bug pattern="BX_UNBOXING_IMMEDIATELY_REBOXED"/>
-    <Bug pattern="CN_IDIOM_NO_SUPER_CALL"/>
-    <Bug pattern="CN_IMPLEMENTS_CLONE_BUT_NOT_CLONEABLE"/>
-    <Bug pattern="DE_MIGHT_IGNORE"/> <!--we might use catch(Exception ignored) pattern to ignore some exceptions-->
-    <Bug pattern="DM_BOXED_PRIMITIVE_FOR_PARSING"/>
-    <Bug pattern="DM_EXIT"/>
-    <Bug pattern="DP_CREATE_CLASSLOADER_INSIDE_DO_PRIVILEGED"/>
-    <Bug pattern="EI_EXPOSE_REP"/>
-    <Bug pattern="EI_EXPOSE_REP2"/>
-    <Bug pattern="EQ_COMPARETO_USE_OBJECT_EQUALS"/>
-    <Bug pattern="EQ_DOESNT_OVERRIDE_EQUALS"/>
-    <Bug pattern="EQ_UNUSUAL"/>
-    <Bug pattern="ES_COMPARING_PARAMETER_STRING_WITH_EQ"/>
-    <Bug pattern="FE_FLOATING_POINT_EQUALITY"/>
-    <Bug pattern="HE_EQUALS_USE_HASHCODE"/>
-    <Bug pattern="IA_AMBIGUOUS_INVOCATION_OF_INHERITED_OR_OUTER_METHOD"/>
-    <Bug pattern="ICAST_IDIV_CAST_TO_DOUBLE"/>
-    <Bug pattern="ICAST_INT_CAST_TO_DOUBLE_PASSED_TO_CEIL"/>
-    <Bug pattern="ICAST_QUESTIONABLE_UNSIGNED_RIGHT_SHIFT"/>
-    <Bug pattern="IS2_INCONSISTENT_SYNC"/>
-    <Bug pattern="IT_NO_SUCH_ELEMENT" />
-    <Bug pattern="JLM_JSR166_UTILCONCURRENT_MONITORENTER"/>
-    <Bug pattern="JLM_JSR166_UTILCONCURRENT_MONITORENTER"/>
-    <Bug pattern="MS_FINAL_PKGPROTECT"/>
-    <Bug pattern="MS_PKGPROTECT"/>
-    <Bug pattern="NP_EQUALS_SHOULD_HANDLE_NULL_ARGUMENT"/>
-    <Bug pattern="NP_GUARANTEED_DEREF"/>
-    <Bug pattern="NP_LOAD_OF_KNOWN_NULL_VALUE"/>
-    <Bug pattern="NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION"/>
-    <Bug pattern="NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
-    <Bug pattern="NP_NULL_ON_SOME_PATH"/>
-    <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
-    <Bug pattern="NP_NULL_ON_SOME_PATH_MIGHT_BE_INFEASIBLE"/>
-    <Bug pattern="NP_NULL_PARAM_DEREF"/>
-    <Bug pattern="NP_NULL_PARAM_DEREF_NONVIRTUAL"/>
-    <Bug pattern="NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE"/>
-    <Bug pattern="NS_DANGEROUS_NON_SHORT_CIRCUIT"/>
-    <Bug pattern="OBL_UNSATISFIED_OBLIGATION"/>
-    <Bug pattern="OS_OPEN_STREAM"/>
-    <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
-    <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
-    <Bug pattern="REC_CATCH_EXCEPTION"/>
-    <Bug pattern="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE"/>
-    <Bug pattern="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT"/>
-    <Bug pattern="SBSC_USE_STRINGBUFFER_CONCATENATION"/>
-    <Bug pattern="SE_BAD_FIELD"/>
-    <Bug pattern="SE_COMPARATOR_SHOULD_BE_SERIALIZABLE"/>
-    <Bug pattern="SF_SWITCH_FALLTHROUGH"/>
-    <Bug pattern="SF_SWITCH_NO_DEFAULT"/>
-    <Bug pattern="SR_NOT_CHECKED"/>
-    <Bug pattern="SWL_SLEEP_WITH_LOCK_HELD"/>
-    <Bug pattern="UL_UNRELEASED_LOCK_EXCEPTION_PATH"/>
-    <Bug pattern="URF_UNREAD_FIELD"/>
-    <Bug pattern="CT_CONSTRUCTOR_THROW" />
-    <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+  <Bug pattern="NM_SAME_SIMPLE_NAME_AS_SUPERCLASS"/>
+  <Bug pattern="EI_EXPOSE_STATIC_REP2"/>
+  <Bug pattern="MS_EXPOSE_REP"/>
+  <Bug pattern="AT_OPERATION_SEQUENCE_ON_CONCURRENT_ABSTRACTION"/>
+  <Bug pattern="BC_UNCONFIRMED_CAST"/>
+  <Bug pattern="BIT_SIGNED_CHECK_HIGH_BIT"/>
+  <Bug pattern="BX_UNBOXING_IMMEDIATELY_REBOXED"/>
+  <Bug pattern="CN_IDIOM_NO_SUPER_CALL"/>
+  <Bug pattern="CN_IMPLEMENTS_CLONE_BUT_NOT_CLONEABLE"/>
+  <Bug pattern="DE_MIGHT_IGNORE"/> <!--we might use catch(Exception ignored) pattern to ignore some exceptions-->
+  <Bug pattern="DM_BOXED_PRIMITIVE_FOR_PARSING"/>
+  <Bug pattern="DM_EXIT"/>
+  <Bug pattern="DP_CREATE_CLASSLOADER_INSIDE_DO_PRIVILEGED"/>
+  <Bug pattern="EI_EXPOSE_REP"/>
+  <Bug pattern="EI_EXPOSE_REP2"/>
+  <Bug pattern="EQ_COMPARETO_USE_OBJECT_EQUALS"/>
+  <Bug pattern="EQ_DOESNT_OVERRIDE_EQUALS"/>
+  <Bug pattern="EQ_UNUSUAL"/>
+  <Bug pattern="ES_COMPARING_PARAMETER_STRING_WITH_EQ"/>
+  <Bug pattern="FE_FLOATING_POINT_EQUALITY"/>
+  <Bug pattern="HE_EQUALS_USE_HASHCODE"/>
+  <Bug pattern="IA_AMBIGUOUS_INVOCATION_OF_INHERITED_OR_OUTER_METHOD"/>
+  <Bug pattern="ICAST_IDIV_CAST_TO_DOUBLE"/>
+  <Bug pattern="ICAST_INT_CAST_TO_DOUBLE_PASSED_TO_CEIL"/>
+  <Bug pattern="ICAST_QUESTIONABLE_UNSIGNED_RIGHT_SHIFT"/>
+  <Bug pattern="IS2_INCONSISTENT_SYNC"/>
+  <Bug pattern="IT_NO_SUCH_ELEMENT"/>
+  <Bug pattern="JLM_JSR166_UTILCONCURRENT_MONITORENTER"/>
+  <Bug pattern="JLM_JSR166_UTILCONCURRENT_MONITORENTER"/>
+  <Bug pattern="MS_FINAL_PKGPROTECT"/>
+  <Bug pattern="MS_PKGPROTECT"/>
+  <Bug pattern="NP_EQUALS_SHOULD_HANDLE_NULL_ARGUMENT"/>
+  <Bug pattern="NP_GUARANTEED_DEREF"/>
+  <Bug pattern="NP_LOAD_OF_KNOWN_NULL_VALUE"/>
+  <Bug pattern="NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION"/>
+  <Bug pattern="NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+  <Bug pattern="NP_NULL_ON_SOME_PATH"/>
+  <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+  <Bug pattern="NP_NULL_ON_SOME_PATH_MIGHT_BE_INFEASIBLE"/>
+  <Bug pattern="NP_NULL_PARAM_DEREF"/>
+  <Bug pattern="NP_NULL_PARAM_DEREF_NONVIRTUAL"/>
+  <Bug pattern="NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE"/>
+  <Bug pattern="NS_DANGEROUS_NON_SHORT_CIRCUIT"/>
+  <Bug pattern="OBL_UNSATISFIED_OBLIGATION"/>
+  <Bug pattern="OS_OPEN_STREAM"/>
+  <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+  <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
+  <Bug pattern="REC_CATCH_EXCEPTION"/>
+  <Bug pattern="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE"/>
+  <Bug pattern="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT"/>
+  <Bug pattern="SBSC_USE_STRINGBUFFER_CONCATENATION"/>
+  <Bug pattern="SE_BAD_FIELD"/>
+  <Bug pattern="SE_COMPARATOR_SHOULD_BE_SERIALIZABLE"/>
+  <Bug pattern="SF_SWITCH_FALLTHROUGH"/>
+  <Bug pattern="SF_SWITCH_NO_DEFAULT"/>
+  <Bug pattern="SR_NOT_CHECKED"/>
+  <Bug pattern="SWL_SLEEP_WITH_LOCK_HELD"/>
+  <Bug pattern="UL_UNRELEASED_LOCK_EXCEPTION_PATH"/>
+  <Bug pattern="URF_UNREAD_FIELD"/>
+  <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+  <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE"/>
 </FindBugsFilter>

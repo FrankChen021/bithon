@@ -31,10 +31,19 @@ import java.io.IOException;
 public class ServiceStreamingDataMessageOut extends ServiceMessageOut {
     
     private final Object data;
-    
+    private final byte[] rawData;
+
     public ServiceStreamingDataMessageOut(long transactionId, Object data, Serializer serializer) {
         this.transactionId = transactionId;
         this.data = data;
+        this.rawData = null;
+        this.setSerializer(serializer);
+    }
+
+    public ServiceStreamingDataMessageOut(long transactionId, byte[] rawData, Serializer serializer) {
+        this.transactionId = transactionId;
+        this.data = null;
+        this.rawData = rawData;
         this.setSerializer(serializer);
     }
     
@@ -51,8 +60,11 @@ public class ServiceStreamingDataMessageOut extends ServiceMessageOut {
         // Serialize the data
         Serializer serializer = getSerializer();
         out.writeInt32NoTag(serializer.getType());
-        serializer.serialize(out, this.data);
-        
+        if (this.rawData != null) {
+            out.write(this.rawData, 0, this.rawData.length);
+        } else {
+            serializer.serialize(out, this.data);
+        }
         out.flush();
     }
     

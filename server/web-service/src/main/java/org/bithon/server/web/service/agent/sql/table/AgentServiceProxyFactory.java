@@ -21,35 +21,65 @@ import feign.Contract;
 import feign.Feign;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.bithon.component.brpc.StreamCancellation;
 import org.bithon.component.brpc.channel.IBrpcChannel;
 import org.bithon.component.brpc.endpoint.EndPoint;
+import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.ServiceNotFoundException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
 import org.bithon.component.brpc.invocation.InvocationManager;
+import org.bithon.component.brpc.invocation.InvocationManager.InflightRequest;
 import org.bithon.component.brpc.message.Headers;
+import org.bithon.component.brpc.message.ServiceMessageType;
+import org.bithon.component.brpc.message.in.ServiceMessageIn;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
+import org.bithon.component.brpc.message.in.ServiceStreamingDataMessageIn;
+import org.bithon.component.brpc.message.in.ServiceStreamingEndMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.exception.ErrorResponse;
 import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.client.ErrorResponseDecoder;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
+import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -64,16 +94,23 @@ import java.util.concurrent.CountDownLatch;
  * @date 2023/4/9 16:27
  */
 @Slf4j
+@Conditional(WebServiceModuleEnabler.class)
+@Component
 public class AgentServiceProxyFactory {
 
     private final InvocationManager invocationManager = new InvocationManager();
+
+    @Getter
     private final DiscoveredServiceInvoker discoveryServiceInvoker;
     private final ApplicationContext applicationContext;
+    private final ObjectMapper objectMapper;
 
     public AgentServiceProxyFactory(DiscoveredServiceInvoker discoveryServiceInvoker,
-                                    ApplicationContext applicationContext) {
+                                    ApplicationContext applicationContext,
+                                    ObjectMapper objectMapper) {
         this.discoveryServiceInvoker = discoveryServiceInvoker;
         this.applicationContext = applicationContext;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -109,7 +146,8 @@ public class AgentServiceProxyFactory {
     public <T> T createUnicastProxy(Class<T> agentServiceDeclaration,
                                     DiscoveredServiceInstance controller,
                                     String appName,
-                                    String instanceName) {
+                                    String instanceName,
+                                    long timeout) {
         // Check if given service declaration is correctly declared
         DiscoverableService metadata = IAgentControllerApi.class.getAnnotation(DiscoverableService.class);
         if (metadata == null) {
@@ -131,7 +169,8 @@ public class AgentServiceProxyFactory {
                                                                          invocationManager,
                                                                          token,
                                                                          appName,
-                                                                         instanceName));
+                                                                         instanceName,
+                                                                         timeout));
     }
 
     private class AgentServiceUnicastInvoker implements InvocationHandler {
@@ -141,17 +180,20 @@ public class AgentServiceProxyFactory {
         private final String targetApplication;
         private final String targetInstance;
         private final String token;
+        private final long timeout;
 
         private AgentServiceUnicastInvoker(DiscoveredServiceInstance controller,
                                            InvocationManager brpcInvocationManager,
                                            String token,
                                            String targetApplication,
-                                           String targetInstance) {
+                                           String targetInstance,
+                                           long timeout) {
             this.controller = controller;
             this.brpcInvocationManager = brpcInvocationManager;
             this.token = token;
             this.targetApplication = targetApplication;
             this.targetInstance = targetInstance;
+            this.timeout = timeout;
         }
 
         @Override
@@ -159,7 +201,7 @@ public class AgentServiceProxyFactory {
                              Method agentServiceMethod,
                              Object[] args) {
             //
-            // Invoke agent service via a controller
+            // Invoke a synchronous request-response agent service via proxy at controller side
             //
             try {
                 return brpcInvocationManager.invoke("bithon-webservice",
@@ -167,8 +209,9 @@ public class AgentServiceProxyFactory {
                                                     new BrpcChannelOverHttp(controller,
                                                                             this.targetApplication,
                                                                             this.targetInstance,
-                                                                            this.token),
-                                                    30_000,
+                                                                            this.token,
+                                                                            this.timeout),
+                                                    this.timeout,
                                                     agentServiceMethod,
                                                     args);
             } catch (HttpMappableException e) {
@@ -181,10 +224,8 @@ public class AgentServiceProxyFactory {
                 throw e;
             } catch (ServiceNotFoundException e) {
                 throw new HttpMappableException(HttpStatus.NOT_FOUND.value(),
-                                                "Can't find service [%s] on target application [appName = %s, instance = %s]. You may need to upgrade the agent of the target application.",
-                                                e.getServiceName(),
-                                                targetApplication,
-                                                targetInstance);
+                                                "The agent of the target application does not provide the service [%s]. You may need to upgrade the agent of the target application.",
+                                                e.getServiceName());
             } catch (RuntimeException e) {
                 throw e;
             } catch (Throwable e) {
@@ -273,8 +314,9 @@ public class AgentServiceProxyFactory {
                                                     new BrpcChannelOverHttp(connectedController.get(0),
                                                                             this.targetApplication,
                                                                             this.targetInstance,
-                                                                            context.getOrDefault("X-Bithon-Token", "").toString()),
-                                                    30_000,
+                                                                            context.getOrDefault("X-Bithon-Token", "").toString(),
+                                                                            30_000L),
+                                                    30_000L,
                                                     agentServiceMethod,
                                                     args);
             } catch (HttpMappableException e) {
@@ -304,15 +346,18 @@ public class AgentServiceProxyFactory {
         private final String targetApplication;
         private final String targetInstance;
         private final String token;
+        private final long timeout;
 
         public BrpcChannelOverHttp(DiscoveredServiceInstance controller,
                                    String targetApplication,
                                    String targetInstance,
-                                   String token) {
+                                   String token,
+                                   long timeout) {
             this.controller = controller;
             this.targetApplication = targetApplication;
             this.targetInstance = targetInstance;
             this.token = token;
+            this.timeout = timeout;
         }
 
         @Override
@@ -337,6 +382,25 @@ public class AgentServiceProxyFactory {
 
         @Override
         public void writeAsync(ServiceRequestMessageOut serviceRequest) throws IOException {
+            if (serviceRequest.getMessageType() == ServiceMessageType.CLIENT_STREAMING_REQUEST) {
+                sendStreamingRpc(serviceRequest);
+            } else {
+                // The one way streaming cancellation is also processed here,
+                // When a streaming is cancelled by user code, the client InvocationManager will send a CANCELLATION message to server side from here.
+                if (serviceRequest.getMessageType() == ServiceMessageType.CLIENT_STREAMING_CANCEL) {
+                    log.info("Sending streaming cancellation request to agent [{}|{}] via controller [{}|{}] for transaction [{}]",
+                             targetApplication,
+                             targetInstance,
+                             controller.getHost(),
+                             controller.getPort(),
+                             serviceRequest.getTransactionId());
+                }
+
+                sendRequestResponseRpc(serviceRequest);
+            }
+        }
+
+        private void sendRequestResponseRpc(ServiceRequestMessageOut serviceRequest) throws IOException {
             final long txId = serviceRequest.getTransactionId();
 
             // Turn the message into a byte array to send over HTTP
@@ -350,14 +414,14 @@ public class AgentServiceProxyFactory {
                                                                                   .contract(applicationContext.getBean(Contract.class))
                                                                                   .encoder(applicationContext.getBean(Encoder.class))
                                                                                   .decoder(applicationContext.getBean(Decoder.class))
-                                                                                  .errorDecoder(new ErrorResponseDecoder(applicationContext.getBean(ObjectMapper.class)))
+                                                                                  .errorDecoder(new ErrorResponseDecoder(objectMapper))
                                                                                   .target(IAgentControllerApi.class, controller.getURL());
 
                                               try {
                                                   return proxyApi.callAgentService(token,
                                                                                    targetApplication,
                                                                                    targetInstance,
-                                                                                   30_000,
+                                                                                   (int) timeout,
                                                                                    message);
                                               } catch (IOException e) {
                                                   throw new RuntimeException(e);
@@ -365,17 +429,155 @@ public class AgentServiceProxyFactory {
                                           },
                                           discoveryServiceInvoker.getExecutor())
                              .thenAccept((responseBytes) -> {
-                                 try {
-                                     ServiceResponseMessageIn response = ServiceResponseMessageIn.from(new ByteArrayInputStream(responseBytes));
-                                     invocationManager.handleResponse(response);
-                                 } catch (IOException e) {
-                                     invocationManager.handleException(txId, e);
+                                 // For message type like streaming cancellation, there's no returning body
+                                 if (responseBytes != null) {
+                                     try {
+                                         ServiceResponseMessageIn response = ServiceResponseMessageIn.from(new ByteArrayInputStream(responseBytes));
+                                         invocationManager.handleResponse(response);
+                                     } catch (IOException e) {
+                                         invocationManager.handleException(txId, e);
+                                     }
                                  }
                              })
                              .whenComplete((v, ex) -> {
                                  if (ex != null) {
                                      invocationManager.handleException(txId, ex.getCause() != null ? ex.getCause() : ex);
                                  }
+                             });
+        }
+
+        private void sendStreamingRpc(ServiceRequestMessageOut serviceRequest) throws IOException {
+            final long txId = serviceRequest.getTransactionId();
+            final byte[] message = serviceRequest.toByteArray();
+
+            // Create a custom StreamCancellation implementation for HTTP proxy
+            class HttpProxyStreamingCancellation implements StreamCancellation {
+                private final long txId;
+                private volatile boolean cancelled = false;
+
+                HttpProxyStreamingCancellation(long txId) {
+                    this.txId = txId;
+                }
+
+                @Override
+                public void cancel() {
+                    if (!cancelled) {
+                        cancelled = true;
+
+                        // Send cancellation message to the agent via controller
+                        try {
+                            log.info("Sending streaming cancellation request to agent [{}|{}] via controller [{}|{}] for transaction [{}]",
+                                     targetApplication,
+                                     targetInstance,
+                                     controller.getHost(),
+                                     controller.getPort(),
+                                     txId);
+
+                            // Create a cancellation message
+                            ServiceRequestMessageOut cancelRequest = ServiceRequestMessageOut.builder()
+                                                                                             .messageType(ServiceMessageType.CLIENT_STREAMING_CANCEL)
+                                                                                             .transactionId(txId)
+                                                                                             .applicationName("brpc-client")
+                                                                                             .serviceName(serviceRequest.getServiceName())
+                                                                                             .methodName(serviceRequest.getMethodName())
+                                                                                             .build();
+
+                            // Send it via the HTTP proxy
+                            sendRequestResponseRpc(cancelRequest);
+                        } catch (Exception e) {
+                            log.warn("Failed to send streaming cancellation message for txId: " + txId, e);
+                        }
+                    }
+                }
+
+                @Override
+                public boolean isCancelled() {
+                    return cancelled;
+                }
+            }
+
+            // Create cancellation object for this stream
+            HttpProxyStreamingCancellation cancellation = new HttpProxyStreamingCancellation(txId);
+
+            // Extract the StreamResponse from the inflightRequests map
+            InflightRequest inflightRequest = invocationManager.getInflightRequest(txId);
+            if (inflightRequest != null && inflightRequest.streamResponse != null) {
+                // Inject our cancellation object into the StreamResponse
+                inflightRequest.streamResponse.setStreamCancellation(cancellation);
+            }
+
+            CompletableFuture.runAsync(() -> {
+                                 try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+                                     URI uri = new URIBuilder(controller.getURL() + "/api/agent/service/proxy/streaming")
+                                         .addParameter("appName", targetApplication)
+                                         .addParameter("instance", targetInstance)
+                                         .addParameter("timeout", String.valueOf(this.timeout))
+                                         .build();
+
+                                     HttpPost httpPost = new HttpPost(uri);
+                                     httpPost.setEntity(new ByteArrayEntity(message, ContentType.APPLICATION_OCTET_STREAM));
+                                     if (StringUtils.hasText(token)) {
+                                         httpPost.setHeader("X-Bithon-Token", token);
+                                     }
+
+                                     try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
+                                         int statusCode = response.getStatusLine().getStatusCode();
+                                         HttpEntity entity = response.getEntity();
+                                         if (entity == null) {
+                                             // No HTTP body, check status code for error
+                                             if (statusCode < 200 || statusCode >= 300) {
+                                                 throw new ServiceInvocationException("Empty response from controller with status: " + statusCode);
+                                             }
+
+                                             // what to do?
+                                             return;
+                                         }
+
+                                         if (statusCode < 200 || statusCode >= 300) {
+                                             Header contentType = response.getLastHeader("Content-Type");
+                                             if (contentType != null) {
+                                                 try {
+                                                     boolean isJson = MediaType.APPLICATION_JSON.isCompatibleWith(MediaType.parseMediaType(contentType.getValue()));
+                                                     if (isJson) {
+                                                         ErrorResponse errorResponse = objectMapper.readValue(entity.getContent(), ErrorResponse.class);
+                                                         throw new ServiceInvocationException(errorResponse.getMessage());
+                                                     }
+                                                 } catch (InvalidMediaTypeException | IOException ignored) {
+                                                 }
+                                             }
+                                             throw new HttpMappableException(statusCode, EntityUtils.toString(entity));
+                                         }
+
+                                         try (BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent(), StandardCharsets.UTF_8))) {
+                                             String line;
+                                             String eventType = null;
+                                             while ((line = reader.readLine()) != null) {
+                                                 if (line.startsWith("event:")) {
+                                                     eventType = line.substring("event:".length()).trim();
+                                                 } else if (line.startsWith("data:")) {
+                                                     String data = line.substring("data:".length());
+                                                     if (eventType == null) {
+                                                         continue;
+                                                     }
+
+                                                     byte[] decoded = Base64.getDecoder().decode(data);
+                                                     if ("error".equals(eventType)) {
+                                                         invocationManager.handleStreamingEnd((ServiceStreamingEndMessageIn) ServiceMessageIn.from(decoded));
+                                                     } else {
+                                                         invocationManager.handleStreamingData((ServiceStreamingDataMessageIn) ServiceMessageIn.from(decoded));
+                                                     }
+                                                 }
+                                             }
+                                         }
+                                     }
+                                 } catch (IOException | URISyntaxException e) {
+                                     invocationManager.handleException(txId, e);
+                                 }
+                             }, discoveryServiceInvoker.getExecutor())
+                             .whenComplete((v, ex) -> {
+                                 Throwable cause = ex == null ? null : (ex.getCause() != null ? ex.getCause() : ex);
+                                 ServiceStreamingEndMessageIn endMessage = new ServiceStreamingEndMessageIn(txId, cause);
+                                 invocationManager.handleStreamingEnd(endMessage);
                              });
         }
     }

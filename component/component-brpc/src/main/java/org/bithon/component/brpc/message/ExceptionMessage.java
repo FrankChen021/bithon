@@ -39,6 +39,14 @@ public class ExceptionMessage {
         this.exceptionMessage = exceptionMessage;
     }
 
+    public String getExceptionType() {
+        return exceptionType;
+    }
+
+    public String getExceptionMessage() {
+        return exceptionMessage;
+    }
+
     public Exception toException() {
         if (BadRequestException.class.getName().equals(exceptionType)) {
             // Compatibility with old clients

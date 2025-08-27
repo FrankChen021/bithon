@@ -14,23 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.brpc.message.in;
+package org.bithon.agent.controller.cmd.profiling;
 
-import org.bithon.component.brpc.message.ServiceMessageType;
 
 /**
- * Message for receiving streaming requests on the server side
- * 
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 19/8/25 4:54 pm
  */
-public class ServiceStreamingRequestMessageIn extends ServiceRequestMessageIn {
-    
-    public ServiceStreamingRequestMessageIn(int messageType) {
-        super(messageType);
+public class ProfilingException extends RuntimeException {
+    public ProfilingException(String message) {
+        super(message);
     }
-    
-    @Override
-    public int getMessageType() {
-        return ServiceMessageType.CLIENT_STREAMING_REQUEST;
+
+    public ProfilingException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

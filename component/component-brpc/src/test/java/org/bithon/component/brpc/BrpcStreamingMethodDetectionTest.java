@@ -59,7 +59,7 @@ public class BrpcStreamingMethodDetectionTest {
         
         // Check if the generic type is correctly extracted
         Type streamingDataType = item.getStreamingDataType();
-        Assertions.assertTrue(streamingDataType instanceof ParameterizedType, "Streaming data type should be parameterized");
+        Assertions.assertInstanceOf(ParameterizedType.class, streamingDataType, "Streaming data type should be parameterized");
         
         ParameterizedType parameterizedType = (ParameterizedType) streamingDataType;
         Assertions.assertEquals(TestData.class, parameterizedType.getRawType());

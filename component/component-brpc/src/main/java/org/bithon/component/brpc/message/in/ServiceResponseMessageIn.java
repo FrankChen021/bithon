@@ -35,13 +35,17 @@ public class ServiceResponseMessageIn extends ServiceMessageIn {
     private CodedInputStream returning;
     private ExceptionMessage exception;
 
+    public ServiceResponseMessageIn(CodedInputStream is) {
+        super(is);
+    }
+
     @Override
     public int getMessageType() {
         return ServiceMessageType.SERVER_RESPONSE;
     }
 
     @Override
-    public ServiceMessage decode(CodedInputStream in) throws IOException {
+    public ServiceMessage decode() throws IOException {
         this.transactionId = in.readInt64();
 
         this.serverResponseAt = in.readInt64();
@@ -83,7 +87,7 @@ public class ServiceResponseMessageIn extends ServiceMessageIn {
         is.pushLimit(inputStream.available());
         int messageType = is.readInt32();
         if (messageType == ServiceMessageType.SERVER_RESPONSE) {
-            return (ServiceResponseMessageIn) new ServiceResponseMessageIn().decode(is);
+            return (ServiceResponseMessageIn) new ServiceResponseMessageIn(is).decode();
         }
         throw new BadRequestException("messageType [%x] is not a valid ServiceResponseMessageIn message", messageType);
     }

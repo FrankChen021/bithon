@@ -17,24 +17,22 @@
 package org.bithon.component.brpc.invocation;
 
 import org.bithon.component.brpc.ServiceRegistry;
+import org.bithon.component.brpc.StreamCancellation;
 import org.bithon.component.brpc.StreamResponse;
 import org.bithon.component.brpc.exception.BadRequestException;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
-import org.bithon.component.brpc.exception.ServiceNotFoundException;
-import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceStreamingDataMessageOut;
 import org.bithon.component.brpc.message.out.ServiceStreamingEndMessageOut;
+import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.io.netty.channel.Channel;
-import org.bithon.shaded.io.netty.channel.ChannelId;
+import org.bithon.shaded.io.netty.util.AttributeKey;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
 
 /**
  * Runnable for handling streaming RPC invocations on the server side.
@@ -45,10 +43,12 @@ import java.util.concurrent.Executor;
  */
 public class ServiceStreamingInvocationRunnable implements Runnable {
 
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(ServiceStreamingInvocationRunnable.class);
+
     /**
-     * Map to track active streaming requests by transaction ID
+     * AttributeKey for storing streaming contexts in the Channel
      */
-    private static final Map<Long, StreamingContext> ACTIVE_STREAMS = new ConcurrentHashMap<>();
+    private static final AttributeKey<Map<Long, StreamingContext>> STREAMING_CONTEXTS_KEY = AttributeKey.valueOf("streamingContexts");
 
     private final Channel channel;
     private final long txId;
@@ -73,6 +73,17 @@ public class ServiceStreamingInvocationRunnable implements Runnable {
                 throw new ServiceInvocationException("Channel is not active for streaming request");
             }
 
+            // Initialize the contexts map in the channel attributes if needed
+            Map<Long, StreamingContext> contexts = channel.attr(STREAMING_CONTEXTS_KEY).get();
+            if (contexts == null) {
+                contexts = new ConcurrentHashMap<>();
+                channel.attr(STREAMING_CONTEXTS_KEY).set(contexts);
+            }
+
+            // Create a streaming context first for this transaction
+            final StreamingContext streamingContext = new StreamingContext();
+            contexts.put(txId, streamingContext);
+
             // Create a StreamResponse implementation for the server that sends data back to client
             StreamResponse<Object> streamResponse = new StreamResponse<Object>() {
                 @Override
@@ -81,23 +92,22 @@ public class ServiceStreamingInvocationRunnable implements Runnable {
                         // Check channel status before sending
                         if (!channel.isActive() || !channel.isWritable()) {
                             // Channel is closed - mark as cancelled and return instead of throwing
-                            StreamingContext ctx = ACTIVE_STREAMS.get(txId);
-                            if (ctx != null) {
-                                ctx.cancel();
-                            }
+                            streamingContext.markCancelled();
                             return;
                         }
 
-                        new ServiceStreamingDataMessageOut(txId, data, serviceInvoker.getMetadata().getSerializer())
+                        new ServiceStreamingDataMessageOut(txId,
+                                                           data,
+                                                           serviceInvoker.getMetadata().getSerializer())
                             .send(channel);
                     } catch (Exception e) {
-                        LoggerFactory.getLogger(ServiceStreamingInvocationRunnable.class)
-                                     .warn("Failed to send streaming data, marking as cancelled", e);
+                        LOG.warn("Failed to send streaming data, marking as cancelled", e);
+
                         // Mark as cancelled instead of calling onError to avoid infinite recursion
-                        StreamingContext ctx = ACTIVE_STREAMS.get(txId);
-                        if (ctx != null) {
-                            ctx.cancel();
-                        }
+                        streamingContext.markCancelled();
+
+                        // Remove the context from the channel
+                        removeStreamingContext(channel, txId);
                     }
                 }
 
@@ -109,14 +119,12 @@ public class ServiceStreamingInvocationRunnable implements Runnable {
                             new ServiceStreamingEndMessageOut(txId, throwable).send(channel);
                         }
                     } catch (Exception e) {
-                        LoggerFactory.getLogger(ServiceStreamingInvocationRunnable.class)
-                                     .error("Failed to send streaming error", e);
+                        LOG.error("Failed to send streaming error", e);
                     } finally {
-                        // Mark as completed and clean up
-                        StreamingContext ctx = ACTIVE_STREAMS.remove(txId);
-                        if (ctx != null) {
-                            ctx.markCompleted();
-                        }
+                        streamingContext.markCompleted();
+
+                        // Remove the context from the channel
+                        removeStreamingContext(channel, txId);
                     }
                 }
 
@@ -128,46 +136,24 @@ public class ServiceStreamingInvocationRunnable implements Runnable {
                             new ServiceStreamingEndMessageOut(txId).send(channel);
                         }
                     } catch (Exception e) {
-                        LoggerFactory.getLogger(ServiceStreamingInvocationRunnable.class)
-                                     .error("Failed to send streaming completion", e);
+                        LOG.error("Failed to send streaming completion", e);
                     } finally {
                         // Mark as completed and clean up
-                        StreamingContext ctx = ACTIVE_STREAMS.remove(txId);
-                        if (ctx != null) {
-                            ctx.markCompleted();
-                        }
+                        streamingContext.markCompleted();
+
+                        // Remove the context from the channel
+                        removeStreamingContext(channel, txId);
                     }
                 }
 
                 @Override
                 public boolean isCancelled() {
-                    StreamingContext context = ACTIVE_STREAMS.get(txId);
-                    return context != null && (context.isCancelled() || !channel.isActive());
+                    return (streamingContext.isCancelled() || !channel.isActive());
                 }
             };
 
-            // Store streaming context with channel monitoring
-            StreamingContext context = new StreamingContext(channel.id());
-            ACTIVE_STREAMS.put(txId, context);
-
-            // Set up channel closure handler
-            channel.closeFuture()
-                   .addListener(future -> {
-                       StreamingContext ctx = ACTIVE_STREAMS.remove(txId);
-                       if (ctx != null) {
-                           if (ctx.isCompleted()) {
-                               // Normal closure after streaming completed
-                               LoggerFactory.getLogger(ServiceStreamingInvocationRunnable.class)
-                                            .debug("Channel closed after streaming completed, txId: {}", txId);
-                           } else {
-                               // Unexpected closure during active streaming
-                               LoggerFactory.getLogger(ServiceStreamingInvocationRunnable.class)
-                                            .warn("Channel closed during active streaming, txId: {}", txId);
-                               // Notify the service that the channel is closed via cancellation
-                               ctx.cancel();
-                           }
-                       }
-                   });
+            // No need for a channel closure handler here
+            // cleanupForChannel will handle it when the channel becomes inactive
 
             // Add StreamResponse as the last argument
             Object[] streamingArgs = new Object[args.length + 1];
@@ -194,15 +180,13 @@ public class ServiceStreamingInvocationRunnable implements Runnable {
                                                      serviceInvoker.getMetadata().getServiceName(),
                                                      serviceInvoker.getMetadata().getMethodName());
             }
-
         } catch (ServiceInvocationException e) {
             Throwable cause = e.getCause() != null ? e.getCause() : e;
-            LoggerFactory.getLogger(ServiceStreamingInvocationRunnable.class)
-                         .error(StringUtils.format("[Client=%s] Streaming Service Invocation on %s#%s",
-                                                   channel.remoteAddress().toString(),
-                                                   serviceInvoker.getMetadata().getServiceName(),
-                                                   serviceInvoker.getMetadata().getMethodName()),
-                                cause);
+            LOG.error(StringUtils.format("[Client=%s] Streaming Service Invocation on %s#%s",
+                                         channel.remoteAddress().toString(),
+                                         serviceInvoker.getMetadata().getServiceName(),
+                                         serviceInvoker.getMetadata().getMethodName()),
+                      cause);
 
             try {
                 // Only try to send error if channel is still active
@@ -210,86 +194,41 @@ public class ServiceStreamingInvocationRunnable implements Runnable {
                     new ServiceStreamingEndMessageOut(txId, cause).send(channel);
                 }
             } catch (Exception sendException) {
-                LoggerFactory.getLogger(ServiceStreamingInvocationRunnable.class)
-                             .error("Failed to send streaming error response", sendException);
+                LOG.error("Failed to send streaming error response", sendException);
             } finally {
-                ACTIVE_STREAMS.remove(txId);
-            }
-        }
-    }
-
-    public static void execute(ServiceRegistry serviceRegistry,
-                               Channel channel,
-                               ServiceRequestMessageIn serviceRequest,
-                               Executor executor) {
-        try {
-            if (serviceRequest.getServiceName() == null) {
-                throw new BadRequestException("[Client=%s] serviceName is null", channel.remoteAddress().toString());
-            }
-
-            if (serviceRequest.getMethodName() == null) {
-                throw new BadRequestException("[Client=%s] methodName is null", channel.remoteAddress().toString());
-            }
-
-            if (!serviceRegistry.contains(serviceRequest.getServiceName())) {
-                throw new ServiceNotFoundException(serviceRequest.getServiceName());
-            }
-
-            ServiceRegistry.ServiceInvoker serviceInvoker = serviceRegistry.findServiceInvoker(serviceRequest.getServiceName(),
-                                                                                               serviceRequest.getMethodName());
-            if (serviceInvoker == null) {
-                throw new ServiceNotFoundException(serviceRequest.getServiceName() + "#" + serviceRequest.getMethodName());
-            }
-
-            try {
-                // Read args outside the thread pool
-                // For streaming methods, we exclude the last parameter (StreamResponse) from the request
-                Type[] parameterTypes = serviceInvoker.getParameterTypes();
-                Type[] requestParameterTypes = new Type[parameterTypes.length - 1];
-                System.arraycopy(parameterTypes, 0, requestParameterTypes, 0, parameterTypes.length - 1);
-
-                Object[] args = serviceRequest.readArgs(requestParameterTypes);
-
-                executor.execute(new ServiceStreamingInvocationRunnable(channel,
-                                                                        serviceRequest.getTransactionId(),
-                                                                        serviceInvoker,
-                                                                        args));
-            } catch (IOException e) {
-                throw new BadRequestException("[Client=%s] Bad Request: Service[%s#%s]: %s",
-                                              channel.remoteAddress().toString(),
-                                              serviceRequest.getServiceName(),
-                                              serviceRequest.getMethodName(),
-                                              e.getMessage());
-            }
-        } catch (ServiceInvocationException e) {
-            Throwable cause = e.getCause() != null ? e.getCause() : e;
-            boolean isClientSideException = e instanceof BadRequestException || e instanceof ServiceNotFoundException;
-            if (!isClientSideException) {
-                LoggerFactory.getLogger(ServiceStreamingInvocationRunnable.class)
-                             .error(StringUtils.format("[Client=%s] Streaming Service Invocation on %s#%s",
-                                                       channel.remoteAddress().toString(),
-                                                       serviceRequest.getServiceName(),
-                                                       serviceRequest.getMethodName()),
-                                    cause);
-            }
-
-            try {
-                new ServiceStreamingEndMessageOut(serviceRequest.getTransactionId(), cause).send(channel);
-            } catch (Exception sendException) {
-                LoggerFactory.getLogger(ServiceStreamingInvocationRunnable.class)
-                             .error("Failed to send streaming error response", sendException);
+                // Remove the context from the channel
+                removeStreamingContext(channel, txId);
             }
         }
     }
 
     /**
      * Cancel a streaming request
+     *
+     * @param channel The channel associated with the streaming request
+     * @param txId    The transaction ID to cancel
      */
-    public static void cancelStreaming(long txId) {
-        StreamingContext context = ACTIVE_STREAMS.remove(txId);
-        if (context != null) {
-            context.cancel();
+    public static void cancelStreaming(Channel channel, long txId) {
+        LOG.debug("Cancelling streaming request, txId: {}", txId);
+
+        StreamingContext ctx = removeStreamingContext(channel, txId);
+        if (ctx != null) {
+            ctx.markCancelled();
         }
+    }
+
+    /**
+     * Remove a streaming context from the channel attributes
+     *
+     * @param channel The channel containing the context
+     * @param txId    The transaction ID of the context to remove
+     */
+    private static StreamingContext removeStreamingContext(Channel channel, long txId) {
+        Map<Long, StreamingContext> contexts = channel.attr(STREAMING_CONTEXTS_KEY).get();
+        if (contexts != null) {
+            return contexts.remove(txId);
+        }
+        return null;
     }
 
     /**
@@ -297,41 +236,47 @@ public class ServiceStreamingInvocationRunnable implements Runnable {
      * This is called when a channel becomes inactive
      */
     public static void cleanupForChannel(Channel channel) {
-        if (channel != null) {
-            ChannelId channelId = channel.id();
-            ACTIVE_STREAMS.entrySet()
-                          .removeIf(entry -> {
-                              StreamingContext context = entry.getValue();
-                              if (channelId.equals(context.channelId)) {
-                                  LoggerFactory.getLogger(ServiceStreamingInvocationRunnable.class)
-                                               .info("Cleaning up streaming context for closed channel, txId: {}, channelId: {}", 
-                                                     entry.getKey(), channelId);
-                                  context.cancel();
-                                  return true;
-                              }
-                              return false;
-                          });
+        if (channel == null) {
+            return;
         }
+
+        Map<Long, StreamingContext> contexts = channel.attr(STREAMING_CONTEXTS_KEY).get();
+        if (CollectionUtils.isEmpty(contexts)) {
+            return;
+        }
+
+        // Cancel all active contexts for this channel
+        for (Map.Entry<Long, StreamingContext> entry : contexts.entrySet()) {
+            LOG.debug("Cancelling streaming context for txId: {}", entry.getKey());
+            entry.getValue().markCancelled();
+        }
+
+        // Clear the map
+        contexts.clear();
     }
 
     /**
-     * Context for managing streaming state
+     * Context for managing streaming state on server side.
+     * Implements StreamCancellation but cancel() does nothing as server-side cancellation
+     * is initiated by client messages, not by direct server calls.
      */
-    private static class StreamingContext {
-        private final ChannelId channelId;
+    private static class StreamingContext implements StreamCancellation {
         private volatile boolean cancelled = false;
         private volatile boolean completed = false;
 
-        public StreamingContext(ChannelId channelId) {
-            this.channelId = channelId;
-        }
-
+        @Override
         public void cancel() {
-            this.cancelled = true;
+            // NO-OP on server side - cancellation comes from client via protocol messages
+            // Server-side user code should not directly cancel streams
         }
 
+        @Override
         public boolean isCancelled() {
             return cancelled;
+        }
+
+        public void markCancelled() {
+            this.cancelled = true;
         }
 
         public void markCompleted() {

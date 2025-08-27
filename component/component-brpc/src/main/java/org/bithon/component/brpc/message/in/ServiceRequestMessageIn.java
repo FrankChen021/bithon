@@ -44,7 +44,8 @@ public class ServiceRequestMessageIn extends ServiceMessageIn {
     private CodedInputStream argsInputStream;
     private Serializer serializer;
 
-    public ServiceRequestMessageIn(int messageType) {
+    public ServiceRequestMessageIn(int messageType, CodedInputStream in) {
+        super(in);
         this.messageType = messageType;
     }
 
@@ -58,7 +59,7 @@ public class ServiceRequestMessageIn extends ServiceMessageIn {
     }
 
     @Override
-    public ServiceMessage decode(CodedInputStream in) throws IOException {
+    public ServiceMessage decode() throws IOException {
         this.transactionId = in.readInt64();
         this.serviceName = in.readString();
         this.methodName = in.readString();
@@ -128,9 +129,11 @@ public class ServiceRequestMessageIn extends ServiceMessageIn {
     public static ServiceRequestMessageIn from(CodedInputStream inputStream) throws IOException {
         int messageType = inputStream.readInt32();
         if (messageType == ServiceMessageType.CLIENT_REQUEST
-                || messageType == ServiceMessageType.CLIENT_REQUEST_ONEWAY
-                || messageType == ServiceMessageType.CLIENT_REQUEST_V2) {
-            return (ServiceRequestMessageIn) new ServiceRequestMessageIn(messageType).decode(inputStream);
+            || messageType == ServiceMessageType.CLIENT_REQUEST_ONEWAY
+            || messageType == ServiceMessageType.CLIENT_REQUEST_V2
+            || messageType == ServiceMessageType.CLIENT_STREAMING_REQUEST
+        ) {
+            return (ServiceRequestMessageIn) new ServiceRequestMessageIn(messageType, inputStream).decode();
         } else {
             throw new BadRequestException("messageType [%x] is not a valid ServiceRequest message", messageType);
         }
