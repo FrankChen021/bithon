@@ -31,6 +31,7 @@ import org.bithon.agent.rpc.brpc.profiling.Lock;
 import org.bithon.agent.rpc.brpc.profiling.Malloc;
 import org.bithon.agent.rpc.brpc.profiling.ProfilingEvent;
 import org.bithon.agent.rpc.brpc.profiling.SystemProperties;
+import org.bithon.component.commons.forbidden.SuppressForbidden;
 
 import java.io.File;
 import java.io.IOException;
@@ -184,8 +185,9 @@ public class JfrFileConsumer {
         }
     }
 
+    @SuppressForbidden
     public static void main(String[] args) throws IOException {
-        File f = new File("/Users/frank.chenling/source/open/bithon/20250824-165821.jfr");
+        File f = new File(args[0]);
 
         //JfrFileReader.dumpRawEvents(f);
 
