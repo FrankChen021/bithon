@@ -22,10 +22,13 @@ import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
+import java.util.logging.SimpleFormatter;
 import java.util.regex.Pattern;
 
 /**
@@ -115,10 +118,11 @@ public class JfrFileMonitor {
             long now = System.currentTimeMillis();
             long fileTimestamp = timestampedFile.getTimestamp();
             long expectedReadyTime = fileTimestamp + this.fileDuration * 1000L + 300; // Add 300ms buffer
-            long waitTime = expectedReadyTime - now;
+            String readyTimeText = new SimpleDateFormat("HH:mm:ss").format(new Date(expectedReadyTime));
 
+            long waitTime = expectedReadyTime - now;
             while (waitTime > 0 && !cancellationCtrl.getAsBoolean() && !Thread.currentThread().isInterrupted()) {
-                progressNotifier.sendProgress("%s NOT ready. Waiting...", timestampedFile.getName());
+                progressNotifier.sendProgress("%s NOT READY. Waiting to be ready until %s", timestampedFile.getName(), readyTimeText);
 
                 long sleepTime = Math.min(waitTime, 1000); // Sleep in chunks of 1 second
                 waitTime -= sleepTime;
