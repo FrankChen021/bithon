@@ -50,7 +50,6 @@ import org.bithon.server.web.service.common.calcite.SqlExecutionResult;
 import org.bithon.server.web.service.common.output.IOutputFormatter;
 import org.bithon.server.web.service.common.output.JsonCompactOutputFormatter;
 import org.bithon.server.web.service.common.output.TabSeparatedOutputFormatter;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -78,8 +77,7 @@ public class AgentApi {
     private final ObjectMapper objectMapper;
 
     public AgentApi(AgentServiceProxyFactory proxyFactory,
-                    ObjectMapper objectMapper,
-                    ApplicationContext applicationContext) {
+                    ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
         this.sqlExecutionEngine = new SqlExecutionEngine();
         this.sqlExecutionEngine.addSchema("agent", new AgentSchema(proxyFactory));

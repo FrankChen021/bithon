@@ -54,7 +54,7 @@ public class AgentApiTest {
     public void test_SELECT_ConfigurationTable_MissingAppName() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         HttpServletResponse servletResponse = Mockito.mock(HttpServletResponse.class);
-        AgentApi api = new AgentApi(proxyFactory, objectMapper, null);
+        AgentApi api = new AgentApi(proxyFactory, objectMapper);
 
         assertThrows(HttpMappableException.class,
                      () -> api.query("SELECT * FROM agent.configuration", servletRequest, servletResponse),
@@ -66,7 +66,7 @@ public class AgentApiTest {
     public void test_SELECT_ConfigurationTable_MissingInstance() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         HttpServletResponse servletResponse = Mockito.mock(HttpServletResponse.class);
-        AgentApi api = new AgentApi(proxyFactory, objectMapper, null);
+        AgentApi api = new AgentApi(proxyFactory, objectMapper);
 
         assertThrows(HttpMappableException.class,
                      () -> api.query("SELECT * FROM agent.configuration WHERE appName = '1'", servletRequest, servletResponse),
@@ -78,7 +78,7 @@ public class AgentApiTest {
     public void test_UPDATE_Logger_MissingWHERE() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         HttpServletResponse servletResponse = Mockito.mock(HttpServletResponse.class);
-        AgentApi api = new AgentApi(proxyFactory, objectMapper, null);
+        AgentApi api = new AgentApi(proxyFactory, objectMapper);
 
         assertThrows(HttpMappableException.class,
                      () -> api.query("UPDATE agent.logger SET level = 'info'", servletRequest, servletResponse),
@@ -89,7 +89,7 @@ public class AgentApiTest {
     public void test_UPDATE_Logger_MissingApName() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         HttpServletResponse servletResponse = Mockito.mock(HttpServletResponse.class);
-        AgentApi api = new AgentApi(proxyFactory, objectMapper, null);
+        AgentApi api = new AgentApi(proxyFactory, objectMapper);
 
         assertThrows(HttpMappableException.class,
                      () -> api.query("UPDATE agent.logger SET level = 'info' WHERE xxx = 'x'", servletRequest, servletResponse),
@@ -100,7 +100,7 @@ public class AgentApiTest {
     public void test_UPDATE_Logger_MissingInstance() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         HttpServletResponse servletResponse = Mockito.mock(HttpServletResponse.class);
-        AgentApi api = new AgentApi(proxyFactory, objectMapper, null);
+        AgentApi api = new AgentApi(proxyFactory, objectMapper);
 
         assertThrows(HttpMappableException.class,
                      () -> api.query("UPDATE agent.logger SET level = 'info' WHERE appName = '1'", servletRequest, servletResponse),
@@ -111,7 +111,7 @@ public class AgentApiTest {
     public void test_UPDATE_Logger_MissingName() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         HttpServletResponse servletResponse = Mockito.mock(HttpServletResponse.class);
-        AgentApi api = new AgentApi(proxyFactory, objectMapper, null);
+        AgentApi api = new AgentApi(proxyFactory, objectMapper);
 
         assertThrows(Preconditions.InvalidValueException.class,
                      () -> api.query("UPDATE agent.logger SET level = 'info' WHERE appName = '1' AND instance = 'y'", servletRequest, servletResponse),
