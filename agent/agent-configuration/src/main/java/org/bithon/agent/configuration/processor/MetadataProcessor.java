@@ -18,6 +18,7 @@ package org.bithon.agent.configuration.processor;
 
 import org.bithon.agent.configuration.annotation.ConfigurationProperties;
 import org.bithon.agent.configuration.metadata.PropertyMetadata;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.shaded.com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -34,6 +35,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
@@ -194,7 +196,7 @@ public class MetadataProcessor extends AbstractProcessor {
         property.path = fullPath;
         property.dynamic = isDynamic;
         property.configurationClass = configurationClass;
-        property.type = getSimpleTypeName(field.asType().toString());
+        property.type = normalizedTypeName(field.asType().toString());
         property.required = isFieldRequired(field);
 
         // Extract description from @PropertyDescriptor if present
@@ -316,7 +318,7 @@ public class MetadataProcessor extends AbstractProcessor {
         return !className.startsWith("org.bithon.");
     }
 
-    private String getSimpleTypeName(String fullTypeName) {
+    private String normalizedTypeName(String fullTypeName) {
         // Handle generic types
         if (fullTypeName.contains("<")) {
             return fullTypeName; // Keep generic information
@@ -349,6 +351,7 @@ public class MetadataProcessor extends AbstractProcessor {
      * - Annotated with @Deprecated
      * - Annotated with @JsonIgnore (from Jackson)
      * - Don't have a public getter method
+     * - Are user-defined classes (not primitive types or standard library types)
      *
      * @param field       the field to check
      * @param typeElement the class containing the field (used for getter validation)
@@ -377,7 +380,99 @@ public class MetadataProcessor extends AbstractProcessor {
         }
 
         // Skip fields that don't have public getter methods
-        return !hasPublicGetter(typeElement, field);
+        if (!hasPublicGetter(typeElement, field)) {
+            return true;
+        }
+
+        // Skip fields that are user-defined classes (not primitive or standard library types)
+        if (isUserDefinedClass(field)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Determines if a field is of a user-defined class type that should be excluded from metadata.
+     * Returns true for simple user-defined classes, false for primitive types, standard library types,
+     * and user-defined classes that contain configurable properties.
+     *
+     * @param field the field to check
+     * @return true if the field is a user-defined class that should be excluded
+     */
+    private boolean isUserDefinedClass(VariableElement field) {
+        TypeMirror fieldType = field.asType();
+        if (fieldType instanceof ArrayType) {
+            fieldType = ((ArrayType) fieldType).getComponentType();
+        }
+        String fieldTypeName = fieldType.toString();
+
+        // Allow primitive types
+        if (isPrimitiveType(fieldTypeName)) {
+            return false;
+        }
+
+        // Allow standard library and utility types (including collections)
+        if (isAllowedType(fieldTypeName)) {
+            return false;
+        }
+
+        processingEnv.getMessager()
+                     .printMessage(Diagnostic.Kind.WARNING,
+                                   StringUtils.format("field %s has type %s which is not supported in configuration change.", field.getSimpleName(), field.asType().toString()));
+
+        return true;
+    }
+
+    /**
+     * Checks if a type is a primitive type or primitive wrapper.
+     */
+    private boolean isPrimitiveType(String typeName) {
+        return "boolean".equals(typeName) ||
+               "byte".equals(typeName) ||
+               "char".equals(typeName) ||
+               "short".equals(typeName) ||
+               "int".equals(typeName) ||
+               "long".equals(typeName) ||
+               "float".equals(typeName) ||
+               "double".equals(typeName) ||
+               "java.lang.Boolean".equals(typeName) ||
+               "java.lang.Byte".equals(typeName) ||
+               "java.lang.Character".equals(typeName) ||
+               "java.lang.Short".equals(typeName) ||
+               "java.lang.Integer".equals(typeName) ||
+               "java.lang.Long".equals(typeName) ||
+               "java.lang.Float".equals(typeName) ||
+               "java.lang.Double".equals(typeName);
+    }
+
+    /**
+     * Checks if a type is an allowed standard library or utility type.
+     */
+    private boolean isAllowedType(String typeName) {
+        // Handle generic types by extracting the base type
+        String baseType = typeName;
+        if (typeName.contains("<")) {
+            baseType = typeName.substring(0, typeName.indexOf("<"));
+        }
+
+        // Allow common Java standard library types
+        if ("java.lang.String".equals(baseType) ||
+            "java.lang.Object".equals(baseType) ||
+            baseType.startsWith("java.util.") ||
+            baseType.startsWith("java.time.") ||
+            baseType.startsWith("java.math.")) {
+            return true;
+        }
+
+        // Allow Bithon utility classes that should be treated as primitive-like
+        if ("org.bithon.component.commons.utils.HumanReadableNumber".equals(baseType) ||
+            "org.bithon.component.commons.utils.HumanReadableDuration".equals(baseType) ||
+            "org.bithon.component.commons.utils.HumanReadablePercentage".equals(baseType)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -393,7 +488,7 @@ public class MetadataProcessor extends AbstractProcessor {
         String capitalizedFieldName = Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
 
         // Check for getter methods in the class hierarchy
-        return hasGetterInHierarchy(typeElement, field, capitalizedFieldName);
+        return findGetterRecursively(typeElement, field, capitalizedFieldName);
     }
 
     /**
@@ -404,26 +499,14 @@ public class MetadataProcessor extends AbstractProcessor {
      * @param capitalizedFieldName the capitalized field name for getter method names
      * @return true if a getter is found, false otherwise
      */
-    private boolean hasGetterInHierarchy(TypeElement typeElement, VariableElement field, String capitalizedFieldName) {
+    private boolean findGetterRecursively(TypeElement typeElement, VariableElement field, String capitalizedFieldName) {
         // Check methods in the current class
         for (Element enclosedElement : typeElement.getEnclosedElements()) {
             if (enclosedElement.getKind() == ElementKind.METHOD) {
                 ExecutableElement method = (ExecutableElement) enclosedElement;
 
-                // Skip non-public methods
-                if (!method.getModifiers().contains(Modifier.PUBLIC)) {
-                    continue;
-                }
-
-                // Skip methods with parameters (getters should have no parameters)
-                if (!method.getParameters().isEmpty()) {
-                    continue;
-                }
-
-                String methodName = method.getSimpleName().toString();
-
                 // Check for standard getter patterns
-                if (isGetterMethod(methodName, capitalizedFieldName, field)) {
+                if (isGetterMethod(method, capitalizedFieldName, field)) {
                     return true;
                 }
             }
@@ -439,7 +522,7 @@ public class MetadataProcessor extends AbstractProcessor {
                 // Only check parent classes that are not system classes
                 String superClassName = superTypeElement.getQualifiedName().toString();
                 if (!isSystemClass(superClassName)) {
-                    return hasGetterInHierarchy(superTypeElement, field, capitalizedFieldName);
+                    return findGetterRecursively(superTypeElement, field, capitalizedFieldName);
                 }
             }
         }
@@ -450,12 +533,24 @@ public class MetadataProcessor extends AbstractProcessor {
     /**
      * Checks if a method name matches the getter pattern for a field.
      *
-     * @param methodName           the method name to check
+     * @param method               the method to check
      * @param capitalizedFieldName the capitalized field name
      * @param field                the field element (used to check if it's boolean)
      * @return true if the method is a valid getter for the field
      */
-    private boolean isGetterMethod(String methodName, String capitalizedFieldName, VariableElement field) {
+    private boolean isGetterMethod(ExecutableElement method, String capitalizedFieldName, VariableElement field) {
+        // Skip non-public methods
+        if (!method.getModifiers().contains(Modifier.PUBLIC)) {
+            return false;
+        }
+
+        // Skip methods with parameters (getters should have no parameters)
+        if (!method.getParameters().isEmpty()) {
+            return false;
+        }
+
+        String methodName = method.getSimpleName().toString();
+
         // Standard getter: getFieldName()
         if (("get" + capitalizedFieldName).equals(methodName)) {
             return true;
@@ -469,7 +564,6 @@ public class MetadataProcessor extends AbstractProcessor {
 
         return false;
     }
-
 
     private Map<String, String> extractPropertyDescriptor(VariableElement field) {
         Map<String, String> properties = new HashMap<>();
@@ -520,7 +614,7 @@ public class MetadataProcessor extends AbstractProcessor {
         // Extract module name from the configuration class package
         String configClass = properties.get(0).configurationClass;
 
-        // For plugin classes like "org.bithon.agent.plugin.bithon.brpc.BithonBrpcPlugin.ServiceProviderConfig"
+        // For plugin classes like "org.bithon.agent.plugin.bithon.brpc.BithonBrpcPlugin"
         // or "org.bithon.agent.plugin.spring.bean.installer.SpringBeanPluginConfig"
         // Extract the module identifier
         if (configClass.startsWith("org.bithon.agent.plugin.")) {
@@ -563,3 +657,4 @@ public class MetadataProcessor extends AbstractProcessor {
         return processingEnv.getElementUtils().getBinaryName(typeElement).toString();
     }
 }
+
