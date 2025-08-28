@@ -1,0 +1,120 @@
+syntax = "proto3";
+
+package org.bithon.agent.rpc.brpc.profiling;
+
+import "google/protobuf/any.proto";
+
+option java_multiple_files = true;
+
+message ProfilingRequest {
+  string requestId = 1;
+
+  /**
+   * The total duration of this profiling
+   */
+  int32 durationInSeconds = 5;
+
+  /**
+   * The interval between two profiling events, in seconds.
+   */
+  int32 intervalInSeconds = 6;
+  repeated string profileEvents = 7;
+
+  /**
+   * Extra arguments for profiling, e.g. the filters.
+   */
+  optional string args = 8;
+}
+
+/**************************************************************************/
+/*******************************  Profiling Response       ***************************/
+/**************************************************************************/
+message ProfilingEvent {
+  oneof event {
+    Progress progress = 1;
+    SystemProperties systemProperties = 2;
+
+    CPULoad cpuLoad = 10;
+    CallStackSample callStackSample = 11;
+    HeapUsage heap = 12;
+    Malloc malloc = 13;
+    AllocationSample allocationSample = 14;
+    Lock lock = 15;
+  }
+}
+
+message CPULoad {
+  int64 timestamp = 1;
+  float user = 2;
+  float system = 3;
+  float machine = 4;
+}
+
+message SystemProperties {
+  map<string, string> properties = 1;
+}
+
+message StackFrame {
+  string typeName = 1;
+  string method = 2;
+  string returnType = 3;
+  repeated string parameters = 4;
+  int32 location = 5;
+  int32 type = 6;
+}
+
+message CallStackSample {
+  int64 timestamp = 1;
+  int32 threadId = 2;
+  string threadName = 3;
+  int32 threadState = 4;
+  repeated StackFrame stackTrace = 5;
+  int32 samples = 6;
+}
+
+message HeapUsage {
+  int64 timestamp = 1;
+
+  int32 gcId = 5;
+  int64 committed = 10;
+  int64 used = 11;
+  int64 reserved = 12;
+}
+
+message Progress {
+  int64 timestamp = 1;
+  string message = 10;
+}
+
+/**
+ * a native memory allocation event.
+ */
+message Malloc {
+  int64 timestamp = 1;
+  int32 threadId = 2;
+  string threadName = 3;
+  int64 size = 4;
+  repeated StackFrame stackTrace = 5;
+}
+
+message AllocationSample {
+  int64 timestamp = 1;
+  int32 threadId = 2;
+  string threadName = 3;
+  string clazz = 4;
+  int64 allocationSize = 5;
+  int64 tlabSize = 6;
+  repeated StackFrame stackTrace = 7;
+}
+
+message Lock {
+  int64 timestamp = 1;
+  int32 threadId = 2;
+  string threadName = 3;
+  string lockClass = 4;
+  /**
+   * The time waiting for acquiring a lock in nanoseconds.
+   */
+  int64 waitTime = 5;
+  repeated StackFrame stackTrace = 7;
+}

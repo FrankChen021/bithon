@@ -17,33 +17,38 @@
 package org.bithon.component.brpc.channel;
 
 import org.bithon.component.brpc.ServiceRegistry;
+import org.bithon.component.brpc.exception.BadRequestException;
+import org.bithon.component.brpc.exception.ServiceInvocationException;
+import org.bithon.component.brpc.exception.ServiceNotFoundException;
 import org.bithon.component.brpc.invocation.InvocationManager;
 import org.bithon.component.brpc.invocation.ServiceInvocationRunnable;
 import org.bithon.component.brpc.invocation.ServiceStreamingInvocationRunnable;
 import org.bithon.component.brpc.message.ServiceMessage;
 import org.bithon.component.brpc.message.ServiceMessageType;
+import org.bithon.component.brpc.message.in.ServiceMessageIn;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.brpc.message.in.ServiceStreamingDataMessageIn;
 import org.bithon.component.brpc.message.in.ServiceStreamingEndMessageIn;
+import org.bithon.component.brpc.message.out.ServiceStreamingEndMessageOut;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.component.commons.utils.TimeWindowBasedCounter;
-import org.bithon.shaded.io.netty.channel.ChannelHandler;
+import org.bithon.shaded.io.netty.channel.Channel;
 import org.bithon.shaded.io.netty.channel.ChannelHandlerContext;
 import org.bithon.shaded.io.netty.channel.SimpleChannelInboundHandler;
 import org.bithon.shaded.io.netty.handler.codec.DecoderException;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.time.Duration;
 import java.util.concurrent.Executor;
 
 /**
  * @author frankchen
  */
-@ChannelHandler.Sharable
 class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMessage> {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(ServiceMessageChannelHandler.class);
 
@@ -72,17 +77,32 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ServiceMessage msg) {
+        try {
+            handleMessageIn(ctx.channel(), (ServiceMessageIn) msg);
+        } finally {
+            try {
+                // Make sure all content has been consumed
+                ((ServiceMessageIn) msg).consume();
+            } catch (Throwable ignored) {
+            }
+        }
+    }
+
+    private void handleMessageIn(Channel channel, ServiceMessageIn msg) {
         switch (msg.getMessageType()) {
             case ServiceMessageType.CLIENT_REQUEST_ONEWAY:
             case ServiceMessageType.CLIENT_REQUEST:
             case ServiceMessageType.CLIENT_REQUEST_V2:
                 ServiceRequestMessageIn request = (ServiceRequestMessageIn) msg;
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Receiving request, txId={}, service={}#{}", request.getTransactionId(), request.getServiceName(), request.getMethodName());
+                    LOG.debug("Receiving request, txId={}, service={}#{}",
+                              request.getTransactionId(),
+                              request.getServiceName(),
+                              request.getMethodName());
                 }
 
                 ServiceInvocationRunnable.execute(serviceRegistry,
-                                                  ctx.channel(),
+                                                  channel,
                                                   (ServiceRequestMessageIn) msg,
                                                   this.executor);
                 break;
@@ -90,13 +110,16 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
             case ServiceMessageType.CLIENT_STREAMING_REQUEST:
                 ServiceRequestMessageIn streamingRequest = (ServiceRequestMessageIn) msg;
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Receiving streaming request, txId={}, service={}#{}", streamingRequest.getTransactionId(), streamingRequest.getServiceName(), streamingRequest.getMethodName());
+                    LOG.debug("Receiving streaming request, txId={}, service={}#{}",
+                              streamingRequest.getTransactionId(),
+                              streamingRequest.getServiceName(),
+                              streamingRequest.getMethodName());
                 }
 
-                ServiceStreamingInvocationRunnable.execute(serviceRegistry,
-                                                           ctx.channel(),
-                                                           streamingRequest,
-                                                           this.executor);
+                handleStreamingRequest(serviceRegistry,
+                                       channel,
+                                       streamingRequest,
+                                       this.executor);
                 break;
 
             case ServiceMessageType.SERVER_RESPONSE:
@@ -109,7 +132,8 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
 
             case ServiceMessageType.SERVER_STREAMING_DATA:
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Receiving streaming data, txId={}", msg.getTransactionId());
+                    LOG.debug("Receiving streaming data, txId={}",
+                              msg.getTransactionId());
                 }
 
                 invocationManager.handleStreamingData((ServiceStreamingDataMessageIn) msg);
@@ -117,7 +141,8 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
 
             case ServiceMessageType.SERVER_STREAMING_END:
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Receiving streaming end, txId={}", msg.getTransactionId());
+                    LOG.debug("Receiving streaming end, txId={}",
+                              msg.getTransactionId());
                 }
 
                 invocationManager.handleStreamingEnd((ServiceStreamingEndMessageIn) msg);
@@ -125,10 +150,11 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
 
             case ServiceMessageType.CLIENT_STREAMING_CANCEL:
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Receiving streaming cancel, txId={}", msg.getTransactionId());
+                    LOG.debug("Receiving streaming cancel, txId={}",
+                              msg.getTransactionId());
                 }
 
-                ServiceStreamingInvocationRunnable.cancelStreaming(msg.getTransactionId());
+                ServiceStreamingInvocationRunnable.cancelStreaming(channel, msg.getTransactionId());
                 break;
 
             default:
@@ -157,7 +183,7 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
                       ctx.channel().localAddress().toString(),
                       cause.getMessage());
         } else {
-            LOG.error(StringUtils.format("[{}] - Exception occurred on channel(%s ---> %s) when processing message",
+            LOG.error(StringUtils.format("[%s] - Exception occurred on channel(%s ---> %s) when processing message",
                                          this.id,
                                          ctx.channel().remoteAddress().toString(),
                                          ctx.channel().localAddress().toString()), cause);
@@ -188,14 +214,73 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
             ServiceStreamingInvocationRunnable.cleanupForChannel(ctx.channel());
 
             // Clean up streaming requests on client side
-            if (invocationManager != null) {
-                invocationManager.handleChannelClosure();
-            }
-
+            invocationManager.handleChannelClosure();
         } catch (Exception e) {
             LOG.error("[{}] Error during channel cleanup", id, e);
         } finally {
             super.channelInactive(ctx);
+        }
+    }
+
+    private void handleStreamingRequest(ServiceRegistry serviceRegistry,
+                                        Channel channel,
+                                        ServiceRequestMessageIn serviceRequest,
+                                        Executor executor) {
+        try {
+            if (serviceRequest.getServiceName() == null) {
+                throw new BadRequestException("[Client=%s] serviceName is null", channel.remoteAddress().toString());
+            }
+
+            if (serviceRequest.getMethodName() == null) {
+                throw new BadRequestException("[Client=%s] methodName is null", channel.remoteAddress().toString());
+            }
+
+            if (!serviceRegistry.contains(serviceRequest.getServiceName())) {
+                throw new ServiceNotFoundException(serviceRequest.getServiceName());
+            }
+
+            ServiceRegistry.ServiceInvoker serviceInvoker = serviceRegistry.findServiceInvoker(serviceRequest.getServiceName(),
+                                                                                               serviceRequest.getMethodName());
+            if (serviceInvoker == null) {
+                throw new ServiceNotFoundException(serviceRequest.getServiceName() + "#" + serviceRequest.getMethodName());
+            }
+
+            try {
+                // Read args outside the thread pool
+                // For streaming methods, we exclude the last parameter (StreamResponse) from the request
+                Type[] parameterTypes = serviceInvoker.getParameterTypes();
+                Type[] requestParameterTypes = new Type[parameterTypes.length - 1];
+                System.arraycopy(parameterTypes, 0, requestParameterTypes, 0, parameterTypes.length - 1);
+
+                Object[] args = serviceRequest.readArgs(requestParameterTypes);
+
+                executor.execute(new ServiceStreamingInvocationRunnable(channel,
+                                                                        serviceRequest.getTransactionId(),
+                                                                        serviceInvoker,
+                                                                        args));
+            } catch (IOException e) {
+                throw new BadRequestException("[Client=%s] Bad Request: Service[%s#%s]: %s",
+                                              channel.remoteAddress().toString(),
+                                              serviceRequest.getServiceName(),
+                                              serviceRequest.getMethodName(),
+                                              e.getMessage());
+            }
+        } catch (ServiceInvocationException e) {
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            boolean isClientSideException = e instanceof BadRequestException || e instanceof ServiceNotFoundException;
+            if (!isClientSideException) {
+                LOG.error(StringUtils.format("[Client=%s] Streaming Service Invocation on %s#%s",
+                                             channel.remoteAddress().toString(),
+                                             serviceRequest.getServiceName(),
+                                             serviceRequest.getMethodName()),
+                          cause);
+            }
+
+            try {
+                new ServiceStreamingEndMessageOut(serviceRequest.getTransactionId(), cause).send(channel);
+            } catch (Exception sendException) {
+                LOG.error("Failed to send streaming error response", sendException);
+            }
         }
     }
 }

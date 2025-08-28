@@ -22,16 +22,39 @@ The above pic illustrates the main components of this project, including:
 
 ## Highlights
 
-- Around 200 built-in metrics for various JDK or various Java middlewares like Apache Http Components
-- Compatible with multiple tracing context propagation formats, including OpenTelemetry, Zipkin, Jaeger and Pinpoint
-- Support to receive tracing span logs via multiple channels
-  - Open Telemetry Tracing format via GRPC or HTTP
-  - Zipkin Tracing format via HTTP
-  - Jaeger Tracing Thrift format via HTTP or UDP
-- Built-in debugging diagnosis commands, including JMX bean realtime monitoring for target application
-- Flexible deployment to adapt small data scale and huge data scale use cases
-- Fast queries and very low storage cost benefit from ClickHouse
-- PromQL style alerting expression support
+- **Comprehensive Metrics**
+  - Over 200 built-in metrics covering JDK internals and popular Java middlewares such as Apache Http Components.
+- **Advanced Distributed Tracing**
+  - Seamless compatibility with major tracing context propagation formats, including:
+    - OpenTelemetry
+    - Zipkin
+    - Jaeger
+    - Pinpoint
+  - Multi-channel span log ingestion:
+    - OpenTelemetry via GRPC or HTTP
+    - Zipkin via HTTP
+    - Jaeger Thrift via HTTP or UDP
+
+- **Intelligent Logging**
+  - Automatic injection of traceId/spanId into logs, requiring zero code changes in client applications.
+  - Trace context enrichment even when distributed tracing is disabled.
+
+- **Deep Profiling & Diagnostics**
+  - Real-time JMX bean inspection for target applications.
+  - Live and continuous thread dump analysis.
+  - Continuous CPU and memory profiling for in-depth performance insights.
+
+- **Powerful Alerting**
+  - PromQL-style alerting expressions for flexible, real-time monitoring and incident response.
+
+- **Flexible Deployment**
+  - Adaptable architecture for both small-scale and massive-scale data environments.
+    - Single all-in-one JAR for quick evaluation and lightweight use cases.
+    - Modular, component-based deployment for huge-scale scenarios.
+  - Effortless horizontal scaling to handle over 100TiB of data.
+
+- **Exceptional Cost Efficiency**
+  - Ultra-fast queries and minimal storage overhead, powered by ClickHouse integration.
 
 # Preview
 

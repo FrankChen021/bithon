@@ -47,6 +47,10 @@
                     <!-- This module contains the annotation processor, so we need to disable
                          annotation processing to avoid self-processing -->
                     <proc>none</proc>
+                    <!-- Suppress bootstrap classpath warning when compiling with older source version -->
+                    <compilerArgs>
+                        <arg>-Xlint:-options</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
         </plugins>

@@ -157,8 +157,8 @@ public class GlobalExceptionHandler {
 
         // If the exception is from the Spring Web Framework, usually this is due to connection close at the client side
         StackTraceElement[] stacks = exception.getStackTrace();
-        for (int i = 0; i < stacks.length; i++) {
-            if (stacks[i].getClassName().startsWith("org.springframework.web.context.request.")) {
+        for (StackTraceElement stack : stacks) {
+            if (stack.getClassName().startsWith("org.springframework.web.context.request.")) {
                 return true;
             }
         }

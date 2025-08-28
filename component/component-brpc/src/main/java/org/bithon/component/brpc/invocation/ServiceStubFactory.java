@@ -57,6 +57,10 @@ public class ServiceStubFactory {
         return create(clientAppName, headers, channel, serviceInterface, 5000, invocationManager);
     }
 
+    /**
+     *
+     * @param timeout in milliseconds
+     */
     @SuppressWarnings("unchecked")
     public static <T> T create(String clientAppName,
                                Headers headers,

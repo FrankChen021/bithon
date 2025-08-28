@@ -71,4 +71,10 @@ public class HttpMappableException extends RuntimeException {
     public String getCauseExceptionClass() {
         return causeExceptionClass;
     }
+
+    public static class BadRequestException extends HttpMappableException {
+        public BadRequestException(String message) {
+            super(HttpResponseMapping.StatusCode.BAD_REQ.value, message);
+        }
+    }
 }

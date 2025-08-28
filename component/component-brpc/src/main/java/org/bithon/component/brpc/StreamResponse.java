@@ -18,33 +18,34 @@ package org.bithon.component.brpc;
 
 /**
  * Interface for handling streaming responses in RPC calls.
- * 
+ * <p>
  * Methods that return void and have the last parameter as StreamResponse<T>
  * will be treated as streaming RPC methods.
  * 
  * @param <T> The type of data being streamed
  * @author frankchen
  */
-public interface StreamResponse<T> {
-    
+public abstract class StreamResponse<T> {
+    private StreamCancellation streamCancellation;
+
     /**
      * Called when a new data item is received from the stream
      * 
      * @param data The received data item
      */
-    void onNext(T data);
+    public abstract void onNext(T data);
     
     /**
      * Called when an error occurs during streaming
      * 
      * @param throwable The error that occurred
      */
-    void onException(Throwable throwable);
+    public abstract void onException(Throwable throwable);
     
     /**
      * Called when the stream is completed successfully
      */
-    void onComplete();
+    public abstract void onComplete();
     
     /**
      * Called to check if the stream should be cancelled
@@ -52,7 +53,34 @@ public interface StreamResponse<T> {
      * 
      * @return true if the stream should be cancelled, false otherwise
      */
-    default boolean isCancelled() {
-        return false;
+    public boolean isCancelled() {
+        StreamCancellation cancellation = getStreamCancellation();
+        return cancellation != null && cancellation.isCancelled();
     }
-} 
+    
+    /**
+     * Sets a StreamCancellation object that can be used to cancel the stream.
+     * This is called by the framework to inject the appropriate cancellation object.
+     * 
+     * @param cancellation The StreamCancellation object to use
+     */
+    public final void setStreamCancellation(StreamCancellation cancellation) {
+        this.streamCancellation = cancellation;
+    }
+    
+    /**
+     * Gets the StreamCancellation object that can be used to cancel the stream.
+     * Client code can call getStreamCancellation().cancel() to immediately cancel the stream.
+     * 
+     * @return The StreamCancellation object, or null if not set
+     */
+    public final StreamCancellation getStreamCancellation() {
+        return this.streamCancellation;
+    }
+
+    public void cancel() {
+        if (this.streamCancellation != null) {
+            this.streamCancellation.cancel();
+        }
+    }
+}

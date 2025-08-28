@@ -16,6 +16,7 @@
 
 package org.bithon.component.brpc.invocation;
 
+import org.bithon.component.brpc.StreamResponse;
 import org.bithon.component.brpc.channel.IBrpcChannel;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 
@@ -37,6 +38,15 @@ public class LowLevelInvoker {
     }
 
     public byte[] invoke(ServiceRequestMessageOut serviceRequest, int timeoutMillisecond) throws Throwable {
-        return invocationManager.invoke(channel, serviceRequest, timeoutMillisecond);
+        return invocationManager.invokeRpc(channel, serviceRequest, timeoutMillisecond);
+    }
+
+    /**
+     * @param timeoutMillisecond currently not available
+     */
+    public void invokeStreaming(ServiceRequestMessageOut serviceRequest,
+                                StreamResponse<byte[]> streamResponse,
+                                int timeoutMillisecond) throws Throwable {
+        invocationManager.invokeStreamingRpc(channel, serviceRequest, null, streamResponse, timeoutMillisecond);
     }
 }

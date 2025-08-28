@@ -17,6 +17,8 @@
 package org.bithon.server.discovery.client;
 
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -40,14 +42,18 @@ public class ServiceInvocationExecutor implements AutoCloseable, Executor {
     }
 
     public <T> CompletableFuture<T> submit(Callable<T> task) {
+        SecurityContext securityContext = SecurityContextHolder.getContext();
         return CompletableFuture.supplyAsync(() -> {
             try {
+                SecurityContextHolder.setContext(securityContext);
                 return task.call();
             } catch (Exception e) {
                 if (e instanceof RuntimeException) {
                     throw (RuntimeException) e;
                 }
                 throw new RuntimeException(e);
+            } finally {
+                SecurityContextHolder.clearContext();
             }
         }, executorService);
     }
