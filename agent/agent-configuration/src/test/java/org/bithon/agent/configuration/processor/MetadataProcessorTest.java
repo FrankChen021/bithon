@@ -51,17 +51,32 @@ public class MetadataProcessorTest {
         String src = "package org.bithon.agent.configuration.test;\n" +
                      "import org.bithon.agent.configuration.annotation.ConfigurationProperties;\n" +
                      "public class Demo {\n" +
+                     "  public static class InnerConfig {\n" +
+                     "     private long timeout;\n" +
+                     "     public long getTimeout() { return timeout; }\n" +
+                     "  }\n" +
                      "  @ConfigurationProperties(path=\"demo.config\")\n" +
                      "  public static class Cfg {\n" +
+                     "     private InnerConfig inner = new InnerConfig();\n" +
+                     "     public InnerConfig getInner() { return inner; }\n" +
                      "     private String name = \"abc\";\n" +
                      "     public String getName() { return name; }\n" +
                      "     private int size = 10;\n" +
                      "     public int getSize() { return size; }\n" +
+                     "     private java.util.List<String> list;\n" +
+                     "     public java.util.List<String> getList() { return list; }\n" +
+                     "     private java.util.Set<String> set;\n" +
+                     "     public java.util.Set<String> getSet() { return set; }\n" +
+                     "     private java.util.Map<String, String> map;\n" +
+                     "     public java.util.Map<String, String> getMap() { return map; }\n" +
+                     "     private String[] stringArray;\n" +
+                     "     public String[] getStringArray() { return stringArray; }\n" +
                      "  }\n" +
                      "}\n";
         CompiledConfigResult result = compileConfigurationPropertyClass("org.bithon.agent.configuration.test.Demo", src);
 
         Map<String, PropertyMetadata> props = result.properties;
+        Assertions.assertEquals(7, props.size());
         {
             PropertyMetadata metadata = props.get("demo.config.name");
             Assertions.assertNotNull(metadata);
@@ -74,6 +89,41 @@ public class MetadataProcessorTest {
             Assertions.assertNotNull(metadata);
             Assertions.assertEquals("demo.config.size", metadata.path);
             Assertions.assertEquals("int", metadata.type);
+            Assertions.assertTrue(metadata.dynamic);
+        }
+        {
+            PropertyMetadata metadata = props.get("demo.config.inner.timeout");
+            Assertions.assertNotNull(metadata);
+            Assertions.assertEquals("demo.config.inner.timeout", metadata.path);
+            Assertions.assertEquals("long", metadata.type);
+            Assertions.assertTrue(metadata.dynamic);
+        }
+        {
+            PropertyMetadata metadata = props.get("demo.config.list");
+            Assertions.assertNotNull(metadata);
+            Assertions.assertEquals("demo.config.list", metadata.path);
+            Assertions.assertEquals("java.util.List<java.lang.String>", metadata.type);
+            Assertions.assertTrue(metadata.dynamic);
+        }
+        {
+            PropertyMetadata metadata = props.get("demo.config.set");
+            Assertions.assertNotNull(metadata);
+            Assertions.assertEquals("demo.config.set", metadata.path);
+            Assertions.assertEquals("java.util.Set<java.lang.String>", metadata.type);
+            Assertions.assertTrue(metadata.dynamic);
+        }
+        {
+            PropertyMetadata metadata = props.get("demo.config.map");
+            Assertions.assertNotNull(metadata);
+            Assertions.assertEquals("demo.config.map", metadata.path);
+            Assertions.assertEquals("java.util.Map<java.lang.String,java.lang.String>", metadata.type);
+            Assertions.assertTrue(metadata.dynamic);
+        }
+        {
+            PropertyMetadata metadata = props.get("demo.config.stringArray");
+            Assertions.assertNotNull(metadata);
+            Assertions.assertEquals("demo.config.stringArray", metadata.path);
+            Assertions.assertEquals("String[]", metadata.type);
             Assertions.assertTrue(metadata.dynamic);
         }
     }
