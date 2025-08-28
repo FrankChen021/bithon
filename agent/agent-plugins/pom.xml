@@ -104,6 +104,10 @@
             <arg>10000</arg>
             <arg>-Xmaxerrs</arg>
             <arg>10000</arg>
+            <!-- Suppress bootstrap classpath warning when compiling with older source version -->
+            <arg>-Xlint:-options</arg>
+            <!-- Suppress all warnings to avoid internal API warnings -->
+            <arg>-Xlint:none</arg>
           </compilerArgs>
         </configuration>
         <executions>
