@@ -3,14 +3,14 @@
 # shellcheck disable=SC2039
 if [ "$ENABLE_AGENT" = true ] ; then
   echo "Downloading agent from ${AGENT_URI}"
-  wget -T 10 -O agent.tar "${AGENT_URI}"
+  wget -T 10 -O agent.zip "${AGENT_URI}"
 
-  if [ -f agent.tar ] ; then
+  if [ -f agent.zip ] ; then
     echo "Cleaning up agent..."
     rm -fr /opt/agent-distribution
 
-    echo "Extract agent from compressed file..."
-    tar -xvf agent.tar
+    echo "Unzip agent compress file..."
+    unzip agent.zip
   else
     echo "Failed to downloading agent..."
   fi

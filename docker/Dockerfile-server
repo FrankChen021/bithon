@@ -51,6 +51,7 @@ RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
 FROM eclipse-temurin:${JDK_VERSION}
 
 RUN apt-get -qq update \
+    && apt-get -qq -y install unzip \
     && apt-get -qq -y install wget \
     && apt-get -qq -y install libjemalloc-dev
 
