@@ -39,8 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
-import static java.io.File.separator;
-
 /**
  * @author frankchen
  */
@@ -86,7 +84,7 @@ public class AgentStarter {
         Map<String, Class<?>> packagesToOpen = new HashMap<>();
         packagesToOpen.put("java.net", JavaAdaptorFactory.class);
         packagesToOpen.put("jdk.internal.misc", JavaAdaptorFactory.class);
-        JavaAdaptorFactory.getAdaptor().openPackages(inst, Object.class, packagesToOpen);
+        JavaAdaptorFactory.create(inst).openPackages(inst, Object.class, packagesToOpen);
 
         // Install interceptors for plugins
         new InterceptorInstaller(new PluginResolver() {
@@ -131,9 +129,9 @@ public class AgentStarter {
         DebugConfig debugConfig = ConfigurationManager.getInstance().getConfig("instrumentation", DebugConfig.class);
 
         File targetDirectory = AgentDirectory.getSubDirectory(AgentDirectory.TMP_DIR
-                                                              + separator
+                                                              + File.separator
                                                               + appConfig.getName() + "-" + appConfig.getEnv()
-                                                              + separator
+                                                              + File.separator
                                                               + "classes");
 
         return new Debugger(debugConfig, targetDirectory);

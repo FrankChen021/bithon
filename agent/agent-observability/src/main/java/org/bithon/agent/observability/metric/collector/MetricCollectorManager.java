@@ -125,7 +125,7 @@ public class MetricCollectorManager {
     }
 
     /**
-     * Register a unnamed collector
+     * Register an unnamed collector
      */
     public synchronized <T extends IMetricCollectorBase> T register(T collector) {
         collectors.put(collector.getClass().getSimpleName() + "-" + unnamedCollectorIndex.getAndIncrement(),

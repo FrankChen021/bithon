@@ -22,11 +22,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+
 /**
  * JDK 9+ specific adaptor implementation.
  * Handles module system configuration for Java 9 and later versions.
  */
 public class Java9Adaptor implements IJavaAdaptor {
+
+    public Java9Adaptor(Instrumentation inst) {
+        // Open package to this class as this class contains internal methods to access
+        openPackages(inst, Object.class, Map.of("jdk.internal.misc", Java9Adaptor.class));
+    }
 
     @Override
     public void openPackages(Instrumentation inst,
@@ -48,5 +54,10 @@ public class Java9Adaptor implements IJavaAdaptor {
             Collections.emptySet(), // extra uses
             Collections.emptyMap()  // extra provides
         );
+    }
+
+    @Override
+    public long getMaxDirectMemory() {
+        return jdk.internal.misc.VM.maxDirectMemory();
     }
 }

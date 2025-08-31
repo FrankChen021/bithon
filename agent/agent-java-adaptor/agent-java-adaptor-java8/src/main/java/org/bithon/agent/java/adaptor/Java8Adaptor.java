@@ -16,7 +16,11 @@
 
 package org.bithon.agent.java.adaptor;
 
+import org.bithon.agent.instrumentation.expt.AgentException;
+
 import java.lang.instrument.Instrumentation;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
@@ -25,10 +29,26 @@ import java.util.Map;
  */
 public class Java8Adaptor implements IJavaAdaptor {
 
+    public Java8Adaptor(Instrumentation inst) {
+    }
+
     @Override
     public void openPackages(Instrumentation inst,
                              Class<?> classFromSourceModule,
                              Map<String, Class<?>> openPackageTo) {
         // Do nothing for JDK 8
+    }
+
+    @Override
+    public long getMaxDirectMemory() {
+        try {
+            Class<?> vmClass = Class.forName("sun.misc.VM");
+            Method maxDirectMemoryMethod = vmClass.getDeclaredMethod("maxDirectMemory");
+            maxDirectMemoryMethod.setAccessible(true);
+            return (long) maxDirectMemoryMethod.invoke(null);
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
+                 InvocationTargetException e) {
+            throw new AgentException("sun.misc.VM.maxDirectMemory() not available", e);
+        }
     }
 }

@@ -20,6 +20,7 @@ import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
 
 import java.io.File;
+import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -34,11 +35,7 @@ import java.util.stream.Collectors;
 public class JavaAdaptorFactory {
     private static IJavaAdaptor ADAPTOR;
 
-    public static IJavaAdaptor getAdaptor() {
-        if (ADAPTOR != null) {
-            return ADAPTOR;
-        }
-
+    public static IJavaAdaptor create(Instrumentation instrumentation) {
         //
         // Find the right adaptor jar for the current running JRE version
         //
@@ -58,7 +55,7 @@ public class JavaAdaptorFactory {
                                                                      JavaAdaptorFactory.class.getClassLoader())) {
                     Class<?> adaptorClass = classLoader.loadClass(String.format(Locale.ENGLISH, "org.bithon.agent.java.adaptor.Java%dAdaptor",
                                                                                 detectJavaVersion));
-                    ADAPTOR = (IJavaAdaptor) adaptorClass.getConstructor().newInstance();
+                    ADAPTOR = (IJavaAdaptor) adaptorClass.getConstructor(Instrumentation.class).newInstance(instrumentation);
                     return ADAPTOR;
                 }
             } catch (Throwable e) {
@@ -73,6 +70,14 @@ public class JavaAdaptorFactory {
         throw new AgentException("Cannot find a suitable java adaptor for current java version [%d]. Available adaptors are [%s]",
                                  javaVersion,
                                  availableJars);
+    }
+
+    public static IJavaAdaptor getAdaptor() {
+        if (ADAPTOR != null) {
+            return ADAPTOR;
+        }
+
+        throw new AgentException("JavaAdaptorFactory is not created. Please report to agent maintainers.");
     }
 
     private static int getJavaVersion() {

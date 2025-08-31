@@ -17,8 +17,8 @@
 package org.bithon.agent.observability.metric.collector.jvm;
 
 import org.bithon.agent.instrumentation.expt.AgentException;
+import org.bithon.agent.java.adaptor.JavaAdaptorFactory;
 import org.bithon.agent.observability.metric.domain.jvm.MemoryRegionMetrics;
-import org.bithon.component.commons.utils.JdkUtils;
 
 import java.lang.management.BufferPoolMXBean;
 import java.lang.management.ManagementFactory;
@@ -29,37 +29,6 @@ import java.lang.management.ManagementFactory;
  */
 public class DirectMemoryCollector {
 
-    /**
-     * Interface for collecting maximum direct memory information across different JDK versions.
-     * This interface abstracts the JDK version-specific implementations to avoid reflection
-     * and module access issues in JDK 9+.
-     *
-     * @author frank.chen021@outlook.com
-     * @date 2024/12/19
-     */
-    public interface IMaxDirectMemoryGetter {
-
-        /**
-         * Gets the maximum amount of direct memory that can be allocated.
-         *
-         * @return the maximum direct memory in bytes, or -1 if the maximum is unlimited
-         */
-        long getMaxDirectMemory();
-    }
-
-    private static IMaxDirectMemoryGetter createCollector() {
-        String implementation = (JdkUtils.MAJOR_VERSION >= 9)
-            ? "org.bithon.agent.observability.metric.collector.jvm.MaxDirectMemoryCollectorJdk9"
-            : "org.bithon.agent.observability.metric.collector.jvm.MaxDirectMemoryCollectorJdk8";
-
-        try {
-            Class<?> impl = Class.forName(implementation);
-            return (IMaxDirectMemoryGetter) impl.getDeclaredConstructor().newInstance();
-        } catch (Throwable e) {
-            throw new AgentException("JDK " + JdkUtils.MAJOR_VERSION + " detected but no MaxDirectMemoryCollector implementation could be instantiated", e);
-        }
-    }
-
     private static final BufferPoolMXBean DIRECT_MEMORY_BEAN = ManagementFactory.getPlatformMXBeans(BufferPoolMXBean.class)
                                                                                 .stream()
                                                                                 .filter(bean -> "direct".equalsIgnoreCase(bean.getName()))
@@ -69,8 +38,7 @@ public class DirectMemoryCollector {
     private final long max;
 
     DirectMemoryCollector() throws AgentException {
-        IMaxDirectMemoryGetter maxDirectMemoryCollector = createCollector();
-        max = maxDirectMemoryCollector.getMaxDirectMemory();
+        max = JavaAdaptorFactory.getAdaptor().getMaxDirectMemory();
     }
 
     public MemoryRegionMetrics collect() {
