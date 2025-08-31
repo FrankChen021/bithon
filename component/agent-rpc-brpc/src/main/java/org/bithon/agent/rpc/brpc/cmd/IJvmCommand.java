@@ -101,9 +101,16 @@ public interface IJvmCommand {
         public boolean isInterface;
         public boolean isAnnotation;
         public boolean isEnum;
+        public boolean isPrimitive;
+        public boolean isArray;
+        /**
+         * for running above Java 8
+         */
+        public String module;
+        public String jarLocation;
 
         public Object[] toObjects() {
-            return new Object[]{name, classLoader, isSynthetic, isInterface, isAnnotation, isEnum};
+            return new Object[]{name, classLoader, isSynthetic, isInterface, isAnnotation, isEnum, isPrimitive, isArray};
         }
     }
 

@@ -68,8 +68,29 @@
         <!--async profiler -->
         <exclude>tools.profiler:jfr-converter</exclude>
         <exclude>tools.profiler:async-profiler</exclude>
+
+        <!-- JDK specific adaptors are in a dedicated directory, exclude them from lib -->
+        <exclude>${project.parent.groupId}:agent-java-adaptor-*</exclude>
       </excludes>
       <outputDirectory>lib</outputDirectory>
+    </dependencySet>
+
+    <!-- JDK specific adaptors -->
+    <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
+      <includes>
+        <include>${project.parent.groupId}:agent-java-adaptor-java8</include>
+      </includes>
+      <outputDirectory>adaptor</outputDirectory>
+      <outputFileNameMapping>agent-java-adaptor-java8.jar</outputFileNameMapping>
+    </dependencySet>
+    <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
+      <includes>
+        <include>${project.parent.groupId}:agent-java-adaptor-java9</include>
+      </includes>
+      <outputDirectory>adaptor</outputDirectory>
+      <outputFileNameMapping>agent-java-adaptor-java9.jar</outputFileNameMapping>
     </dependencySet>
 
     <!-- async profiler tool -->

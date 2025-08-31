@@ -27,6 +27,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.installer.InterceptorIns
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.PluginResolver;
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
+import org.bithon.agent.java.adaptor.JavaAdaptorFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -74,6 +75,9 @@ public class AgentStarter {
 
         ConfigurationManager.create();
         AppConfig appConfig = ConfigurationManager.getInstance().getConfig(AppConfig.class);
+
+        // Open modules/packages for agent if running on JDK 9+
+        JavaAdaptorFactory.getAdaptor().openModules(inst);
 
         // Initialize instrumentation after configuration initialized
         InstrumentationHelper.setInstance(inst);

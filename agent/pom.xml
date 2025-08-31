@@ -29,6 +29,9 @@
         <module>agent-sdk</module>
         <module>agent-instrumentation</module>
         <module>agent-plugin-processor</module>
+        <module>agent-java-adaptor</module>
+        <module>agent-java-adaptor-java8</module>
+        <module>agent-java-adaptor-java9</module>
         <module>agent-core</module>
         <module>agent-observability</module>
         <module>agent-controller</module>
@@ -54,6 +57,24 @@
             <dependency>
                 <groupId>org.bithon.agent</groupId>
                 <artifactId>agent-instrumentation</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.bithon.agent</groupId>
+                <artifactId>agent-java-adaptor</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.bithon.agent</groupId>
+                <artifactId>agent-java-adaptor-java8</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.bithon.agent</groupId>
+                <artifactId>agent-java-adaptor-java9</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

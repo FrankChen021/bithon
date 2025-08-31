@@ -18,6 +18,11 @@
     </dependency>
 
     <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-java-adaptor</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.bithon.shaded</groupId>
       <artifactId>shaded-jackson</artifactId>
       <version>1.0-SNAPSHOT</version>

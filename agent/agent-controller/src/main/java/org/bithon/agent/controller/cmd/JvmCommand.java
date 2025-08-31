@@ -98,6 +98,10 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
                          classInfo.isInterface = (clazz.isInterface());
                          classInfo.isSynthetic = (clazz.isSynthetic());
                          classInfo.isEnum = (clazz.isEnum());
+                         classInfo.isPrimitive = (clazz.isPrimitive());
+                         classInfo.isArray = (clazz.isArray());
+                         classInfo.module = "";
+                         classInfo.jarLocation = clazz.getProtectionDomain().getCodeSource().getLocation().getFile();
                          return classInfo;
                      })
                      .collect(Collectors.toList());

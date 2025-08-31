@@ -41,6 +41,20 @@
       <artifactId>agent-instrumentation</artifactId>
     </dependency>
 
+    <!-- Java Adaptor modules for JDK compatibility -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-java-adaptor</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-java-adaptor-java8</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-java-adaptor-java9</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-sentinel</artifactId>
