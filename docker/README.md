@@ -69,7 +69,7 @@ DOCKER_BUILDKIT=1 docker build -t bithon/server:{TAG} -f docker/Dockerfile-serve
 Once the docker runs, you can visit http://localhost:9897 to see the UI and the server itself is being monitored.
 
 > NOTE:
-> The above command launches the server in default mode for a show case only.
+> The above command launches the server in default mode for a showcase only.
 > In production deployment, you should properly configure the server.
 > You can take a look at [example configuration files](../server/server-starter/src/main/resources) for reference.
 
@@ -82,7 +82,7 @@ You can run the following command to start the whole system.
 docker-compose -f docker/docker-compose.yml up
 ```
 
-Once all services in the docker-compose are up, you can visit http://localhost:9900 to access UI.
+Once all services in the docker-compose are up, you can visit http://localhost:9900 to access the UI.
 And by default, the application itself is configured to be self-monitored, you will see the metrics/tracing of the application itself.
 
 > NOTE
