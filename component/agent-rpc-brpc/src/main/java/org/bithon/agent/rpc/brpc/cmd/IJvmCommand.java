@@ -107,10 +107,11 @@ public interface IJvmCommand {
          * for running above Java 8
          */
         public String module;
-        public String jarLocation;
+        public String jarDirectory;
+        public String jarName;
 
         public Object[] toObjects() {
-            return new Object[]{name, classLoader, isSynthetic, isInterface, isAnnotation, isEnum, isPrimitive, isArray};
+            return new Object[]{name, classLoader, isSynthetic, isInterface, isAnnotation, isEnum, isPrimitive, isArray, module, jarDirectory, jarName};
         }
     }
 

@@ -16,12 +16,13 @@
 
 package org.bithon.agent.java.adaptor;
 
+import jdk.internal.misc.VM;
+
 import java.lang.instrument.Instrumentation;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
 
 /**
  * JDK 9+ specific adaptor implementation.
@@ -30,7 +31,8 @@ import java.util.Set;
 public class Java9Adaptor implements IJavaAdaptor {
 
     public Java9Adaptor(Instrumentation inst) {
-        // Open package to this class as this class contains internal methods to access
+        // Because the adaptor is loaded in a dedicated classloader (See JavaAdaptorFactory),
+        // we have to open package to this class as this class contains internal methods to access
         openPackages(inst, Object.class, Map.of("jdk.internal.misc", Java9Adaptor.class));
     }
 
@@ -58,6 +60,11 @@ public class Java9Adaptor implements IJavaAdaptor {
 
     @Override
     public long getMaxDirectMemory() {
-        return jdk.internal.misc.VM.maxDirectMemory();
+        return VM.maxDirectMemory();
+    }
+
+    @Override
+    public String getModuleName(Class<?> clazz) {
+        return clazz.getModule().getName();
     }
 }

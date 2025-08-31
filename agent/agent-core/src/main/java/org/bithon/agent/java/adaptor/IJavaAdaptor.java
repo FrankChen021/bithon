@@ -47,4 +47,6 @@ public interface IJavaAdaptor {
                       Map<String, Class<?>> openPackageTo);
 
     long getMaxDirectMemory();
+
+    String getModuleName(Class<?> clazz);
 }

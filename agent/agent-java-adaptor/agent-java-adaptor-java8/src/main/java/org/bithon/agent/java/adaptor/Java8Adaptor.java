@@ -51,4 +51,9 @@ public class Java8Adaptor implements IJavaAdaptor {
             throw new AgentException("sun.misc.VM.maxDirectMemory() not available", e);
         }
     }
+
+    @Override
+    public String getModuleName(Class<?> clazz) {
+        return null;
+    }
 }

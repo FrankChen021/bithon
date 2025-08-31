@@ -107,10 +107,7 @@ COPY --from=agent /opt/agent-distribution /opt/agent-distribution
 
 And modify the entrypoint of your java application to use the agent:
 ```
-java --add-opens=java.base/jdk.internal.misc=ALL-UNNAMED \
-     --add-opens=java.base/sun.net.www=ALL-UNNAMED \
-     --add-opens=java.base/java.net=ALL-UNNAMED \
-     -javaagent:/opt/agent-distribution/agent-main.jar \
+java -javaagent:/opt/agent-distribution/agent-main.jar \
      -Dbithon.application.name={YOUR_APP_NAME} \
      -Dbithon.application.env={YOUR_ENV_NAME}
 ```
