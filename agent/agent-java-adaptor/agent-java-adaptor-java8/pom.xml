@@ -8,17 +8,18 @@
     <groupId>org.bithon.agent</groupId>
     <artifactId>agent-all</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
+    <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>agent-java-adaptor</artifactId>
-  <name>Agent Java Adaptor Interface</name>
-  <description>Common interface for JDK-specific adaptations</description>
+  <artifactId>agent-java-adaptor-java8</artifactId>
+  <name>Agent Java Adaptor JDK8</name>
+  <description>JDK 8 specific adaptations for the agent</description>
 
   <dependencies>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-instrumentation</artifactId>
+      <artifactId>agent-core</artifactId>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 

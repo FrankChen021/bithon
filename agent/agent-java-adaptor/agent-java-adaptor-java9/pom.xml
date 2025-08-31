@@ -8,7 +8,7 @@
     <groupId>org.bithon.agent</groupId>
     <artifactId>agent-all</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
+    <relativePath>../../pom.xml</relativePath>
   </parent>
 
   <artifactId>agent-java-adaptor-java9</artifactId>
@@ -18,7 +18,8 @@
   <dependencies>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-java-adaptor</artifactId>
+      <artifactId>agent-core</artifactId>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 

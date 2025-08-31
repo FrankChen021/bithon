@@ -17,17 +17,18 @@
 package org.bithon.agent.java.adaptor;
 
 import java.lang.instrument.Instrumentation;
+import java.util.Map;
 
 /**
- * Interface for JDK-specific adaptations in the agent.
- * Implementations handle differences between various JDK versions.
+ * JDK 8 specific adaptor implementation.
+ * Since JDK 8 doesn't have the module system, this is mostly a no-op implementation.
  */
-public interface IJavaAdaptor {
-    /**
-     * Open necessary modules and packages for agent operation.
-     * This handles JDK-specific module system requirements.
-     *
-     * @param inst the instrumentation instance
-     */
-    void openModules(Instrumentation inst);
+public class Java8Adaptor implements IJavaAdaptor {
+
+    @Override
+    public void openPackages(Instrumentation inst,
+                             Class<?> classFromSourceModule,
+                             Map<String, Class<?>> openPackageTo) {
+        // Do nothing for JDK 8
+    }
 }

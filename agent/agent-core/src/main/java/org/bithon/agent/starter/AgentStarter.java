@@ -34,7 +34,9 @@ import org.bithon.component.commons.logging.LoggerFactory;
 import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
 
 import static java.io.File.separator;
@@ -76,12 +78,15 @@ public class AgentStarter {
         ConfigurationManager.create();
         AppConfig appConfig = ConfigurationManager.getInstance().getConfig(AppConfig.class);
 
-        // Open modules/packages for agent if running on JDK 9+
-        JavaAdaptorFactory.getAdaptor().openModules(inst);
-
         // Initialize instrumentation after configuration initialized
         InstrumentationHelper.setInstance(inst);
         InstrumentationHelper.setAopDebugger(createAopDebugger(appConfig));
+
+        // Open modules/packages for agent if running on JDK 9+
+        Map<String, Class<?>> packagesToOpen = new HashMap<>();
+        packagesToOpen.put("java.net", JavaAdaptorFactory.class);
+        packagesToOpen.put("jdk.internal.misc", JavaAdaptorFactory.class);
+        JavaAdaptorFactory.getAdaptor().openPackages(inst, Object.class, packagesToOpen);
 
         // Install interceptors for plugins
         new InterceptorInstaller(new PluginResolver() {

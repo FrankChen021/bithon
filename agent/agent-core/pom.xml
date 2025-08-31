@@ -17,10 +17,7 @@
       <artifactId>agent-instrumentation</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-java-adaptor</artifactId>
-    </dependency>
+
 
     <dependency>
       <groupId>org.bithon.shaded</groupId>
