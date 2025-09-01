@@ -30,12 +30,13 @@ import org.jooq.TableField;
 import org.jooq.UniqueKey;
 import org.jooq.impl.SQLDataType;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -80,7 +81,55 @@ public class TableCreator {
         //
         // Create local table
         //
-        {
+        LocalTableCreator localTableCreator = new LocalTableCreator(table);
+        localTableCreator.create();
+
+        //
+        // Create distributed table if necessary.
+        // In such a case, the table.getName() points to the distributed table.
+        //
+        if (config.isOnDistributedTable()) {
+            StringBuilder sb = new StringBuilder(128);
+            sb.append(StringUtils.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (%n",
+                                         config.getDatabase(),
+                                         table.getName(),
+                                         config.getOnClusterExpression()));
+            sb.append(getFieldDeclarationExpression(table, false));
+
+            final StringBuilder shardingKey = new StringBuilder();
+            if (this.replacingMergeTreeVersion != null) {
+                // For the replacing merge tree,
+                // we use the unique keys as the sharding key
+                // to make sure the rows with the same key will be distributed to the same CK node
+                shardingKey.append("murmurHash2_64(");
+                shardingKey.append(localTableCreator.orderByList);
+                shardingKey.append(")");
+            }
+            if (shardingKey.isEmpty()) {
+                // Set a default sharding key for random writing
+                shardingKey.append("rand()");
+            }
+
+            sb.append(StringUtils.format(")\nENGINE=Distributed('%s', '%s', '%s', %s);",
+                                         config.getCluster(),
+                                         config.getDatabase(),
+                                         table.getName() + "_local",
+                                         shardingKey));
+
+            log.info("CreateIfNotExists {}", table.getName());
+            dslContext.execute(sb.toString());
+        }
+    }
+
+    class LocalTableCreator {
+        private final Table<?> table;
+        private String orderByList;
+
+        public LocalTableCreator(Table<?> table) {
+            this.table = table;
+        }
+
+        public void create() {
             //
             // NOTE: for ReplacingMergeTree, if the version is not specified on CREATE table DDL,
             // the last record will be kept
@@ -146,9 +195,9 @@ public class TableCreator {
             // Order by Clause
             //
             {
-                createTableStatement.append("\nORDER BY(");
+                List<String> orderByColumns = new ArrayList<>();
                 for (UniqueKey<?> uk : table.getKeys()) {
-                    if (uk.getFields().size() == 1 && this.secondaryIndexes.containsKey(uk.getFields().get(0).getName())) {
+                    if (uk.getFields().size() == 1 && secondaryIndexes.containsKey(uk.getFields().get(0).getName())) {
                         // index on single column,
                         // and is marked as secondary index,
                         // no need to put this column in the ORDER-BY expression as the primary key
@@ -157,14 +206,14 @@ public class TableCreator {
 
                     for (TableField<?, ?> f : uk.getFields()) {
                         if ("timestamp".equals(f.getName())) {
-                            createTableStatement.append(StringUtils.format("toStartOfMinute(timestamp),"));
+                            orderByColumns.add("toStartOfMinute(timestamp)");
                         } else {
-                            createTableStatement.append(StringUtils.format("%s,", f.getName()));
+                            orderByColumns.add(f.getName());
                         }
                     }
                 }
                 for (Index idx : table.getIndexes()) {
-                    if (idx.getFields().size() == 1 && this.secondaryIndexes.containsKey(idx.getFields().get(0).getName())) {
+                    if (idx.getFields().size() == 1 && secondaryIndexes.containsKey(idx.getFields().get(0).getName())) {
                         // index on single column,
                         // and is marked as secondary index,
                         // no need to put this column in the ORDER-BY expression as the primary key
@@ -179,13 +228,21 @@ public class TableCreator {
                     }
                     for (SortField<?> f : idx.getFields()) {
                         if ("timestamp".equals(f.getName())) {
-                            createTableStatement.append(StringUtils.format("toStartOfMinute(timestamp),"));
+                            orderByColumns.add("toStartOfMinute(timestamp)");
                         } else {
-                            createTableStatement.append(StringUtils.format("%s,", f.getName()));
+                            orderByColumns.add(f.getName());
                         }
                     }
                 }
-                createTableStatement.delete(createTableStatement.length() - 1, createTableStatement.length());
+
+                if (orderByColumns.isEmpty()) {
+                    throw new RuntimeException("No primary key or index is defined for table " + table.getName());
+                }
+
+                this.orderByList = orderByColumns.size() > 1 ? String.join(",", orderByColumns) : orderByColumns.get(0);
+
+                createTableStatement.append("\nORDER BY(");
+                createTableStatement.append(orderByList);
                 createTableStatement.append(")");
             }
 
@@ -225,53 +282,6 @@ public class TableCreator {
             log.info("CreateIfNotExists {}", tableName);
             log.debug("DDL\n {}", statement);
             dslContext.execute(statement);
-        }
-
-        //
-        // Create distributed table if necessary.
-        // In such a case, the table.getName() points to the distributed table.
-        //
-        if (config.isOnDistributedTable()) {
-            StringBuilder sb = new StringBuilder(128);
-            sb.append(StringUtils.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (%n",
-                                         config.getDatabase(),
-                                         table.getName(),
-                                         config.getOnClusterExpression()));
-            sb.append(getFieldDeclarationExpression(table, false));
-
-            final StringBuilder shardingKey = new StringBuilder();
-            if (this.replacingMergeTreeVersion != null) {
-                // For the replacing merge tree,
-                // we use the unique keys as the sharding key
-                // to make sure the rows with the same key will be distributed to the same CK node
-                Index uniqIndex = table.getIndexes()
-                                       .stream()
-                                       .filter(Index::getUnique)
-                                       .findFirst()
-                                       .orElse(null);
-
-                if (uniqIndex != null) {
-                    shardingKey.append("murmurHash2_64(");
-                    shardingKey.append(uniqIndex.getFields()
-                                                .stream()
-                                                .map(SortField::getName)
-                                                .collect(Collectors.joining(",")));
-                    shardingKey.append(")");
-                }
-            }
-            if (shardingKey.isEmpty()) {
-                // Set a default sharding key for random writing
-                shardingKey.append("rand()");
-            }
-
-            sb.append(StringUtils.format(") ENGINE=Distributed('%s', '%s', '%s', %s);",
-                                         config.getCluster(),
-                                         config.getDatabase(),
-                                         table.getName() + "_local",
-                                         shardingKey));
-
-            log.info("CreateIfNotExists {}", table.getName());
-            dslContext.execute(sb.toString());
         }
     }
 
