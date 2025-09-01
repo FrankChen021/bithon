@@ -16,6 +16,8 @@
 
 package org.bithon.server.web.service.diagnosis;
 
+import org.bithon.component.commons.forbidden.SuppressForbidden;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -33,23 +35,28 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
 
+@SuppressForbidden
 public final class SourceFetcher {
-    private SourceFetcher() {}
+    private SourceFetcher() {
+    }
 
     /**
      * Interface for receiving progress notifications during source fetching operations.
      */
+    @SuppressForbidden
     public interface IProgressNotifier {
         /**
          * Called to notify about progress in the source fetching process.
+         *
          * @param timestamp The timestamp when this progress event occurred
-         * @param message A descriptive message about the current step
+         * @param message   A descriptive message about the current step
          */
         void notifyProgress(LocalDateTime timestamp, String message);
 
         /**
          * Called when an error occurs during the process.
-         * @param message Error message
+         *
+         * @param message   Error message
          * @param throwable Optional throwable that caused the error
          */
         default void notifyError(String message, Throwable throwable) {
@@ -59,8 +66,17 @@ public final class SourceFetcher {
 
     public static final class Coordinates {
         public final String groupId, artifactId, version;
-        public Coordinates(String g, String a, String v) { groupId=g; artifactId=a; version=v; }
-        @Override public String toString() { return groupId + ":" + artifactId + ":" + version; }
+
+        public Coordinates(String g, String a, String v) {
+            groupId = g;
+            artifactId = a;
+            version = v;
+        }
+
+        @Override
+        public String toString() {
+            return groupId + ":" + artifactId + ":" + version;
+        }
     }
 
     /**
@@ -74,6 +90,7 @@ public final class SourceFetcher {
     /**
      * Fetch source for the given class name, using the given jar file name to locate the artifact.
      * Returns Optional.empty() if anything can't be resolved (kept intentionally simple).
+     *
      * @param progressNotifier Optional progress notifier to receive updates during the process
      */
     public static Optional<String> getSourceForClass(String fullyQualifiedClassName, String jarFileName, IProgressNotifier progressNotifier) throws Exception {
@@ -135,7 +152,7 @@ public final class SourceFetcher {
         }
         Path cacheDir = Paths.get(System.getProperty("java.io.tmpdir"), "sf-cache");
         Files.createDirectories(cacheDir);
-        
+
         if (progressNotifier != null) {
             progressNotifier.notifyProgress(LocalDateTime.now(), "Downloading sources jar from Maven Central");
         }
@@ -145,7 +162,7 @@ public final class SourceFetcher {
             progressNotifier.notifyProgress(LocalDateTime.now(), "Searching for source code in sources jar");
         }
         Optional<String> result = readSourceFromSourcesJar(sourcesJar, fullyQualifiedClassName, progressNotifier);
-        
+
         if (progressNotifier != null) {
             if (result.isPresent()) {
                 progressNotifier.notifyProgress(LocalDateTime.now(), "Successfully found source code for " + fullyQualifiedClassName);
@@ -153,7 +170,7 @@ public final class SourceFetcher {
                 progressNotifier.notifyProgress(LocalDateTime.now(), "Source code not found for " + fullyQualifiedClassName);
             }
         }
-        
+
         return result;
     }
 
@@ -168,7 +185,8 @@ public final class SourceFetcher {
                 if (Files.isRegularFile(p) && p.getFileName().toString().equals(jarFileName)) {
                     return p.toAbsolutePath().normalize();
                 }
-            } catch (Exception ignore) {}
+            } catch (Exception ignore) {
+            }
         }
         return null;
     }
@@ -178,27 +196,36 @@ public final class SourceFetcher {
             Enumeration<JarEntry> en = jf.entries();
             while (en.hasMoreElements()) {
                 JarEntry e = en.nextElement();
-                if (e.isDirectory()) continue;
+                if (e.isDirectory()) {
+                    continue;
+                }
                 if (e.getName().startsWith("META-INF/maven/") && e.getName().endsWith("/pom.properties")) {
                     Properties p = new Properties();
-                    try (InputStream is = jf.getInputStream(e)) { p.load(is); }
+                    try (InputStream is = jf.getInputStream(e)) {
+                        p.load(is);
+                    }
                     String g = p.getProperty("groupId");
                     String a = p.getProperty("artifactId");
                     String v = p.getProperty("version");
-                    if (g != null && a != null && v != null) return Optional.of(new Coordinates(g, a, v));
+                    if (g != null && a != null && v != null) {
+                        return Optional.of(new Coordinates(g, a, v));
+                    }
                 }
             }
-        } catch (IOException ignore) {}
+        } catch (IOException ignore) {
+        }
         return Optional.empty();
     }
 
     private static Coordinates parseCoordsFromFileName(String jarFileName) {
         // super naive: split last '-' as version
-        String base = jarFileName.endsWith(".jar") ? jarFileName.substring(0, jarFileName.length()-4) : jarFileName;
+        String base = jarFileName.endsWith(".jar") ? jarFileName.substring(0, jarFileName.length() - 4) : jarFileName;
         int idx = base.lastIndexOf('-');
-        if (idx <= 0 || idx == base.length()-1) return null;
+        if (idx <= 0 || idx == base.length() - 1) {
+            return null;
+        }
         String artifactId = base.substring(0, idx);
-        String version = base.substring(idx+1);
+        String version = base.substring(idx + 1);
         // groupId unknown; Maven Central path will need it, so this only works when pom.properties was present.
         // For simplicity as requested, we assume pom.properties exists; otherwise this will likely fail.
         return new Coordinates("UNKNOWN_GROUP", artifactId, version);
@@ -217,7 +244,7 @@ public final class SourceFetcher {
         // Requires a real groupId; for simplicity we assume pom.properties provided it.
         String path = gav.groupId.replace('.', '/') + "/" + gav.artifactId + "/" + gav.version + "/" + fileName;
         URL url = new URL("https://repo1.maven.org/maven2/" + path);
-        
+
         if (progressNotifier != null) {
             progressNotifier.notifyProgress(LocalDateTime.now(), "Downloading from: " + url);
         }
@@ -238,7 +265,7 @@ public final class SourceFetcher {
 
     private static Optional<String> readSourceFromSourcesJar(Path sourcesJar, String fqcn, IProgressNotifier progressNotifier) throws IOException {
         String rel = fqcn.replace('.', '/');
-        String[] candidates = { rel + ".java", rel + ".kt", rel + ".scala" };
+        String[] candidates = {rel + ".java", rel + ".kt", rel + ".scala"};
 
         try (JarFile jf = new JarFile(sourcesJar.toFile())) {
             if (progressNotifier != null) {
@@ -263,7 +290,9 @@ public final class SourceFetcher {
             Enumeration<JarEntry> en = jf.entries();
             while (en.hasMoreElements()) {
                 JarEntry e = en.nextElement();
-                if (e.isDirectory()) continue;
+                if (e.isDirectory()) {
+                    continue;
+                }
                 String n = e.getName();
                 if ((n.endsWith(".java") || n.endsWith(".kt") || n.endsWith(".scala")) && n.contains(stem)) {
                     if (progressNotifier != null) {
@@ -277,30 +306,33 @@ public final class SourceFetcher {
     }
 
     private static String readAll(InputStream is) throws IOException {
-        try (InputStream in = is) { return new String(in.readAllBytes(), StandardCharsets.UTF_8); }
+        try (InputStream in = is) {
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+        }
     }
 
     /**
      * Console implementation of IProgressNotifier that prints progress messages to System.out.
      */
+    @SuppressForbidden
     public static class ConsoleProgressNotifier implements IProgressNotifier {
         private final String prefix;
         private final DateTimeFormatter timeFormatter;
-        
+
         public ConsoleProgressNotifier() {
             this("[SourceFetcher]");
         }
-        
+
         public ConsoleProgressNotifier(String prefix) {
             this.prefix = prefix;
             this.timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
         }
-        
+
         @Override
         public void notifyProgress(LocalDateTime timestamp, String message) {
             System.out.println("[" + timestamp.format(timeFormatter) + "] " + prefix + " " + message);
         }
-        
+
         @Override
         public void notifyError(String message, Throwable throwable) {
             LocalDateTime now = LocalDateTime.now();
@@ -313,10 +345,10 @@ public final class SourceFetcher {
 
     public static void main(String[] args) throws Exception {
         ConsoleProgressNotifier notifier = new ConsoleProgressNotifier();
-        
+
         System.out.println("=== Starting Source Fetch Demo ===");
         Optional<String> src = getSourceForClass("feign.form.spring.SpringSingleMultipartFileWriter", "feign-form-spring-3.8.0.jar", notifier);
-        
+
         System.out.println("\n=== Result ===");
         if (src.isPresent()) {
             System.out.println("Source code found (" + src.get().length() + " characters):");
