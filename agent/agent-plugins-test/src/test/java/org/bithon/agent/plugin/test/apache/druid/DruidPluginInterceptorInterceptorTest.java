@@ -36,6 +36,12 @@ public class DruidPluginInterceptorInterceptorTest extends AbstractPluginInterce
         return MavenArtifactClassLoader.create(
             MavenArtifactClassLoader.MavenArtifact.of("org.apache.druid",
                                                       "druid-processing",
+                                                      "24.0.0"),
+            MavenArtifactClassLoader.MavenArtifact.of("org.apache.druid",
+                                                      "druid-sql",
+                                                      "24.0.0"),
+            MavenArtifactClassLoader.MavenArtifact.of("org.apache.druid",
+                                                      "druid-server",
                                                       "24.0.0")
         );
     }

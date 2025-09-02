@@ -23,7 +23,7 @@ import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
  * Test case for Spring WebFlux plugin
- * 
+ *
  * @author frankchen
  */
 public class SpringWebFluxPluginInterceptorTest extends AbstractPluginInterceptorTest {
@@ -40,7 +40,19 @@ public class SpringWebFluxPluginInterceptorTest extends AbstractPluginIntercepto
                                                       "5.3.39"),
             MavenArtifactClassLoader.MavenArtifact.of("io.projectreactor.netty",
                                                       "reactor-netty-http",
-                                                      "1.0.39")
+                                                      "1.0.39"),
+            MavenArtifactClassLoader.MavenArtifact.of("io.projectreactor.netty",
+                                                      "reactor-netty-core",
+                                                      "1.0.39"),
+            MavenArtifactClassLoader.MavenArtifact.of("io.projectreactor",
+                                                      "reactor-core",
+                                                      "3.4.10"),
+            MavenArtifactClassLoader.MavenArtifact.of("org.reactivestreams",
+                                                      "reactive-streams",
+                                                      "1.0.3"),
+            MavenArtifactClassLoader.MavenArtifact.of("org.springframework",
+                                                      "spring-web",
+                                                      "5.3.0")
         );
     }
 }

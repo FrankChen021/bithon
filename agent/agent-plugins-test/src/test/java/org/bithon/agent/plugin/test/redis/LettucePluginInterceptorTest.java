@@ -23,7 +23,7 @@ import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
  * Test case for Lettuce 5.x plugin
- * 
+ *
  * @author frankchen
  */
 public class LettucePluginInterceptorTest extends AbstractPluginInterceptorTest {
@@ -37,7 +37,15 @@ public class LettucePluginInterceptorTest extends AbstractPluginInterceptorTest 
         return MavenArtifactClassLoader.create(
             MavenArtifactClassLoader.MavenArtifact.of("io.lettuce",
                                                       "lettuce-core",
-                                                      "5.1.2.RELEASE")
+                                                      "5.1.2.RELEASE"),
+
+            MavenArtifactClassLoader.MavenArtifact.of("io.netty",
+                                                      "netty-transport",
+                                                      "4.1.71.Final"),
+            
+            MavenArtifactClassLoader.MavenArtifact.of("org.springframework.data",
+                                                      "spring-data-redis",
+                                                      "3.3.13")
         );
     }
 }

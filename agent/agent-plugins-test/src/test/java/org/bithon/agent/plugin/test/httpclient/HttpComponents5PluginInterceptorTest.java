@@ -37,6 +37,10 @@ public class HttpComponents5PluginInterceptorTest extends AbstractPluginIntercep
         return MavenArtifactClassLoader.create(
             MavenArtifactClassLoader.MavenArtifact.of("org.apache.httpcomponents.client5",
                                                       "httpclient5",
+                                                      "5.3.1"),
+
+            MavenArtifactClassLoader.MavenArtifact.of("org.apache.httpcomponents.core5",
+                                                      "httpcore5",
                                                       "5.3.1")
         );
     }

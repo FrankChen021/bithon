@@ -23,7 +23,7 @@ import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
  * Test case for Redisson plugin
- * 
+ *
  * @author frankchen
  */
 public class RedissonPluginInterceptorTest extends AbstractPluginInterceptorTest {
@@ -37,7 +37,15 @@ public class RedissonPluginInterceptorTest extends AbstractPluginInterceptorTest
         return MavenArtifactClassLoader.create(
             MavenArtifactClassLoader.MavenArtifact.of("org.redisson",
                                                       "redisson",
-                                                      "3.36.0")
+                                                      "3.29.0"),
+
+            MavenArtifactClassLoader.MavenArtifact.of("io.netty",
+                                                      "netty-codec",
+                                                      "4.1.71.Final"),
+
+            MavenArtifactClassLoader.MavenArtifact.of("io.netty",
+                                                      "netty-transport",
+                                                      "4.1.71.Final")
         );
     }
 }

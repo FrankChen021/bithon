@@ -183,13 +183,12 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-
-    <!--    <dependency>-->
-    <!--      <groupId>org.bithon.agent</groupId>-->
-    <!--      <artifactId>agent-plugin-httpclient-jdk</artifactId>-->
-    <!--      <version>${project.version}</version>-->
-    <!--      <scope>test</scope>-->
-    <!--    </dependency>-->
+<!--    <dependency>-->
+<!--      <groupId>org.bithon.agent</groupId>-->
+<!--      <artifactId>agent-plugin-httpclient-jdk</artifactId>-->
+<!--      <version>${project.version}</version>-->
+<!--      <scope>test</scope>-->
+<!--    </dependency>-->
 
 
     <!-- HTTP Server Plugins -->

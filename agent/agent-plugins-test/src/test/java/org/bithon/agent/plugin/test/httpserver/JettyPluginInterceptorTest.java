@@ -23,7 +23,7 @@ import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
  * Test case for Jetty HTTP server plugin
- * 
+ *
  * @author frankchen
  */
 public class JettyPluginInterceptorTest extends AbstractPluginInterceptorTest {
@@ -37,6 +37,10 @@ public class JettyPluginInterceptorTest extends AbstractPluginInterceptorTest {
         return MavenArtifactClassLoader.create(
             MavenArtifactClassLoader.MavenArtifact.of("org.eclipse.jetty",
                                                       "jetty-server",
+                                                      "9.4.56.v20240826"),
+
+            MavenArtifactClassLoader.MavenArtifact.of("org.eclipse.jetty",
+                                                      "jetty-util",
                                                       "9.4.56.v20240826")
         );
     }

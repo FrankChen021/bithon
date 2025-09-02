@@ -23,7 +23,7 @@ import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
  * Test case for Spring WebMVC plugin
- * 
+ *
  * @author frankchen
  */
 public class SpringWebMvcPluginInterceptorTest extends AbstractPluginInterceptorTest {
@@ -37,7 +37,11 @@ public class SpringWebMvcPluginInterceptorTest extends AbstractPluginInterceptor
         return MavenArtifactClassLoader.create(
             MavenArtifactClassLoader.MavenArtifact.of("org.springframework",
                                                       "spring-webmvc",
-                                                      "5.3.39")
+                                                      "4.3.12.RELEASE"),
+
+            MavenArtifactClassLoader.MavenArtifact.of("org.springframework",
+                                                      "spring-web",
+                                                      "4.3.12.RELEASE")
         );
     }
 }
