@@ -28,7 +28,6 @@ import org.bithon.agent.instrumentation.aop.interceptor.installer.InterceptorIns
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.PluginResolver;
 import org.bithon.agent.instrumentation.loader.PluginClassLoader;
-import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.agent.ByteBuddyAgent;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -46,6 +45,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
+ * Abstract base class for plugin interceptor tests.
+ * <p>
+ * This class provides utilities for testing plugin interceptors, including:
+ * - Framework initialization and configuration
+ * - Interceptor installation and verification
+ * - Maven artifact resolution and class loading functionality
  *
  * @author frankchen
  */
@@ -87,6 +92,10 @@ public abstract class AbstractPluginInterceptorTest {
         frameworkInitialized = true;
     }
 
+    protected ClassLoader getCustomClassLoader() {
+        return null;
+    }
+
     /**
      * Install interceptors for a given plugin and verify installation.
      *
@@ -124,8 +133,7 @@ public abstract class AbstractPluginInterceptorTest {
             InterceptorManager.INSTANCE.getSuppliers(interceptorClassName);
 
         // Debug output to understand what's happening
-        System.out.println("Checking interceptor: " + interceptorClassName);
-        System.out.println("Found suppliers: " + suppliers.size());
+        log.info("Interceptor: {}, Found suppliers: {}", interceptorClassName, suppliers.size());
 
         Assertions.assertFalse(suppliers.isEmpty(),
                                "Interceptor " + interceptorClassName + " should be installed. Found " + suppliers.size() + " suppliers.");
@@ -174,18 +182,27 @@ public abstract class AbstractPluginInterceptorTest {
     /**
      * Attempt to load a target class and verify it can be found.
      * This simulates what happens when the target application loads classes at runtime.
+     * Uses the custom class loader set via setClassLoader() if available, otherwise uses Class.forName().
      *
      */
-    protected static void attemptClassLoading(List<String> classNames) {
+    protected void attemptClassLoading(List<String> classNames) {
+        ClassLoader customClassLoader = getCustomClassLoader();
+
         for (String clazzName : classNames) {
-            LoggerFactory.getLogger(AbstractPluginInterceptorTest.class).info("Loading class: {}", clazzName);
             try {
-                Class<?> clazz = Class.forName(clazzName);
+                Class<?> clazz = Class.forName(clazzName, false, customClassLoader);
+
                 Assertions.assertNotNull(clazz, "Class " + clazzName + " should be loadable");
                 CodeSource codeSource = clazz.getProtectionDomain().getCodeSource();
-                log.info("Loaded class {} from {}", clazzName, codeSource == null ? "<unknown>" : codeSource.getLocation());
+                log.info("Loaded class {} with {} from {}",
+                         clazzName,
+                         customClassLoader == null ? "system loader" : customClassLoader.getClass().getSimpleName(),
+                         codeSource == null ? "<unknown>" : codeSource.getLocation());
             } catch (ClassNotFoundException e) {
-                Assertions.fail("Class " + clazzName + " not found");
+                String classLoaderInfo = customClassLoader != null ?
+                                         " using custom class loader: " + customClassLoader.getClass().getSimpleName() :
+                                         " using default class loader";
+                Assertions.fail("Class " + clazzName + " not found" + classLoaderInfo);
             }
         }
     }

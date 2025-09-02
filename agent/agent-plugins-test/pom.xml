@@ -67,6 +67,50 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- Maven Resolver for artifact resolution -->
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-api</artifactId>
+      <version>1.9.18</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-spi</artifactId>
+      <version>1.9.18</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-util</artifactId>
+      <version>1.9.18</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-impl</artifactId>
+      <version>1.9.18</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-connector-basic</artifactId>
+      <version>1.9.18</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-transport-http</artifactId>
+      <version>1.9.18</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-resolver-provider</artifactId>
+      <version>3.9.6</version>
+      <scope>test</scope>
+    </dependency>
+
     <!-- Logging dependencies -->
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -82,36 +126,19 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- Plugin dependencies for testing -->
+    <!-- Apache Druid -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-apache-druid</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.apache.druid</groupId>
-      <artifactId>druid-processing</artifactId>
-      <version>24.0.0</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.druid</groupId>
-      <artifactId>druid-sql</artifactId>
-      <version>24.0.0</version>
-      <scope>test</scope>
-    </dependency>
 
+    <!-- Apache Ozone -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-apache-ozone</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-ozone-client</artifactId>
-      <version>1.1.0</version>
       <scope>test</scope>
     </dependency>
 
@@ -123,31 +150,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-webflux</artifactId>
-      <version>5.3.39</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.projectreactor.netty</groupId>
-      <artifactId>reactor-netty-http</artifactId>
-      <version>1.0.39</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-spring-webmvc</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-webmvc</artifactId>
-      <version>5.3.39</version>
-      <scope>test</scope>
-    </dependency>
-
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-spring-bean</artifactId>
@@ -155,7 +162,7 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- HTTP Client Plugins -->
+    <!-- Apache HTTP Client Plugins -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-httpclient-apache-httpcomponents4</artifactId>
@@ -163,22 +170,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>4.5.14</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-httpclient-apache-httpcomponents5</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents.client5</groupId>
-      <artifactId>httpclient5</artifactId>
-      <version>5.3.1</version>
       <scope>test</scope>
     </dependency>
 
@@ -189,19 +183,13 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>com.squareup.okhttp3</groupId>
-      <artifactId>okhttp</artifactId>
-      <version>3.2.0</version>
-      <scope>provided</scope>
-    </dependency>
 
-<!--    <dependency>-->
-<!--      <groupId>org.bithon.agent</groupId>-->
-<!--      <artifactId>agent-plugin-httpclient-jdk</artifactId>-->
-<!--      <version>${project.version}</version>-->
-<!--      <scope>test</scope>-->
-<!--    </dependency>-->
+    <!--    <dependency>-->
+    <!--      <groupId>org.bithon.agent</groupId>-->
+    <!--      <artifactId>agent-plugin-httpclient-jdk</artifactId>-->
+    <!--      <version>${project.version}</version>-->
+    <!--      <scope>test</scope>-->
+    <!--    </dependency>-->
 
 
     <!-- HTTP Server Plugins -->
@@ -212,28 +200,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-server</artifactId>
-      <version>9.4.56.v20240826</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-httpserver-tomcat</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.tomcat.embed</groupId>
-      <artifactId>tomcat-embed-core</artifactId>
-      <version>9.0.96</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.undertow</groupId>
-      <artifactId>undertow-core</artifactId>
-      <version>2.3.17.Final</version>
       <scope>test</scope>
     </dependency>
 
@@ -245,39 +214,19 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <version>5.1.49</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-jdbc-mysql6</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <version>6.0.6</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-jdbc-mysql8</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>com.mysql</groupId>
-      <artifactId>mysql-connector-j</artifactId>
-      <version>8.0.33</version>
-      <scope>test</scope>
-    </dependency>
 
-    <!-- Messaging Plugins - Base Kafka -->
+    <!-- Kafka -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-apache-kafka</artifactId>
@@ -328,23 +277,11 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.mongodb</groupId>
-      <artifactId>mongo-java-driver</artifactId>
-      <version>3.4.2</version>
-      <scope>provided</scope>
-    </dependency>
 
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-grpc</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-all</artifactId>
-      <version>1.6.0</version>
       <scope>test</scope>
     </dependency>
 
@@ -355,34 +292,24 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-redis-jedis-3.x</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-redis-jedis-4.x</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-redis-lettuce-5.x</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>io.lettuce</groupId>
-      <artifactId>lettuce-core</artifactId>
-      <version>5.1.2.RELEASE</version>
-      <scope>test</scope>
-    </dependency>
-
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-redis-redisson</artifactId>
@@ -391,157 +318,5 @@
     </dependency>
 
   </dependencies>
-
-  <profiles>
-    <!-- Kafka Integration Tests - Different versions -->
-    <profile>
-      <id>kafka-1.0-test</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.kafka</groupId>
-          <artifactId>kafka-clients</artifactId>
-          <version>1.0.0</version>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.springframework.kafka</groupId>
-          <artifactId>spring-kafka</artifactId>
-          <version>2.5.14.RELEASE</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-    </profile>
-
-    <profile>
-      <id>kafka-2.7-test</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.bithon.agent</groupId>
-          <artifactId>agent-plugin-apache-kafka-2.7</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.kafka</groupId>
-          <artifactId>kafka-clients</artifactId>
-          <version>2.7.2</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-    </profile>
-
-    <profile>
-      <id>kafka-3.7-test</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.bithon.agent</groupId>
-          <artifactId>agent-plugin-apache-kafka-3.7</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.kafka</groupId>
-          <artifactId>kafka-clients</artifactId>
-          <version>3.7.1</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-    </profile>
-
-    <profile>
-      <id>kafka-3.9-test</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.bithon.agent</groupId>
-          <artifactId>agent-plugin-apache-kafka-3.9</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.kafka</groupId>
-          <artifactId>kafka-clients</artifactId>
-          <version>3.9.0</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-    </profile>
-
-    <!-- Spring Integration Tests -->
-    <profile>
-      <id>spring-test</id>
-      <dependencies>
-
-        <dependency>
-          <groupId>org.springframework</groupId>
-          <artifactId>spring-context</artifactId>
-          <version>5.3.39</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-    </profile>
-
-    <!-- Database Integration Tests -->
-    <profile>
-      <id>database-test</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.postgresql</groupId>
-          <artifactId>postgresql</artifactId>
-          <version>42.7.4</version>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>com.clickhouse</groupId>
-          <artifactId>clickhouse-jdbc</artifactId>
-          <version>0.7.1</version>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>com.h2database</groupId>
-          <artifactId>h2</artifactId>
-          <version>2.3.232</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-    </profile>
-
-    <!-- Redis Integration Tests -->
-    <profile>
-      <id>redis-test</id>
-      <dependencies>
-        <dependency>
-          <groupId>redis.clients</groupId>
-          <artifactId>jedis</artifactId>
-          <version>4.4.8</version>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>io.lettuce</groupId>
-          <artifactId>lettuce-core</artifactId>
-          <version>5.3.7.RELEASE</version>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.redisson</groupId>
-          <artifactId>redisson</artifactId>
-          <version>3.36.0</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-    </profile>
-
-    <!-- Other Integration Tests -->
-    <profile>
-      <id>other-test</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.quartz-scheduler</groupId>
-          <artifactId>quartz</artifactId>
-          <version>2.3.2</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-    </profile>
-  </profiles>
 
 </project>

@@ -17,8 +17,9 @@
 package org.bithon.agent.plugin.test.redis;
 
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
 import org.bithon.agent.plugin.redis.lettuce.LettucePlugin;
+import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
  * Test case for Lettuce 5.x plugin
@@ -29,5 +30,14 @@ public class LettucePluginInterceptorTest extends AbstractPluginInterceptorTest 
     @Override
     protected IPlugin getPlugin() {
         return new LettucePlugin();
+    }
+
+    @Override
+    protected ClassLoader getCustomClassLoader() {
+        return MavenArtifactClassLoader.create(
+            MavenArtifactClassLoader.MavenArtifact.of("io.lettuce",
+                                                      "lettuce-core",
+                                                      "5.1.2.RELEASE")
+        );
     }
 }

@@ -17,8 +17,9 @@
 package org.bithon.agent.plugin.test.redis;
 
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
 import org.bithon.agent.plugin.redis.redisson.RedissonPlugin;
+import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
  * Test case for Redisson plugin
@@ -29,5 +30,14 @@ public class RedissonPluginInterceptorTest extends AbstractPluginInterceptorTest
     @Override
     protected IPlugin getPlugin() {
         return new RedissonPlugin();
+    }
+
+    @Override
+    protected ClassLoader getCustomClassLoader() {
+        return MavenArtifactClassLoader.create(
+            MavenArtifactClassLoader.MavenArtifact.of("org.redisson",
+                                                      "redisson",
+                                                      "3.36.0")
+        );
     }
 }

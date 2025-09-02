@@ -17,17 +17,27 @@
 package org.bithon.agent.plugin.test.httpclient;
 
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
 import org.bithon.agent.plugin.httpclient.apache.httpcomponents5.HttpComponents5Plugin;
+import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
  * Test case for Apache HttpComponents 5.x plugin
- * 
+ *
  * @author frankchen
  */
 public class HttpComponents5PluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
     protected IPlugin getPlugin() {
         return new HttpComponents5Plugin();
+    }
+
+    @Override
+    protected ClassLoader getCustomClassLoader() {
+        return MavenArtifactClassLoader.create(
+            MavenArtifactClassLoader.MavenArtifact.of("org.apache.httpcomponents.client5",
+                                                      "httpclient5",
+                                                      "5.3.1")
+        );
     }
 }

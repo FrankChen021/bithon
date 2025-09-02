@@ -17,8 +17,9 @@
 package org.bithon.agent.plugin.test.other;
 
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
 import org.bithon.agent.plugin.mongodb.MongoDbPlugin;
+import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
  * Test case for MongoDB plugin
@@ -29,5 +30,14 @@ public class MongoDbPluginInterceptorTest extends AbstractPluginInterceptorTest 
     @Override
     protected IPlugin getPlugin() {
         return new MongoDbPlugin();
+    }
+
+    @Override
+    protected ClassLoader getCustomClassLoader() {
+        return MavenArtifactClassLoader.create(
+            MavenArtifactClassLoader.MavenArtifact.of("org.mongodb",
+                                                      "mongo-java-driver",
+                                                      "3.4.2")
+        );
     }
 }

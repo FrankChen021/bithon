@@ -17,8 +17,9 @@
 package org.bithon.agent.plugin.test.spring;
 
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
 import org.bithon.agent.plugin.spring.webflux.SpringWebFluxPlugin;
+import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
  * Test case for Spring WebFlux plugin
@@ -29,5 +30,17 @@ public class SpringWebFluxPluginInterceptorTest extends AbstractPluginIntercepto
     @Override
     protected IPlugin getPlugin() {
         return new SpringWebFluxPlugin();
+    }
+
+    @Override
+    protected ClassLoader getCustomClassLoader() {
+        return MavenArtifactClassLoader.create(
+            MavenArtifactClassLoader.MavenArtifact.of("org.springframework",
+                                                      "spring-webflux",
+                                                      "5.3.39"),
+            MavenArtifactClassLoader.MavenArtifact.of("io.projectreactor.netty",
+                                                      "reactor-netty-http",
+                                                      "1.0.39")
+        );
     }
 }

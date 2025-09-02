@@ -17,8 +17,9 @@
 package org.bithon.agent.plugin.test.other;
 
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
 import org.bithon.agent.plugin.grpc.GrpcPlugin;
+import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
  * Test case for gRPC plugin
@@ -29,5 +30,14 @@ public class GrpcPluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
     protected IPlugin getPlugin() {
         return new GrpcPlugin();
+    }
+
+    @Override
+    protected ClassLoader getCustomClassLoader() {
+        return MavenArtifactClassLoader.create(
+            MavenArtifactClassLoader.MavenArtifact.of("io.grpc",
+                                                      "grpc-stub",
+                                                      "1.6.0")
+        );
     }
 }

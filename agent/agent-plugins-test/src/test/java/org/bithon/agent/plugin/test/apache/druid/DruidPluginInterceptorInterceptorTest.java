@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.test.apache.druid;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.apache.druid.ApacheDruidPlugin;
 import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
  *
@@ -28,5 +29,14 @@ public class DruidPluginInterceptorInterceptorTest extends AbstractPluginInterce
     @Override
     protected IPlugin getPlugin() {
         return new ApacheDruidPlugin();
+    }
+
+    @Override
+    protected ClassLoader getCustomClassLoader() {
+        return MavenArtifactClassLoader.create(
+            MavenArtifactClassLoader.MavenArtifact.of("org.apache.druid",
+                                                      "druid-processing",
+                                                      "24.0.0")
+        );
     }
 }
