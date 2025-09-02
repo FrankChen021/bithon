@@ -314,7 +314,7 @@
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-spring-web</artifactId>
+      <artifactId>agent-plugin-spring-webmvc</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
