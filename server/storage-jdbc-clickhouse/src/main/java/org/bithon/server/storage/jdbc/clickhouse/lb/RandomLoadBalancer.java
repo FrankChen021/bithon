@@ -16,45 +16,36 @@
 
 package org.bithon.server.storage.jdbc.clickhouse.lb;
 
-import org.bithon.component.commons.utils.CollectionUtils;
 
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.PriorityQueue;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * @author Frank Chen
- * @date 15/11/23 3:42 pm
+ * @author frank.chen021@outlook.com
+ * @date 3/9/25 4:40 pm
  */
-class LeastRowsLoadBalancer implements ILoadBalancer {
-    private PriorityQueue<Shard> shards = newShards();
+class RandomLoadBalancer implements ILoadBalancer {
+    private List<Shard> shards = Collections.emptyList();
 
     @Override
     public LoadBalancerStrategy getStrategyName() {
-        return LoadBalancerStrategy.LEAST_ROWS;
+        return LoadBalancerStrategy.RANDOM;
     }
 
     @Override
-    public synchronized int nextShard(int writtenRows) {
-        Shard shard = shards.poll();
-        if (shard != null) {
-            shard.writtenRows += writtenRows;
-            shards.offer(shard);
-            return shard.shardNum;
+    public int nextShard(int writtenRows) {
+        synchronized (shards) {
+            ThreadLocalRandom.current().nextInt(shards.size());
+            return shards.get(0).shardNum;
         }
-        return 0;
     }
 
     @Override
     public void update(Collection<Shard> shards) {
-        if (CollectionUtils.isNotEmpty(shards)) {
-            PriorityQueue<Shard> newShards = newShards();
-            newShards.addAll(shards);
-            this.shards = newShards;
+        synchronized (shards) {
+            this.shards = List.copyOf(shards);
         }
-    }
-
-    private PriorityQueue<Shard> newShards() {
-        return new PriorityQueue<>(Comparator.comparingLong(o -> o.writtenRows));
     }
 }

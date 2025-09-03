@@ -24,7 +24,6 @@ import org.bithon.server.storage.jdbc.clickhouse.JdbcDriver;
 import org.bithon.server.storage.jdbc.clickhouse.common.exception.RetryableExceptions;
 import org.bithon.server.storage.jdbc.clickhouse.lb.ILoadBalancer;
 import org.bithon.server.storage.jdbc.clickhouse.lb.IShardsUpdateListener;
-import org.bithon.server.storage.jdbc.clickhouse.lb.LeastRowsLoadBalancer;
 import org.bithon.server.storage.jdbc.clickhouse.lb.LoadBalanceReviseTask;
 import org.bithon.server.storage.jdbc.clickhouse.lb.Shard;
 import org.bithon.server.storage.jdbc.common.IOnceTableWriter;
@@ -56,7 +55,7 @@ public class LoadBalancedMetricWriter extends MetricJdbcWriter implements IShard
         super(dslContext, table, false, RetryableExceptions::isExceptionRetryable);
 
         this.clickHouseConfig = clickHouseConfig;
-        this.loadBalancer = new LeastRowsLoadBalancer();
+        this.loadBalancer = clickHouseConfig.getLoadBalancingPolicy().create();
 
         String url = clickHouseConfig.getUrl();
         if (url.lastIndexOf('?') == -1) {
@@ -82,7 +81,7 @@ public class LoadBalancedMetricWriter extends MetricJdbcWriter implements IShard
 
     @Override
     protected void doInsert(IOnceTableWriter writer) throws Throwable {
-        int shard = this.loadBalancer.nextShard(writer.getInsertSize());
+        int shard = this.loadBalancer.nextShard(writer.getInsertRows());
 
         Properties props = new Properties();
         props.put(ClickHouseDefaults.USER.getKey(), this.clickHouseConfig.getUsername());
@@ -94,6 +93,6 @@ public class LoadBalancedMetricWriter extends MetricJdbcWriter implements IShard
             writer.run(connection);
         }
 
-        log.info("Flushed {} rows to {} on shard {}", writer.getInsertSize(), table.getName(), shard);
+        log.info("Flushed {} rows to {} on shard {} with strategy {}", writer.getInsertRows(), table.getName(), shard, this.loadBalancer.getStrategyName());
     }
 }

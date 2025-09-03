@@ -23,7 +23,6 @@ import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.JdbcDriver;
 import org.bithon.server.storage.jdbc.clickhouse.lb.ILoadBalancer;
 import org.bithon.server.storage.jdbc.clickhouse.lb.IShardsUpdateListener;
-import org.bithon.server.storage.jdbc.clickhouse.lb.LeastRowsLoadBalancer;
 import org.bithon.server.storage.jdbc.clickhouse.lb.LoadBalanceReviseTask;
 import org.bithon.server.storage.jdbc.clickhouse.lb.Shard;
 import org.bithon.server.storage.jdbc.common.IOnceTableWriter;
@@ -57,9 +56,9 @@ class LoadBalancedTraceWriter extends TraceWriter implements IShardsUpdateListen
         super(traceStorageConfig, dslContext);
 
         this.clickHouseConfig = clickHouseConfig;
-        this.spanTableLoadBalancer = new LeastRowsLoadBalancer();
-        this.indexTableLoadBalancer = new LeastRowsLoadBalancer();
-        this.mappingTableLoadBalancer = new LeastRowsLoadBalancer();
+        this.spanTableLoadBalancer = clickHouseConfig.getLoadBalancingPolicy().create();
+        this.indexTableLoadBalancer = clickHouseConfig.getLoadBalancingPolicy().create();
+        this.mappingTableLoadBalancer = clickHouseConfig.getLoadBalancingPolicy().create();
 
         String url = clickHouseConfig.getUrl();
         if (url.lastIndexOf('?') == -1) {
@@ -93,17 +92,17 @@ class LoadBalancedTraceWriter extends TraceWriter implements IShardsUpdateListen
     @Override
     protected void doInsert(IOnceTableWriter writer) throws Throwable {
         ILoadBalancer loadBalancer;
-        if (writer.getTable().equals(Tables.BITHON_TRACE_SPAN.getName())) {
+        if (writer.getTableName().equals(Tables.BITHON_TRACE_SPAN.getName())) {
             loadBalancer = spanTableLoadBalancer;
-        } else if (writer.getTable().equals(Tables.BITHON_TRACE_MAPPING.getName())) {
+        } else if (writer.getTableName().equals(Tables.BITHON_TRACE_MAPPING.getName())) {
             loadBalancer = mappingTableLoadBalancer;
-        } else if (writer.getTable().equals(Tables.BITHON_TRACE_SPAN_TAG_INDEX.getName())) {
+        } else if (writer.getTableName().equals(Tables.BITHON_TRACE_SPAN_TAG_INDEX.getName())) {
             loadBalancer = indexTableLoadBalancer;
         } else {
-            throw new RuntimeException("Not supported table:" + writer.getTable());
+            throw new RuntimeException("Not supported table:" + writer.getTableName());
         }
 
-        int shard = loadBalancer.nextShard(writer.getInsertSize());
+        int shard = loadBalancer.nextShard(writer.getInsertRows());
 
         Properties props = new Properties();
         props.put(ClickHouseDefaults.USER.getKey(), this.clickHouseConfig.getUsername());
@@ -117,6 +116,6 @@ class LoadBalancedTraceWriter extends TraceWriter implements IShardsUpdateListen
             throw new RuntimeException(e);
         }
 
-        log.info("Flushed {} rows to {} on shard {}", writer.getInsertSize(), writer.getTable(), shard);
+        log.info("Flushed {} rows to {} on shard {} with strategy {}", writer.getInsertRows(), writer.getTableName(), shard, loadBalancer.getStrategyName());
     }
 }

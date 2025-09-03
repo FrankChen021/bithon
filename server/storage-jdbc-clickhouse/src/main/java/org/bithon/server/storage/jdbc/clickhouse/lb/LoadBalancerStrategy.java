@@ -14,19 +14,26 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.common;
+package org.bithon.server.storage.jdbc.clickhouse.lb;
 
-import org.jooq.ConnectionRunnable;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2024/1/15 22:47
+ * @date 3/9/25 4:47 pm
  */
-public interface IOnceTableWriter extends ConnectionRunnable {
-    String getTableName();
+public enum LoadBalancerStrategy {
+    LEAST_ROWS {
+        @Override
+        public ILoadBalancer create() {
+            return new LeastRowsLoadBalancer();
+        }
+    },
+    RANDOM {
+        @Override
+        public ILoadBalancer create() {
+            return new RandomLoadBalancer();
+        }
+    };
 
-    /**
-     * Get the size of the inserted batch
-     */
-    int getInsertRows();
+    public abstract ILoadBalancer create();
 }
