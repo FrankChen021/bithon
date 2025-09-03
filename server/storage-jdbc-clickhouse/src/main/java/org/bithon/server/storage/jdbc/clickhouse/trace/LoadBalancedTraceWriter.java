@@ -85,7 +85,7 @@ class LoadBalancedTraceWriter extends TraceWriter implements IShardsUpdateListen
 
     @Override
     public void close() {
-        LoadBalanceReviseTask.getInstance(null)
+        LoadBalanceReviseTask.getInstance(this.clickHouseConfig)
                              .removeListener(this);
     }
 
