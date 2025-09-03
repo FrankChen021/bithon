@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.test.apache.ozone;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.apache.ozone.OzonePlugin;
 import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifact;
 import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
@@ -34,9 +35,10 @@ public class OZonePluginInterceptorInterceptorTest extends AbstractPluginInterce
     @Override
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
-            MavenArtifactClassLoader.MavenArtifact.of("org.apache.hadoop",
-                                                      "hadoop-ozone-client",
-                                                      "1.1.0")
+            // OZone all-in-one dependency
+            MavenArtifact.of("org.apache.ozone",
+                             "ozone-filesystem-hadoop3",
+                             "1.3.0")
         );
     }
 }

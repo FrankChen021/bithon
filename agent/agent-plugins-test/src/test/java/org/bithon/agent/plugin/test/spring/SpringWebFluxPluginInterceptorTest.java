@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.test.spring;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.spring.webflux.SpringWebFluxPlugin;
 import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifact;
 import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
@@ -35,24 +36,24 @@ public class SpringWebFluxPluginInterceptorTest extends AbstractPluginIntercepto
     @Override
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
-            MavenArtifactClassLoader.MavenArtifact.of("org.springframework",
-                                                      "spring-webflux",
-                                                      "5.3.39"),
-            MavenArtifactClassLoader.MavenArtifact.of("io.projectreactor.netty",
-                                                      "reactor-netty-http",
-                                                      "1.0.39"),
-            MavenArtifactClassLoader.MavenArtifact.of("io.projectreactor.netty",
-                                                      "reactor-netty-core",
-                                                      "1.0.39"),
-            MavenArtifactClassLoader.MavenArtifact.of("io.projectreactor",
-                                                      "reactor-core",
-                                                      "3.4.10"),
-            MavenArtifactClassLoader.MavenArtifact.of("org.reactivestreams",
-                                                      "reactive-streams",
-                                                      "1.0.3"),
-            MavenArtifactClassLoader.MavenArtifact.of("org.springframework",
-                                                      "spring-web",
-                                                      "5.3.0")
+            MavenArtifact.of("org.springframework",
+                             "spring-webflux",
+                             "5.3.39"),
+            MavenArtifact.of("io.projectreactor.netty",
+                             "reactor-netty-http",
+                             "1.0.39"),
+            MavenArtifact.of("io.projectreactor.netty",
+                             "reactor-netty-core",
+                             "1.0.39"),
+            MavenArtifact.of("io.projectreactor",
+                             "reactor-core",
+                             "3.4.10"),
+            MavenArtifact.of("org.reactivestreams",
+                             "reactive-streams",
+                             "1.0.3"),
+            MavenArtifact.of("org.springframework",
+                             "spring-web",
+                             "5.3.0")
         );
     }
 }

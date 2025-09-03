@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.test.kafka;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.apache.kafka39.Kafka39Plugin;
 import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifact;
 import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
@@ -35,9 +36,9 @@ public class Kafka39PluginInterceptorTest extends AbstractPluginInterceptorTest 
     @Override
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
-            MavenArtifactClassLoader.MavenArtifact.of("org.apache.kafka",
-                                                      "kafka-clients",
-                                                      "3.9.0")
+            MavenArtifact.of("org.apache.kafka",
+                             "kafka-clients",
+                             "3.9.0")
         );
     }
 }

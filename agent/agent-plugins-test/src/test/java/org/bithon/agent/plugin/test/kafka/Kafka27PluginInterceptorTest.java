@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.test.kafka;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.apache.kafka27.Kafka27Plugin;
 import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifact;
 import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
@@ -35,9 +36,9 @@ public class Kafka27PluginInterceptorTest extends AbstractPluginInterceptorTest 
     @Override
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
-            MavenArtifactClassLoader.MavenArtifact.of("org.apache.kafka",
-                                                      "kafka-clients",
-                                                      "2.7.0")
+            MavenArtifact.of("org.apache.kafka",
+                             "kafka-clients",
+                             "2.7.0")
         );
     }
 }

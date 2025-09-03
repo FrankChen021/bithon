@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.test.redis;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.redis.jedis2.Jedis2Plugin;
 import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifact;
 import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
@@ -35,9 +36,9 @@ public class Jedis2PluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
-            MavenArtifactClassLoader.MavenArtifact.of("redis.clients",
-                                                      "jedis",
-                                                      "2.9.3")
+            MavenArtifact.of("redis.clients",
+                             "jedis",
+                             "2.9.3")
         );
     }
 }

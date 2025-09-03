@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.test.redis;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.redis.redisson.RedissonPlugin;
 import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifact;
 import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
@@ -35,17 +36,17 @@ public class RedissonPluginInterceptorTest extends AbstractPluginInterceptorTest
     @Override
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
-            MavenArtifactClassLoader.MavenArtifact.of("org.redisson",
-                                                      "redisson",
-                                                      "3.29.0"),
+            MavenArtifact.of("org.redisson",
+                             "redisson",
+                             "3.29.0"),
 
-            MavenArtifactClassLoader.MavenArtifact.of("io.netty",
-                                                      "netty-codec",
-                                                      "4.1.71.Final"),
+            MavenArtifact.of("io.netty",
+                             "netty-codec",
+                             "4.1.71.Final"),
 
-            MavenArtifactClassLoader.MavenArtifact.of("io.netty",
-                                                      "netty-transport",
-                                                      "4.1.71.Final")
+            MavenArtifact.of("io.netty",
+                             "netty-transport",
+                             "4.1.71.Final")
         );
     }
 }

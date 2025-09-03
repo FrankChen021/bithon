@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.test.redis;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.redis.lettuce.LettucePlugin;
 import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifact;
 import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
@@ -35,17 +36,17 @@ public class LettucePluginInterceptorTest extends AbstractPluginInterceptorTest 
     @Override
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
-            MavenArtifactClassLoader.MavenArtifact.of("io.lettuce",
-                                                      "lettuce-core",
-                                                      "5.1.2.RELEASE"),
+            MavenArtifact.of("io.lettuce",
+                             "lettuce-core",
+                             "5.1.2.RELEASE"),
 
-            MavenArtifactClassLoader.MavenArtifact.of("io.netty",
-                                                      "netty-transport",
-                                                      "4.1.71.Final"),
-            
-            MavenArtifactClassLoader.MavenArtifact.of("org.springframework.data",
-                                                      "spring-data-redis",
-                                                      "3.3.13")
+            MavenArtifact.of("io.netty",
+                             "netty-transport",
+                             "4.1.71.Final"),
+
+            MavenArtifact.of("org.springframework.data",
+                             "spring-data-redis",
+                             "3.3.13")
         );
     }
 }

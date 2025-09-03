@@ -19,11 +19,12 @@ package org.bithon.agent.plugin.test.spring;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.spring.bean.SpringBeanPlugin;
 import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifact;
 import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
  * Test case for Spring Bean plugin
- * 
+ *
  * @author frankchen
  */
 public class SpringBeanPluginInterceptorTest extends AbstractPluginInterceptorTest {
@@ -35,9 +36,15 @@ public class SpringBeanPluginInterceptorTest extends AbstractPluginInterceptorTe
     @Override
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
-            MavenArtifactClassLoader.MavenArtifact.of("org.springframework",
-                                                      "spring-context",
-                                                      "5.3.39")
+            MavenArtifact.of("org.springframework",
+                             "spring-context",
+                             "4.3.12.RELEASE"),
+            MavenArtifact.of("org.springframework",
+                             "spring-core",
+                             "4.3.12.RELEASE"),
+            MavenArtifact.of("org.springframework",
+                             "spring-beans",
+                             "4.3.12.RELEASE")
         );
     }
 }

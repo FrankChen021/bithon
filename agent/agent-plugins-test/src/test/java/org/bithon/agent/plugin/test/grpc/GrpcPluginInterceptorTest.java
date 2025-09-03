@@ -14,30 +14,40 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.test.other;
+package org.bithon.agent.plugin.test.grpc;
 
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.plugin.mongodb.MongoDbPlugin;
+import org.bithon.agent.plugin.grpc.GrpcPlugin;
 import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifact;
 import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
- * Test case for MongoDB plugin
- * 
+ * Test case for gRPC plugin
+ *
  * @author frankchen
  */
-public class MongoDbPluginInterceptorTest extends AbstractPluginInterceptorTest {
+public class GrpcPluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
     protected IPlugin getPlugin() {
-        return new MongoDbPlugin();
+        return new GrpcPlugin();
     }
 
     @Override
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
-            MavenArtifactClassLoader.MavenArtifact.of("org.mongodb",
-                                                      "mongo-java-driver",
-                                                      "3.4.2")
+            MavenArtifact.of("io.grpc",
+                             "grpc-core",
+                             "1.59.1"),
+            MavenArtifact.of("io.grpc",
+                             "grpc-api",
+                             "1.59.1"),
+
+            // AbstractBlockingStub/AbstractSyncStub do no exist in grpc 1.60
+            MavenArtifact.of("io.grpc",
+                             "grpc-stub",
+                             "1.59.1")
+
         );
     }
 }

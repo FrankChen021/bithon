@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.test.httpclient;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.httpclient.apache.httpcomponents4.HttpComponents4Plugin;
 import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifact;
 import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
@@ -35,9 +36,9 @@ public class HttpComponents4PluginInterceptorTest extends AbstractPluginIntercep
     @Override
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
-            MavenArtifactClassLoader.MavenArtifact.of("org.apache.httpcomponents",
-                                                      "httpclient",
-                                                      "4.5.14")
+            MavenArtifact.of("org.apache.httpcomponents",
+                             "httpclient",
+                             "4.5.14")
         );
     }
 }

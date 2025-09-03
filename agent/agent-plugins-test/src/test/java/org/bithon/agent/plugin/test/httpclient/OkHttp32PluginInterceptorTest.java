@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.test.httpclient;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.httpclient.okhttp32.OkHttp32HttpClientPlugin;
 import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifact;
 import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
@@ -35,11 +36,11 @@ public class OkHttp32PluginInterceptorTest extends AbstractPluginInterceptorTest
     @Override
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
-            MavenArtifactClassLoader.MavenArtifact.of("com.squareup.okhttp3",
-                                                      "okhttp",
-                                                      "3.2.0"),
-            MavenArtifactClassLoader.MavenArtifact.of("com.squareup.okhttp3",
-                                                      "okhttp",
-                                                      "4.4.0"));
+            MavenArtifact.of("com.squareup.okhttp3",
+                             "okhttp",
+                             "3.2.0"),
+            MavenArtifact.of("com.squareup.okhttp3",
+                             "okhttp",
+                             "4.4.0"));
     }
 }

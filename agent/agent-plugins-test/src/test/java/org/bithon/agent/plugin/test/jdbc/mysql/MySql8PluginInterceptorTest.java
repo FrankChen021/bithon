@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.test.jdbc.mysql;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.jdbc.mysql8.MySql8Plugin;
 import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifact;
 import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
@@ -35,9 +36,9 @@ public class MySql8PluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
-            MavenArtifactClassLoader.MavenArtifact.of("com.mysql",
-                                                      "mysql-connector-j",
-                                                      "8.0.33")
+            MavenArtifact.of("com.mysql",
+                             "mysql-connector-j",
+                             "8.0.33")
         );
     }
 }

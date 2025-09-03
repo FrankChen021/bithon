@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.test.httpserver;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.httpserver.tomcat.TomcatPlugin;
 import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifact;
 import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
@@ -35,9 +36,9 @@ public class TomcatPluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
-            MavenArtifactClassLoader.MavenArtifact.of("org.apache.tomcat.embed",
-                                                      "tomcat-embed-core",
-                                                      "9.0.96")
+            MavenArtifact.of("org.apache.tomcat.embed",
+                             "tomcat-embed-core",
+                             "9.0.96")
         );
     }
 }

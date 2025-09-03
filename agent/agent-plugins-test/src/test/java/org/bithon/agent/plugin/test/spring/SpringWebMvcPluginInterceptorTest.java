@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.test.spring;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.spring.webmvc.SpringWebMvcPlugin;
 import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifact;
 import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
@@ -35,13 +36,13 @@ public class SpringWebMvcPluginInterceptorTest extends AbstractPluginInterceptor
     @Override
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
-            MavenArtifactClassLoader.MavenArtifact.of("org.springframework",
-                                                      "spring-webmvc",
-                                                      "4.3.12.RELEASE"),
+            MavenArtifact.of("org.springframework",
+                             "spring-webmvc",
+                             "4.3.12.RELEASE"),
 
-            MavenArtifactClassLoader.MavenArtifact.of("org.springframework",
-                                                      "spring-web",
-                                                      "4.3.12.RELEASE")
+            MavenArtifact.of("org.springframework",
+                             "spring-web",
+                             "4.3.12.RELEASE")
         );
     }
 }

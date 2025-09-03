@@ -28,6 +28,7 @@ import org.eclipse.aether.impl.DefaultServiceLocator;
 import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.ArtifactRequest;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
@@ -41,7 +42,6 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -57,75 +57,6 @@ public class MavenArtifactClassLoader {
     private static final Logger log = LoggerFactory.getLogger(MavenArtifactClassLoader.class);
 
     private MavenArtifactClassLoader() {
-        // Utility class - prevent instantiation
-    }
-
-    /**
-     * Represents a Maven artifact with groupId, artifactId, and version.
-     */
-    public static class MavenArtifact {
-        private final String groupId;
-        private final String artifactId;
-        private final String version;
-
-        public MavenArtifact(String groupId, String artifactId, String version) {
-            this.groupId = Objects.requireNonNull(groupId, "groupId cannot be null");
-            this.artifactId = Objects.requireNonNull(artifactId, "artifactId cannot be null");
-            this.version = Objects.requireNonNull(version, "version cannot be null");
-        }
-
-        /**
-         * Static factory method for creating MavenArtifact instances.
-         * This provides a more concise way to create artifacts.
-         *
-         * @param groupId    Maven group ID
-         * @param artifactId Maven artifact ID
-         * @param version    Maven version
-         * @return new MavenArtifact instance
-         */
-        public static MavenArtifact of(String groupId, String artifactId, String version) {
-            return new MavenArtifact(groupId, artifactId, version);
-        }
-
-        public String getGroupId() {
-            return groupId;
-        }
-
-        public String getArtifactId() {
-            return artifactId;
-        }
-
-        public String getVersion() {
-            return version;
-        }
-
-        public String getCoordinates() {
-            return groupId + ":" + artifactId + ":" + version;
-        }
-
-        @Override
-        public String toString() {
-            return getCoordinates();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            MavenArtifact that = (MavenArtifact) o;
-            return Objects.equals(groupId, that.groupId) &&
-                   Objects.equals(artifactId, that.artifactId) &&
-                   Objects.equals(version, that.version);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(groupId, artifactId, version);
-        }
     }
 
     /**
@@ -191,6 +122,8 @@ public class MavenArtifactClassLoader {
             // Create URLClassLoader with the resolved artifacts
             URL[] urlArray = artifactUrls.toArray(new URL[0]);
             return new URLClassLoader(urlArray, Thread.currentThread().getContextClassLoader());
+        } catch (ArtifactResolutionException e) {
+            throw new RuntimeException("Failed to load classes from Maven artifacts:" + e.getMessage());
         } catch (Exception e) {
             log.error(StringUtils.format("Failed to load classes from Maven artifacts: %s", list), e);
             throw new RuntimeException("Failed to load classes from Maven artifacts", e);

@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.test.httpserver;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.httpserver.jetty.JettyPlugin;
 import org.bithon.agent.plugin.test.AbstractPluginInterceptorTest;
+import org.bithon.agent.plugin.test.MavenArtifact;
 import org.bithon.agent.plugin.test.MavenArtifactClassLoader;
 
 /**
@@ -35,13 +36,13 @@ public class JettyPluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
-            MavenArtifactClassLoader.MavenArtifact.of("org.eclipse.jetty",
-                                                      "jetty-server",
-                                                      "9.4.56.v20240826"),
+            MavenArtifact.of("org.eclipse.jetty",
+                             "jetty-server",
+                             "9.4.56.v20240826"),
 
-            MavenArtifactClassLoader.MavenArtifact.of("org.eclipse.jetty",
-                                                      "jetty-util",
-                                                      "9.4.56.v20240826")
+            MavenArtifact.of("org.eclipse.jetty",
+                             "jetty-util",
+                             "9.4.56.v20240826")
         );
     }
 }
