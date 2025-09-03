@@ -121,7 +121,7 @@ public class MavenArtifactClassLoader {
 
             // Create URLClassLoader with the resolved artifacts
             URL[] urlArray = artifactUrls.toArray(new URL[0]);
-            return new URLClassLoader(urlArray, Thread.currentThread().getContextClassLoader());
+            return new URLClassLoader(urlArray, MavenArtifactClassLoader.class.getClassLoader());
         } catch (ArtifactResolutionException e) {
             throw new RuntimeException("Failed to load classes from Maven artifacts:" + e.getMessage());
         } catch (Exception e) {

@@ -38,7 +38,7 @@ public class LettucePluginInterceptorTest extends AbstractPluginInterceptorTest 
         return MavenArtifactClassLoader.create(
             MavenArtifact.of("io.lettuce",
                              "lettuce-core",
-                             "5.1.2.RELEASE"),
+                             "6.8.0.RELEASE"),
 
             MavenArtifact.of("io.netty",
                              "netty-transport",
@@ -50,6 +50,9 @@ public class LettucePluginInterceptorTest extends AbstractPluginInterceptorTest 
                              "netty-buffer",
                              "4.1.71.Final"),
 
+            MavenArtifact.of("org.reactivestreams",
+                             "reactive-streams",
+                             "1.0.3"),
             MavenArtifact.of("io.projectreactor",
                              "reactor-core",
                              "3.4.10"),

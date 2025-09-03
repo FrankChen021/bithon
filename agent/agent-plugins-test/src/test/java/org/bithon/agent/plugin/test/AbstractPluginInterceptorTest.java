@@ -29,6 +29,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.installer.InterceptorIns
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.PluginResolver;
 import org.bithon.agent.instrumentation.loader.PluginClassLoader;
+import org.bithon.agent.observability.metric.collector.jvm.JmxBeans;
 import org.bithon.shaded.net.bytebuddy.agent.ByteBuddyAgent;
 import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import org.bithon.shaded.net.bytebuddy.utility.JavaModule;
@@ -168,6 +169,8 @@ public abstract class AbstractPluginInterceptorTest {
     protected void attemptClassLoading(List<String> classNames) {
         for (String clazzName : classNames) {
             try {
+                log.info("Loading class {} with {}", clazzName,
+                         customClassLoader == null ? "system loader" : customClassLoader.getClass().getSimpleName());
                 Class<?> clazz = Class.forName(clazzName, false, customClassLoader);
 
                 Assertions.assertNotNull(clazz, "Class " + clazzName + " should be loadable");
@@ -181,6 +184,15 @@ public abstract class AbstractPluginInterceptorTest {
                                          " using custom class loader: " + customClassLoader.getClass().getSimpleName() :
                                          " using default class loader";
                 Assertions.fail("Class " + clazzName + " not found" + classLoaderInfo);
+            } catch (NoClassDefFoundError error) {
+                log.error("Class not found", error);
+                List<String> classPath = Arrays.stream(JmxBeans.RUNTIME_BEAN.getClassPath().split(File.pathSeparator))
+                                               .sorted()
+                                               .collect(Collectors.toList());
+                for (String s : classPath) {
+                    log.info("{}", s);
+                }
+                Assertions.fail("Fail to load class " + clazzName + " not found:" + error.getMessage());
             }
         }
     }
