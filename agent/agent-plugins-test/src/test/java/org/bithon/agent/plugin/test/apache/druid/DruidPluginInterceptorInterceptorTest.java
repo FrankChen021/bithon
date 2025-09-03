@@ -35,6 +35,10 @@ public class DruidPluginInterceptorInterceptorTest extends AbstractPluginInterce
     @Override
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
+
+            MavenArtifact.of("org.apache.druid",
+                             "druid-core",
+                             "24.0.0"),
             MavenArtifact.of("org.apache.druid",
                              "druid-processing",
                              "24.0.0"),
@@ -43,7 +47,23 @@ public class DruidPluginInterceptorInterceptorTest extends AbstractPluginInterce
                              "24.0.0"),
             MavenArtifact.of("org.apache.druid",
                              "druid-server",
-                             "24.0.0")
-        );
+                             "24.0.0"),
+
+            MavenArtifact.of("io.netty",
+                             "netty",
+                             "3.10.6.Final"),
+            MavenArtifact.of("com.fasterxml.jackson.core",
+                             "jackson-databind",
+                             "2.10.5.1"),
+            MavenArtifact.of("com.fasterxml.jackson.core",
+                             "jackson-core",
+                             "2.10.5"),
+            MavenArtifact.of("javax.ws.rs",
+                             "jsr311-api",
+                             "1.1.1"),
+            MavenArtifact.of("javax.servlet",
+                             "javax.servlet-api",
+                             "3.1.0")
+            );
     }
 }

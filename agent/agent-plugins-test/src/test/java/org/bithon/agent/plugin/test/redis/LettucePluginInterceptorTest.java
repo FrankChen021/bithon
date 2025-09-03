@@ -43,10 +43,28 @@ public class LettucePluginInterceptorTest extends AbstractPluginInterceptorTest 
             MavenArtifact.of("io.netty",
                              "netty-transport",
                              "4.1.71.Final"),
+            MavenArtifact.of("io.netty",
+                             "netty-common",
+                             "4.1.71.Final"),
+            MavenArtifact.of("io.netty",
+                             "netty-buffer",
+                             "4.1.71.Final"),
 
+            MavenArtifact.of("io.projectreactor",
+                             "reactor-core",
+                             "3.4.10"),
+            MavenArtifact.of("org.springframework",
+                             "spring-core",
+                             "5.3.13"),
+            MavenArtifact.of("org.springframework.data",
+                             "spring-data-commons",
+                             "3.3.13"),
             MavenArtifact.of("org.springframework.data",
                              "spring-data-redis",
-                             "3.3.13")
+                             "3.3.13"),
+            MavenArtifact.of("org.springframework",
+                             "spring-tx",
+                             "5.3.13")
         );
     }
 }

@@ -39,7 +39,9 @@ public class SpringWebMvcPluginInterceptorTest extends AbstractPluginInterceptor
             MavenArtifact.of("org.springframework",
                              "spring-webmvc",
                              "4.3.12.RELEASE"),
-
+            MavenArtifact.of("org.springframework",
+                             "spring-core",
+                             "4.3.12.RELEASE"),
             MavenArtifact.of("org.springframework",
                              "spring-web",
                              "4.3.12.RELEASE")

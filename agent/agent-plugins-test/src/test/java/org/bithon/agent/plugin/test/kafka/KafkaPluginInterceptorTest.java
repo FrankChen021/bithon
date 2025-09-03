@@ -38,7 +38,17 @@ public class KafkaPluginInterceptorTest extends AbstractPluginInterceptorTest {
         return MavenArtifactClassLoader.create(
             MavenArtifact.of("org.apache.kafka",
                              "kafka-clients",
-                             "1.0.0")
+                             "1.0.0"),
+
+            MavenArtifact.of("org.springframework",
+                                "spring-context",
+                                "5.2.15.RELEASE"),
+            MavenArtifact.of("org.springframework",
+                             "spring-tx",
+                             "5.2.15.RELEASE"),
+            MavenArtifact.of("org.springframework.kafka",
+                             "spring-kafka",
+                             "2.2.7.RELEASE")
         );
     }
 }

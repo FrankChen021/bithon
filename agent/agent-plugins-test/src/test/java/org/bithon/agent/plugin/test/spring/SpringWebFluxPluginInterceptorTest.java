@@ -53,7 +53,10 @@ public class SpringWebFluxPluginInterceptorTest extends AbstractPluginIntercepto
                              "1.0.3"),
             MavenArtifact.of("org.springframework",
                              "spring-web",
-                             "5.3.0")
+                             "5.3.0"),
+            MavenArtifact.of("io.netty",
+                             "netty-all",
+                             "4.1.63.Final")
         );
     }
 }

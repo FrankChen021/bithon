@@ -39,6 +39,9 @@ public class OkHttp32PluginInterceptorTest extends AbstractPluginInterceptorTest
             MavenArtifact.of("com.squareup.okhttp3",
                              "okhttp",
                              "3.2.0"),
+            MavenArtifact.of("com.squareup.okio",
+                             "okio",
+                             "2.5.0"),
             MavenArtifact.of("com.squareup.okhttp3",
                              "okhttp",
                              "4.4.0"));

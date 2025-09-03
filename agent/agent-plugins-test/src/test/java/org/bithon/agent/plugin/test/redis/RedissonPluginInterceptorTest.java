@@ -41,9 +41,14 @@ public class RedissonPluginInterceptorTest extends AbstractPluginInterceptorTest
                              "3.29.0"),
 
             MavenArtifact.of("io.netty",
+                             "netty-common",
+                             "4.1.71.Final"),
+            MavenArtifact.of("io.netty",
+                             "netty-buffer",
+                             "4.1.71.Final"),
+            MavenArtifact.of("io.netty",
                              "netty-codec",
                              "4.1.71.Final"),
-
             MavenArtifact.of("io.netty",
                              "netty-transport",
                              "4.1.71.Final")

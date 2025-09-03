@@ -39,10 +39,18 @@ public class JettyPluginInterceptorTest extends AbstractPluginInterceptorTest {
             MavenArtifact.of("org.eclipse.jetty",
                              "jetty-server",
                              "9.4.56.v20240826"),
-
+            MavenArtifact.of("org.eclipse.jetty",
+                             "jetty-io",
+                             "9.4.56.v20240826"),
+            MavenArtifact.of("org.eclipse.jetty",
+                             "jetty-http",
+                             "9.4.56.v20240826"),
             MavenArtifact.of("org.eclipse.jetty",
                              "jetty-util",
-                             "9.4.56.v20240826")
+                             "9.4.56.v20240826"),
+            MavenArtifact.of("javax.servlet",
+                             "javax.servlet-api",
+                             "3.1.0")
         );
     }
 }

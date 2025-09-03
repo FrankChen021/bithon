@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.test;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.source.Helper;
+import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorSupplier;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.Descriptors;
@@ -29,9 +30,13 @@ import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.PluginResolver;
 import org.bithon.agent.instrumentation.loader.PluginClassLoader;
 import org.bithon.shaded.net.bytebuddy.agent.ByteBuddyAgent;
+import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
+import org.bithon.shaded.net.bytebuddy.utility.JavaModule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
@@ -97,33 +102,6 @@ public abstract class AbstractPluginInterceptorTest {
     }
 
     /**
-     * Install interceptors for a given plugin and verify installation.
-     *
-     * @param plugin The plugin to install interceptors for
-     * @return List of interceptor class names that were installed
-     */
-    protected static List<String> installBeforeClassLoading(IPlugin plugin) {
-        // Resolve interceptors
-        Descriptors descriptors = new Descriptors();
-        descriptors.merge(plugin.getClass().getSimpleName(),
-                          plugin.getPreconditions(),
-                          plugin.getInterceptors());
-        PluginResolver.resolveInterceptorType(descriptors.getAllDescriptor(), Collections.emptyMap());
-
-        // Install interceptors
-        new InterceptorInstaller(descriptors)
-            .installOn(ByteBuddyAgent.getInstrumentation());
-
-        // Extract all interceptor class names for verification
-        return plugin.getInterceptors()
-                     .stream()
-                     .flatMap(desc -> Arrays.stream(desc.getMethodPointCutDescriptors()))
-                     .map(MethodPointCutDescriptor::getInterceptorClassName)
-                     .distinct()
-                     .collect(Collectors.toList());
-    }
-
-    /**
      * Verify that an interceptor is properly installed in the InterceptorManager.
      *
      * @param interceptorClassName The fully qualified class name of the interceptor
@@ -179,6 +157,8 @@ public abstract class AbstractPluginInterceptorTest {
         }
     }
 
+    private ClassLoader customClassLoader;
+
     /**
      * Attempt to load a target class and verify it can be found.
      * This simulates what happens when the target application loads classes at runtime.
@@ -186,8 +166,6 @@ public abstract class AbstractPluginInterceptorTest {
      *
      */
     protected void attemptClassLoading(List<String> classNames) {
-        ClassLoader customClassLoader = getCustomClassLoader();
-
         for (String clazzName : classNames) {
             try {
                 Class<?> clazz = Class.forName(clazzName, false, customClassLoader);
@@ -223,8 +201,13 @@ public abstract class AbstractPluginInterceptorTest {
         }
     }
 
+    private int instrumentationErrorCount = 0;
+
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     public void testInterceptorInstallation() {
+        this.customClassLoader = getCustomClassLoader();
+
         IPlugin plugin = getPlugin();
 
         // Resolve interceptors
@@ -234,12 +217,21 @@ public abstract class AbstractPluginInterceptorTest {
                           plugin.getInterceptors());
         PluginResolver.resolveInterceptorType(descriptors.getAllDescriptor(), Collections.emptyMap());
 
+        InstrumentationHelper.setErrorHandler(new AgentBuilder.Listener.Adapter() {
+            @Override
+            public void onError(String typeName, ClassLoader classLoader, JavaModule module, boolean loaded, Throwable throwable) {
+                log.error("Fail to instrument class {}", typeName, throwable);
+                instrumentationErrorCount++;
+            }
+        });
+
         // Install interceptors
         new InterceptorInstaller(descriptors)
             .installOn(ByteBuddyAgent.getInstrumentation());
 
         List<String> targetClass = plugin.getInterceptors()
                                          .stream()
+                                         .filter((desc) -> desc.getPrecondition() == null || desc.getPrecondition().matches(this.customClassLoader, null))
                                          .map(InterceptorDescriptor::getTargetClass)
                                          .distinct()
                                          .collect(Collectors.toList());
@@ -250,11 +242,13 @@ public abstract class AbstractPluginInterceptorTest {
         // Extract all interceptor class names for verification
         List<String> installedInterceptors = plugin.getInterceptors()
                                                    .stream()
+                                                   .filter((desc) -> desc.getPrecondition() == null || desc.getPrecondition().matches(this.customClassLoader, null))
                                                    .flatMap(desc -> Arrays.stream(desc.getMethodPointCutDescriptors()))
                                                    .map(MethodPointCutDescriptor::getInterceptorClassName)
                                                    .distinct()
                                                    .collect(Collectors.toList());
         verifyAllInterceptorsInstalled(installedInterceptors);
+        Assertions.assertEquals(0, instrumentationErrorCount, "There should be no instrumentation errors");
     }
 
     protected abstract IPlugin getPlugin();

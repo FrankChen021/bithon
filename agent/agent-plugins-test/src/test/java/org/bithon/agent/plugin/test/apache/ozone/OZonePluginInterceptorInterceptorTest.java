@@ -38,7 +38,11 @@ public class OZonePluginInterceptorInterceptorTest extends AbstractPluginInterce
             // OZone all-in-one dependency
             MavenArtifact.of("org.apache.ozone",
                              "ozone-filesystem-hadoop3",
-                             "1.3.0")
+                             "1.3.0"),
+
+            MavenArtifact.of("org.apache.hadoop",
+                             "hadoop-common",
+                             "3.3.4")
         );
     }
 }
