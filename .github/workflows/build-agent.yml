@@ -80,7 +80,37 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java-version: ['8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21']
+        include:
+          # LTS versions using temurin
+          - java-version: '8'
+            distribution: 'temurin'
+          - java-version: '11'
+            distribution: 'temurin'
+          - java-version: '17'
+            distribution: 'temurin'
+          - java-version: '21'
+            distribution: 'temurin'
+          # Non-LTS versions using zulu (better historical support)
+          - java-version: '9'
+            distribution: 'zulu'
+          - java-version: '10'
+            distribution: 'zulu'
+          - java-version: '12'
+            distribution: 'zulu'
+          - java-version: '13'
+            distribution: 'zulu'
+          - java-version: '14'
+            distribution: 'zulu'
+          - java-version: '15'
+            distribution: 'zulu'
+          - java-version: '16'
+            distribution: 'zulu'
+          - java-version: '18'
+            distribution: 'zulu'
+          - java-version: '19'
+            distribution: 'zulu'
+          - java-version: '20'
+            distribution: 'zulu'
       fail-fast: false
     steps:
       - name: Checkout repository and submodules
@@ -88,11 +118,11 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Set up JDK ${{ matrix.java-version }}
+      - name: Set up JDK ${{ matrix.java-version }} (${{ matrix.distribution }})
         uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java-version }}
-          distribution: 'temurin'
+          distribution: ${{ matrix.distribution }}
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
