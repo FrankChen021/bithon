@@ -142,7 +142,7 @@ jobs:
 
       # Execute UT with the current JDK version - skip install since we have artifacts
       - name: Run tests with JDK ${{ matrix.java-version }}
-        run: mvn surefire:test -P-server -Dmaven.test.dependency.excludes="**/target/**"
+        run: mvn test -P-server -ntp
 
   release:
     needs: [build, test]
