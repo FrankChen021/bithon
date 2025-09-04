@@ -330,8 +330,6 @@
           <argLine>
             -Xmx2048m
             -Djdk.attach.allowAttachSelf=true
-            --add-opens java.base/java.lang=ALL-UNNAMED
-            --add-opens java.base/java.lang.invoke=ALL-UNNAMED
           </argLine>
           <trimStackTrace>false</trimStackTrace>
         </configuration>
