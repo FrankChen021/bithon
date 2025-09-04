@@ -60,14 +60,14 @@ public class DashboardJdbcStorage implements IDashboardStorage {
     }
 
     @Override
-    public String put(String name, String payload) {
+    public String put(String id, String payload) {
         String signature = HashUtils.sha256Hex(payload);
 
         // onDuplicateKeyIgnore is not supported on all DB
         // use try-catch instead
         try {
             dslContext.insertInto(Tables.BITHON_WEB_DASHBOARD)
-                      .set(Tables.BITHON_WEB_DASHBOARD.NAME, name)
+                      .set(Tables.BITHON_WEB_DASHBOARD.NAME, id)
                       .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                       .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
                       .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
@@ -80,21 +80,21 @@ public class DashboardJdbcStorage implements IDashboardStorage {
                       .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
                       .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                       .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
-                      .where(Tables.BITHON_WEB_DASHBOARD.NAME.eq(name))
+                      .where(Tables.BITHON_WEB_DASHBOARD.NAME.eq(id))
                       .execute();
         }
         return signature;
     }
 
     @Override
-    public void putIfNotExist(String name, String payload) {
+    public void putIfNotExist(String id, String payload) {
         String signature = HashUtils.sha256Hex(payload);
 
         // onDuplicateKeyIgnore is not supported on all DB
         // use try-catch instead
         try {
             dslContext.insertInto(Tables.BITHON_WEB_DASHBOARD)
-                      .set(Tables.BITHON_WEB_DASHBOARD.NAME, name)
+                      .set(Tables.BITHON_WEB_DASHBOARD.NAME, id)
                       .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                       .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
                       .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
