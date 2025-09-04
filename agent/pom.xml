@@ -115,6 +115,19 @@
                             <arg>-Xlint:-options</arg>
                         </compilerArgs>
                     </configuration>
+                    <executions>
+                      <execution>
+                        <id>default-testCompile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                          <goal>testCompile</goal>
+                        </goals>
+                        <configuration>
+                          <!-- Disable annotation processing for test compilation -->
+                          <proc>none</proc>
+                        </configuration>
+                      </execution>
+                    </executions>
                 </plugin>
 
                 <!-- Package agent jars-->
