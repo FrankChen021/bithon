@@ -22,6 +22,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterc
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.Tags;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.method.support.InvocableHandlerMethod;
@@ -59,7 +60,7 @@ public class InvocableHandlerMethod$DoInvoke extends AroundInterceptor {
 
         traceStreamingResponseBody(aopContext, span);
     }
-    
+
     /**
      * Wrap StreamingResponseBody return values with tracing context
      */
@@ -75,21 +76,28 @@ public class InvocableHandlerMethod$DoInvoke extends AroundInterceptor {
         } else if (returnValue instanceof ResponseEntity) {
             ResponseEntity<?> responseEntity = (ResponseEntity<?>) returnValue;
             Object body = responseEntity.getBody();
-            
-            if (body instanceof StreamingResponseBody) {
-                StreamingResponseBody delegate = (StreamingResponseBody) body;
-                TracedStreamingResponseBody wrapper = new TracedStreamingResponseBody(delegate, parentSpan.context()
-                                                                                                          .copy()
-                                                                                                          .newSpan(parentSpan.spanId()));
-                
-                // Create new ResponseEntity with wrapped body
+            if (!(body instanceof StreamingResponseBody)) {
+                return;
+            }
+
+            StreamingResponseBody delegate = (StreamingResponseBody) body;
+
+            try {
+                @SuppressWarnings({"JvmTaintAnalysis", "VulnerableCodeUsages"})
                 ResponseEntity<StreamingResponseBody> newResponseEntity = ResponseEntity
                     // Can't use getStatus since it does not exist in higher versions of Spring
                     .status(responseEntity.getStatusCodeValue())
                     .headers(responseEntity.getHeaders())
-                    .body(wrapper);
-                
+                    // Create new ResponseEntity with wrapped body
+                    .body(new TracedStreamingResponseBody(delegate, parentSpan.context()
+                                                                              .copy()
+                                                                              .newSpan(parentSpan.spanId())));
+
                 aopContext.setReturning(newResponseEntity);
+            } catch (Throwable t) {
+                // Catch any exception cause by incompatibility problems between different versions of Spring
+                LoggerFactory.getLogger(InvocableHandlerMethod$DoInvoke.class)
+                             .warn("Failed to create a new ResponseEntity instance", t);
             }
         }
     }
@@ -100,18 +108,18 @@ public class InvocableHandlerMethod$DoInvoke extends AroundInterceptor {
  * across thread boundaries during streaming operations.
  */
 class TracedStreamingResponseBody implements StreamingResponseBody {
-    
+
     private final StreamingResponseBody delegate;
     private final ITraceSpan span;
-    
+
     public TracedStreamingResponseBody(StreamingResponseBody delegate, ITraceSpan span) {
         this.delegate = delegate;
         this.span = span;
     }
-    
+
     @Override
     public void writeTo(OutputStream outputStream) throws IOException {
-        // TODO: add newAsyncChildSpan on ITraceSpan
+        // TODO: add newAsyncChildSpan on ITraceSpan to simplify the code
         span.name("spring-controller")
             .method(this.delegate.getClass(), "writeTo")
             .tag(Tags.Thread.NAME, Thread.currentThread().getName())
