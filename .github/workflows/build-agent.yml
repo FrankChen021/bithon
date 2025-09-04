@@ -6,19 +6,37 @@ name: Agent Build
 on:
   push:
     branches: [ master ]
+    paths:
+      - 'agent/**'
+      - 'component/**'
+      - 'shaded/**'
+      - 'license/**'
+      - 'dev/**'
+      - 'pom.xml'
+      - '.github/workflows/build-agent.yml'
   pull_request:
     branches: [ master ]
+    paths:
+      - 'agent/**'
+      - 'component/**'
+      - 'shaded/**'
+      - 'license/**'
+      - 'dev/**'
+      - 'pom.xml'
+      - '.github/workflows/build-agent.yml'
 
 concurrency:
   # https://stackoverflow.com/questions/68418857/how-to-cancel-existing-runs-when-a-new-push-happens-on-github-actions-but-only
   # Documentation suggests ${{ github.head_ref }}, but that's only available on pull_request/pull_request_target triggers, so using ${{ github.ref }}.
   # On the master branch, we want all builds to complete even if merging happens faster to make it easier to discover at which point something broke.
-  group: ${{ github.ref == 'refs/heads/master' && format('ci-master-jdk8-{0}', github.sha) || format('ci-jdk8-{0}', github.ref) }}
+  group: ${{ github.ref == 'refs/heads/master' && format('ci-master-{0}', github.sha) || format('ci-{0}', github.ref) }}
   cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      artifact-name: ${{ steps.artifact-info.outputs.name }}
     steps:
       - name: Checkout repository and submodules
         uses: actions/checkout@v2
@@ -41,23 +59,74 @@ jobs:
       - name: Compilation
         run: mvn clean install -T 1C -ntp --activate-profiles agent,component -Dmaven.javadoc.skip=true -DskipTests
 
-      # Set up JDK 8 for testing
-      - name: Set up JDK8
+      - name: Set artifact info
+        id: artifact-info
+        run: echo "name=build-artifacts-${{ github.run_id }}" >> $GITHUB_OUTPUT
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.artifact-info.outputs.name }}
+          path: |
+            **/target/**/*.jar
+            **/target/**/*.zip
+            **/pom.xml
+            pom.xml
+          retention-days: 1
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: ['8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21']
+      fail-fast: false
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v3
         with:
-          java-version: '8'
+          java-version: ${{ matrix.java-version }}
           distribution: 'temurin'
 
-      # Execute UT after compilation
-      - name: UT
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ needs.build.outputs.artifact-name }}
+
+      # Execute UT with the current JDK version
+      - name: Run tests with JDK ${{ matrix.java-version }}
         run: mvn surefire:test -P-server
+
+  release:
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    # Only run on master branch AND if both build and test jobs succeeded
+    if: github.ref == 'refs/heads/master' && needs.build.result == 'success' && needs.test.result == 'success'
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ needs.build.outputs.artifact-name }}
+
+      - name: Verify agent distribution exists
+        run: |
+          if [ ! -f "agent/agent-distribution/target/agent-distribution.zip" ]; then
+            echo "Error: agent-distribution.zip not found!"
+            exit 1
+          fi
+          echo "✅ Agent distribution verified: $(ls -la agent/agent-distribution/target/agent-distribution.zip)"
 
       #
       # Follow steps are for release, we only enable them for changes on the master branch
+      # Only delete tag if we have successfully built and tested the agent
       #
       # https://github.com/marketplace/actions/delete-tag-and-release
       - name: Delete agent tag
-        if: github.ref == 'refs/heads/master'
         uses: dev-drprasad/delete-tag-and-release@v1.1
         with:
           delete_release: true # default: false
@@ -65,7 +134,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Release agent
-        if: github.ref == 'refs/heads/master'
         uses: svenstaro/upload-release-action@v2
         with:
           body: "The latest agent"
