@@ -38,6 +38,7 @@ import javax.tools.StandardLocation;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -192,8 +193,8 @@ public class PluginMetadataProcessor extends AbstractProcessor {
                 return;
             }
             if (interceptorTypes.isEmpty()) {
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                                                         "No interceptors found, but plugin class found.");
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING,
+                                                         String.format(Locale.ENGLISH, "No interceptors found, but plugin class [%s] found.", pluginClass));
                 return;
             }
         }

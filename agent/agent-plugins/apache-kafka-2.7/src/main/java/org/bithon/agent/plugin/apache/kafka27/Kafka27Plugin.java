@@ -43,7 +43,7 @@ public class Kafka27Plugin implements IPlugin {
                     "kafka/kafka-version.properties",
                     "version",
                     PropertyFileValuePrecondition.and(
-                        PropertyFileValuePrecondition.VersionGT.of("2.7"),
+                        PropertyFileValuePrecondition.VersionGTE.of("2.7"),
                         PropertyFileValuePrecondition.VersionLT.of("2.8")
                     )
                 ))

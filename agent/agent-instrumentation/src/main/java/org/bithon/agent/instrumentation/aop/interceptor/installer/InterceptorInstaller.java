@@ -133,6 +133,9 @@ public class InterceptorInstaller {
             // Listener is always installed to catch ERRORS even if the debugger is not enabled
             agentBuilder = agentBuilder.with(InstrumentationHelper.getAopDebugger().withTypes(types));
         }
+        if (InstrumentationHelper.getErrorHandler() != null) {
+            agentBuilder = agentBuilder.with(InstrumentationHelper.getErrorHandler());
+        }
 
         agentBuilder.installOn(inst);
     }
