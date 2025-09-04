@@ -24,13 +24,13 @@ import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
 
 /**
  * Test case for Apache HttpComponents 4.x plugin
- * 
+ *
  * @author frankchen
  */
 public class HttpComponents4PluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
-    protected IPlugin getPlugin() {
-        return new HttpComponents4Plugin();
+    protected IPlugin[] getPlugins() {
+        return new IPlugin[]{new HttpComponents4Plugin()};
     }
 
     @Override

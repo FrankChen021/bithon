@@ -28,8 +28,8 @@ import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
  */
 public class DruidPluginInterceptorInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
-    protected IPlugin getPlugin() {
-        return new ApacheDruidPlugin();
+    protected IPlugin[] getPlugins() {
+        return new IPlugin[]{new ApacheDruidPlugin()};
     }
 
     @Override
@@ -64,6 +64,6 @@ public class DruidPluginInterceptorInterceptorTest extends AbstractPluginInterce
             MavenArtifact.of("javax.servlet",
                              "javax.servlet-api",
                              "3.1.0")
-            );
+        );
     }
 }

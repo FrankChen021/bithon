@@ -220,13 +220,15 @@ public abstract class AbstractPluginInterceptorTest {
     public void testInterceptorInstallation() {
         this.customClassLoader = getCustomClassLoader();
 
-        IPlugin plugin = getPlugin();
+        IPlugin[] plugins = getPlugins();
 
         // Resolve interceptors
         Descriptors descriptors = new Descriptors();
-        descriptors.merge(plugin.getClass().getSimpleName(),
-                          plugin.getPreconditions(),
-                          plugin.getInterceptors());
+        for (IPlugin plugin : plugins) {
+            descriptors.merge(plugin.getClass().getSimpleName(),
+                              plugin.getPreconditions(),
+                              plugin.getInterceptors());
+        }
         PluginResolver.resolveInterceptorType(descriptors.getAllDescriptor(), Collections.emptyMap());
 
         InstrumentationHelper.setErrorHandler(new AgentBuilder.Listener.Adapter() {
@@ -241,8 +243,8 @@ public abstract class AbstractPluginInterceptorTest {
         new InterceptorInstaller(descriptors)
             .installOn(ByteBuddyAgent.getInstrumentation());
 
-        List<String> targetClass = plugin.getInterceptors()
-                                         .stream()
+        List<String> targetClass = Arrays.stream(plugins)
+                                         .flatMap(plugin -> plugin.getInterceptors().stream())
                                          .filter((desc) -> desc.getPrecondition() == null || desc.getPrecondition().matches(this.customClassLoader, null))
                                          .map(InterceptorDescriptor::getTargetClass)
                                          .distinct()
@@ -252,8 +254,8 @@ public abstract class AbstractPluginInterceptorTest {
         attemptClassLoading(targetClass);
 
         // Extract all interceptor class names for verification
-        List<String> installedInterceptors = plugin.getInterceptors()
-                                                   .stream()
+        List<String> installedInterceptors = Arrays.stream(plugins)
+                                                   .flatMap(plugin -> plugin.getInterceptors().stream())
                                                    .filter((desc) -> desc.getPrecondition() == null || desc.getPrecondition().matches(this.customClassLoader, null))
                                                    .flatMap(desc -> Arrays.stream(desc.getMethodPointCutDescriptors()))
                                                    .map(MethodPointCutDescriptor::getInterceptorClassName)
@@ -263,5 +265,5 @@ public abstract class AbstractPluginInterceptorTest {
         Assertions.assertEquals(0, instrumentationErrorCount, "There should be no instrumentation errors");
     }
 
-    protected abstract IPlugin getPlugin();
+    protected abstract IPlugin[] getPlugins();
 }

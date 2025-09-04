@@ -24,13 +24,13 @@ import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
 
 /**
  * Test case for Apache Kafka plugin (base version)
- * 
+ *
  * @author frankchen
  */
 public class KafkaPluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
-    protected IPlugin getPlugin() {
-        return new KafkaPlugin();
+    protected IPlugin[] getPlugins() {
+        return new IPlugin[]{new KafkaPlugin()};
     }
 
     @Override
@@ -41,8 +41,8 @@ public class KafkaPluginInterceptorTest extends AbstractPluginInterceptorTest {
                              "1.0.0"),
 
             MavenArtifact.of("org.springframework",
-                                "spring-context",
-                                "5.2.15.RELEASE"),
+                             "spring-context",
+                             "5.2.15.RELEASE"),
             MavenArtifact.of("org.springframework",
                              "spring-tx",
                              "5.2.15.RELEASE"),

@@ -29,8 +29,8 @@ import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
  */
 public class SpringWebFluxPluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
-    protected IPlugin getPlugin() {
-        return new SpringWebFluxPlugin();
+    protected IPlugin[] getPlugins() {
+        return new IPlugin[]{new SpringWebFluxPlugin()};
     }
 
     @Override

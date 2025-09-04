@@ -24,13 +24,13 @@ import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
 
 /**
  * Test case for Jedis 3.x plugin
- * 
+ *
  * @author frankchen
  */
 public class Jedis3PluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
-    protected IPlugin getPlugin() {
-        return new Jedis3Plugin();
+    protected IPlugin[] getPlugins() {
+        return new IPlugin[]{new Jedis3Plugin()};
     }
 
     @Override

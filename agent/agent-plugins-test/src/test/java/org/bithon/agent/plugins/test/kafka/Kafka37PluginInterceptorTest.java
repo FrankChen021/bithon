@@ -29,8 +29,8 @@ import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
  */
 public class Kafka37PluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
-    protected IPlugin getPlugin() {
-        return new Kafka37Plugin();
+    protected IPlugin[] getPlugins() {
+        return new IPlugin[]{new Kafka37Plugin()};
     }
 
     @Override

@@ -29,8 +29,8 @@ import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
  */
 public class RedissonPluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
-    protected IPlugin getPlugin() {
-        return new RedissonPlugin();
+    protected IPlugin[] getPlugins() {
+        return new IPlugin[]{new RedissonPlugin()};
     }
 
     @Override

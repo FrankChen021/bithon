@@ -27,7 +27,7 @@ import org.bithon.agent.plugin.httpclient.jdk.JdkHttpClientPlugin;
  */
 public class JdkHttpClientPluginInterceptorTest {
 
-    protected IPlugin getPlugin() {
-        return new JdkHttpClientPlugin();
+    protected IPlugin[] getPlugins() {
+        return new IPlugin[]{new JdkHttpClientPlugin()};
     }
 }

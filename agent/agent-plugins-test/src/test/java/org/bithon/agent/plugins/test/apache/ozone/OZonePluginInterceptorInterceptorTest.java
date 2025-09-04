@@ -28,8 +28,8 @@ import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
  */
 public class OZonePluginInterceptorInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
-    protected IPlugin getPlugin() {
-        return new OzonePlugin();
+    protected IPlugin[] getPlugins() {
+        return new IPlugin[]{new OzonePlugin()};
     }
 
     @Override

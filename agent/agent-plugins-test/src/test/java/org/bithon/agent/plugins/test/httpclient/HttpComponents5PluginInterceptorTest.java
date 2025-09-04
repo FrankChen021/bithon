@@ -29,8 +29,8 @@ import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
  */
 public class HttpComponents5PluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
-    protected IPlugin getPlugin() {
-        return new HttpComponents5Plugin();
+    protected IPlugin[] getPlugins() {
+        return new IPlugin[]{new HttpComponents5Plugin()};
     }
 
     @Override

@@ -24,13 +24,13 @@ import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
 
 /**
  * Test case for MySQL 6 plugin
- * 
+ *
  * @author frankchen
  */
 public class MySql6PluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
-    protected IPlugin getPlugin() {
-        return new MySql6Plugin();
+    protected IPlugin[] getPlugins() {
+        return new IPlugin[]{new MySql6Plugin()};
     }
 
     @Override

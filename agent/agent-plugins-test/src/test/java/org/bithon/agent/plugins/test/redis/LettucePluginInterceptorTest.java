@@ -29,8 +29,8 @@ import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
  */
 public class LettucePluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
-    protected IPlugin getPlugin() {
-        return new LettucePlugin();
+    protected IPlugin[] getPlugins() {
+        return new IPlugin[]{new LettucePlugin()};
     }
 
     @Override

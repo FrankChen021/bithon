@@ -29,8 +29,8 @@ import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
  */
 public class SpringWebMvcPluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
-    protected IPlugin getPlugin() {
-        return new SpringWebMvcPlugin();
+    protected IPlugin[] getPlugins() {
+        return new IPlugin[]{new SpringWebMvcPlugin()};
     }
 
     @Override

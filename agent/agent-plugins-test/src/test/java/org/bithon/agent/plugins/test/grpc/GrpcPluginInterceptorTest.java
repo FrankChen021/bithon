@@ -29,8 +29,8 @@ import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
  */
 public class GrpcPluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
-    protected IPlugin getPlugin() {
-        return new GrpcPlugin();
+    protected IPlugin[] getPlugins() {
+        return new IPlugin[]{new GrpcPlugin()};
     }
 
     @Override

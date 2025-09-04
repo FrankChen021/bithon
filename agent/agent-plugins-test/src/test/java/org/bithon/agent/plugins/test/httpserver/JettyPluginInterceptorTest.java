@@ -29,8 +29,8 @@ import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
  */
 public class JettyPluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
-    protected IPlugin getPlugin() {
-        return new JettyPlugin();
+    protected IPlugin[] getPlugins() {
+        return new IPlugin[]{new JettyPlugin()};
     }
 
     @Override

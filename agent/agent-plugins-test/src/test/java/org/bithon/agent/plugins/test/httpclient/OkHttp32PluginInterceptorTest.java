@@ -29,8 +29,8 @@ import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
  */
 public class OkHttp32PluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
-    protected IPlugin getPlugin() {
-        return new OkHttp32HttpClientPlugin();
+    protected IPlugin[] getPlugins() {
+        return new IPlugin[]{new OkHttp32HttpClientPlugin()};
     }
 
     @Override

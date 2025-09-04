@@ -24,13 +24,13 @@ import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
 
 /**
  * Test case for MySQL 8.x JDBC plugin
- * 
+ *
  * @author frankchen
  */
 public class MySql8PluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
-    protected IPlugin getPlugin() {
-        return new MySql8Plugin();
+    protected IPlugin[] getPlugins() {
+        return new IPlugin[]{new MySql8Plugin()};
     }
 
     @Override

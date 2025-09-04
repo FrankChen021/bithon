@@ -24,13 +24,13 @@ import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
 
 /**
  * Test case for MongoDB plugin
- * 
+ *
  * @author frankchen
  */
 public class MongoDbPluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
-    protected IPlugin getPlugin() {
-        return new MongoDbPlugin();
+    protected IPlugin[] getPlugins() {
+        return new IPlugin[]{new MongoDbPlugin()};
     }
 
     @Override

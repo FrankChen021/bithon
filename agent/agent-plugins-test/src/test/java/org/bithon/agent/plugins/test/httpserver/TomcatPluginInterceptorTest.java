@@ -24,13 +24,13 @@ import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
 
 /**
  * Test case for Tomcat HTTP server plugin
- * 
+ *
  * @author frankchen
  */
 public class TomcatPluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
-    protected IPlugin getPlugin() {
-        return new TomcatPlugin();
+    protected IPlugin[] getPlugins() {
+        return new IPlugin[]{new TomcatPlugin()};
     }
 
     @Override

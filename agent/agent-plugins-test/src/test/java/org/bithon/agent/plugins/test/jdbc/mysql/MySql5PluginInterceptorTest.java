@@ -24,13 +24,13 @@ import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
 
 /**
  * Test case for MySQL 5 plugin
- * 
+ *
  * @author frankchen
  */
 public class MySql5PluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
-    protected IPlugin getPlugin() {
-        return new MySql5Plugin();
+    protected IPlugin[] getPlugins() {
+        return new IPlugin[]{new MySql5Plugin()};
     }
 
     @Override
