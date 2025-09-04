@@ -59,6 +59,19 @@ jobs:
       - name: Compilation
         run: mvn clean install -T 1C -ntp --activate-profiles agent,component -Dmaven.javadoc.skip=true -DskipTests
 
+      - name: Verify agent distribution was built
+        run: |
+          if [ -f "agent/agent-distribution/target/agent-distribution.zip" ]; then
+            echo "✅ Agent distribution built successfully: $(ls -la agent/agent-distribution/target/agent-distribution.zip)"
+          else
+            echo "❌ Agent distribution not found after build!"
+            echo "Contents of agent/agent-distribution/target/:"
+            ls -la agent/agent-distribution/target/ || echo "Directory doesn't exist"
+            echo "Available ZIP files in project:"
+            find . -name "*.zip" -type f
+            exit 1
+          fi
+
       - name: Set artifact info
         id: artifact-info
         run: echo "name=build-artifacts-${{ github.run_id }}" >> $GITHUB_OUTPUT
@@ -157,6 +170,15 @@ jobs:
         with:
           name: ${{ needs.build.outputs.artifact-name }}
 
+      - name: Debug downloaded artifacts structure
+        run: |
+          echo "=== Root directory contents ==="
+          ls -la
+          echo "=== Looking for agent-distribution.zip anywhere ==="
+          find . -name "*agent-distribution*" -type f
+          echo "=== Directory structure (first 3 levels) ==="
+          find . -maxdepth 3 -type d | sort
+
       - name: Restore Maven repository
         run: |
           if [ -d ".m2/repository" ]; then
@@ -165,13 +187,33 @@ jobs:
             echo "✅ Maven repository restored for release"
           fi
 
-      - name: Verify agent distribution exists
+      - name: Find agent distribution and set path
+        id: find-agent-zip
         run: |
-          if [ ! -f "agent/agent-distribution/target/agent-distribution.zip" ]; then
-            echo "Error: agent-distribution.zip not found!"
-            exit 1
+          # Check the expected path first
+          if [ -f "agent/agent-distribution/target/agent-distribution.zip" ]; then
+            AGENT_ZIP_PATH="agent/agent-distribution/target/agent-distribution.zip"
+            echo "✅ Found agent distribution at expected path: $AGENT_ZIP_PATH"
+          else
+            # Search for the file anywhere if not found at expected location
+            AGENT_ZIP_PATH=$(find . -name "agent-distribution.zip" -type f | head -1)
+            if [ -n "$AGENT_ZIP_PATH" ]; then
+              echo "✅ Found agent distribution at: $AGENT_ZIP_PATH"
+              # Remove leading ./ if present
+              AGENT_ZIP_PATH=${AGENT_ZIP_PATH#./}
+            else
+              echo "❌ Error: agent-distribution.zip not found anywhere!"
+              echo "=== Available ZIP files: ==="
+              find . -name "*.zip" -type f
+              echo "=== Contents of agent/agent-distribution/target/: ==="
+              ls -la agent/agent-distribution/target/ || echo "Directory doesn't exist"
+              exit 1
+            fi
           fi
-          echo "✅ Agent distribution verified: $(ls -la agent/agent-distribution/target/agent-distribution.zip)"
+          
+          echo "agent-zip-path=$AGENT_ZIP_PATH" >> $GITHUB_OUTPUT
+          echo "Final path: $AGENT_ZIP_PATH"
+          ls -la "$AGENT_ZIP_PATH"
 
       #
       # Follow steps are for release, we only enable them for changes on the master branch
@@ -194,4 +236,4 @@ jobs:
           release_name: agent-distribution-latest
           tag: agent-distribution-latest
           asset_name: agent-distribution.zip
-          file: agent/agent-distribution/target/agent-distribution.zip
+          file: ${{ steps.find-agent-zip.outputs.agent-zip-path }}
