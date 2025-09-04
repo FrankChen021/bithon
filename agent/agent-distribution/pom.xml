@@ -357,15 +357,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
-        <configuration>
-          <descriptors>
-            <descriptor>assemble-distribution.xml</descriptor>
-          </descriptors>
-          <tarLongFileMode>posix</tarLongFileMode>
-          <appendAssemblyId>false</appendAssemblyId>
-          <!-- Only attach archive formats -->
-          <attach>false</attach>
-        </configuration>
         <executions>
           <!-- 1. Create plugin assembly (phase: prepare-package) -->
           <execution>
@@ -384,10 +375,46 @@
               <appendAssemblyId>true</appendAssemblyId>
             </configuration>
           </execution>
+          <!-- 2. Create main distribution -->
+          <execution>
+            <id>make-distribution</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>assemble-distribution.xml</descriptor>
+              </descriptors>
+              <tarLongFileMode>posix</tarLongFileMode>
+              <appendAssemblyId>false</appendAssemblyId>
+              <attach>false</attach>
+            </configuration>
+          </execution>
+          <!-- 3. Create archives and attach them -->
+          <execution>
+            <id>make-archives</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>assemble-distribution.xml</descriptor>
+              </descriptors>
+              <tarLongFileMode>posix</tarLongFileMode>
+              <appendAssemblyId>false</appendAssemblyId>
+              <formats>
+                <format>zip</format>
+                <format>tar</format>
+              </formats>
+              <attach>true</attach>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
 
-      <!-- 2. Merge interceptor properties files after plugin assembly -->
+      <!-- Merge interceptor properties files after plugin assembly -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
@@ -441,50 +468,6 @@
         </executions>
       </plugin>
 
-      <!-- 3. Assembly plugin executions that run after merge -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <!-- Create main distribution -->
-          <execution>
-            <id>make-distribution</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>assemble-distribution.xml</descriptor>
-              </descriptors>
-              <tarLongFileMode>posix</tarLongFileMode>
-              <appendAssemblyId>false</appendAssemblyId>
-              <attach>false</attach>
-            </configuration>
-          </execution>
-
-          <!-- Create archives and attach them -->
-          <execution>
-            <id>make-archives</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>assemble-distribution.xml</descriptor>
-              </descriptors>
-              <tarLongFileMode>posix</tarLongFileMode>
-              <appendAssemblyId>false</appendAssemblyId>
-              <formats>
-                <format>zip</format>
-                <format>tar</format>
-              </formats>
-              <attach>true</attach>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
 
       <!-- license checking -->
       <plugin>
