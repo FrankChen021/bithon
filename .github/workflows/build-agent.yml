@@ -68,6 +68,8 @@ jobs:
         with:
           name: ${{ steps.artifact-info.outputs.name }}
           path: |
+            **/target/classes/**
+            **/target/test-classes/**
             **/target/**/*.jar
             **/target/**/*.zip
             **/pom.xml
@@ -140,9 +142,25 @@ jobs:
             exit 1
           fi
 
-      # Execute UT with the current JDK version - skip install since we have artifacts
+      - name: Verify test classes are available
+        run: |
+          echo "🔍 Checking for compiled test classes..."
+          if [ -d "agent/agent-plugins-test/target/test-classes" ]; then
+            echo "✅ Test classes found: $(find agent/agent-plugins-test/target/test-classes -name "*.class" | wc -l) class files"
+          else
+            echo "❌ No test classes found in agent-plugins-test"
+            exit 1
+          fi
+          
+          echo "🔍 Checking other agent modules..."
+          find agent -name "test-classes" -type d | while read dir; do
+            count=$(find "$dir" -name "*.class" 2>/dev/null | wc -l)
+            echo "✅ $dir: $count test class files"
+          done
+
+      # Execute UT with the current JDK version - skip compilation since artifacts are pre-compiled
       - name: Run tests with JDK ${{ matrix.java-version }}
-        run: mvn test -P-server -ntp
+        run: mvn surefire:test -pl agent -P-server -ntp
 
   release:
     needs: [build, test]
