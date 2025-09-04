@@ -72,6 +72,7 @@ jobs:
             **/target/**/*.zip
             **/pom.xml
             pom.xml
+            ~/.m2/repository
           retention-days: 1
 
   test:
@@ -98,9 +99,20 @@ jobs:
         with:
           name: ${{ needs.build.outputs.artifact-name }}
 
-      # Execute UT with the current JDK version
+      - name: Restore Maven repository
+        run: |
+          if [ -d ".m2/repository" ]; then
+            mkdir -p ~/.m2
+            cp -r .m2/repository ~/.m2/
+            echo "✅ Maven repository restored"
+          else
+            echo "❌ No Maven repository found in artifacts"
+            exit 1
+          fi
+
+      # Execute UT with the current JDK version - skip install since we have artifacts
       - name: Run tests with JDK ${{ matrix.java-version }}
-        run: mvn surefire:test -P-server
+        run: mvn surefire:test -P-server -Dmaven.test.dependency.excludes="**/target/**"
 
   release:
     needs: [build, test]
@@ -112,6 +124,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ needs.build.outputs.artifact-name }}
+
+      - name: Restore Maven repository
+        run: |
+          if [ -d ".m2/repository" ]; then
+            mkdir -p ~/.m2
+            cp -r .m2/repository ~/.m2/
+            echo "✅ Maven repository restored for release"
+          fi
 
       - name: Verify agent distribution exists
         run: |
