@@ -38,7 +38,7 @@ public class LettucePluginInterceptorTest extends AbstractPluginInterceptorTest 
         return MavenArtifactClassLoader.create(
             MavenArtifact.of("io.lettuce",
                              "lettuce-core",
-                             "6.8.0.RELEASE"),
+                             "6.3.0.RELEASE"),
 
             MavenArtifact.of("io.netty",
                              "netty-transport",
@@ -61,10 +61,10 @@ public class LettucePluginInterceptorTest extends AbstractPluginInterceptorTest 
                              "5.3.13"),
             MavenArtifact.of("org.springframework.data",
                              "spring-data-commons",
-                             "3.3.13"),
+                             "2.7.18"),
             MavenArtifact.of("org.springframework.data",
                              "spring-data-redis",
-                             "3.3.13"),
+                             "2.7.18"),
             MavenArtifact.of("org.springframework",
                              "spring-tx",
                              "5.3.13")
