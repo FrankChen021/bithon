@@ -23,6 +23,8 @@ import java.util.Collection;
  * @date 15/11/23 3:41 pm
  */
 public interface ILoadBalancer {
+    LoadBalancerStrategy getStrategyName();
+
     int nextShard(int writtenRows);
 
     void update(Collection<Shard> shards);

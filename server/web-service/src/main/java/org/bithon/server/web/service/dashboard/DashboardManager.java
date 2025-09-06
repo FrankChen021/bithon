@@ -139,8 +139,8 @@ public class DashboardManager implements SmartLifecycle {
         }
     }
 
-    public Dashboard getDashboard(String boardName) {
-        return dashboards.get(boardName);
+    public Dashboard getDashboard(String id) {
+        return dashboards.get(id);
     }
 
     public List<Dashboard> getDashboards() {

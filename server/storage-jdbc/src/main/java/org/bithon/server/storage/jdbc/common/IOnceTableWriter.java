@@ -23,10 +23,10 @@ import org.jooq.ConnectionRunnable;
  * @date 2024/1/15 22:47
  */
 public interface IOnceTableWriter extends ConnectionRunnable {
-    String getTable();
+    String getTableName();
 
     /**
      * Get the size of the inserted batch
      */
-    int getInsertSize();
+    int getInsertRows();
 }

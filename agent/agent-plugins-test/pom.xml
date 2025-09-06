@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.bithon.agent</groupId>
+    <artifactId>agent-all</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>agent-plugins-test</artifactId>
+  <name>agent-plugins-test</name>
+  <description>Comprehensive test suite for all agent plugins</description>
+
+  <dependencies>
+    <!-- Core agent dependencies for testing framework -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-instrumentation</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-observability</artifactId>
+    </dependency>
+
+    <!-- ByteBuddy for instrumentation -->
+    <dependency>
+      <groupId>org.bithon.shaded</groupId>
+      <artifactId>shaded-bytebuddy</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <!-- JUnit dependencies - needed at compile time since PluginTestFramework uses them -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Mockito for testing -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-inline</artifactId>
+      <version>4.11.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Guava utility library -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>32.1.2-jre</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Maven Resolver for artifact resolution -->
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-api</artifactId>
+      <version>1.9.18</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-spi</artifactId>
+      <version>1.9.18</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-util</artifactId>
+      <version>1.9.18</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-impl</artifactId>
+      <version>1.9.18</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-connector-basic</artifactId>
+      <version>1.9.18</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-transport-http</artifactId>
+      <version>1.9.18</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-resolver-provider</artifactId>
+      <version>3.9.6</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Logging dependencies -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.36</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.2.13</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Apache Druid -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-druid</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Apache Ozone -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-ozone</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Spring Plugins -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-spring-webflux</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-spring-webmvc</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-spring-bean</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Apache HTTP Client Plugins -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-httpclient-apache-httpcomponents4</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-httpclient-apache-httpcomponents5</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- okhttp3.2 -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-httpclient-okhttp-3.2</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-httpclient-jdk</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+
+    <!-- HTTP Server Plugins -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-httpserver-jetty</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-httpserver-tomcat</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Database Plugins -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-jdbc-mysql5</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-jdbc-mysql6</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-jdbc-mysql8</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Kafka -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-kafka</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-kafka-0.10</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-kafka-0.10.2</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-kafka-0.11</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-kafka-2.7</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-kafka-3.7</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-kafka-3.9</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- MongoDB Plugins -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-mongodb</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-grpc</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Redis Plugins -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-redis-jedis-2.x</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-redis-jedis-3.x</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-redis-jedis-4.x</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-redis-lettuce-5.x</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-redis-redisson</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.5.3</version>
+        <configuration>
+          <forkCount>1</forkCount>
+          <reuseForks>false</reuseForks>
+          <argLine>
+            -Xmx2048m
+            -Djdk.attach.allowAttachSelf=true
+          </argLine>
+          <trimStackTrace>false</trimStackTrace>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

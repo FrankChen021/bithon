@@ -241,8 +241,8 @@ public class PluginMetadataProcessor extends AbstractProcessor {
                 return;
             }
             if (interceptorTypes.isEmpty()) {
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                                                         "No interceptors found, but plugin class found.");
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING,
+                                                         String.format(Locale.ENGLISH, "No interceptors found, but plugin class [%s] found.", pluginClass));
                 return;
             }
         }

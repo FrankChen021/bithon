@@ -56,12 +56,12 @@ class MetricTableWriter implements IOnceTableWriter {
     }
 
     @Override
-    public String getTable() {
+    public String getTableName() {
         return table.getName();
     }
 
     @Override
-    public int getInsertSize() {
+    public int getInsertRows() {
         return inputRowList.size();
     }
 

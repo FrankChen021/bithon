@@ -19,6 +19,7 @@ package org.bithon.server.storage.jdbc.clickhouse;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.storage.jdbc.clickhouse.lb.LoadBalancerStrategy;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -75,13 +76,22 @@ public class ClickHouseConfig {
      */
     private String createTableSettings;
 
+    /**
+     * runtime property
+     */
     @JsonIgnore
     private String database;
 
     /**
      * a runtime property
      */
+    @JsonIgnore
     private String tableEngine;
+
+    /**
+     * least/random
+     */
+    private LoadBalancerStrategy loadBalancingPolicy = LoadBalancerStrategy.LEAST_ROWS;
 
     public void afterPropertiesSet() throws URISyntaxException {
         if (!StringUtils.hasText(engine)) {

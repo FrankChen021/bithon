@@ -47,19 +47,15 @@ import java.util.Set;
  */
 @Slf4j
 public class LoadBalanceReviseTask extends PeriodicTask {
-    private static volatile LoadBalanceReviseTask instance;
+    private static final Map<String, LoadBalanceReviseTask> TASK = new HashMap<>();
 
-    public static LoadBalanceReviseTask getInstance(ClickHouseConfig clickHouseConfig) {
-        if (instance == null) {
-            synchronized (LoadBalanceReviseTask.class) {
-                if (instance != null) {
-                    return instance;
-                }
-                instance = new LoadBalanceReviseTask(clickHouseConfig);
-                instance.start();
-            }
-        }
-        return instance;
+    public static synchronized LoadBalanceReviseTask getInstance(ClickHouseConfig clickHouseConfig) {
+        LoadBalanceReviseTask task = TASK.computeIfAbsent(clickHouseConfig.getUrl(), v -> new LoadBalanceReviseTask(clickHouseConfig));
+
+        // Safe to call multiple times
+        task.start();
+
+        return task;
     }
 
     private final ClickHouseConfig clickHouseConfig;
@@ -68,7 +64,7 @@ public class LoadBalanceReviseTask extends PeriodicTask {
     private Map<String, Collection<Shard>> shardSnapshot = Collections.emptyMap();
 
     private LoadBalanceReviseTask(ClickHouseConfig clickHouseConfig) {
-        super("size-update", Duration.ofMinutes(5), true);
+        super("size-update-" + clickHouseConfig.getCluster(), Duration.ofMinutes(5), true);
         this.clickHouseConfig = clickHouseConfig;
     }
 
@@ -146,16 +142,44 @@ public class LoadBalanceReviseTask extends PeriodicTask {
 
     private Map<String, Map<Integer, Shard>> getTableSize(Connection connection) {
         Map<String, Map<Integer, Shard>> records = new HashMap<>();
-        try (PreparedStatement statement = connection.prepareStatement(StringUtils.format("SELECT\n" +
-                                                                                              "        table,\n" +
-                                                                                              "        shardNum() as shard_num,\n" +
-                                                                                              "        sum(bytes_on_disk) as bytes_on_disk,\n" +
-                                                                                              "        sum(rows) as rows\n" +
-                                                                                              "    FROM cluster('%s', system.parts) WHERE database = '%s' and active\n" +
-                                                                                              "    GROUP BY table, shard_num\n" +
-                                                                                              "    SETTINGS max_threads = 1\n",
-                                                                                          clickHouseConfig.getCluster(),
-                                                                                          clickHouseConfig.getDatabase()))) {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                                                                           SELECT
+                                                                             t.table,
+                                                                             s.shard_num,
+                                                                             COALESCE(sz.bytes_on_disk, 0) AS bytes_on_disk,
+                                                                             COALESCE(sz.rows, 0)          AS rows
+                                                                           FROM
+                                                                             /* all distinct tables that have at least one active part somewhere */
+                                                                             (
+                                                                               SELECT DISTINCT table
+                                                                               FROM cluster('{cluster}', system.parts)
+                                                                               WHERE database = '{database}' AND active
+                                                                             ) AS t
+                                                                           CROSS JOIN
+                                                                             /* all shards in the cluster */
+                                                                             (
+                                                                               SELECT DISTINCT shard_num
+                                                                               FROM system.clusters
+                                                                               WHERE cluster = '{cluster}'
+                                                                             ) AS s
+                                                                           LEFT JOIN
+                                                                             /* per-(table, shard) stats */
+                                                                             (
+                                                                               SELECT
+                                                                                 table,
+                                                                                 shardNum() AS shard_num,
+                                                                                 sum(bytes_on_disk) AS bytes_on_disk,
+                                                                                 sum(rows)          AS rows
+                                                                               FROM cluster('{cluster}', system.parts)
+                                                                               WHERE database = '{database}' AND active
+                                                                               GROUP BY table, shard_num
+                                                                               SETTINGS max_threads = 1
+                                                                             ) AS sz
+                                                                             ON sz.table = t.table AND sz.shard_num = s.shard_num
+                                                                           ORDER BY t.table, s.shard_num;
+                                                                           """
+                                                                           .replace("{cluster}", clickHouseConfig.getCluster())
+                                                                           .replace("{database}", clickHouseConfig.getDatabase()))) {
             ResultSet rs = statement.executeQuery();
             while (rs.next()) {
                 String table = rs.getString(1);
@@ -175,9 +199,5 @@ public class LoadBalanceReviseTask extends PeriodicTask {
     @Override
     protected void onException(Exception e) {
         log.error("Failed to update table size", e);
-    }
-
-    @Override
-    protected void onStopped() {
     }
 }

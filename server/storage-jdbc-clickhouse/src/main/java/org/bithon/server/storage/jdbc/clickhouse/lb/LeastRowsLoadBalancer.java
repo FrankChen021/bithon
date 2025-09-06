@@ -26,8 +26,13 @@ import java.util.PriorityQueue;
  * @author Frank Chen
  * @date 15/11/23 3:42 pm
  */
-public class LeastRowsLoadBalancer implements ILoadBalancer {
+class LeastRowsLoadBalancer implements ILoadBalancer {
     private PriorityQueue<Shard> shards = newShards();
+
+    @Override
+    public LoadBalancerStrategy getStrategyName() {
+        return LoadBalancerStrategy.LEAST_ROWS;
+    }
 
     @Override
     public synchronized int nextShard(int writtenRows) {

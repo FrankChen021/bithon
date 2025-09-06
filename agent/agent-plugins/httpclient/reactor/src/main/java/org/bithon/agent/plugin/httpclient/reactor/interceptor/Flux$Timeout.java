@@ -21,6 +21,8 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterc
 import org.reactivestreams.Publisher;
 
 /**
+ * {@link reactor.core.publisher.Flux}
+ *
  * @author frank.chen021@outlook.com
  * @date 29/11/21 3:35 pm
  */
