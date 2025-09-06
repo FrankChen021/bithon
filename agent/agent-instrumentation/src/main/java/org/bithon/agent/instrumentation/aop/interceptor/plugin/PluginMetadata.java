@@ -40,11 +40,21 @@ import java.util.Map;
  */
 class PluginMetadata {
     final Map<String, InterceptorType> interceptorTypes;
-    final List<String> pluginClassList;
+    final List<PluginInfo> pluginInfoList;
 
-    public PluginMetadata(List<String> pluginClassList, Map<String, InterceptorType> interceptorTypes) {
-        this.pluginClassList = pluginClassList;
+    public PluginMetadata(List<PluginInfo> pluginInfoList, Map<String, InterceptorType> interceptorTypes) {
+        this.pluginInfoList = pluginInfoList;
         this.interceptorTypes = interceptorTypes;
+    }
+
+    static class PluginInfo {
+        final String className;
+        final int minimalJdkVersion;
+
+        public PluginInfo(String className, int minimalJdkVersion) {
+            this.className = className;
+            this.minimalJdkVersion = minimalJdkVersion;
+        }
     }
 
     static class Loader {
@@ -65,13 +75,13 @@ class PluginMetadata {
         /**
          * Parse INI-style properties file to extract plugin classes and interceptor types.
          * Format:
-         * [plugin.class.name]
+         * [plugin.class.name, property1=value1, property2=value2]
          * interceptor.class.name=INTERCEPTOR_TYPE
          *
          */
         private static PluginMetadata load(InputStream inputStream) throws IOException {
             Map<String, InterceptorType> interceptorTypes = new HashMap<>();
-            List<String> pluginClassList = new ArrayList<>();
+            List<PluginInfo> pluginInfoList = new ArrayList<>();
 
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
 
@@ -84,10 +94,11 @@ class PluginMetadata {
                         continue;
                     }
 
-                    // Find plugin class declaration as [plugin.class.name]
+                    // Find plugin class declaration as [plugin.class.name] or [plugin.class.name, properties...]
                     if (line.startsWith("[") && line.endsWith("]")) {
-                        String pluginClass = line.substring(1, line.length() - 1);
-                        pluginClassList.add(pluginClass);
+                        String content = line.substring(1, line.length() - 1);
+                        PluginInfo pluginInfo = parsePluginDeclaration(content);
+                        pluginInfoList.add(pluginInfo);
                         continue;
                     }
 
@@ -106,7 +117,48 @@ class PluginMetadata {
                 }
             }
 
-            return new PluginMetadata(pluginClassList, interceptorTypes);
+            return new PluginMetadata(pluginInfoList, interceptorTypes);
+        }
+
+        /**
+         * Parse a plugin declaration line and extract plugin class name and properties.
+         * Format: plugin.class.name, property1=value1, property2=value2
+         *
+         * @param content The content inside the brackets without the brackets themselves
+         * @return PluginInfo instance with parsed information
+         */
+        private static PluginInfo parsePluginDeclaration(String content) {
+            // Split by comma to separate plugin class name from properties
+            String[] parts = content.split(",");
+            String pluginClass = parts[0].trim();
+
+            //
+            // Process properties if any
+            //
+            int minimalJdkVersion = 0; // Default to 8 if not specified
+            for (int i = 1; i < parts.length; i++) {
+                String property = parts[i].trim();
+                int equalIndex = property.indexOf('=');
+                if (equalIndex > 0) {
+                    String propertyName = property.substring(0, equalIndex).trim();
+                    String propertyValue = property.substring(equalIndex + 1).trim();
+
+                    if ("minimalJdkVersion".equals(propertyName)) {
+                        try {
+                            minimalJdkVersion = Integer.parseInt(propertyValue);
+                        } catch (NumberFormatException e) {
+                            LoggerFactory.getLogger(PluginMetadata.class)
+                                         .warn("Invalid minimalJdkVersion [{}] for plugin [{}]", propertyValue, pluginClass);
+                        }
+                    }
+                    // Future properties can be added here
+                }
+            }
+            if (minimalJdkVersion == 0) {
+                throw new AgentException("Unknown minimalJdkVersion for plugin [%s]. Please report it to agent maintainers.", pluginClass);
+            }
+
+            return new PluginInfo(pluginClass, minimalJdkVersion);
         }
     }
 }

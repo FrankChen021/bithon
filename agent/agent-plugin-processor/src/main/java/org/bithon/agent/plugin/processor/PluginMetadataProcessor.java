@@ -23,6 +23,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterc
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.ReplaceInterceptor;
 
 import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
@@ -37,7 +38,10 @@ import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -55,7 +59,38 @@ public class PluginMetadataProcessor extends AbstractProcessor {
 
     private final Map<String, InterceptorType> interceptorTypes = new HashMap<>();
     private String pluginClass = null;
-    private boolean processed = false;
+    private String minimalJdkVersion = null;
+    private boolean metadataGenerated = false;
+
+    @Override
+    public synchronized void init(ProcessingEnvironment processingEnv) {
+        super.init(processingEnv);
+        // Detect the actual JDK target version being used for compilation
+        minimalJdkVersion = detectJdkVersion(processingEnv);
+        if (minimalJdkVersion == null) {
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Could not determine JDK target version.");
+        }
+    }
+
+    private String detectJdkVersion(ProcessingEnvironment processingEnv) {
+        Map<String, String> options = processingEnv.getOptions();
+        
+        String target = null;
+        
+        // First priority: maven.compiler.release (this overrides both source and target)
+        target = options.get("maven.compiler.release");
+        if (target != null && !"${maven.compiler.release}".equals(target)) {
+            return target;
+        }
+        
+        // Second priority: maven.compiler.target
+        target = options.get("maven.compiler.target");
+        if (target != null) {
+            return target;
+        }
+        
+        return null;
+    }
 
     @Override
     public SourceVersion getSupportedSourceVersion() {
@@ -63,12 +98,26 @@ public class PluginMetadataProcessor extends AbstractProcessor {
     }
 
     @Override
+    public Set<String> getSupportedOptions() {
+        Set<String> options = new HashSet<>();
+        options.add("maven.compiler.target");
+        options.add("maven.compiler.release");
+        return options;
+    }
+
+    @Override
+    public Set<String> getSupportedAnnotationTypes() {
+        // Return "*" to process all annotations and trigger processing of all elements
+        return Collections.singleton("*");
+    }
+
+    @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         if (roundEnv.processingOver()) {
             // Generate the registry class on the final round
-            if (!processed) {
+            if (!metadataGenerated) {
                 generatePluginMetadata();
-                processed = true;
+                metadataGenerated = true;
             }
             return true;
         }
@@ -205,7 +254,7 @@ public class PluginMetadataProcessor extends AbstractProcessor {
             FileObject file = processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", metadataFile);
             try (Writer writer = file.openWriter()) {
                 // Write plugin class section
-                writer.write("[" + this.pluginClass + "]\n");
+                writer.write(String.format(Locale.ENGLISH, "[%s, minimalJdkVersion=%s]\n", this.pluginClass, this.minimalJdkVersion));
 
                 // Generate the interceptor entries under the plugin section
                 for (Map.Entry<String, InterceptorType> entry : interceptorTypes.entrySet()) {

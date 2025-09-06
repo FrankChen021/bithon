@@ -18,10 +18,10 @@ package org.bithon.agent.java.adaptor;
 
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
+import org.bithon.agent.instrumentation.utils.JdkUtils;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
-import java.lang.management.ManagementFactory;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
@@ -43,7 +43,7 @@ public class JavaAdaptorFactory {
         if (!jarDirectory.exists()) {
             throw new AgentException("The adaptor directory: " + jarDirectory.getAbsolutePath() + ". Please report to agent maintainers.");
         }
-        int javaVersion = getJavaVersion();
+        int javaVersion = JdkUtils.CURRENT_JAVA_VERSION;
         for (int detectJavaVersion = javaVersion; detectJavaVersion >= 8; detectJavaVersion--) {
             File adaptorJar = new File(jarDirectory, String.format(Locale.ENGLISH, "agent-java-adaptor-java%d.jar", detectJavaVersion));
             if (!adaptorJar.exists()) {
@@ -78,17 +78,5 @@ public class JavaAdaptorFactory {
         }
 
         throw new AgentException("JavaAdaptorFactory is not created. Please report to agent maintainers.");
-    }
-
-    private static int getJavaVersion() {
-        String specVersion = ManagementFactory.getRuntimeMXBean().getSpecVersion();
-        String[] versionParts = specVersion.split("\\.");
-        if (versionParts[0].equals("1")) {
-            // For Java 1.x (e.g., 1.8)
-            return Integer.parseInt(versionParts[1]);
-        } else {
-            // For Java 9 and above
-            return Integer.parseInt(versionParts[0]);
-        }
     }
 }
