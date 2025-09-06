@@ -443,6 +443,18 @@
                 <loadfile property="plugins.meta.content" srcFile="${project.build.directory}/plugins.meta"/>
                 <echo message="${plugins.meta.content}" level="info"/>
 
+                <!-- Validate the merged plugins.meta file using PluginMetadata.load() -->
+                <echo message="Validating merged plugins.meta file..." level="info"/>
+                <java classname="org.bithon.agent.instrumentation.aop.interceptor.plugin.PluginMetadataValidator"
+                      fork="true"
+                      failonerror="true">
+                  <classpath>
+                    <pathelement path="${basedir}/../agent-instrumentation/target/classes"/>
+                  </classpath>
+                  <!--Directory of metadata file-->
+                  <arg value="${project.build.directory}"/>
+                </java>
+
                 <!-- Clean up -->
                 <delete dir="${project.build.directory}/temp-extract"/>
               </target>

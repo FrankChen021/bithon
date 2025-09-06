@@ -20,7 +20,6 @@ package org.bithon.agent.instrumentation.aop.interceptor.plugin;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorType;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
-import org.bithon.agent.instrumentation.utils.AgentDirectory;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -39,10 +38,15 @@ import java.util.Map;
  * @date 14/8/25 9:13 pm
  */
 class PluginMetadata {
+    /**
+     * All interceptors
+     * key: interceptor class name
+     */
     final Map<String, InterceptorType> interceptorTypes;
     final List<PluginInfo> pluginInfoList;
 
-    public PluginMetadata(List<PluginInfo> pluginInfoList, Map<String, InterceptorType> interceptorTypes) {
+    public PluginMetadata(List<PluginInfo> pluginInfoList,
+                          Map<String, InterceptorType> interceptorTypes) {
         this.pluginInfoList = pluginInfoList;
         this.interceptorTypes = interceptorTypes;
     }
@@ -60,13 +64,12 @@ class PluginMetadata {
     static class Loader {
 
         public static PluginMetadata load(File file) {
-            File pluginMetaFile = new File(AgentDirectory.getSubDirectory("plugins"), "plugins.meta");
-            if (!pluginMetaFile.exists()) {
+            if (!file.exists()) {
                 throw new AgentException("Plugin metadata file not found. Please report it to agent maintainers.");
             }
 
-            try (FileInputStream fileStream = new FileInputStream(pluginMetaFile)) {
-                return load(fileStream);
+            try (FileInputStream fileStream = new FileInputStream(file)) {
+                return parseFromInputStream(fileStream);
             } catch (IOException e) {
                 throw new AgentException("Unable to read plugin metadata file: %s", e.getMessage());
             }
@@ -79,7 +82,7 @@ class PluginMetadata {
          * interceptor.class.name=INTERCEPTOR_TYPE
          *
          */
-        private static PluginMetadata load(InputStream inputStream) throws IOException {
+        static PluginMetadata parseFromInputStream(InputStream inputStream) throws IOException {
             Map<String, InterceptorType> interceptorTypes = new HashMap<>();
             List<PluginInfo> pluginInfoList = new ArrayList<>();
 
