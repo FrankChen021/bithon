@@ -202,7 +202,7 @@ spec:
             # For JDK 8,9,10, use the following value  
             value: "-javaagent:/opt/bithon/agent/agent-main.jar"
             # If the target JDK is Java 11 and above, use the following value
-            # value: "-javaagent:/opt/bithon/agent/agent-main.jar --add-opens=java.base/jdk.internal.misc=ALL-UNNAMED --add-opens=java.base/sun.net.www=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED"
+            # value: "-javaagent:/opt/bithon/agent/agent-main.jar"
           - name: bithon_application_name
             value: CHANGE_TO_YOUR_APPLICATION_NAME
           - name: bithon_application_env

@@ -40,7 +40,8 @@ public class ClassTable extends AbstractBaseTable implements IPushdownPredicateP
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
         return proxyFactory.createBroadcastProxy(executionContext.getParameters(), IJvmCommand.class)
                            .getLoadedClassList()
-                           .stream().map(IJvmCommand.ClassInfo::toObjects)
+                           .stream()
+                           .map(IJvmCommand.ClassInfo::toObjects)
                            .collect(Collectors.toList());
     }
 

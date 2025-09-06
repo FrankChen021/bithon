@@ -108,6 +108,9 @@
             <arg>-Xlint:-options</arg>
             <!-- Suppress all warnings to avoid internal API warnings -->
             <arg>-Xlint:none</arg>
+            <!-- Pass compiler configuration to annotation processor -->
+            <arg>-Amaven.compiler.target=${maven.compiler.target}</arg>
+            <arg>-Amaven.compiler.release=${maven.compiler.release}</arg>
           </compilerArgs>
         </configuration>
       </plugin>

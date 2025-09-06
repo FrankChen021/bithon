@@ -17,8 +17,10 @@
 package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
+import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
+import org.bithon.agent.java.adaptor.JavaAdaptorFactory;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -32,6 +34,15 @@ import sun.net.www.MessageHeader;
  * @author frankchen
  */
 public class HttpClient$WriteRequests extends BeforeInterceptor {
+
+    public HttpClient$WriteRequests() {
+        JavaAdaptorFactory.getAdaptor()
+                          .openPackages(InstrumentationHelper.getInstance(),
+                                        Object.class,
+                                        "sun.net.www",
+                                        HttpClient$WriteRequests.class
+                          );
+    }
 
     @Override
     public void before(AopContext aopContext) {

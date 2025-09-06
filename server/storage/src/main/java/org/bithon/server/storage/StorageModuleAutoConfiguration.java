@@ -21,6 +21,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import com.fasterxml.jackson.databind.node.TextNode;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.provider.StorageProviderManager;
 import org.bithon.server.storage.dashboard.DashboardStorageConfig;
@@ -230,25 +233,46 @@ public class StorageModuleAutoConfiguration {
 
         // load or update schemas
         try {
-            Resource[] resources = new PathMatchingResourcePatternResolver()
-                .getResources("classpath:/dashboard/*.json");
-            for (Resource resource : resources) {
+            Resource[] resources = new PathMatchingResourcePatternResolver().getResources("classpath:/dashboard/**/*.json");
 
-                JsonNode dashboard = om.readTree(resource.getInputStream());
-                JsonNode nameNode = dashboard.get("name");
-                if (nameNode == null) {
-                    throw new RuntimeException(StringUtils.format("dashboard [%s] miss the name property", resource.getFilename()));
+            for (Resource resource : resources) {
+                JsonNode dashboardJsonNode = om.readTree(resource.getInputStream());
+                JsonNode idNode = dashboardJsonNode.get("id");
+                if (!(idNode instanceof TextNode id)) {
+                    throw new RuntimeException(StringUtils.format("dashboard [%s] id is invalid", resource.getFilename()));
                 }
 
-                String name = nameNode.asText();
+                String name = id.asText();
                 if (StringUtils.isEmpty(name)) {
-                    throw new RuntimeException(StringUtils.format("dashboard [%s] has empty name property", resource.getFilename()));
+                    throw new RuntimeException(StringUtils.format("dashboard [%s] has empty id property", resource.getFilename()));
+                }
+
+                // Extract folder from resource path
+                String resourcePath = resource.getURI().toString();
+                String folder = "/";
+                int dashboardIndex = resourcePath.indexOf("/dashboard/");
+                if (dashboardIndex != -1) {
+                    String pathAfterDashboard = resourcePath.substring(dashboardIndex + "/dashboard/".length());
+                    int lastSlashIndex = pathAfterDashboard.lastIndexOf('/');
+                    if (lastSlashIndex != -1) {
+                        // There's a subdirectory path, extract everything before the filename
+                        String folderPath = pathAfterDashboard.substring(0, lastSlashIndex);
+                        folder = "/" + folderPath;
+                    }
+                    // If no slash found, folder remains "/" (file directly under /dashboard)
+                }
+
+                // Convert JsonNode to ObjectNode to modify it
+                if (dashboardJsonNode instanceof ObjectNode dashboard) {
+                    dashboard.put("folder", folder);
+                } else {
+                    throw new RuntimeException(StringUtils.format("dashboard [%s] is not a valid JSON object", resource.getFilename()));
                 }
 
                 // deserialize and then serialize again to compact the json string
-                String payload = om.writeValueAsString(dashboard);
+                String payload = om.writeValueAsString(dashboardJsonNode);
 
-                storage.putIfNotExist(nameNode.asText(), payload);
+                storage.putIfNotExist(idNode.asText(), payload);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

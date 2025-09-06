@@ -143,11 +143,11 @@ public class DashboardController {
         }
     }
 
-    @GetMapping("/api/dashboard/get/{name}")
-    public void getDashboard(@PathVariable("name") String name, HttpServletResponse response) throws IOException {
+    @GetMapping("/api/dashboard/get/{id}")
+    public void getDashboard(@PathVariable("id") String id, HttpServletResponse response) throws IOException {
         response.setContentType("application/json");
 
-        Dashboard board = this.dashboardManager.getDashboard(name);
+        Dashboard board = this.dashboardManager.getDashboard(id);
         if (board == null) {
             response.setStatus(HttpStatus.NOT_FOUND.value());
             return;
@@ -178,13 +178,13 @@ public class DashboardController {
             return;
         }
 
-        JsonNode nameNode = dashboard.get("name");
-        if (nameNode == null || StringUtils.isBlank(nameNode.asText())) {
-            response.getWriter().println("name is missing.");
+        JsonNode idNode = dashboard.get("id");
+        if (idNode == null || StringUtils.isBlank(idNode.asText())) {
+            response.getWriter().println("id is missing.");
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             return;
         }
 
-        this.dashboardManager.update(nameNode.asText(), objectMapper.writeValueAsString(dashboard));
+        this.dashboardManager.update(idNode.asText(), objectMapper.writeValueAsString(dashboard));
     }
 }

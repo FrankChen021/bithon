@@ -34,7 +34,7 @@ public class MemoryMetricCollector {
                                                                              .findFirst()
                                                                              .get();
 
-    private static DirectMemoryCollector directMemoryCollector;
+    private static volatile DirectMemoryCollector directMemoryCollector;
 
     public static MemoryMetrics collectTotal() {
         return new MemoryMetrics(Runtime.getRuntime().totalMemory(),
@@ -54,11 +54,13 @@ public class MemoryMetricCollector {
     }
 
     public static MemoryRegionMetrics collectDirectMemory() {
+        if (directMemoryCollector == null) {
+            synchronized (MemoryMetricCollector.class) {
+                if (directMemoryCollector == null) {
+                    directMemoryCollector = new DirectMemoryCollector();
+                }
+            }
+        }
         return directMemoryCollector.collect();
-    }
-
-    public static void initDirectMemoryCollector() {
-        // this will throw exception which is intended
-        directMemoryCollector = new DirectMemoryCollector();
     }
 }

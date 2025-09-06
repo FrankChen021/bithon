@@ -74,12 +74,12 @@ public class DashboardStorage extends DashboardJdbcStorage {
     }
 
     @Override
-    public String put(String name, String payload) {
+    public String put(String id, String payload) {
         String signature = HashUtils.sha256Hex(payload);
 
         Timestamp now = new Timestamp(System.currentTimeMillis());
         dslContext.insertInto(Tables.BITHON_WEB_DASHBOARD)
-                  .set(Tables.BITHON_WEB_DASHBOARD.NAME, name)
+                  .set(Tables.BITHON_WEB_DASHBOARD.NAME, id)
                   .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                   .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
                   .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, now.toLocalDateTime())
@@ -90,17 +90,17 @@ public class DashboardStorage extends DashboardJdbcStorage {
     }
 
     @Override
-    public void putIfNotExist(String name, String payload) {
+    public void putIfNotExist(String id, String payload) {
         String signature = HashUtils.sha256Hex(payload);
 
         if (dslContext.fetchCount(Tables.BITHON_WEB_DASHBOARD,
-                                  Tables.BITHON_WEB_DASHBOARD.NAME.eq(name)) > 0) {
+                                  Tables.BITHON_WEB_DASHBOARD.NAME.eq(id)) > 0) {
             return;
         }
 
         Timestamp now = new Timestamp(System.currentTimeMillis());
         dslContext.insertInto(Tables.BITHON_WEB_DASHBOARD)
-                  .set(Tables.BITHON_WEB_DASHBOARD.NAME, name)
+                  .set(Tables.BITHON_WEB_DASHBOARD.NAME, id)
                   .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                   .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
                   .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, now.toLocalDateTime())

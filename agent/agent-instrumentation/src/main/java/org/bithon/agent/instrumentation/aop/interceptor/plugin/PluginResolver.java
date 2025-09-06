@@ -26,11 +26,11 @@ import org.bithon.agent.instrumentation.loader.PluginClassLoader;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
+import org.bithon.agent.instrumentation.utils.JdkUtils;
 
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -55,7 +55,7 @@ public abstract class PluginResolver {
         PluginMetadata pluginMeta = PluginMetadata.Loader.load(new File(AgentDirectory.getSubDirectory("plugins"), "plugins.meta"));
 
         // Load plugins
-        List<IPlugin> plugins = loadPlugins(pluginMeta.pluginClassList);
+        List<IPlugin> plugins = loadPlugins(pluginMeta.pluginInfoList);
 
         Descriptors descriptors = new Descriptors();
         for (IPlugin plugin : plugins) {
@@ -74,27 +74,36 @@ public abstract class PluginResolver {
         return descriptors;
     }
 
-    private List<IPlugin> loadPlugins(List<String> pluginClassList) {
+    private List<IPlugin> loadPlugins(List<PluginMetadata.PluginInfo> pluginInfoList) {
         // If we have known plugin classes from the INI file, use them directly
-        if (pluginClassList.isEmpty()) {
+        if (pluginInfoList.isEmpty()) {
             throw new AgentException("Can't find plugins. Please report it to agent maintainers. ");
         }
 
         JarClassLoader pluginClassLoader = (JarClassLoader) PluginClassLoader.getClassLoader();
-        return pluginClassList.stream()
-                              .sorted() // Load plugins by alphabetic order
-                              .map(pluginClassName -> loadPluginByClassName(pluginClassName, pluginClassLoader))
-                              .filter(Objects::nonNull)
-                              .collect(Collectors.toList());
+        return pluginInfoList.stream()
+                             .sorted(Comparator.comparing(p -> p.className)) // Load plugins by alphabetic order
+                             .map(pluginInfo -> loadPluginByClassName(pluginInfo, pluginClassLoader))
+                             .filter(Objects::nonNull)
+                             .collect(Collectors.toList());
     }
 
     /**
      * Load plugin by class name (optimized path when using INI file)
      */
-    private IPlugin loadPluginByClassName(String pluginFullClassName, JarClassLoader pluginClassLoader) {
+    private IPlugin loadPluginByClassName(PluginMetadata.PluginInfo pluginInfo, JarClassLoader pluginClassLoader) {
+        String pluginFullClassName = pluginInfo.className;
         // A readable name for this plugin, so that users can use this name to disable one plugin
         String packageName = pluginFullClassName.substring(0, pluginFullClassName.lastIndexOf('.'));
         String pluginName = packageName.substring("org.bithon.agent.plugin.".length());
+
+        // Check if plugin has a minimal JDK version requirement
+        if (JdkUtils.CURRENT_JAVA_VERSION < pluginInfo.minimalJdkVersion) {
+            LOG.info("Found plugin [{}], but skipped because plugin requires JRE {} and above, current JRE is {}",
+                     pluginName, pluginInfo.minimalJdkVersion,
+                     JdkUtils.CURRENT_JAVA_VERSION);
+            return null;
+        }
 
         try {
             Class<?> pluginClass = Class.forName(pluginFullClassName, true, pluginClassLoader);
@@ -115,28 +124,7 @@ public abstract class PluginResolver {
 
             return plugin;
         } catch (ClassFormatError t) {
-            //
-            // Some plugins only works for a specific JDK version, when the plugin is not compatible with the current JDK,
-            // we give a more clear information about it
-            //
-            int classFileMajorVersion = -1;
-            String jarEntryName = pluginFullClassName.replace('.', '/') + ".class";
-            try (DataInputStream dataInputStream = new DataInputStream(pluginClassLoader.getResourceAsStream(jarEntryName))) {
-                int magic = dataInputStream.readInt();
-                if (magic == 0xCAFEBABE) {
-                    // class file minor version
-                    dataInputStream.readUnsignedShort();
-                    classFileMajorVersion = dataInputStream.readUnsignedShort();
-                }
-            } catch (IOException ignored) {
-            }
-            if (classFileMajorVersion == -1) {
-                LOG.error("Found plugin [{}], but skipped due to unrecognizable plugin class file version: [{}]. Please report it to agent maintainers.", pluginName, t.getMessage());
-            } else {
-                LOG.info("Found plugin [{}], but skipped because plugin requires JDK {} and above",
-                         pluginName,
-                         classFileMajorVersion - 44);
-            }
+            LOG.error("Found plugin [{}], but skipped due to unrecognizable plugin class file version: [{}]. Please report it to agent maintainers.", pluginName, t.getMessage());
             return null;
         } catch (Throwable e) {
             LOG.error(String.format(Locale.ENGLISH, "Failed to load plugin [%s]. Please report it to agent maintainers.", pluginName), e);

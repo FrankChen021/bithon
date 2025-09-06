@@ -32,7 +32,7 @@ public class CpuMetricCollector {
     private final Delta processCpuTime = new Delta(JmxBeans.OS_BEAN.getProcessCpuTime());
 
     /**
-     * in milli-seconds
+     * in milliseconds
      */
     private final Delta processUpTime = new Delta(JmxBeans.RUNTIME_BEAN.getUptime());
 

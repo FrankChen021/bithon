@@ -39,8 +39,6 @@ public class JvmMetricCollector {
     private CpuMetricCollector cpuMetricCollector;
 
     public void start() {
-        MemoryMetricCollector.initDirectMemoryCollector();
-
         cpuMetricCollector = new CpuMetricCollector();
 
         //

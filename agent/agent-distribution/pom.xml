@@ -41,6 +41,16 @@
       <artifactId>agent-instrumentation</artifactId>
     </dependency>
 
+    <!-- Java Adaptor modules for JDK compatibility -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-java-adaptor-java8</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-java-adaptor-java9</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-sentinel</artifactId>
@@ -459,6 +469,18 @@
                 <echo message="Generated plugins.meta content:" level="info"/>
                 <loadfile property="plugins.meta.content" srcFile="${project.build.directory}/plugins.meta"/>
                 <echo message="${plugins.meta.content}" level="info"/>
+
+                <!-- Validate the merged plugins.meta file using PluginMetadata.load() -->
+                <echo message="Validating merged plugins.meta file..." level="info"/>
+                <java classname="org.bithon.agent.instrumentation.aop.interceptor.plugin.PluginMetadataValidator"
+                      fork="true"
+                      failonerror="true">
+                  <classpath>
+                    <pathelement path="${basedir}/../agent-instrumentation/target/classes"/>
+                  </classpath>
+                  <!--Directory of metadata file-->
+                  <arg value="${project.build.directory}"/>
+                </java>
 
                 <!-- Clean up -->
                 <delete dir="${project.build.directory}/temp-extract"/>
