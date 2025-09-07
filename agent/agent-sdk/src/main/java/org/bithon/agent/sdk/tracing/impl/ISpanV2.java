@@ -14,16 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.sdk.tracing;
+package org.bithon.agent.sdk.tracing.impl;
 
 
-import org.bithon.agent.sdk.tracing.impl.ISpanV1;
-import org.bithon.agent.sdk.tracing.impl.ISpanV2;
+import org.bithon.agent.sdk.tracing.ISpan;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 8/5/25 5:46 pm
+ * @date 7/9/25 6:24 pm
  */
-public interface ISpan extends ISpanV1, ISpanV2 {
+public interface ISpanV2 {
+    /**
+     * Set current thread info {thread.name, thread.id} to this span
+     */
+    default ISpan setThreadToTags() {
+        return setThreadToTags(Thread.currentThread());
+    }
 
+    ISpan setThreadToTags(Thread thread);
 }

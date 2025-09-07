@@ -21,6 +21,7 @@ import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.sdk.tracing.ISpan;
 import org.bithon.agent.sdk.tracing.SpanKind;
 import org.bithon.agent.sdk.tracing.impl.ISpanV1;
+import org.bithon.component.commons.tracing.Tags;
 
 import java.lang.reflect.Executable;
 import java.net.InetSocketAddress;
@@ -217,5 +218,12 @@ public class SpanImpl implements ISpan {
     @Override
     public void close() {
         delegate.finish();
+    }
+
+    @Override
+    public ISpan setThreadToTags(Thread thread) {
+        delegate.tag(Tags.Thread.ID, thread.getId())
+                .tag(Tags.Thread.NAME, thread.getName());
+        return this;
     }
 }

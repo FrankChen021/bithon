@@ -14,60 +14,55 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.sdk.tracing;
+package org.bithon.agent.sdk.tracing.impl;
+
+
+import org.bithon.agent.sdk.tracing.ISpan;
+import org.bithon.agent.sdk.tracing.ITraceScope;
+import org.bithon.agent.sdk.tracing.TracingMode;
 
 /**
- * Represents a tracing scope that can be safely passed between threads
- * and provides context management for cross-thread tracing operations.
- * 
  * @author frank.chen021@outlook.com
- * @date 2025/09/09 15:32
+ * @date 7/9/25 3:48 pm
  */
-public interface TraceScope extends AutoCloseable {
-    
+public interface ITraceScopeV1 extends AutoCloseable {
+
     /**
      * Gets the trace ID associated with this scope
      * @return the trace ID, or null if not available
      */
-    String getTraceId();
-    
-    /**
-     * Gets the span ID associated with this scope
-     * @return the span ID, or null if not available
-     */
-    String getSpanId();
-    
+    String currentTraceId();
+
     /**
      * Gets the tracing mode for this scope
      * @return the tracing mode
      */
-    TracingMode getTracingMode();
-    
+    TracingMode tracingMode();
+
     /**
      * Attaches this scope's context to the current thread
      * @return this scope for method chaining
      */
-    TraceScope attach();
-    
+    ITraceScope attach();
+
     /**
-     * Detaches this scope's context from the current thread
+     * Attaches this scope's context to the current thread with option to start the root span
+     * @param startSpan whether to start the root span when attaching
      * @return this scope for method chaining
      */
-    TraceScope detach();
-    
+    ITraceScope attach(boolean startSpan);
+
     /**
-     * Creates a new child span within this scope
-     * @param operationName the name of the operation
-     * @return a new span, or a no-op span if tracing is not available
+     * Detaches this scope's context from the current thread
      */
-    ISpan startSpan(String operationName);
-    
+    void detach();
+
     /**
      * Gets the underlying span for direct manipulation
      * @return the underlying span, or a no-op span if not available
      */
-    ISpan getSpan();
-    
+    ISpan currentSpan();
+
     /**
      * Finishes the underlying span and detaches from current thread
      */

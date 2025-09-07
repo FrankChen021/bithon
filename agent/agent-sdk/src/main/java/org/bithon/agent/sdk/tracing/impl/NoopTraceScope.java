@@ -17,55 +17,49 @@
 package org.bithon.agent.sdk.tracing.impl;
 
 import org.bithon.agent.sdk.tracing.ISpan;
-import org.bithon.agent.sdk.tracing.TraceScope;
+import org.bithon.agent.sdk.tracing.ITraceScope;
 import org.bithon.agent.sdk.tracing.TracingMode;
 
 /**
  * No-op implementation of TraceScope used when the agent is not loaded
  * 
  * @author frank.chen021@outlook.com
- * @date 8/5/25 6:30 pm
+ * @date 7/9/25 3:48 pm
  */
-public class NoopTraceScope implements TraceScope {
+public class NoopTraceScope implements ITraceScope {
     public static final NoopTraceScope INSTANCE = new NoopTraceScope();
 
     @Override
-    public String getTraceId() {
+    public String currentTraceId() {
         return "";
     }
 
     @Override
-    public String getSpanId() {
-        return "";
-    }
-
-    @Override
-    public TracingMode getTracingMode() {
+    public TracingMode tracingMode() {
         return TracingMode.LOGGING;
     }
 
     @Override
-    public TraceScope attach() {
+    public ITraceScope attach() {
         return this;
     }
 
     @Override
-    public TraceScope detach() {
-        return this;
+    public void detach() {
     }
 
     @Override
-    public ISpan startSpan(String operationName) {
-        return NoopSpan.INSTANCE;
-    }
-
-    @Override
-    public ISpan getSpan() {
+    public ISpan currentSpan() {
         return NoopSpan.INSTANCE;
     }
 
     @Override
     public void close() {
         // No-op
+    }
+
+    @Override
+    public ITraceScope attach(boolean startSpan) {
+        return this;
     }
 }

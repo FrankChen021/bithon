@@ -62,52 +62,57 @@ public class TraceContext {
     }
 
     /**
-     * Creates a new root span and initializes a tracing context
+     * Creates a new trace scope builder for the given operation.
+     * Use the builder to configure the trace and then call attach() to start tracing.
+     * 
+     * <p>Examples:</p>
+     * <pre>{@code
+     * // Simple root trace
+     * try (ITraceScope scope = TraceContext.newTrace("operation").attach()) {
+     *     // do your work here
+     * }
+     * 
+     * // Root trace with custom tracing mode
+     * try (ITraceScope scope = TraceContext.newTrace("operation")
+     *         .withTracingMode(TracingMode.LOGGING)
+     *         .attach()) {
+     *     // do your work here
+     * }
+     * 
+     * // Cross-thread continuation
+     * String traceId = TraceContext.currentTraceId();
+     * String parentSpanId = TraceContext.currentSpanId();
+     * ITraceScope asyncTrace = TraceContext.newTrace("background-work")
+     *     .withParent(traceId, parentSpanId)
+     *     .attach();
+     * // pass asyncTrace to another thread...
+     * }</pre>
+     * 
      * @param operationName the name of the operation
-     * @return a TraceScope that starts a new trace
+     * @return a TraceScopeBuilder for configuring and creating the trace
      */
-    public static TraceScope newRootSpan(String operationName) {
-        if (shouldLog()) {
-            LOGGER.warning("The agent is not loaded.");
-        }
-        return NoopTraceScope.INSTANCE;
+    public static TraceScopeBuilder newTrace(String operationName) {
+        return new TraceScopeBuilder(operationName);
     }
 
     /**
-     * Creates a new root span with explicit tracing mode
+     * Convenience method to create a trace continuation from the current trace context.
+     * This is equivalent to calling:
+     * <pre>{@code
+     * TraceContext.newTrace(operationName)
+     *     .withParent(TraceContext.currentTraceId(), TraceContext.currentSpanId())
+     * }</pre>
+     * 
      * @param operationName the name of the operation
-     * @param tracingMode the tracing mode to use
-     * @return a TraceScope that starts a new trace
+     * @return a TraceScopeBuilder configured with the current trace context as parent
+     * @throws IllegalStateException if there is no current trace context
      */
-    public static TraceScope newRootSpan(String operationName, TracingMode tracingMode) {
-        if (shouldLog()) {
-            LOGGER.warning("The agent is not loaded.");
+    public static TraceScopeBuilder newTraceFromCurrent(String operationName) {
+        String traceId = currentTraceId();
+        String parentSpanId = currentSpanId();
+        if (traceId == null) {
+            throw new IllegalStateException("No current trace context");
         }
-        return NoopTraceScope.INSTANCE;
-    }
-
-    /**
-     * Creates an async scope that can be safely used across threads
-     * @param operationName the name of the operation
-     * @return a TraceScope for cross-thread tracing
-     */
-    public static TraceScope newAsyncSpan(String operationName) {
-        if (shouldLog()) {
-            LOGGER.warning("The agent is not loaded.");
-        }
-        return NoopTraceScope.INSTANCE;
-    }
-
-    /**
-     * Creates an async scope with explicit tracing mode
-     * @param operationName the name of the operation
-     * @param tracingMode the tracing mode to use
-     * @return a TraceScope for cross-thread tracing
-     */
-    public static TraceScope newAsyncSpan(String operationName, TracingMode tracingMode) {
-        if (shouldLog()) {
-            LOGGER.warning("The agent is not loaded.");
-        }
-        return NoopTraceScope.INSTANCE;
+        return new TraceScopeBuilder(operationName).withParent(traceId, parentSpanId);
     }
 }

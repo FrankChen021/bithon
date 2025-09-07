@@ -16,14 +16,15 @@
 
 package org.bithon.agent.sdk.tracing;
 
-
-import org.bithon.agent.sdk.tracing.impl.ISpanV1;
-import org.bithon.agent.sdk.tracing.impl.ISpanV2;
+import org.bithon.agent.sdk.tracing.impl.ITraceScopeV1;
 
 /**
+ * Represents a tracing scope that can be safely passed between threads
+ * and provides context management for cross-thread tracing operations.
+ * 
  * @author frank.chen021@outlook.com
- * @date 8/5/25 5:46 pm
+ * @date 2025/09/07 15:32
  */
-public interface ISpan extends ISpanV1, ISpanV2 {
+public interface ITraceScope extends ITraceScopeV1 {
 
 }
