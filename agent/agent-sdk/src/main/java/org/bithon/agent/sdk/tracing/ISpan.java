@@ -18,12 +18,11 @@ package org.bithon.agent.sdk.tracing;
 
 
 import org.bithon.agent.sdk.tracing.impl.ISpanV1;
-import org.bithon.agent.sdk.tracing.impl.ISpanV2;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 8/5/25 5:46 pm
  */
-public interface ISpan extends ISpanV1, ISpanV2 {
+public interface ISpan extends ISpanV1 {
 
 }

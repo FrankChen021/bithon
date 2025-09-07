@@ -19,9 +19,12 @@ package org.bithon.agent.plugin.bithon.sdk.tracing.interceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.ReplaceInterceptor;
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 import org.bithon.agent.plugin.bithon.sdk.tracing.TraceScopeImpl;
+import org.bithon.agent.sdk.expt.SdkException;
 import org.bithon.agent.sdk.tracing.TraceScopeBuilder;
 import org.bithon.agent.sdk.tracing.TracingMode;
 import org.bithon.component.commons.utils.StringUtils;
@@ -36,21 +39,33 @@ public class TraceScopeBuilder$Attach extends ReplaceInterceptor {
 
     @Override
     public Object execute(Object thisObject, Object[] args, Object returning) {
+        ITraceContext currentContext = TraceContextHolder.current();
+        if (currentContext != null) {
+            throw new SdkException("There's already a trace context(traceId=%s) attached to the current thread.", currentContext.traceId());
+        }
+
         TraceScopeBuilder builder = (TraceScopeBuilder) thisObject;
         boolean startSpan = (boolean) args[0];
 
-        String traceId = builder.getTraceId();
-        String parentSpanId = builder.getParentSpanId();
+        String traceId = builder.traceId();
+        String parentSpanId = builder.parentSpanId();
         if (StringUtils.isEmpty(traceId) || StringUtils.isEmpty(parentSpanId)) {
             traceId = Tracer.get().traceIdGenerator().newId();
             parentSpanId = "";
         }
 
-        SamplingMode samplingMode = builder.getTracingMode() == TracingMode.TRACING ? SamplingMode.FULL : SamplingMode.NONE;
+        SamplingMode samplingMode = builder.tracingMode() == TracingMode.TRACING ? SamplingMode.FULL : SamplingMode.NONE;
         ITraceContext ctx = TraceContextFactory.newContext(samplingMode, traceId, parentSpanId);
-        ctx.currentSpan().name(builder.getOperationName());
+        ITraceSpan rootSpan = ctx.currentSpan();
+        rootSpan.name(builder.operationName());
 
-        //noinspection resource
-        return new TraceScopeImpl(ctx, ctx.currentSpan()).attach(startSpan);
+        TraceScopeImpl traceScope = new TraceScopeImpl(ctx, ctx.currentSpan());
+
+        // Start the root span if requested and available
+        if (startSpan) {
+            rootSpan.start();
+        }
+
+        return traceScope;
     }
 }

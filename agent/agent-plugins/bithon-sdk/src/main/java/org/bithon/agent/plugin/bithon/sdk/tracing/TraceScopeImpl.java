@@ -35,11 +35,14 @@ import org.bithon.agent.sdk.tracing.impl.NoopSpan;
 public class TraceScopeImpl implements ITraceScope {
     private final ITraceContext context;
     private final ISpan rootSpan;
-    private boolean attached = false;
+    private final long attachedThreadId;
 
     public TraceScopeImpl(ITraceContext context, ITraceSpan rootSpan) {
         this.context = context;
         this.rootSpan = new SpanImpl(rootSpan);
+
+        TraceContextHolder.attach(context);
+        this.attachedThreadId = Thread.currentThread().getId();
     }
 
     @Override
@@ -57,55 +60,23 @@ public class TraceScopeImpl implements ITraceScope {
     }
 
     @Override
-    public ITraceScope attach() {
-        return attach(true); // Default behavior: start span
-    }
-
-    @Override
-    public ITraceScope attach(boolean startSpan) {
-        ITraceContext currentContext = TraceContextHolder.current();
-        if (currentContext != null) {
-            throw new SdkException("There's already a trace context(traceId=%s) attached to the current thread.", currentContext.traceId());
-        }
-
-        if (!attached && context != null) {
-            TraceContextHolder.attach(context);
-            attached = true;
-
-            // Start the root span if requested and available
-            if (startSpan) {
-                rootSpan.start();
-            }
-        }
-        return this;
-    }
-
-    @Override
-    public void detach() {
-        if (attached) {
-            TraceContextHolder.detach();
-            attached = false;
-        }
-    }
-
-    @Override
     public ISpan currentSpan() {
-        if (!attached) {
-            return rootSpan;
-        }
-
-        // If already attached, return the current span from the context
         ITraceContext currentContext = TraceContextHolder.current();
         return currentContext == null ? NoopSpan.INSTANCE : new SpanImpl(currentContext.currentSpan());
     }
 
     @Override
     public void close() {
-        detach();
-
         rootSpan.finish();
         if (context != null) {
             context.finish();
         }
+
+        if (Thread.currentThread().getId() != attachedThreadId) {
+            throw new SdkException("TraceScope is created in thread(id=%d), but is being closed from another thread(id=%d).",
+                                   attachedThreadId,
+                                   Thread.currentThread().getId());
+        }
+        TraceContextHolder.detach();
     }
 }

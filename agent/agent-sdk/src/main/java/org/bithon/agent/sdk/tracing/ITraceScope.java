@@ -21,6 +21,8 @@ import org.bithon.agent.sdk.tracing.impl.ITraceScopeV1;
 /**
  * Represents a tracing scope that can be safely passed between threads
  * and provides context management for cross-thread tracing operations.
+ *
+ * Use {@link TraceScopeBuilder#attach()} or {@link TraceScopeBuilder#attach(boolean)} ()} to create an instance of this class.
  * 
  * @author frank.chen021@outlook.com
  * @date 2025/09/07 15:32

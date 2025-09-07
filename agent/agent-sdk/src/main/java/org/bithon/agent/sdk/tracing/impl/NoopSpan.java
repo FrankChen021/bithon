@@ -160,9 +160,4 @@ public class NoopSpan implements ISpan {
     @Override
     public void close() {
     }
-
-    @Override
-    public ISpan setThreadToTags(Thread thread) {
-        return this;
-    }
 }

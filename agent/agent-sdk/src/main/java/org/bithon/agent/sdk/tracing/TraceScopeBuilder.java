@@ -21,8 +21,22 @@ import org.bithon.agent.sdk.tracing.impl.NoopTraceScope;
 import java.util.logging.Logger;
 
 /**
- * Builder for creating trace scopes with fluent API
- * 
+ * Builder for creating trace scopes with fluent API.
+ * Use {@link TraceContext#newTrace(String)} to create an instance.
+ * For example,
+ * <pre>{@code
+ * try (ITraceScope scope = TraceContext.newTrace("operation")
+ *                                      .parent(traceId, parentSpanId) // optional
+ *                                      .tracingMode(TracingMode.LOGGING) // optional, default is TracingMode.TRACING
+ *                                      .attach()) {
+ *          // Update tags if needed
+ *          ISpan span = scope.currentSpan();
+ *          span.tag("key", "value");
+ *
+ *          // Business logic here
+ *   }
+ *   }</pre>
+ *
  * @author frank.chen021@outlook.com
  * @date 8/5/25 6:00 pm
  */
@@ -52,12 +66,12 @@ public class TraceScopeBuilder {
     /**
      * Sets the parent trace context for this trace scope.
      * Use this to continue an existing trace in another thread or context.
-     * 
-     * @param traceId the trace ID of the parent trace
+     *
+     * @param traceId      the trace ID of the parent trace
      * @param parentSpanId the span ID of the parent span
      * @return this builder for method chaining
      */
-    public TraceScopeBuilder withParent(String traceId, String parentSpanId) {
+    public TraceScopeBuilder parent(String traceId, String parentSpanId) {
         this.traceId = traceId;
         this.parentSpanId = parentSpanId;
         return this;
@@ -65,20 +79,21 @@ public class TraceScopeBuilder {
 
     /**
      * Sets the tracing mode for this trace scope.
-     * 
+     *
      * @param tracingMode the tracing mode to use
      * @return this builder for method chaining
      */
-    public TraceScopeBuilder withTracingMode(TracingMode tracingMode) {
+    public TraceScopeBuilder tracingMode(TracingMode tracingMode) {
         this.tracingMode = tracingMode;
         return this;
     }
 
     /**
      * Creates and attaches the trace scope to the current thread.
-     * This is equivalent to calling build().attach().
-     * 
-     * @return an attached ITraceScope ready for use in try-with-resources
+     * If current thread already has a trace context attached, an exception({@link org.bithon.agent.sdk.expt.SdkException}) will be thrown.
+     *
+     * @return an attached ITraceScope ready for use in try-with-resources.
+     * Callers MUST ensure to close the scope to avoid resource leaks.
      */
     public ITraceScope attach() {
         if (shouldLog()) {
@@ -89,10 +104,11 @@ public class TraceScopeBuilder {
 
     /**
      * Creates and attaches the trace scope to the current thread with control over span starting.
-     * This is equivalent to calling build().attach(startSpan).
-     * 
+     * If current thread already has a trace context attached, an exception({@link org.bithon.agent.sdk.expt.SdkException}) will be thrown.
+     *
      * @param startSpan whether to start the root span immediately
-     * @return an attached ITraceScope ready for use in try-with-resources
+     * @return an attached ITraceScope ready for use in try-with-resources.
+     * Callers MUST ensure to close the scope to avoid resource leaks.
      */
     public ITraceScope attach(boolean startSpan) {
         if (shouldLog()) {
@@ -102,23 +118,19 @@ public class TraceScopeBuilder {
     }
 
     // Public getters for agent interceptors
-    public String getOperationName() {
+    public String operationName() {
         return operationName;
     }
 
-    public String getTraceId() {
+    public String traceId() {
         return traceId;
     }
 
-    public String getParentSpanId() {
+    public String parentSpanId() {
         return parentSpanId;
     }
 
-    public TracingMode getTracingMode() {
+    public TracingMode tracingMode() {
         return tracingMode;
-    }
-
-    public boolean isRootTrace() {
-        return traceId == null;
     }
 }

@@ -18,7 +18,6 @@ package org.bithon.agent.sdk.tracing.impl;
 
 
 import org.bithon.agent.sdk.tracing.ISpan;
-import org.bithon.agent.sdk.tracing.ITraceScope;
 import org.bithon.agent.sdk.tracing.TracingMode;
 
 /**
@@ -29,42 +28,29 @@ public interface ITraceScopeV1 extends AutoCloseable {
 
     /**
      * Gets the trace ID associated with this scope
+     *
      * @return the trace ID, or null if not available
      */
     String currentTraceId();
 
     /**
      * Gets the tracing mode for this scope
+     *
      * @return the tracing mode
      */
     TracingMode tracingMode();
 
     /**
-     * Attaches this scope's context to the current thread
-     * @return this scope for method chaining
-     */
-    ITraceScope attach();
-
-    /**
-     * Attaches this scope's context to the current thread with option to start the root span
-     * @param startSpan whether to start the root span when attaching
-     * @return this scope for method chaining
-     */
-    ITraceScope attach(boolean startSpan);
-
-    /**
-     * Detaches this scope's context from the current thread
-     */
-    void detach();
-
-    /**
-     * Gets the underlying span for direct manipulation
-     * @return the underlying span, or a no-op span if not available
+     * Gets the underlying span for direct manipulation.
+     *
+     * @return the underlying span, or a no-op span if not available.
+     * NOTE: every call of this method returns a different instance of the span, even if the span is the same.
      */
     ISpan currentSpan();
 
     /**
-     * Finishes the underlying span and detaches from current thread
+     * Finishes the underlying span and detaches the tracing context from current thread.
+     * This must be called in the same thread where the scope was created, or an exception {@link org.bithon.agent.sdk.expt.SdkException} is thrown
      */
     @Override
     void close();

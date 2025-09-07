@@ -18,7 +18,6 @@ package org.bithon.agent.sdk.tracing;
 
 
 import org.bithon.agent.sdk.tracing.impl.NoopSpan;
-import org.bithon.agent.sdk.tracing.impl.NoopTraceScope;
 
 import java.util.logging.Logger;
 
@@ -113,6 +112,6 @@ public class TraceContext {
         if (traceId == null) {
             throw new IllegalStateException("No current trace context");
         }
-        return new TraceScopeBuilder(operationName).withParent(traceId, parentSpanId);
+        return new TraceScopeBuilder(operationName).parent(traceId, parentSpanId);
     }
 }

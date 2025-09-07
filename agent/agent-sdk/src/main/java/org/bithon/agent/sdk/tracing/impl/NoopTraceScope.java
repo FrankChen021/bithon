@@ -40,15 +40,6 @@ public class NoopTraceScope implements ITraceScope {
     }
 
     @Override
-    public ITraceScope attach() {
-        return this;
-    }
-
-    @Override
-    public void detach() {
-    }
-
-    @Override
     public ISpan currentSpan() {
         return NoopSpan.INSTANCE;
     }
@@ -56,10 +47,5 @@ public class NoopTraceScope implements ITraceScope {
     @Override
     public void close() {
         // No-op
-    }
-
-    @Override
-    public ITraceScope attach(boolean startSpan) {
-        return this;
     }
 }
