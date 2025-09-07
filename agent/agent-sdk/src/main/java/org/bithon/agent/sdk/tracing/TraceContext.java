@@ -62,11 +62,36 @@ public class TraceContext {
     }
 
     /**
+     * Creates a new root span and initializes a tracing context
+     * @param operationName the name of the operation
+     * @return a TraceScope that starts a new trace
+     */
+    public static TraceScope newRootSpan(String operationName) {
+        if (shouldLog()) {
+            LOGGER.warning("The agent is not loaded.");
+        }
+        return NoopTraceScope.INSTANCE;
+    }
+
+    /**
+     * Creates a new root span with explicit tracing mode
+     * @param operationName the name of the operation
+     * @param tracingMode the tracing mode to use
+     * @return a TraceScope that starts a new trace
+     */
+    public static TraceScope newRootSpan(String operationName, TracingMode tracingMode) {
+        if (shouldLog()) {
+            LOGGER.warning("The agent is not loaded.");
+        }
+        return NoopTraceScope.INSTANCE;
+    }
+
+    /**
      * Creates an async scope that can be safely used across threads
      * @param operationName the name of the operation
      * @return a TraceScope for cross-thread tracing
      */
-    public static TraceScope startAsyncSpan(String operationName) {
+    public static TraceScope newAsyncSpan(String operationName) {
         if (shouldLog()) {
             LOGGER.warning("The agent is not loaded.");
         }
@@ -79,7 +104,7 @@ public class TraceContext {
      * @param tracingMode the tracing mode to use
      * @return a TraceScope for cross-thread tracing
      */
-    public static TraceScope startAsyncSpan(String operationName, TracingMode tracingMode) {
+    public static TraceScope newAsyncSpan(String operationName, TracingMode tracingMode) {
         if (shouldLog()) {
             LOGGER.warning("The agent is not loaded.");
         }
