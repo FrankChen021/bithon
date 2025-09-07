@@ -27,16 +27,17 @@ import org.bithon.agent.instrumentation.aop.interceptor.installer.InterceptorIns
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.PluginResolver;
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
+import org.bithon.agent.java.adaptor.JavaAdaptorFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
-
-import static java.io.File.separator;
 
 /**
  * @author frankchen
@@ -78,6 +79,12 @@ public class AgentStarter {
         // Initialize instrumentation after configuration initialized
         InstrumentationHelper.setInstance(inst);
         InstrumentationHelper.setAopDebugger(createAopDebugger(appConfig));
+
+        // Open modules/packages for agent if running on JDK 9+
+        Map<String, Class<?>> packagesToOpen = new HashMap<>();
+        packagesToOpen.put("java.net", JavaAdaptorFactory.class);
+        packagesToOpen.put("jdk.internal.misc", JavaAdaptorFactory.class);
+        JavaAdaptorFactory.create(inst).openPackages(inst, Object.class, packagesToOpen);
 
         // Install interceptors for plugins
         new InterceptorInstaller(new PluginResolver() {
@@ -122,9 +129,9 @@ public class AgentStarter {
         DebugConfig debugConfig = ConfigurationManager.getInstance().getConfig("instrumentation", DebugConfig.class);
 
         File targetDirectory = AgentDirectory.getSubDirectory(AgentDirectory.TMP_DIR
-                                                              + separator
+                                                              + File.separator
                                                               + appConfig.getName() + "-" + appConfig.getEnv()
-                                                              + separator
+                                                              + File.separator
                                                               + "classes");
 
         return new Debugger(debugConfig, targetDirectory);
