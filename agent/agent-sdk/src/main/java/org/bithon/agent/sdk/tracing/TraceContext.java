@@ -18,6 +18,7 @@ package org.bithon.agent.sdk.tracing;
 
 
 import org.bithon.agent.sdk.tracing.impl.NoopSpan;
+import org.bithon.agent.sdk.tracing.impl.NoopTraceScope;
 
 import java.util.logging.Logger;
 
@@ -58,5 +59,30 @@ public class TraceContext {
             LOGGER.warning("The agent is not loaded.");
         }
         return NoopSpan.INSTANCE;
+    }
+
+    /**
+     * Creates an async scope that can be safely used across threads
+     * @param operationName the name of the operation
+     * @return a TraceScope for cross-thread tracing
+     */
+    public static TraceScope startAsyncSpan(String operationName) {
+        if (shouldLog()) {
+            LOGGER.warning("The agent is not loaded.");
+        }
+        return NoopTraceScope.INSTANCE;
+    }
+
+    /**
+     * Creates an async scope with explicit tracing mode
+     * @param operationName the name of the operation
+     * @param tracingMode the tracing mode to use
+     * @return a TraceScope for cross-thread tracing
+     */
+    public static TraceScope startAsyncSpan(String operationName, TracingMode tracingMode) {
+        if (shouldLog()) {
+            LOGGER.warning("The agent is not loaded.");
+        }
+        return NoopTraceScope.INSTANCE;
     }
 }
