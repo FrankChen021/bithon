@@ -35,6 +35,7 @@ public class ReplacementAdvice {
     @Advice.OnMethodExit
     public static void onExecute(@AdviceAnnotation.InterceptorName String name,
                                  @AdviceAnnotation.InterceptorIndex int index,
+                                 @Advice.This(optional = true) Object thisObject,
                                  @Advice.AllArguments Object[] args,
                                  @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning) {
         AbstractInterceptor interceptor = InterceptorManager.INSTANCE.getInterceptor(index);
@@ -43,6 +44,6 @@ public class ReplacementAdvice {
         }
 
         interceptor.hit();
-        returning = ((ReplaceInterceptor) interceptor).execute(args, returning);
+        returning = ((ReplaceInterceptor) interceptor).execute(thisObject, args, returning);
     }
 }

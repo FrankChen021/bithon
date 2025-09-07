@@ -29,7 +29,7 @@ import org.bithon.agent.sdk.tracing.impl.NoopSpan;
  */
 public class TraceContext$NewSpan extends ReplaceInterceptor {
     @Override
-    public Object execute(Object[] args, Object returning) {
+    public Object execute(Object thisObject, Object[] args, Object returning) {
         ITraceSpan span = TraceContextFactory.newSpan("");
         return span == null ? NoopSpan.INSTANCE : new SpanImpl(span);
     }

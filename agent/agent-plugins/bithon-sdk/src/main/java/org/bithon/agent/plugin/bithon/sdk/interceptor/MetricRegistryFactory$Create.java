@@ -46,7 +46,7 @@ public class MetricRegistryFactory$Create extends ReplaceInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(MetricRegistryFactory$Create.class);
 
     @Override
-    public Object execute(Object[] args, Object returning) {
+    public Object execute(Object thisObject, Object[] args, Object returning) {
         String name = (String) args[0];
         if (StringUtils.isEmpty(name)) {
             throw new SdkException("name can't be null");

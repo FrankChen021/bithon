@@ -26,7 +26,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.ReplaceInter
  */
 public class ResourceLeakDetector$NeedReport extends ReplaceInterceptor {
     @Override
-    public Object execute(Object[] args, Object returning) {
+    public Object execute(Object thisObject, Object[] args, Object returning) {
         // Always return true to make sure the events can be logged
         return true;
     }

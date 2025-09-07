@@ -35,10 +35,9 @@ import org.bithon.component.commons.utils.StringUtils;
 public class TraceScopeBuilder$Attach extends ReplaceInterceptor {
 
     @Override
-    public Object execute(Object[] args, Object returning) {
-        // For instance methods, the target object is passed as the first argument
-        TraceScopeBuilder builder = (TraceScopeBuilder) args[0];
-        boolean startSpan = args.length > 1 ? (Boolean) args[1] : true;
+    public Object execute(Object thisObject, Object[] args, Object returning) {
+        TraceScopeBuilder builder = (TraceScopeBuilder) thisObject;
+        boolean startSpan = (boolean) args[0];
 
         String traceId = builder.getTraceId();
         String parentSpanId = builder.getParentSpanId();
