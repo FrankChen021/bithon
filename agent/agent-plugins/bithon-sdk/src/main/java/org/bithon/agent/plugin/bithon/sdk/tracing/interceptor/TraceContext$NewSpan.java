@@ -31,9 +31,13 @@ import org.bithon.component.commons.tracing.SpanKind;
 public class TraceContext$NewSpan extends ReplaceInterceptor {
     @Override
     public Object execute(Object thisObject, Object[] args, Object returning) {
-        ITraceSpan span = TraceContextFactory.newSpan("")
-                                             .kind(SpanKind.INTERNAL)
-                                             .method("", "");
-        return span == null ? NoopSpan.INSTANCE : new SpanImpl(span);
+        ITraceSpan span = TraceContextFactory.newSpan("");
+        if (span == null) {
+            return NoopSpan.INSTANCE;
+        } else {
+            span.kind(SpanKind.INTERNAL)
+                .method("", "");
+            return new SpanImpl(span);
+        }
     }
 }
