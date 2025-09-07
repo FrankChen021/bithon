@@ -254,7 +254,7 @@ public class PluginMetadataProcessor extends AbstractProcessor {
             FileObject file = processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", metadataFile);
             try (Writer writer = file.openWriter()) {
                 // Write plugin class section
-                writer.write(String.format(Locale.ENGLISH, "[%s, minimalJdkVersion=%s]\n", this.pluginClass, this.minimalJdkVersion));
+                writer.write(String.format(Locale.ENGLISH, "[%s, minimalJdkVersion=%s]%n", this.pluginClass, this.minimalJdkVersion));
 
                 // Generate the interceptor entries under the plugin section
                 for (Map.Entry<String, InterceptorType> entry : interceptorTypes.entrySet()) {
