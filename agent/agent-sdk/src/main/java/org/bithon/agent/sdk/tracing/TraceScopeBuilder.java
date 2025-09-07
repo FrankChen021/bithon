@@ -50,7 +50,7 @@ public class TraceScopeBuilder {
     private String traceId;
     private String parentSpanId;
     private TracingMode tracingMode = TracingMode.TRACING; // default
-    private SpanKind kind;
+    private SpanKind kind = SpanKind.INTERNAL; // default
 
     private static synchronized boolean shouldLog() {
         long currentTime = System.currentTimeMillis();
@@ -98,11 +98,14 @@ public class TraceScopeBuilder {
     }
 
     /**
-     * Creates and attaches the trace scope to the current thread.
-     * If current thread already has a trace context attached, an exception({@link org.bithon.agent.sdk.expt.SdkException}) will be thrown.
-     *
+     * Creates a trace scope and attaches it to the current thread.
+     * <p>
+     * The created trace scope has a root span with the operation name and kind specified in the builder.
+     * If the {@link #kind(SpanKind)} is not called, the default kind is {@link SpanKind#INTERNAL}.
      * @return an attached ITraceScope ready for use in try-with-resources.
      * Callers MUST ensure to close the scope to avoid resource leaks.
+     *
+     * @throws org.bithon.agent.sdk.expt.SdkException if there's already a trace context attached to the current thread.
      */
     public ITraceScope attach() {
         if (shouldLog()) {
