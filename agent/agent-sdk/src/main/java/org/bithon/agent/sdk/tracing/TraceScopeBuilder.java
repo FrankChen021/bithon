@@ -26,8 +26,9 @@ import java.util.logging.Logger;
  * For example,
  * <pre>{@code
  * try (ITraceScope scope = TraceContext.newTrace("operation")
- *                                      .parent(traceId, parentSpanId) // optional
- *                                      .tracingMode(TracingMode.LOGGING) // optional, default is TracingMode.TRACING
+ *                                      .kind(SpanKind.SERVER)              // MUST give
+ *                                      .parent(traceId, parentSpanId)      // optional
+ *                                      .tracingMode(TracingMode.LOGGING)   // optional, default is TracingMode.TRACING
  *                                      .attach()) {
  *          // Update tags if needed
  *          ISpan span = scope.currentSpan();
@@ -49,6 +50,7 @@ public class TraceScopeBuilder {
     private String traceId;
     private String parentSpanId;
     private TracingMode tracingMode = TracingMode.TRACING; // default
+    private SpanKind kind;
 
     private static synchronized boolean shouldLog() {
         long currentTime = System.currentTimeMillis();
@@ -66,6 +68,8 @@ public class TraceScopeBuilder {
     /**
      * Sets the parent trace context for this trace scope.
      * Use this to continue an existing trace in another thread or context.
+     * <p>
+     * If not set, a new trace(with auto generated trace id and empty parent span id) will be created.
      *
      * @param traceId      the trace ID of the parent trace
      * @param parentSpanId the span ID of the parent span
@@ -74,6 +78,11 @@ public class TraceScopeBuilder {
     public TraceScopeBuilder parent(String traceId, String parentSpanId) {
         this.traceId = traceId;
         this.parentSpanId = parentSpanId;
+        return this;
+    }
+
+    public TraceScopeBuilder kind(SpanKind kind) {
+        this.kind = kind;
         return this;
     }
 
@@ -102,21 +111,6 @@ public class TraceScopeBuilder {
         return NoopTraceScope.INSTANCE;
     }
 
-    /**
-     * Creates and attaches the trace scope to the current thread with control over span starting.
-     * If current thread already has a trace context attached, an exception({@link org.bithon.agent.sdk.expt.SdkException}) will be thrown.
-     *
-     * @param startSpan whether to start the root span immediately
-     * @return an attached ITraceScope ready for use in try-with-resources.
-     * Callers MUST ensure to close the scope to avoid resource leaks.
-     */
-    public ITraceScope attach(boolean startSpan) {
-        if (shouldLog()) {
-            LOGGER.warning("The agent is not loaded.");
-        }
-        return NoopTraceScope.INSTANCE;
-    }
-
     // Public getters for agent interceptors
     public String operationName() {
         return operationName;
@@ -132,5 +126,9 @@ public class TraceScopeBuilder {
 
     public TracingMode tracingMode() {
         return tracingMode;
+    }
+
+    public SpanKind kind() {
+        return kind;
     }
 }

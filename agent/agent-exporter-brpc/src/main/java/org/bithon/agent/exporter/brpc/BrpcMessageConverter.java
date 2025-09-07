@@ -113,8 +113,8 @@ public class BrpcMessageConverter implements IMessageConverter {
                                                                    .setEndTime(span.endTime())
                                                                    .setKind(span.kind().toString())
                                                                    .setName(span.name())
-                                                                   .setClazz(span.clazz())
-                                                                   .setMethod(span.method());
+                                                                   .setClazz(StringUtils.getOrEmpty(span.clazz()))
+                                                                   .setMethod(StringUtils.getOrEmpty(span.method()));
 
         // The 'putAllTags' on the Builder internally checks the NULL of each k-v pair.
         // To avoid unexpected exception, we do the check by ourselves so that we know which tag has the NULL value.

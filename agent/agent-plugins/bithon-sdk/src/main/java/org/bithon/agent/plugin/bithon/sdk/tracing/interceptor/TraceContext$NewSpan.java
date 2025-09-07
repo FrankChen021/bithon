@@ -22,6 +22,7 @@ import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.plugin.bithon.sdk.tracing.SpanImpl;
 import org.bithon.agent.sdk.tracing.impl.NoopSpan;
+import org.bithon.component.commons.tracing.SpanKind;
 
 /**
  * @author frank.chen021@outlook.com
@@ -30,7 +31,9 @@ import org.bithon.agent.sdk.tracing.impl.NoopSpan;
 public class TraceContext$NewSpan extends ReplaceInterceptor {
     @Override
     public Object execute(Object thisObject, Object[] args, Object returning) {
-        ITraceSpan span = TraceContextFactory.newSpan("");
+        ITraceSpan span = TraceContextFactory.newSpan("")
+                                             .kind(SpanKind.INTERNAL)
+                                             .method("", "");
         return span == null ? NoopSpan.INSTANCE : new SpanImpl(span);
     }
 }

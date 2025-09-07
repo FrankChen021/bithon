@@ -45,7 +45,6 @@ public class TraceScopeBuilder$Attach extends ReplaceInterceptor {
         }
 
         TraceScopeBuilder builder = (TraceScopeBuilder) thisObject;
-        boolean startSpan = (boolean) args[0];
 
         String traceId = builder.traceId();
         String parentSpanId = builder.parentSpanId();
@@ -57,15 +56,8 @@ public class TraceScopeBuilder$Attach extends ReplaceInterceptor {
         SamplingMode samplingMode = builder.tracingMode() == TracingMode.TRACING ? SamplingMode.FULL : SamplingMode.NONE;
         ITraceContext ctx = TraceContextFactory.newContext(samplingMode, traceId, parentSpanId);
         ITraceSpan rootSpan = ctx.currentSpan();
-        rootSpan.name(builder.operationName());
+        rootSpan.name(builder.operationName()).start();
 
-        TraceScopeImpl traceScope = new TraceScopeImpl(ctx, ctx.currentSpan());
-
-        // Start the root span if requested and available
-        if (startSpan) {
-            rootSpan.start();
-        }
-
-        return traceScope;
+        return new TraceScopeImpl(ctx, ctx.currentSpan());
     }
 }

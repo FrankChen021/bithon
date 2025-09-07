@@ -35,9 +35,7 @@ public class SpanImpl implements ISpan {
     private final ITraceSpan delegate;
 
     public SpanImpl(ITraceSpan delegate) {
-        this.delegate = delegate.kind(org.bithon.component.commons.tracing.SpanKind.INTERNAL)
-                                .name("")
-                                .method("", "");
+        this.delegate = delegate;
     }
 
     @Override

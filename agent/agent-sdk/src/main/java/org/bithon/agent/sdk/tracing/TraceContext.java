@@ -63,21 +63,21 @@ public class TraceContext {
     /**
      * Creates a new trace scope builder for the given operation.
      * Use the builder to configure the trace and then call attach() to start tracing.
-     * 
+     *
      * <p>Examples:</p>
      * <pre>{@code
      * // Simple root trace
      * try (ITraceScope scope = TraceContext.newTrace("operation").attach()) {
      *     // do your work here
      * }
-     * 
+     *
      * // Root trace with custom tracing mode
      * try (ITraceScope scope = TraceContext.newTrace("operation")
      *         .withTracingMode(TracingMode.LOGGING)
      *         .attach()) {
      *     // do your work here
      * }
-     * 
+     *
      * // Cross-thread continuation
      * String traceId = TraceContext.currentTraceId();
      * String parentSpanId = TraceContext.currentSpanId();
@@ -86,32 +86,15 @@ public class TraceContext {
      *     .attach();
      * // pass asyncTrace to another thread...
      * }</pre>
-     * 
-     * @param operationName the name of the operation
+     *
+     * @param operationName the name of the operation.
      * @return a TraceScopeBuilder for configuring and creating the trace
+     * @throws IllegalArgumentException if the given operation name is null
      */
     public static TraceScopeBuilder newTrace(String operationName) {
-        return new TraceScopeBuilder(operationName);
-    }
-
-    /**
-     * Convenience method to create a trace continuation from the current trace context.
-     * This is equivalent to calling:
-     * <pre>{@code
-     * TraceContext.newTrace(operationName)
-     *     .withParent(TraceContext.currentTraceId(), TraceContext.currentSpanId())
-     * }</pre>
-     * 
-     * @param operationName the name of the operation
-     * @return a TraceScopeBuilder configured with the current trace context as parent
-     * @throws IllegalStateException if there is no current trace context
-     */
-    public static TraceScopeBuilder newTraceFromCurrent(String operationName) {
-        String traceId = currentTraceId();
-        String parentSpanId = currentSpanId();
-        if (traceId == null) {
-            throw new IllegalStateException("No current trace context");
+        if (operationName == null) {
+            throw new IllegalArgumentException("Operation name cannot be null");
         }
-        return new TraceScopeBuilder(operationName).parent(traceId, parentSpanId);
+        return new TraceScopeBuilder(operationName);
     }
 }
