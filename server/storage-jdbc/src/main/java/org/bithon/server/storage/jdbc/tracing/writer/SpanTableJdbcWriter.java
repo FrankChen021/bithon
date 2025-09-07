@@ -50,12 +50,12 @@ public abstract class SpanTableJdbcWriter implements IOnceTableWriter {
     }
 
     @Override
-    public String getTable() {
+    public String getTableName() {
         return table;
     }
 
     @Override
-    public int getInsertSize() {
+    public int getInsertRows() {
         return spans.size();
     }
 

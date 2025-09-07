@@ -108,12 +108,12 @@ class IndexTableJdbcWriter implements IOnceTableWriter {
     }
 
     @Override
-    public String getTable() {
+    public String getTableName() {
         return Tables.BITHON_TRACE_SPAN_TAG_INDEX.getName();
     }
 
     @Override
-    public int getInsertSize() {
+    public int getInsertRows() {
         return this.tagIndices.size();
     }
 }

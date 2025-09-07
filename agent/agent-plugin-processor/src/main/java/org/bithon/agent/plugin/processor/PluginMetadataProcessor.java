@@ -74,21 +74,21 @@ public class PluginMetadataProcessor extends AbstractProcessor {
 
     private String detectJdkVersion(ProcessingEnvironment processingEnv) {
         Map<String, String> options = processingEnv.getOptions();
-        
+
         String target = null;
-        
+
         // First priority: maven.compiler.release (this overrides both source and target)
         target = options.get("maven.compiler.release");
         if (target != null && !"${maven.compiler.release}".equals(target)) {
             return target;
         }
-        
+
         // Second priority: maven.compiler.target
         target = options.get("maven.compiler.target");
         if (target != null) {
             return target;
         }
-        
+
         return null;
     }
 
@@ -241,8 +241,8 @@ public class PluginMetadataProcessor extends AbstractProcessor {
                 return;
             }
             if (interceptorTypes.isEmpty()) {
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                                                         "No interceptors found, but plugin class found.");
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING,
+                                                         String.format(Locale.ENGLISH, "No interceptors found, but plugin class [%s] found.", pluginClass));
                 return;
             }
         }

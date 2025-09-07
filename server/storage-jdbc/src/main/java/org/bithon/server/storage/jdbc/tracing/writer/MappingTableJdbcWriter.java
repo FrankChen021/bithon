@@ -72,12 +72,12 @@ class MappingTableJdbcWriter implements IOnceTableWriter {
     }
 
     @Override
-    public String getTable() {
+    public String getTableName() {
         return Tables.BITHON_TRACE_MAPPING.getName();
     }
 
     @Override
-    public int getInsertSize() {
+    public int getInsertRows() {
         return this.mappings.size();
     }
 }

@@ -79,6 +79,9 @@ public class KafkaPlugin implements IPlugin {
 
             // Since 3.5, the Fetcher$FetchResponseMetricAggregator in the previous release is renamed to FetchMetricsAggregator
             forClass("org.apache.kafka.clients.consumer.internals.FetchMetricsAggregator")
+                .when(new PropertyFileValuePrecondition("kafka/kafka-version.properties",
+                                                        "version",
+                                                        PropertyFileValuePrecondition.VersionGT.of("3.5.0")))
                 .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.FetchMetricsAggregator$Ctor")
 

@@ -17,6 +17,7 @@
 package org.bithon.agent.instrumentation.aop;
 
 import org.bithon.agent.instrumentation.aop.debug.Debugger;
+import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
 
 import java.lang.instrument.Instrumentation;
 
@@ -27,6 +28,7 @@ import java.lang.instrument.Instrumentation;
 public class InstrumentationHelper {
     private static Instrumentation inst;
     private static Debugger debugger;
+    private static AgentBuilder.Listener errorHandler;
 
     public static Instrumentation getInstance() {
         return inst;
@@ -42,5 +44,13 @@ public class InstrumentationHelper {
 
     public static Debugger getAopDebugger() {
         return debugger;
+    }
+
+    public static void setErrorHandler(AgentBuilder.Listener errorHandler) {
+        InstrumentationHelper.errorHandler = errorHandler;
+    }
+
+    public static AgentBuilder.Listener getErrorHandler() {
+        return errorHandler;
     }
 }

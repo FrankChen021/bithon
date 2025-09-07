@@ -33,6 +33,7 @@ public class GrpcPlugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
+        io.grpc.stub.AbstractStub s;
         List<InterceptorDescriptor> grpcInterceptorDescriptors = Arrays.asList(
             // Hook to enhance stub classes
             forClass("io.grpc.stub.AbstractBlockingStub")

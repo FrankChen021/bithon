@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.apache.kafka39;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.PropertyFileValuePrecondition;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 
 import java.util.Arrays;
@@ -35,7 +35,14 @@ public class Kafka39Plugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("org.apache.kafka.clients.consumer.KafkaConsumer")
-                .when(IInterceptorPrecondition.isClassDefined("org.apache.kafka.clients.consumer.internals.ClassicKafkaConsumer"))
+                //.when(IInterceptorPrecondition.isClassDefined("org.apache.kafka.clients.consumer.internals.ClassicKafkaConsumer"))
+                .when(new PropertyFileValuePrecondition(
+                    "kafka/kafka-version.properties",
+                    "version",
+                    PropertyFileValuePrecondition.and(
+                        PropertyFileValuePrecondition.VersionGTE.of("3.9")
+                    )
+                ))
                 .onConstructor()
                 .andVisibility(Visibility.PUBLIC)
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka39.consumer.interceptor.KafkaConsumer$Ctor")

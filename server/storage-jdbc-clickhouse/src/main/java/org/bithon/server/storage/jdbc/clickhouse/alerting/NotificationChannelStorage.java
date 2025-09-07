@@ -80,7 +80,7 @@ public class NotificationChannelStorage extends NotificationChannelJdbcStorage {
 
         new TableCreator(this.clickHouseConfig, this.dslContext)
             .partitionByExpression(null)
-            .useReplacingMergeTree(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.CREATED_AT.getName())
+            .useReplacingMergeTree(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.UPDATED_AT.getName())
             .createIfNotExist(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL);
     }
 }
