@@ -386,7 +386,11 @@ public class SelectStatementBuilder {
                                 }
                             }
                         }
-                        aggregators.add(functionCallExpression, output);
+                        Aggregator sameAggregator = aggregators.add(functionCallExpression, output);
+                        if (sameAggregator != null) {
+                            // Reference the existing aggregator output
+                            output = sameAggregator.output;
+                        }
 
                         if (pipeline.windowAggregation == null && sqlDialect.useWindowFunctionAsAggregator(functionCallExpression.getName())) {
                             pipeline.windowAggregation = new SelectStatement();

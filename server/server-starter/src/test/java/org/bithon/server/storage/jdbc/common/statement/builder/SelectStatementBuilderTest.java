@@ -1702,6 +1702,41 @@ public class SelectStatementBuilderTest {
     }
 
     /**
+     * <a href="https://github.com/FrankChen021/bithon/issues/1104">See the bug</a>
+     */
+    @Test
+    public void test_MultipleAggregator_On_Same_Column() {
+        ISqlDialect pg = new PostgreSqlDialect();
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .sqlDialect(pg)
+                                                                .fields(List.of(
+                                                                    //new Selector(new ExpressionNode(schema, "max(responseTime)"), new Alias("maxResponseTime")),
+                                                                                //new Selector(new ExpressionNode(schema, "min(responseTime)"), new Alias("minResponseTime")),
+                                                                                new Selector(new ExpressionNode(schema, "sum(responseTime)/count()"), new Alias("avgResponseTime")),
+                                                                                new Selector(new ExpressionNode(schema, "count()"), new Alias("count"))
+                                                                ))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
+                                                                                      Duration.ofSeconds(10),
+                                                                                      null,
+                                                                                      new IdentifierExpression("timestamp")))
+                                                                .filter(ExpressionASTBuilder.builder().build("appName =~ 'bithon.*' AND instanceName !~ '192.*'"))
+                                                                .groupBy(List.of("appName"))
+                                                                .schema(schema)
+                                                                .build();
+
+        Assertions.assertEquals("""
+                                    SELECT  FLOOR(EXTRACT(EPOCH FROM "timestamp" AT TIME ZONE 'UTC-8') / 10) * 10 AS "_timestamp",
+                                           "appName",
+                                           sum("clickedSum") AS "t1"
+                                    FROM "bithon_jvm_metrics"
+                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND (("bithon_jvm_metrics"."appName" ~ 'bithon.*') AND (NOT ("bithon_jvm_metrics"."instanceName" ~ '192.*')))
+                                    GROUP BY "appName", "_timestamp"
+                                    """.trim(),
+                                selectStatement.toSQL(pg));
+    }
+
+    /**
      * TODO: support in this case in future
      * A little complex case
      @Test public void testPostFilter_AggregationInFilter() {

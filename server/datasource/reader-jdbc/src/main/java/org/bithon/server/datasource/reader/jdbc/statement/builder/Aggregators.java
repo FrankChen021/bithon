@@ -33,16 +33,22 @@ class Aggregators {
     /**
      * Add an aggregation.
      * This also checks there's no same aggregation performed on the same column
+     *
+     * @return null if the same aggregator does not exist
      */
-    public void add(FunctionExpression aggregatorFunctionCallExpression, String output) {
-        if (!contains(aggregatorFunctionCallExpression)) {
+    public Aggregator add(FunctionExpression aggregatorFunctionCallExpression, String output) {
+        Aggregator sameAggregator = contains(aggregatorFunctionCallExpression);
+        if (sameAggregator != null) {
+            return sameAggregator;
+        } else {
             aggregators.add(new Aggregator(aggregatorFunctionCallExpression, output));
+            return null;
         }
     }
 
-    private boolean contains(FunctionExpression rhs) {
+    private Aggregator contains(FunctionExpression rhs) {
         return aggregators.stream()
-                          .anyMatch(lhs -> {
+                          .filter(lhs -> {
                               if (!lhs.isSimpleAggregation) {
                                   return false;
                               }
@@ -66,7 +72,9 @@ class Aggregators {
 
                               String lhsCol = ((IdentifierExpression) lhs.aggregateFunction.getArgs().get(0)).getIdentifier();
                               return lhsCol.equals(((IdentifierExpression) rhs.getArgs().get(0)).getIdentifier());
-                          });
+                          })
+                          .findFirst()
+                          .orElse(null);
     }
 
     public int size() {
