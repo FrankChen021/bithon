@@ -25,81 +25,70 @@
   <includeBaseDirectory>true</includeBaseDirectory>
 
   <dependencySets>
-    <!-- agent entry point -->
-    <dependencySet>
-      <useProjectArtifact>false</useProjectArtifact>
-      <includes>
-        <include>${project.parent.groupId}:agent-main</include>
-      </includes>
-      <outputDirectory>/</outputDirectory>
-      <outputFileNameMapping>agent-main.jar</outputFileNameMapping>
-    </dependencySet>
+  <!-- agent entry point -->
+  <dependencySet>
+    <useProjectArtifact>false</useProjectArtifact>
+    <includes>
+      <include>${project.parent.groupId}:agent-main</include>
+    </includes>
+    <outputDirectory>/</outputDirectory>
+    <outputFileNameMapping>agent-main.jar</outputFileNameMapping>
+  </dependencySet>
 
-    <!-- boot-class-path -->
-    <dependencySet>
-      <useProjectArtifact>false</useProjectArtifact>
-      <includes>
-        <include>${project.parent.groupId}:agent-instrumentation</include>
-      </includes>
-      <outputDirectory>/boot</outputDirectory>
-      <outputFileNameMapping>agent-instrumentation.jar</outputFileNameMapping>
-    </dependencySet>
-    <dependencySet>
-      <useProjectArtifact>false</useProjectArtifact>
-      <includes>
-        <include>org.bithon.shaded:shaded-bytebuddy</include>
-      </includes>
-      <outputDirectory>boot</outputDirectory>
-      <outputFileNameMapping>shaded-bytebuddy.jar</outputFileNameMapping>
-    </dependencySet>
+  <!-- boot-class-path -->
+  <dependencySet>
+    <useProjectArtifact>false</useProjectArtifact>
+    <includes>
+      <include>${project.parent.groupId}:agent-instrumentation</include>
+    </includes>
+    <outputDirectory>/boot</outputDirectory>
+    <outputFileNameMapping>agent-instrumentation.jar</outputFileNameMapping>
+  </dependencySet>
+  <dependencySet>
+    <useProjectArtifact>false</useProjectArtifact>
+    <includes>
+      <include>org.bithon.shaded:shaded-bytebuddy</include>
+    </includes>
+    <outputDirectory>boot</outputDirectory>
+    <outputFileNameMapping>shaded-bytebuddy.jar</outputFileNameMapping>
+  </dependencySet>
 
-    <!-- lib -->
-    <dependencySet>
-      <useProjectArtifact>false</useProjectArtifact>
-      <excludes>
-        <exclude>org.bithon.shaded:shaded-bytebuddy</exclude>
-        <exclude>${project.parent.groupId}:agent-instrumentation</exclude>
-        <exclude>${project.parent.groupId}:agent-main</exclude>
-        <exclude>${project.parent.groupId}:agent-sdk</exclude>
+  <!-- lib -->
+  <dependencySet>
+    <useProjectArtifact>false</useProjectArtifact>
+    <excludes>
+      <exclude>org.bithon.shaded:shaded-bytebuddy</exclude>
+      <exclude>${project.parent.groupId}:agent-instrumentation</exclude>
+      <exclude>${project.parent.groupId}:agent-main</exclude>
+      <exclude>${project.parent.groupId}:agent-sdk</exclude>
 
-        <!-- Plugins are in a dedicated directory, exclude them from lib -->
-        <exclude>${project.parent.groupId}:agent-plugin-*</exclude>
+      <!-- Plugins are in a dedicated directory, exclude them from lib -->
+      <exclude>${project.parent.groupId}:agent-plugin-*</exclude>
 
-        <!--async profiler -->
-        <exclude>tools.profiler:jfr-converter</exclude>
-        <exclude>tools.profiler:async-profiler</exclude>
-      </excludes>
-      <outputDirectory>lib</outputDirectory>
-    </dependencySet>
+      <!--async profiler -->
+      <exclude>tools.profiler:jfr-converter</exclude>
+      <exclude>tools.profiler:async-profiler</exclude>
+    </excludes>
+    <outputDirectory>lib</outputDirectory>
+  </dependencySet>
 
-    <!-- async profiler tool -->
-    <dependencySet>
-      <useProjectArtifact>false</useProjectArtifact>
-      <includes>
-        <include>tools.profiler:jfr-converter</include>
-      </includes>
-      <outputDirectory>tools/async-profiler</outputDirectory>
-      <outputFileNameMapping>async-profiler-converter.jar</outputFileNameMapping>
-    </dependencySet>
-    <dependencySet>
-      <useProjectArtifact>false</useProjectArtifact>
-      <includes>
-        <include>tools.profiler:async-profiler</include>
-      </includes>
-      <outputDirectory>tools/async-profiler</outputDirectory>
-      <outputFileNameMapping>async-profiler.jar</outputFileNameMapping>
-    </dependencySet>
-
-    <!-- sdk -->
-    <dependencySet>
-      <useProjectArtifact>false</useProjectArtifact>
-      <includes>
-        <include>${project.parent.groupId}:agent-sdk</include>
-      </includes>
-      <outputDirectory>/sdk</outputDirectory>
-      <outputFileNameMapping>agent-sdk.jar</outputFileNameMapping>
-    </dependencySet>
-  </dependencySets>
+  <!-- async profiler tool -->
+  <dependencySet>
+    <useProjectArtifact>false</useProjectArtifact>
+    <includes>
+      <include>tools.profiler:jfr-converter</include>
+    </includes>
+    <outputDirectory>tools/async-profiler</outputDirectory>
+    <outputFileNameMapping>async-profiler-converter.jar</outputFileNameMapping>
+  </dependencySet>
+  <dependencySet>
+    <useProjectArtifact>false</useProjectArtifact>
+    <includes>
+      <include>tools.profiler:async-profiler</include>
+    </includes>
+    <outputDirectory>tools/async-profiler</outputDirectory>
+    <outputFileNameMapping>async-profiler.jar</outputFileNameMapping>
+  </dependencySet>
 
   <fileSets>
     <!-- configuration files -->
