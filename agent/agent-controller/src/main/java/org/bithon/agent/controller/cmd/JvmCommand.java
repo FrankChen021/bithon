@@ -18,6 +18,7 @@ package org.bithon.agent.controller.cmd;
 
 import com.sun.management.HotSpotDiagnosticMXBean;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
+import org.bithon.agent.java.adaptor.JavaAdaptorFactory;
 import org.bithon.agent.rpc.brpc.cmd.ClassDisassembler;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,6 +35,8 @@ import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
+import java.net.URL;
+import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -98,6 +101,25 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
                          classInfo.isInterface = (clazz.isInterface());
                          classInfo.isSynthetic = (clazz.isSynthetic());
                          classInfo.isEnum = (clazz.isEnum());
+                         classInfo.isPrimitive = (clazz.isPrimitive());
+                         classInfo.isArray = (clazz.isArray());
+                         classInfo.module = JavaAdaptorFactory.getAdaptor().getModuleName(clazz);
+
+                         CodeSource codeSource = clazz.getProtectionDomain().getCodeSource();
+                         if (codeSource != null) {
+                             URL location = codeSource.getLocation();
+                             if (location != null) {
+                                 if ("file".equals(location.getProtocol())) {
+                                     String path = location.getFile();
+                                     int idx = path.lastIndexOf('/');
+                                     classInfo.jarName = idx == -1 ? path : path.substring(idx + 1);
+                                     classInfo.jarDirectory = idx == -1 ? null : path.substring(0, idx);
+                                 } else {
+                                     classInfo.jarName = location.getFile();
+                                 }
+                             }
+                         }
+
                          return classInfo;
                      })
                      .collect(Collectors.toList());
