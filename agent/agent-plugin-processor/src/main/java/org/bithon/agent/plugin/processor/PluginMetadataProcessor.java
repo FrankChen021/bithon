@@ -237,7 +237,7 @@ public class PluginMetadataProcessor extends AbstractProcessor {
         } else {
             if (pluginClass == null) {
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                                                         "No plugin class found, but interceptors found.");
+                                                         String.format(Locale.ENGLISH, "No plugin class found, but interceptors(%s) found.", interceptorTypes.keySet()));
                 return;
             }
             if (interceptorTypes.isEmpty()) {

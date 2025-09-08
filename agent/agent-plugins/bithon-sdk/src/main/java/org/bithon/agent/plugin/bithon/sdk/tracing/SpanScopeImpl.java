@@ -18,9 +18,9 @@ package org.bithon.agent.plugin.bithon.sdk.tracing;
 
 
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.sdk.tracing.ISpan;
+import org.bithon.agent.sdk.tracing.ISpanScope;
 import org.bithon.agent.sdk.tracing.SpanKind;
-import org.bithon.agent.sdk.tracing.impl.ISpanV1;
+import org.bithon.agent.sdk.tracing.impl.ISpanScopeV1;
 
 import java.lang.reflect.Executable;
 import java.net.InetSocketAddress;
@@ -29,12 +29,12 @@ import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 14/5/25 8:40 pm
+ * @date 8/9/25 10:43 am
  */
-public class SpanImpl implements ISpan {
+public class SpanScopeImpl implements ISpanScope {
     private final ITraceSpan delegate;
 
-    public SpanImpl(ITraceSpan delegate) {
+    public SpanScopeImpl(ITraceSpan delegate) {
         this.delegate = delegate;
     }
 
@@ -59,7 +59,7 @@ public class SpanImpl implements ISpan {
     }
 
     @Override
-    public ISpanV1 name(String name) {
+    public ISpanScopeV1 name(String name) {
         if (name != null) {
             delegate.name(name.trim());
         }
@@ -67,7 +67,7 @@ public class SpanImpl implements ISpan {
     }
 
     @Override
-    public ISpanV1 kind(SpanKind kind) {
+    public ISpanScopeV1 kind(SpanKind kind) {
         if (kind == SpanKind.CLIENT) {
             delegate.kind(org.bithon.component.commons.tracing.SpanKind.CLIENT);
         } else if (kind == SpanKind.SERVER) {
@@ -110,43 +110,43 @@ public class SpanImpl implements ISpan {
     }
 
     @Override
-    public ISpanV1 tag(String name, int value) {
+    public ISpanScopeV1 tag(String name, int value) {
         delegate.tag(name, value);
         return this;
     }
 
     @Override
-    public ISpanV1 tag(String name, long value) {
+    public ISpanScopeV1 tag(String name, long value) {
         delegate.tag(name, value);
         return this;
     }
 
     @Override
-    public ISpanV1 tag(String name, String value) {
+    public ISpanScopeV1 tag(String name, String value) {
         delegate.tag(name, value);
         return this;
     }
 
     @Override
-    public ISpanV1 tag(String name, Object value) {
+    public ISpanScopeV1 tag(String name, Object value) {
         delegate.tag(name, value);
         return this;
     }
 
     @Override
-    public ISpanV1 tag(String name, SocketAddress address) {
+    public ISpanScopeV1 tag(String name, SocketAddress address) {
         delegate.tag(name, address);
         return this;
     }
 
     @Override
-    public ISpanV1 tag(String name, InetSocketAddress address) {
+    public ISpanScopeV1 tag(String name, InetSocketAddress address) {
         delegate.tag(name, address);
         return this;
     }
 
     @Override
-    public ISpanV1 tag(Throwable exception) {
+    public ISpanScopeV1 tag(Throwable exception) {
         delegate.tag(exception);
         return this;
     }
@@ -157,7 +157,7 @@ public class SpanImpl implements ISpan {
     }
 
     @Override
-    public ISpanV1 clazz(String clazz) {
+    public ISpanScopeV1 clazz(String clazz) {
         if (clazz != null) {
             this.delegate.clazz(clazz.trim());
         }
@@ -170,7 +170,7 @@ public class SpanImpl implements ISpan {
     }
 
     @Override
-    public ISpanV1 method(String clazz, String method) {
+    public ISpanScopeV1 method(String clazz, String method) {
         if (clazz != null && method != null) {
             this.delegate.clazz(clazz.trim());
         }
@@ -178,7 +178,7 @@ public class SpanImpl implements ISpan {
     }
 
     @Override
-    public ISpanV1 method(Executable method) {
+    public ISpanScopeV1 method(Executable method) {
         if (method != null) {
             delegate.method(method);
         }
@@ -186,7 +186,7 @@ public class SpanImpl implements ISpan {
     }
 
     @Override
-    public ISpanV1 method(Class<?> clazz, String method) {
+    public ISpanScopeV1 method(Class<?> clazz, String method) {
         delegate.method(clazz, method);
         return this;
     }
@@ -199,17 +199,6 @@ public class SpanImpl implements ISpan {
     @Override
     public long endTime() {
         return delegate.endTime();
-    }
-
-    @Override
-    public ISpan start() {
-        delegate.start();
-        return this;
-    }
-
-    @Override
-    public void finish() {
-        delegate.finish();
     }
 
     @Override

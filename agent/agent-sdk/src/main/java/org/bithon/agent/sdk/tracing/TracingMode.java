@@ -14,19 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.bithon.sdk.tracing.interceptor;
-
-
-import org.bithon.agent.instrumentation.aop.interceptor.declaration.ReplaceInterceptor;
-import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+package org.bithon.agent.sdk.tracing;
 
 /**
+ * Represents the tracing mode for a trace scope
+ * 
  * @author frank.chen021@outlook.com
- * @date 14/5/25 8:55 pm
+ * @date 2025/09/09 15:32
  */
-public class TraceContext$CurrentSpanId extends ReplaceInterceptor {
-    @Override
-    public Object execute(Object thisObject, Object[] args, Object returning) {
-        return TraceContextHolder.currentSpanId();
-    }
+public enum TracingMode {
+    /**
+     * Logging mode - only context propagation, no actual span collection
+     */
+    LOGGING,
+    
+    /**
+     * Full tracing mode - complete span collection and reporting
+     */
+    TRACING
 }

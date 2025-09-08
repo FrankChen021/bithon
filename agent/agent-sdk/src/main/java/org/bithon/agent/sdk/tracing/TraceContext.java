@@ -53,10 +53,83 @@ public class TraceContext {
         return null;
     }
 
+    /**
+     * @deprecated Use {@link #newScopedSpan(String)} instead.
+     * This method will be removed in a future version.
+     */
+    @Deprecated
     public static ISpan newScopedSpan() {
         if (shouldLog()) {
             LOGGER.warning("The agent is not loaded.");
         }
         return NoopSpan.INSTANCE;
+    }
+
+    /**
+     * Creates a new scoped span builder for the given operation.
+     * Use the builder to configure the span and then call attach() to start the span.
+     *
+     * <p>Examples:</p>
+     * <pre>{@code
+     * // Simple scoped span
+     * try (ISpan span = TraceContext.newScopedSpan("operation").attach()) {
+     *     // do your work here
+     * }
+     *
+     * // Scoped span with custom kind
+     * try (ISpan span = TraceContext.newScopedSpan("operation")
+     *         .kind(SpanKind.CLIENT)
+     *         .attach()) {
+     *     // do your work here
+     * }
+     * }</pre>
+     *
+     * @param operationName the name of the operation.
+     * @return a SpanScopeBuilder for configuring and creating the span
+     * @throws IllegalArgumentException if the given operation name is null
+     */
+    public static SpanScopeBuilder newScopedSpan(String operationName) {
+        if (operationName == null) {
+            throw new IllegalArgumentException("Operation name cannot be null");
+        }
+        return new SpanScopeBuilder(operationName);
+    }
+
+    /**
+     * Creates a new trace scope builder for the given operation.
+     * Use the builder to configure the trace and then call attach() to start tracing.
+     *
+     * <p>Examples:</p>
+     * <pre>{@code
+     * // Simple root trace
+     * try (ITraceScope scope = TraceContext.newTrace("operation").attach()) {
+     *     // do your work here
+     * }
+     *
+     * // Root trace with custom tracing mode
+     * try (ITraceScope scope = TraceContext.newTrace("operation")
+     *         .withTracingMode(TracingMode.LOGGING)
+     *         .attach()) {
+     *     // do your work here
+     * }
+     *
+     * // Cross-thread continuation
+     * String traceId = TraceContext.currentTraceId();
+     * String parentSpanId = TraceContext.currentSpanId();
+     * ITraceScope asyncTrace = TraceContext.newTrace("background-work")
+     *     .withParent(traceId, parentSpanId)
+     *     .attach();
+     * // pass asyncTrace to another thread...
+     * }</pre>
+     *
+     * @param operationName the name of the operation.
+     * @return a TraceScopeBuilder for configuring and creating the trace
+     * @throws IllegalArgumentException if the given operation name is null
+     */
+    public static TraceScopeBuilder newTrace(String operationName) {
+        if (operationName == null) {
+            throw new IllegalArgumentException("Operation name cannot be null");
+        }
+        return new TraceScopeBuilder(operationName);
     }
 }

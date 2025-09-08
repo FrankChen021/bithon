@@ -25,9 +25,11 @@ public abstract class ReplaceInterceptor extends AbstractInterceptor {
      * Replacement of a target method.
      * Will be executed only when the interceptor is defined as replacement
      *
-     * @param returning the returning object of target method
+     * @param thisObject the instance of target method. Null if the method is static
+     * @param args       the arguments of target method
+     * @param returning  the returning object of target method
      */
-    public Object execute(Object[] args, Object returning) {
+    public Object execute(Object thisObject, Object[] args, Object returning) {
         return returning;
     }
 }

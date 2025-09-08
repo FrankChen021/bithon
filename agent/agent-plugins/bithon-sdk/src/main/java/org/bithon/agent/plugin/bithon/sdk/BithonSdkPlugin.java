@@ -52,7 +52,19 @@ public class BithonSdkPlugin implements IPlugin {
                 .replacedBy("org.bithon.agent.plugin.bithon.sdk.tracing.interceptor.TraceContext$CurrentSpanId")
 
                 .onMethod("newScopedSpan")
+                .andNoArgs()
                 .replacedBy("org.bithon.agent.plugin.bithon.sdk.tracing.interceptor.TraceContext$NewSpan")
+                .build(),
+
+            forClass("org.bithon.agent.sdk.tracing.TraceScopeBuilder")
+                .onMethod("attach")
+                .replacedBy("org.bithon.agent.plugin.bithon.sdk.tracing.interceptor.TraceScopeBuilder$Attach")
+
+                .build(),
+
+            forClass("org.bithon.agent.sdk.tracing.SpanScopeBuilder")
+                .onMethod("create")
+                .replacedBy("org.bithon.agent.plugin.bithon.sdk.tracing.interceptor.SpanScopeBuilder$Create")
 
                 .build()
         );

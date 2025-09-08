@@ -14,19 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.bithon.sdk.tracing.interceptor;
+package org.bithon.agent.sdk.tracing;
 
-
-import org.bithon.agent.instrumentation.aop.interceptor.declaration.ReplaceInterceptor;
-import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.agent.sdk.tracing.impl.ITraceScopeV1;
 
 /**
+ * Represents a tracing scope that can be safely passed between threads
+ * and provides context management for cross-thread tracing operations.
+ * <p>
+ * Use {@link TraceScopeBuilder#attach()} to create an instance of this class.
+ * 
  * @author frank.chen021@outlook.com
- * @date 14/5/25 8:55 pm
+ * @date 2025/09/07 15:32
  */
-public class TraceContext$CurrentSpanId extends ReplaceInterceptor {
-    @Override
-    public Object execute(Object thisObject, Object[] args, Object returning) {
-        return TraceContextHolder.currentSpanId();
-    }
+public interface ITraceScope extends ITraceScopeV1 {
 }

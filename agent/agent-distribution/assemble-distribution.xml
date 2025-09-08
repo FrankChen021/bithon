@@ -111,15 +111,6 @@
       <outputFileNameMapping>async-profiler.jar</outputFileNameMapping>
     </dependencySet>
 
-    <!-- sdk -->
-    <dependencySet>
-      <useProjectArtifact>false</useProjectArtifact>
-      <includes>
-        <include>${project.parent.groupId}:agent-sdk</include>
-      </includes>
-      <outputDirectory>/sdk</outputDirectory>
-      <outputFileNameMapping>agent-sdk.jar</outputFileNameMapping>
-    </dependencySet>
   </dependencySets>
 
   <fileSets>

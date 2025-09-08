@@ -16,7 +16,6 @@
 
 package org.bithon.agent.plugins.test;
 
-import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.source.Helper;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
@@ -34,7 +33,7 @@ import org.bithon.shaded.net.bytebuddy.agent.ByteBuddyAgent;
 import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import org.bithon.shaded.net.bytebuddy.utility.JavaModule;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
@@ -63,15 +62,14 @@ import java.util.stream.Collectors;
 public abstract class AbstractPluginInterceptorTest {
 
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(AbstractPluginInterceptorTest.class);
-    private static boolean frameworkInitialized = false;
+    private boolean agentInstalled = false;
 
     /**
-     * Initialize the test framework once for all tests.
+     * Initialize the test framework before each test.
      * This sets up configuration, class loaders, and installs ByteBuddy agent.
      */
-    @BeforeAll
-    public static synchronized void initializeFramework() {
-        if (frameworkInitialized) {
+    private synchronized void installAgent() {
+        if (agentInstalled) {
             return;
         }
 
@@ -83,9 +81,7 @@ public abstract class AbstractPluginInterceptorTest {
                              ));
 
             configurationMock.when(Helper::getEnvironmentVariables)
-                             .thenReturn(ImmutableMap.of("bithon_t", "t1",
-                                                         //Overwrite the prop2
-                                                         "bithon_test_prop2", "from_env"));
+                             .thenReturn(getEnvironmentVariables());
 
             ConfigurationManager.createForTesting(new File("not-exists"));
         }
@@ -95,7 +91,26 @@ public abstract class AbstractPluginInterceptorTest {
         // Install ByteBuddy agent
         ByteBuddyAgent.install();
 
-        frameworkInitialized = true;
+        agentInstalled = true;
+    }
+
+    @BeforeEach
+    public final void beforeEachTestCase() {
+        installAgent();
+
+        initializeBeforeEachTestCase();
+    }
+
+    protected void initializeBeforeEachTestCase() {
+        // for override
+    }
+
+    /**
+     * Override this method in subclasses to provide custom environment variables for testing.
+     * The default implementation provides some basic test environment variables.
+     */
+    protected Map<String, String> getEnvironmentVariables() {
+        return Collections.emptyMap();
     }
 
     protected ClassLoader getCustomClassLoader() {

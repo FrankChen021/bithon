@@ -21,16 +21,26 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.ReplaceInter
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.plugin.bithon.sdk.tracing.SpanImpl;
+import org.bithon.agent.sdk.tracing.TraceContext;
 import org.bithon.agent.sdk.tracing.impl.NoopSpan;
+import org.bithon.component.commons.tracing.SpanKind;
 
 /**
+ * {@link TraceContext#newScopedSpan()}
+ *
  * @author frank.chen021@outlook.com
  * @date 14/5/25 8:59 pm
  */
 public class TraceContext$NewSpan extends ReplaceInterceptor {
     @Override
-    public Object execute(Object[] args, Object returning) {
+    public Object execute(Object thisObject, Object[] args, Object returning) {
         ITraceSpan span = TraceContextFactory.newSpan("");
-        return span == null ? NoopSpan.INSTANCE : new SpanImpl(span);
+        if (span == null) {
+            return NoopSpan.INSTANCE;
+        } else {
+            span.kind(SpanKind.INTERNAL)
+                .method("", "");
+            return new SpanImpl(span);
+        }
     }
 }

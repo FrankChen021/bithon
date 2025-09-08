@@ -20,9 +20,14 @@ package org.bithon.agent.sdk.tracing;
 import org.bithon.agent.sdk.tracing.impl.ISpanV1;
 
 /**
+ * This interface is kept for backward compatibility only.
+ * <p>
+ * New code should use {@link TraceContext#newScopedSpan(String)} to create a span which returns {@link ISpanScope}
+ *
  * @author frank.chen021@outlook.com
  * @date 8/5/25 5:46 pm
  */
+@Deprecated
 public interface ISpan extends ISpanV1 {
 
 }

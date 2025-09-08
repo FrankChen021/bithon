@@ -26,7 +26,7 @@ import org.bithon.agent.observability.tracing.context.TraceContextHolder;
  */
 public class TraceContext$CurrentTraceId extends ReplaceInterceptor {
     @Override
-    public Object execute(Object[] args, Object returning) {
+    public Object execute(Object thisObject, Object[] args, Object returning) {
         return TraceContextHolder.currentTraceId();
     }
 }
