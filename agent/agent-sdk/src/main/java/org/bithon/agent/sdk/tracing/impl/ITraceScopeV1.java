@@ -18,6 +18,7 @@ package org.bithon.agent.sdk.tracing.impl;
 
 
 import org.bithon.agent.sdk.tracing.ISpan;
+import org.bithon.agent.sdk.tracing.ISpanScope;
 import org.bithon.agent.sdk.tracing.TracingMode;
 
 /**
@@ -46,7 +47,7 @@ public interface ITraceScopeV1 extends AutoCloseable {
      * @return the underlying span, or a no-op span if not available.
      * NOTE: every call of this method returns a different instance of the span, even if the span is the same.
      */
-    ISpan currentSpan();
+    ISpanScope currentSpan();
 
     /**
      * Finishes the underlying span and detaches the tracing context from current thread.

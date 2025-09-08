@@ -17,6 +17,7 @@
 package org.bithon.agent.sdk.tracing.impl;
 
 import org.bithon.agent.sdk.tracing.ISpan;
+import org.bithon.agent.sdk.tracing.ISpanScope;
 import org.bithon.agent.sdk.tracing.ITraceScope;
 import org.bithon.agent.sdk.tracing.TracingMode;
 
@@ -40,8 +41,8 @@ public class NoopTraceScope implements ITraceScope {
     }
 
     @Override
-    public ISpan currentSpan() {
-        return NoopSpan.INSTANCE;
+    public ISpanScope currentSpan() {
+        return ISpanScope.NOOP_INSTANCE;
     }
 
     @Override

@@ -21,10 +21,13 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.ReplaceInter
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.plugin.bithon.sdk.tracing.SpanImpl;
+import org.bithon.agent.sdk.tracing.TraceContext;
 import org.bithon.agent.sdk.tracing.impl.NoopSpan;
 import org.bithon.component.commons.tracing.SpanKind;
 
 /**
+ * {@link TraceContext#newScopedSpan()}
+ *
  * @author frank.chen021@outlook.com
  * @date 14/5/25 8:59 pm
  */

@@ -22,9 +22,9 @@ import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.sdk.expt.SdkException;
 import org.bithon.agent.sdk.tracing.ISpan;
+import org.bithon.agent.sdk.tracing.ISpanScope;
 import org.bithon.agent.sdk.tracing.ITraceScope;
 import org.bithon.agent.sdk.tracing.TracingMode;
-import org.bithon.agent.sdk.tracing.impl.NoopSpan;
 
 /**
  * Implementation of TraceScope that bridges SDK interface with agent internals
@@ -60,9 +60,9 @@ public class TraceScopeImpl implements ITraceScope {
     }
 
     @Override
-    public ISpan currentSpan() {
+    public ISpanScope currentSpan() {
         ITraceContext currentContext = TraceContextHolder.current();
-        return currentContext == null ? NoopSpan.INSTANCE : new SpanImpl(currentContext.currentSpan());
+        return currentContext == null ? ISpanScope.NOOP_INSTANCE : new SpanScopeImpl(currentContext.currentSpan());
     }
 
     @Override

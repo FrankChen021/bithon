@@ -28,5 +28,4 @@ import org.bithon.agent.sdk.tracing.impl.ITraceScopeV1;
  * @date 2025/09/07 15:32
  */
 public interface ITraceScope extends ITraceScopeV1 {
-
 }

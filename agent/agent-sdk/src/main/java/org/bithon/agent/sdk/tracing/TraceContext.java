@@ -53,11 +53,46 @@ public class TraceContext {
         return null;
     }
 
+    /**
+     * @deprecated Use {@link #newScopedSpan(String)} instead.
+     * This method will be removed in a future version.
+     */
+    @Deprecated
     public static ISpan newScopedSpan() {
         if (shouldLog()) {
             LOGGER.warning("The agent is not loaded.");
         }
         return NoopSpan.INSTANCE;
+    }
+
+    /**
+     * Creates a new scoped span builder for the given operation.
+     * Use the builder to configure the span and then call attach() to start the span.
+     *
+     * <p>Examples:</p>
+     * <pre>{@code
+     * // Simple scoped span
+     * try (ISpan span = TraceContext.newScopedSpan("operation").attach()) {
+     *     // do your work here
+     * }
+     *
+     * // Scoped span with custom kind
+     * try (ISpan span = TraceContext.newScopedSpan("operation")
+     *         .kind(SpanKind.CLIENT)
+     *         .attach()) {
+     *     // do your work here
+     * }
+     * }</pre>
+     *
+     * @param operationName the name of the operation.
+     * @return a SpanScopeBuilder for configuring and creating the span
+     * @throws IllegalArgumentException if the given operation name is null
+     */
+    public static SpanScopeBuilder newScopedSpan(String operationName) {
+        if (operationName == null) {
+            throw new IllegalArgumentException("Operation name cannot be null");
+        }
+        return new SpanScopeBuilder(operationName);
     }
 
     /**

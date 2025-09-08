@@ -33,6 +33,7 @@ import org.bithon.agent.plugins.test.MavenArtifact;
 import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
 import org.bithon.agent.sdk.expt.SdkException;
 import org.bithon.agent.sdk.tracing.ISpan;
+import org.bithon.agent.sdk.tracing.ISpanScope;
 import org.bithon.agent.sdk.tracing.ITraceScope;
 import org.bithon.agent.sdk.tracing.TraceContext;
 import org.bithon.agent.sdk.tracing.TracingMode;
@@ -90,7 +91,7 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
-            // Bithon SDK
+            // Bithon SDK - use local version for testing new API
             MavenArtifact.of("org.bithon.agent", "agent-sdk", "1.2.2")
         );
     }
@@ -196,14 +197,14 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
 
             // Test trace scope methods
             TracingMode mode = traceScope.tracingMode();
-            ISpan span = traceScope.currentSpan();
+            ISpanScope span = traceScope.currentSpan();
 
             Assertions.assertEquals(TracingMode.TRACING, mode);
             Assertions.assertNotNull(span);
             Assertions.assertEquals(traceId, span.traceId());
 
             // Test that currentSpan() returns different instances but same span
-            ISpan span2 = traceScope.currentSpan();
+            ISpanScope span2 = traceScope.currentSpan();
             Assertions.assertNotSame(span, span2); // Different instances
             Assertions.assertEquals(span.spanId(), span2.spanId()); // Same span ID
 
@@ -216,6 +217,62 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
                 Assertions.assertNotEquals(spanId, nestedSpan.spanId());
             }
         }
+    }
+
+    @Test
+    public void testNewScopedSpanWithBuilder() {
+        // Test new builder-based newScopedSpan API
+        try (ITraceScope traceScope = TraceContext.newTrace("root-operation")
+                                                  .tracingMode(TracingMode.TRACING)
+                                                  .attach()) {
+            String traceId = TraceContext.currentTraceId();
+            String rootSpanId = TraceContext.currentSpanId();
+
+            // Test simple scoped span with builder
+            try (ISpanScope span = TraceContext.newScopedSpan("child-operation").create()) {
+                Assertions.assertEquals(traceId, span.traceId());
+                Assertions.assertEquals(rootSpanId, span.parentId());
+                Assertions.assertNotNull(span.spanId());
+                Assertions.assertNotEquals("", span.spanId());
+                Assertions.assertNotEquals(rootSpanId, span.spanId());
+
+                // Test span name is set correctly
+                Assertions.assertEquals("child-operation", span.name());
+            }
+
+            // Test scoped span with custom kind
+            try (ISpanScope span = TraceContext.newScopedSpan("client-operation")
+                                               .kind(org.bithon.agent.sdk.tracing.SpanKind.CLIENT)
+                                               .create()) {
+                Assertions.assertEquals(traceId, span.traceId());
+                Assertions.assertEquals(rootSpanId, span.parentId());
+                Assertions.assertEquals("client-operation", span.name());
+                Assertions.assertEquals(org.bithon.agent.sdk.tracing.SpanKind.CLIENT, span.kind());
+            }
+        }
+
+        // Verify spans were reported
+        Assertions.assertEquals(3, reportedSpans.size()); // root + 2 child spans
+
+        // Verify span names
+        Assertions.assertEquals("child-operation", reportedSpans.get(0).name());
+        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.INTERNAL, reportedSpans.get(0).kind());
+
+        Assertions.assertEquals("client-operation", reportedSpans.get(1).name());
+        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.CLIENT, reportedSpans.get(1).kind());
+
+        Assertions.assertEquals("root-operation", reportedSpans.get(2).name());
+        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.INTERNAL, reportedSpans.get(2).kind());
+    }
+
+    @Test
+    public void testNewScopedSpanBuilderValidation() {
+        // Test null operation name validation
+        Assertions.assertThrows(IllegalArgumentException.class, () -> TraceContext.newScopedSpan(null));
+
+        // Test that scoped span requires active trace context
+        ISpanScope scope = TraceContext.newScopedSpan("operation").create();
+        Assertions.assertEquals(ISpanScope.NOOP_INSTANCE, scope);
     }
 
     @Test
@@ -238,7 +295,7 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
     @Test
     public void testSpanTagMethod() {
         try (ITraceScope traceScope = TraceContext.newTrace("tagging-test").attach()) {
-            ISpan span = traceScope.currentSpan();
+            ISpanScope span = traceScope.currentSpan();
 
             // Test different tag types
             span.tag("string-tag", "string-value");
@@ -289,7 +346,7 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
     @Test
     public void testSpanMetadataApis() {
         try (ITraceScope traceScope = TraceContext.newTrace("metadata-test").attach()) {
-            ISpan span = traceScope.currentSpan();
+            ISpanScope span = traceScope.currentSpan();
 
             // Test span metadata
             Assertions.assertNotNull(span.traceId());
@@ -318,7 +375,7 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
         try (ITraceScope rootScope = TraceContext.newTrace("root-span").attach()) {
             String rootTraceId = rootScope.currentTraceId();
             String rootSpanId = rootScope.currentSpan().spanId();
-            
+
             // Verify root span setup
             Assertions.assertNotNull(rootTraceId);
             Assertions.assertNotNull(rootSpanId);
@@ -327,21 +384,21 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
             // Create first nested scoped span
             try (ISpan level1Span = TraceContext.newScopedSpan()) {
                 String level1SpanId = level1Span.spanId();
-                
+
                 // Verify level 1 span relationships
                 Assertions.assertEquals(rootTraceId, level1Span.traceId());
                 Assertions.assertEquals(rootSpanId, level1Span.parentId());
                 Assertions.assertNotNull(level1SpanId);
                 Assertions.assertNotEquals("", level1SpanId);
                 Assertions.assertNotEquals(rootSpanId, level1SpanId);
-                
+
                 // Verify current span in trace scope has changed to the new span
                 Assertions.assertEquals(level1SpanId, rootScope.currentSpan().spanId());
 
                 // Create second nested scoped span
                 try (ISpan level2Span = TraceContext.newScopedSpan()) {
                     String level2SpanId = level2Span.spanId();
-                    
+
                     // Verify level 2 span relationships
                     Assertions.assertEquals(rootTraceId, level2Span.traceId());
                     Assertions.assertEquals(level1SpanId, level2Span.parentId()); // Should parent to level1 span
@@ -349,14 +406,14 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
                     Assertions.assertNotEquals("", level2SpanId);
                     Assertions.assertNotEquals(rootSpanId, level2SpanId);
                     Assertions.assertNotEquals(level1SpanId, level2SpanId);
-                    
+
                     // Verify current span in trace scope has changed to the level2 span
                     Assertions.assertEquals(level2SpanId, rootScope.currentSpan().spanId());
 
                     // Create third nested scoped span to test deeper nesting
                     try (ISpan level3Span = TraceContext.newScopedSpan()) {
                         String level3SpanId = level3Span.spanId();
-                        
+
                         // Verify level 3 span relationships
                         Assertions.assertEquals(rootTraceId, level3Span.traceId());
                         Assertions.assertEquals(level2SpanId, level3Span.parentId()); // Should parent to level2 span
@@ -365,26 +422,26 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
                         Assertions.assertNotEquals(rootSpanId, level3SpanId);
                         Assertions.assertNotEquals(level1SpanId, level3SpanId);
                         Assertions.assertNotEquals(level2SpanId, level3SpanId);
-                        
+
                         // Verify current span in trace scope has changed to the level3 span
                         Assertions.assertEquals(level3SpanId, rootScope.currentSpan().spanId());
                     }
-                    
+
                     // After level3 span is closed, current span should return to level2
                     Assertions.assertEquals(level2SpanId, rootScope.currentSpan().spanId());
                 }
-                
+
                 // After level2 span is closed, current span should return to level1
                 Assertions.assertEquals(level1SpanId, rootScope.currentSpan().spanId());
             }
-            
+
             // After level1 span is closed, current span should return to root
             Assertions.assertEquals(rootSpanId, rootScope.currentSpan().spanId());
         }
 
         // Verify all spans were reported (root + 3 nested scoped spans)
         Assertions.assertEquals(4, reportedSpans.size());
-        
+
         // Verify all spans have the same trace ID
         String expectedTraceId = reportedSpans.get(0).traceId();
         for (ITraceSpan span : reportedSpans) {
@@ -395,7 +452,7 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
     @Test
     public void testSpanLifecycle() {
         try (ITraceScope traceScope = TraceContext.newTrace("lifecycle-test").attach()) {
-            ISpan span = traceScope.currentSpan();
+            ISpanScope span = traceScope.currentSpan();
 
             // Test timing methods
             long startTime = span.startTime();
@@ -404,13 +461,7 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
             // Span should not be finished yet
             Assertions.assertEquals(0, span.endTime());
 
-            // Test explicit start (should be idempotent)
-            ISpan startedSpan = span.start();
-            Assertions.assertNotNull(startedSpan);
-
             // Test multiple finish calls (should be safe)
-            span.finish();
-            span.finish();
             span.close();
             span.close();
         }
