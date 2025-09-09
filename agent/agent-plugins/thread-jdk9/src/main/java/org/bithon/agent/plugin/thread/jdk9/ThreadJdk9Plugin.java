@@ -47,6 +47,12 @@ public class ThreadJdk9Plugin implements IPlugin {
                 .andArgsSize(10)
                 .andArgs(9, "java.util.concurrent.TimeUnit")
                 .interceptedBy("org.bithon.agent.plugin.thread.jdk9.ForkJoinPool$Ctor")
+
+                // JDK 9 and above
+                // From JDK 20, this is a public, while the internal one is poolSubmit
+                .onMethod("externalSubmit")
+                .interceptedBy("org.bithon.agent.plugin.thread.jdk9.ForkJoinPool$ExternalSubmit")
+
                 .build()
         );
     }
