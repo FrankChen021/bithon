@@ -128,6 +128,7 @@ public class InstrumentationCommand implements IInstrumentationCommand, IAgentCo
                 m.exceptionCount = supplier.isInterceptorInstantiated() ? supplier.get().getExceptionCount() : 0;
                 m.lastExceptionTime = new Timestamp(supplier.isInterceptorInstantiated() ? supplier.get().getLastExceptionTime() : 0L);
                 m.lastException = supplier.isInterceptorInstantiated() ? InterceptorSupplier.getStackTrace(supplier.get().getLastException()) : null;
+                m.lastHitTime = new Timestamp(supplier.isInterceptorInstantiated() ? supplier.get().getLastHitTime() : 0L);
             } else {
                 m.clazzLoader = classLoader;
                 m.hitCount = 0;

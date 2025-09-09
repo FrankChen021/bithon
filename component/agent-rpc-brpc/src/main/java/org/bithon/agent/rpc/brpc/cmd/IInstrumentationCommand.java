@@ -42,6 +42,7 @@ public interface IInstrumentationCommand {
         public long exceptionCount;
         public Timestamp lastExceptionTime;
         public String lastException;
+        public Timestamp lastHitTime;
 
         /**
          * Return the object in an object array.
@@ -60,7 +61,8 @@ public interface IInstrumentationCommand {
                 instrumentException,
                 exceptionCount,
                 lastExceptionTime,
-                lastException
+                lastException,
+                lastHitTime
             };
         }
     }
