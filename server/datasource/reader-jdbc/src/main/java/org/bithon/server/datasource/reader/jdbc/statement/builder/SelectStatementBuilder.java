@@ -376,7 +376,7 @@ public class SelectStatementBuilder {
                                 dataType = IDataType.LONG;
                             } else {
                                 if (inputArg instanceof IdentifierExpression) {
-                                    output = ((IdentifierExpression) inputArg).getIdentifier();
+                                    output = functionCallExpression.getFunction().getName() + "_" + ((IdentifierExpression) inputArg).getIdentifier();
                                     dataType = functionCallExpression.getDataType();
                                 } else {
                                     // This might be the form: sum(a+b)
