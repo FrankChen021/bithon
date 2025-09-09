@@ -23,45 +23,123 @@ import org.bithon.agent.rpc.brpc.cmd.IInstrumentationCommand;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Frank Chen
  * @date 4/4/23 10:19 pm
  */
 public class InstrumentationCommand implements IInstrumentationCommand, IAgentCommand {
+
+    /**
+     * Composite key for deduplication based on interceptor name, classLoader, class name,
+     * return type, method name, parameters, and interceptor index
+     */
+    private static class DeduplicationKey {
+        private final String interceptorName;
+        private final String classLoader;
+        private final String className;
+        private final String returnType;
+        private final String methodName;
+        private final String parameters;
+        private final int interceptorIndex;
+
+        public DeduplicationKey(String interceptorName, String classLoader, String className,
+                                String returnType, String methodName, String parameters, int interceptorIndex) {
+            this.interceptorName = interceptorName;
+            this.classLoader = classLoader;
+            this.className = className;
+            this.returnType = returnType;
+            this.methodName = methodName;
+            this.parameters = parameters;
+            this.interceptorIndex = interceptorIndex;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            DeduplicationKey that = (DeduplicationKey) o;
+            return interceptorIndex == that.interceptorIndex &&
+                   Objects.equals(interceptorName, that.interceptorName) &&
+                   Objects.equals(classLoader, that.classLoader) &&
+                   Objects.equals(className, that.className) &&
+                   Objects.equals(returnType, that.returnType) &&
+                   Objects.equals(methodName, that.methodName) &&
+                   Objects.equals(parameters, that.parameters);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(interceptorName, classLoader, className, returnType, methodName, parameters, interceptorIndex);
+        }
+    }
+
     @Override
     public List<InstrumentedMethod> getInstrumentedMethods() {
-        List<InstrumentedMethod> returning = new ArrayList<>();
+        Map<DeduplicationKey, InstrumentedMethod> deduplicationMap = new HashMap<>();
 
         for (InstallerRecorder.InstrumentedMethod method : InstallerRecorder.INSTANCE.getInstrumentedMethods()) {
             InterceptorSupplier supplier = InterceptorManager.INSTANCE.getSupplier(method.getInterceptorIndex());
 
+            String interceptorName = method.getInterceptorName();
+            String classLoader = supplier != null ? supplier.getClassLoaderId() : null;
+            String className = method.getType();
+            String returnType = method.getReturnType();
+            String methodName = method.getMethodName();
+            String parameters = method.getParameters();
+            int interceptorIndex = method.getInterceptorIndex();
+
+            // Check if we have duplicate records first
+            // The InterceptorNameResolver will be called twice for AroundAdvice, one for the OnEnter, the other for onExit
+            // We deduplicate here because the command is less frequently executed
+            DeduplicationKey key = new DeduplicationKey(interceptorName,
+                                                        classLoader,
+                                                        className,
+                                                        returnType,
+                                                        methodName,
+                                                        parameters,
+                                                        interceptorIndex);
+            InstrumentedMethod existing = deduplicationMap.get(key);
+            if (existing != null) {
+                // A duplicate record found, skip it
+                continue;
+            }
+
+            // Create new entry
             InstrumentedMethod m = new InstrumentedMethod();
-            m.interceptor = method.getInterceptorName();
+            m.interceptor = interceptorName;
             if (supplier != null) {
-                m.clazzLoader = supplier.getClassLoaderId();
+                m.clazzLoader = classLoader;
                 m.hitCount = supplier.isInterceptorInstantiated() ? supplier.get().getHitCount() : 0;
-                m.clazzName = method.getType();
-                m.returnType = method.getReturnType();
-                m.methodName = method.getMethodName();
+                m.clazzName = className;
+                m.returnType = returnType;
+                m.methodName = methodName;
                 m.isStatic = method.isStatic();
-                m.parameters = method.getParameters();
+                m.parameters = parameters;
                 m.instrumentException = supplier.getException();
                 m.exceptionCount = supplier.isInterceptorInstantiated() ? supplier.get().getExceptionCount() : 0;
                 m.lastExceptionTime = new Timestamp(supplier.isInterceptorInstantiated() ? supplier.get().getLastExceptionTime() : 0L);
                 m.lastException = supplier.isInterceptorInstantiated() ? InterceptorSupplier.getStackTrace(supplier.get().getLastException()) : null;
             } else {
-                m.clazzLoader = null;
+                m.clazzLoader = classLoader;
                 m.hitCount = 0;
-                m.clazzName = method.getType();
-                m.returnType = method.getReturnType();
-                m.methodName = method.getMethodName();
+                m.clazzName = className;
+                m.returnType = returnType;
+                m.methodName = methodName;
                 m.isStatic = method.isStatic();
-                m.parameters = method.getParameters();
+                m.parameters = parameters;
             }
-            returning.add(m);
+            deduplicationMap.put(key, m);
         }
-        return returning;
+
+        return new ArrayList<>(deduplicationMap.values());
     }
 }
