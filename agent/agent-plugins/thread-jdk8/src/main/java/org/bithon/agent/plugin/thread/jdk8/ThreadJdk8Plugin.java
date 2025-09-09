@@ -34,8 +34,8 @@ public class ThreadJdk8Plugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
             forClass("java.util.concurrent.ForkJoinPool")
-                .when(JdkVersionPrecondition.eq(8))
                 // JDK 8
+                .when(JdkVersionPrecondition.eq(8))
                 .onConstructor()
                 .andArgs("int",
                          "java.util.concurrent.ForkJoinPool$ForkJoinWorkerThreadFactory",
@@ -43,6 +43,10 @@ public class ThreadJdk8Plugin implements IPlugin {
                          "int",
                          "java.lang.String")
                 .interceptedBy("org.bithon.agent.plugin.thread.jdk8.ForkJoinPool$Ctor")
+
+                .onMethod("externalPush")
+                .interceptedBy("org.bithon.agent.plugin.thread.jdk8.ForkJoinPool$ExternalPush")
+
                 .build()
         );
     }
