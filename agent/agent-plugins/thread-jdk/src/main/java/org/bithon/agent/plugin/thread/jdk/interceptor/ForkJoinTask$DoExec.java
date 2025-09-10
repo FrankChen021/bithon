@@ -16,7 +16,6 @@
 
 package org.bithon.agent.plugin.thread.jdk.interceptor;
 
-import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
@@ -24,6 +23,9 @@ import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.plugin.thread.jdk.metrics.ThreadPoolMetricRegistry;
 import org.bithon.component.commons.tracing.Tags;
+
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
 
 /**
  * Restore tracing context for the current task before {@link java.util.concurrent.ForkJoinTask#doExec()}
@@ -35,18 +37,22 @@ public class ForkJoinTask$DoExec extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        IBithonObject forkJoinTask = (IBithonObject) aopContext.getTarget();
+        ForkJoinTask<?> task = aopContext.getTargetAs();
+        if (task.isDone()) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
 
         // task context is injected in the ForkJoinTask ctor
-        ForkJoinTaskContext asyncTaskContext = (ForkJoinTaskContext) forkJoinTask.getInjectedObject();
+        ForkJoinTaskContext asyncTaskContext = aopContext.getInjectedOnTargetAs();
         if (asyncTaskContext == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
         // The Span is injected by ForkJoinPool$ExternalPush
-        if (asyncTaskContext.rootSpan != null) {
-            TraceContextHolder.attach(asyncTaskContext.rootSpan.context());
-            aopContext.setSpan(asyncTaskContext.rootSpan.start());
+        ITraceSpan rootSpan = asyncTaskContext.rootSpan;
+        if (rootSpan != null) {
+            TraceContextHolder.attach(rootSpan.context());
+            aopContext.setSpan(rootSpan.start());
         }
 
         return InterceptionDecision.CONTINUE;
@@ -71,15 +77,17 @@ public class ForkJoinTask$DoExec extends AroundInterceptor {
             TraceContextHolder.detach();
         }
 
-        IBithonObject forkJoinTask = (IBithonObject) aopContext.getTarget();
-        ForkJoinTaskContext asyncTaskContext = (ForkJoinTaskContext) forkJoinTask.getInjectedObject();
-        if (asyncTaskContext.pool != null) {
-            // When the pool is null, it means the task is not executed in ForkJoinPool,
-            // might be directly called by the invoke in caller's thread
+        ForkJoinTaskContext asyncTaskContext = aopContext.getInjectedOnTargetAs();
+        if (asyncTaskContext != null) {
+            ForkJoinPool pool = asyncTaskContext.pool;
+            if (pool != null) {
+                // When the pool is null, it means the task is not executed in ForkJoinPool,
+                // might be directly called by the invoke in caller's thread
 
-            ThreadPoolMetricRegistry.getInstance().addRunCount(asyncTaskContext.pool,
-                                                               aopContext.getExecutionTime() / 1000,
-                                                               aopContext.hasException());
+                ThreadPoolMetricRegistry.getInstance().addRunCount(pool,
+                                                                   aopContext.getExecutionTime() / 1000,
+                                                                   aopContext.hasException());
+            }
 
             asyncTaskContext.pool = null;
             asyncTaskContext.rootSpan = null;
