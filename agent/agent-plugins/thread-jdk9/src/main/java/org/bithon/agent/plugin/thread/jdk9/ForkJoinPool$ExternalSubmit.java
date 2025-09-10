@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.thread.jdk.interceptor;
+package org.bithon.agent.plugin.thread.jdk9;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
@@ -22,6 +22,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
+import org.bithon.agent.plugin.thread.jdk.interceptor.ForkJoinTaskContext;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.Tags;
 
@@ -29,13 +30,12 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 
 /**
- * {@link ForkJoinPool#externalPush(ForkJoinTask)} is an internal method that is called by {@link ForkJoinPool#execute(Runnable)} or {@link ForkJoinPool#submit(Runnable)}.
+ * {@link ForkJoinPool#externalSubmit(ForkJoinTask)} is an internal method that is called by {@link ForkJoinPool#execute(Runnable)} or {@link ForkJoinPool#submit(Runnable)}.
  *
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 11:15 下午
  */
-public class ForkJoinPool$ExternalPush extends AroundInterceptor {
-
+public class ForkJoinPool$ExternalSubmit extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
@@ -65,7 +65,7 @@ public class ForkJoinPool$ExternalPush extends AroundInterceptor {
             if (!(task instanceof IBithonObject)) {
                 // If it happens, it might be because this agent is used in a newer version of JDK,
                 // which has different implementations of ForkJoinTask
-                LoggerFactory.getLogger(ForkJoinPool$ExternalPush.class)
+                LoggerFactory.getLogger(ForkJoinPool$ExternalSubmit.class)
                              .warn("ForkJoinTask is not an instance of IBithonObject: {}", task == null ? "null" : task.getClass().getName());
                 return;
             }
@@ -73,7 +73,7 @@ public class ForkJoinPool$ExternalPush extends AroundInterceptor {
             // Injected by ForkJoinTaskAdaptedRunnable$Ctor or ForkJoinTaskRunnableExecutionAction$Ctor ...
             Object taskContext = ((IBithonObject) task).getInjectedObject();
             if (!(taskContext instanceof ForkJoinTaskContext)) {
-                LoggerFactory.getLogger(ForkJoinPool$ExternalPush.class)
+                LoggerFactory.getLogger(ForkJoinPool$ExternalSubmit.class)
                              .warn("The inject object is not an instance of ForkJoinTaskContext: {}", taskContext == null ? "null" : taskContext.getClass().getName());
                 return;
             }

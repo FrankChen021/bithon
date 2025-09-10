@@ -63,8 +63,6 @@ public class ThreadPlugin implements IPlugin {
                 .onMethod("tryTerminate")
                 .interceptedBy("org.bithon.agent.plugin.thread.jdk.interceptor.ForkJoinPool$TryTerminate")
 
-                .onMethod("externalPush")
-                .interceptedBy("org.bithon.agent.plugin.thread.jdk.interceptor.ForkJoinPool$ExternalPush")
                 .build(),
 
             forClass("java.util.concurrent.ForkJoinTask$AdaptedCallable")

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.thread.jdk21;
+package org.bithon.agent.plugin.thread.jdk8;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
@@ -30,13 +30,12 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 
 /**
- * Equivalent to ForkJoinPool#externalPush(ForkJoinTask) in previous JDK
- * {@link ForkJoinPool#poolSubmit(boolean, ForkJoinTask)}
+ * {@link ForkJoinPool#externalPush(ForkJoinTask)} is an internal method that is called by {@link ForkJoinPool#execute(Runnable)} or {@link ForkJoinPool#submit(Runnable)}.
  *
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 11:15 下午
  */
-public class ForkJoinPool$PoolSubmit extends AroundInterceptor {
+public class ForkJoinPool$ExternalPush extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
@@ -62,11 +61,11 @@ public class ForkJoinPool$PoolSubmit extends AroundInterceptor {
         ITraceSpan span = aopContext.getSpan();
 
         try {
-            ForkJoinTask<?> task = aopContext.getArgAs(1);
+            ForkJoinTask<?> task = aopContext.getArgAs(0);
             if (!(task instanceof IBithonObject)) {
                 // If it happens, it might be because this agent is used in a newer version of JDK,
                 // which has different implementations of ForkJoinTask
-                LoggerFactory.getLogger(ForkJoinPool$PoolSubmit.class)
+                LoggerFactory.getLogger(ForkJoinPool$ExternalPush.class)
                              .warn("ForkJoinTask is not an instance of IBithonObject: {}", task == null ? "null" : task.getClass().getName());
                 return;
             }
@@ -74,7 +73,7 @@ public class ForkJoinPool$PoolSubmit extends AroundInterceptor {
             // Injected by ForkJoinTaskAdaptedRunnable$Ctor or ForkJoinTaskRunnableExecutionAction$Ctor ...
             Object taskContext = ((IBithonObject) task).getInjectedObject();
             if (!(taskContext instanceof ForkJoinTaskContext)) {
-                LoggerFactory.getLogger(ForkJoinPool$PoolSubmit.class)
+                LoggerFactory.getLogger(ForkJoinPool$ExternalPush.class)
                              .warn("The inject object is not an instance of ForkJoinTaskContext: {}", taskContext == null ? "null" : taskContext.getClass().getName());
                 return;
             }
