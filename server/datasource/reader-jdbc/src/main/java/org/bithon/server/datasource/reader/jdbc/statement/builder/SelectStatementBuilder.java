@@ -376,7 +376,7 @@ public class SelectStatementBuilder {
                                 dataType = IDataType.LONG;
                             } else {
                                 if (inputArg instanceof IdentifierExpression) {
-                                    output = ((IdentifierExpression) inputArg).getIdentifier();
+                                    output = functionCallExpression.getFunction().getName() + "_" + ((IdentifierExpression) inputArg).getIdentifier();
                                     dataType = functionCallExpression.getDataType();
                                 } else {
                                     // This might be the form: sum(a+b)
@@ -386,7 +386,11 @@ public class SelectStatementBuilder {
                                 }
                             }
                         }
-                        aggregators.add(functionCallExpression, output);
+                        Aggregator sameAggregator = aggregators.add(functionCallExpression, output);
+                        if (sameAggregator != null) {
+                            // Reference the existing aggregator output
+                            output = sameAggregator.output;
+                        }
 
                         if (pipeline.windowAggregation == null && sqlDialect.useWindowFunctionAsAggregator(functionCallExpression.getName())) {
                             pipeline.windowAggregation = new SelectStatement();
