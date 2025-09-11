@@ -33,7 +33,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Evaluation logs of alert
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class BithonAlertEvaluationLog extends TableImpl<BithonAlertEvaluationLogRecord> {
 
     private static final long serialVersionUID = 1L;
@@ -54,7 +54,7 @@ public class BithonAlertEvaluationLog extends TableImpl<BithonAlertEvaluationLog
     /**
      * The column <code>bithon_alert_evaluation_log.timestamp</code>.
      */
-    public final TableField<BithonAlertEvaluationLogRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "");
+    public final TableField<BithonAlertEvaluationLogRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "");
 
     /**
      * The column <code>bithon_alert_evaluation_log.alert_id</code>. Alert ID

@@ -16,10 +16,10 @@
 
 package org.bithon.server.storage.dashboard;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
 import java.io.IOException;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * @author Frank Chen
@@ -33,9 +33,19 @@ public interface IDashboardStorage {
      */
     List<Dashboard> getDashboard(long afterTimestamp);
 
-    String put(String name, String payload);
+    /**
+     * Get dashboards with filtering and pagination
+     */
+    DashboardListResult getDashboards(DashboardFilter filter);
 
-    void putIfNotExist(String name, String payload) throws IOException;
+    /**
+     * Get folder structure with dashboard counts
+     */
+    List<FolderInfo> getFolderStructure(int maxDepth);
+
+    String put(String id, String payload);
+
+    void putIfNotExist(String id, String payload) throws IOException;
 
     void initialize();
 }

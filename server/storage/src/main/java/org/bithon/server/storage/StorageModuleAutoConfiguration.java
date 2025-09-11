@@ -235,20 +235,20 @@ public class StorageModuleAutoConfiguration {
             for (Resource resource : resources) {
 
                 JsonNode dashboard = om.readTree(resource.getInputStream());
-                JsonNode nameNode = dashboard.get("name");
-                if (nameNode == null) {
+                JsonNode idNode = dashboard.get("name");
+                if (idNode == null) {
                     throw new RuntimeException(StringUtils.format("dashboard [%s] miss the name property", resource.getFilename()));
                 }
 
-                String name = nameNode.asText();
-                if (StringUtils.isEmpty(name)) {
+                String id = idNode.asText();
+                if (StringUtils.isEmpty(id)) {
                     throw new RuntimeException(StringUtils.format("dashboard [%s] has empty name property", resource.getFilename()));
                 }
 
                 // deserialize and then serialize again to compact the json string
                 String payload = om.writeValueAsString(dashboard);
 
-                storage.putIfNotExist(nameNode.asText(), payload);
+                storage.putIfNotExist(id, payload);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -16,13 +16,14 @@
 
 package org.bithon.server.storage.dashboard;
 
+import java.sql.Timestamp;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.sql.Timestamp;
 
 /**
  * @author Frank Chen
@@ -38,6 +39,11 @@ public class Dashboard {
     private String signature;
     private Timestamp timestamp;
     private boolean deleted;
+    
+    // Enhanced fields for better performance and filtering
+    private String title;
+    private String folder;
+    private Timestamp lastModified;
 
     @Data
     public static class Metadata {
@@ -47,4 +53,11 @@ public class Dashboard {
 
     @JsonIgnore
     private Metadata metadata;
+    
+    /**
+     * Get last modified timestamp, fallback to creation timestamp if not set
+     */
+    public Timestamp getLastModified() {
+        return lastModified != null ? lastModified : timestamp;
+    }
 }

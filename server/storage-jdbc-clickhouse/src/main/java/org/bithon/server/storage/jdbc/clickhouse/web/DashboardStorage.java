@@ -20,8 +20,11 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.HashUtils;
 import org.bithon.server.storage.dashboard.Dashboard;
+import org.bithon.server.storage.dashboard.DashboardFilter;
+import org.bithon.server.storage.dashboard.DashboardListResult;
 import org.bithon.server.storage.dashboard.DashboardStorageConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
@@ -29,8 +32,11 @@ import org.bithon.server.storage.jdbc.clickhouse.common.SecondaryIndex;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.dashboard.DashboardJdbcStorage;
+import org.jooq.Condition;
+import org.jooq.OrderField;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,8 +50,9 @@ public class DashboardStorage extends DashboardJdbcStorage {
 
     @JsonCreator
     public DashboardStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration configuration,
-                            @JacksonInject(useInput = OptBoolean.FALSE) DashboardStorageConfig storageConfig) {
-        super(configuration.getDslContext(), storageConfig);
+                            @JacksonInject(useInput = OptBoolean.FALSE) DashboardStorageConfig storageConfig,
+                            @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
+        super(configuration.getDslContext(), storageConfig, objectMapper);
         this.config = configuration.getClickHouseConfig();
     }
 
@@ -55,9 +62,11 @@ public class DashboardStorage extends DashboardJdbcStorage {
             return;
         }
 
-        new TableCreator(config, dslContext).useReplacingMergeTree(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.getName())
+        new TableCreator(config, dslContext).useReplacingMergeTree(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED.getName())
                                             .partitionByExpression(null)
-                                            .secondaryIndex(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.getName(), new SecondaryIndex("minmax", 512))
+                                            .secondaryIndex(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED.getName(), new SecondaryIndex("minmax", 1))
+                                            .secondaryIndex(Tables.BITHON_WEB_DASHBOARD.FOLDER.getName(), new SecondaryIndex("bloom_filter(0.001)", 1))
+                                            .secondaryIndex(Tables.BITHON_WEB_DASHBOARD.TITLE.getName(), new SecondaryIndex("bloom_filter(0.001)", 1))
                                             .createIfNotExist(Tables.BITHON_WEB_DASHBOARD);
     }
 
@@ -65,7 +74,7 @@ public class DashboardStorage extends DashboardJdbcStorage {
     public List<Dashboard> getDashboard(long afterTimestamp) {
         String sql = dslContext.selectFrom(Tables.BITHON_WEB_DASHBOARD)
                                .getSQL() + " FINAL WHERE ";
-        sql += dslContext.renderInlined(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.ge(new Timestamp(afterTimestamp).toLocalDateTime()));
+        sql += dslContext.renderInlined(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED.ge(new Timestamp(afterTimestamp).toLocalDateTime()));
 
         return dslContext.fetch(sql)
                          .stream()
@@ -74,15 +83,21 @@ public class DashboardStorage extends DashboardJdbcStorage {
     }
 
     @Override
-    public String put(String name, String payload) {
+    public String put(String id, String payload) {
         String signature = HashUtils.sha256Hex(payload);
 
+        // Extract title and folder from payload
+        Dashboard.Metadata metadata = extractMetadata(payload);
         Timestamp now = new Timestamp(System.currentTimeMillis());
+
         dslContext.insertInto(Tables.BITHON_WEB_DASHBOARD)
-                  .set(Tables.BITHON_WEB_DASHBOARD.NAME, name)
+                  .set(Tables.BITHON_WEB_DASHBOARD.ID, id)
                   .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                   .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
-                  .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, now.toLocalDateTime())
+                  .set(Tables.BITHON_WEB_DASHBOARD.CREATEDAT, now.toLocalDateTime())
+                  .set(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED, now.toLocalDateTime())
+                  .set(Tables.BITHON_WEB_DASHBOARD.TITLE, metadata != null ? metadata.getTitle() : null)
+                  .set(Tables.BITHON_WEB_DASHBOARD.FOLDER, metadata != null ? metadata.getFolder() : null)
                   .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
                   .execute();
 
@@ -90,21 +105,91 @@ public class DashboardStorage extends DashboardJdbcStorage {
     }
 
     @Override
-    public void putIfNotExist(String name, String payload) {
+    public void putIfNotExist(String id, String payload) {
         String signature = HashUtils.sha256Hex(payload);
 
         if (dslContext.fetchCount(Tables.BITHON_WEB_DASHBOARD,
-                                  Tables.BITHON_WEB_DASHBOARD.NAME.eq(name)) > 0) {
+                                  Tables.BITHON_WEB_DASHBOARD.ID.eq(id)) > 0) {
             return;
         }
 
+        // Extract title and folder from payload
+        Dashboard.Metadata metadata = extractMetadata(payload);
         Timestamp now = new Timestamp(System.currentTimeMillis());
+
         dslContext.insertInto(Tables.BITHON_WEB_DASHBOARD)
-                  .set(Tables.BITHON_WEB_DASHBOARD.NAME, name)
+                  .set(Tables.BITHON_WEB_DASHBOARD.ID, id)
                   .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                   .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
-                  .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, now.toLocalDateTime())
+                  .set(Tables.BITHON_WEB_DASHBOARD.CREATEDAT, now.toLocalDateTime())
+                  .set(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED, now.toLocalDateTime())
+                  .set(Tables.BITHON_WEB_DASHBOARD.TITLE, metadata != null ? metadata.getTitle() : null)
+                  .set(Tables.BITHON_WEB_DASHBOARD.FOLDER, metadata != null ? metadata.getFolder() : null)
                   .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
                   .execute();
+    }
+
+    @Override
+    public DashboardListResult getDashboards(DashboardFilter filter) {
+        // For ClickHouse, we need to use FINAL for ReplacingMergeTree
+        List<Condition> conditions = new ArrayList<>();
+
+        // Exclude deleted dashboards unless explicitly requested
+        if (!filter.isIncludeDeleted()) {
+            conditions.add(Tables.BITHON_WEB_DASHBOARD.DELETED.eq(0));
+        }
+
+        // Apply folder filter
+        if (filter.hasFolder()) {
+            conditions.add(Tables.BITHON_WEB_DASHBOARD.FOLDER.eq(filter.getTrimmedFolder()));
+        } else if (filter.hasFolderPrefix()) {
+            conditions.add(Tables.BITHON_WEB_DASHBOARD.FOLDER.like(filter.getTrimmedFolderPrefix() + "%"));
+        }
+
+        // Apply search filter
+        if (filter.hasSearch()) {
+            String searchPattern = "%" + filter.getTrimmedSearch().toLowerCase() + "%";
+            if (filter.hasFolder()) {
+                // Search only in title when folder is specified
+                conditions.add(Tables.BITHON_WEB_DASHBOARD.TITLE.likeIgnoreCase(searchPattern));
+            } else {
+                // Search in both title and folder when no folder specified
+                conditions.add(
+                    Tables.BITHON_WEB_DASHBOARD.TITLE.likeIgnoreCase(searchPattern)
+                                                     .or(Tables.BITHON_WEB_DASHBOARD.FOLDER.likeIgnoreCase(searchPattern))
+                );
+            }
+        }
+
+        // Build condition SQL
+        String whereClause = conditions.isEmpty() ? "" : (" WHERE " +
+                                                          conditions.stream()
+                                                                    .map(dslContext::renderInlined)
+                                                                    .reduce((a, b) -> a + " AND " + b)
+                                                                    .orElse(""));
+
+        // Count total results
+        String countSql = "SELECT count() FROM " + Tables.BITHON_WEB_DASHBOARD.getName() + " FINAL" + whereClause;
+        long totalElements = dslContext.fetch(countSql).get(0).get(0, Long.class);
+
+        // Apply sorting
+        OrderField<?> orderField = getSortField(filter.getSort(), filter.getOrder());
+        String orderClause = " ORDER BY " + dslContext.renderInlined(orderField);
+
+        // Apply pagination
+        int validatedSize = filter.getValidatedSize();
+        int validatedPage = filter.getValidatedPage();
+        String limitClause = " LIMIT " + validatedSize + " OFFSET " + (validatedPage * validatedSize);
+
+        // Execute main query
+        String sql = "SELECT * FROM " + Tables.BITHON_WEB_DASHBOARD.getName() + " FINAL" +
+                     whereClause + orderClause + limitClause;
+
+        List<Dashboard> dashboards = dslContext.fetch(sql)
+                                               .stream()
+                                               .map(this::toDashboard)
+                                               .collect(Collectors.toList());
+
+        return DashboardListResult.of(dashboards, validatedPage, validatedSize, totalElements);
     }
 }

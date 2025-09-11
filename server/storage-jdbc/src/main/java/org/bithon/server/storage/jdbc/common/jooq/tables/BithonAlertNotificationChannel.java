@@ -33,7 +33,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Alert Notification channels
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class BithonAlertNotificationChannel extends TableImpl<BithonAlertNotificationChannelRecord> {
 
     private static final long serialVersionUID = 1L;

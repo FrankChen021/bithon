@@ -26,7 +26,7 @@ import org.jooq.impl.Internal;
 /**
  * A class modelling indexes of tables in the default schema.
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Indexes {
 
     // -------------------------------------------------------------------------
@@ -61,5 +61,6 @@ public class Indexes {
     public static final Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_3_INSTANCENAME = Internal.createIndex(DSL.name("idx_tss_3_instanceName"), BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY, new OrderField[] { BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY.INSTANCENAME }, false);
     public static final Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_4_TRACEID = Internal.createIndex(DSL.name("idx_tss_4_traceId"), BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY, new OrderField[] { BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY.TRACEID }, false);
     public static final Index BITHON_TRACE_SPAN_TAG_INDEX_IDX_TSTI_TIMESTAMP = Internal.createIndex(DSL.name("idx_tsti_timestamp"), BithonTraceSpanTagIndex.BITHON_TRACE_SPAN_TAG_INDEX, new OrderField[] { BithonTraceSpanTagIndex.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP }, false);
-    public static final Index BITHON_WEB_DASHBOARD_IDX_WEB_DASHBOARD_TIMESTAMP = Internal.createIndex(DSL.name("idx_web_dashboard_timestamp"), BithonWebDashboard.BITHON_WEB_DASHBOARD, new OrderField[] { BithonWebDashboard.BITHON_WEB_DASHBOARD.TIMESTAMP }, false);
+    public static final Index BITHON_WEB_DASHBOARD_IDX_WEB_DASHBOARD_CREATEDAT = Internal.createIndex(DSL.name("idx_web_dashboard_createdAt"), BithonWebDashboard.BITHON_WEB_DASHBOARD, new OrderField[] { BithonWebDashboard.BITHON_WEB_DASHBOARD.CREATEDAT }, false);
+    public static final Index BITHON_WEB_DASHBOARD_IDX_WEB_DASHBOARD_LASTMODIFIED = Internal.createIndex(DSL.name("idx_web_dashboard_lastModified"), BithonWebDashboard.BITHON_WEB_DASHBOARD, new OrderField[] { BithonWebDashboard.BITHON_WEB_DASHBOARD.LASTMODIFIED }, false);
 }
