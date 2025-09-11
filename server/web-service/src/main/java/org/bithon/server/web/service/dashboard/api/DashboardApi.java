@@ -48,7 +48,6 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -79,45 +78,25 @@ public class DashboardApi {
         private final String folder;
     }
 
-    private List<DisplayableText> dashboardList;
-
     public DashboardApi(DashboardManager dashboardManager,
                         ObjectMapper objectMapper) {
         this.dashboardManager = dashboardManager;
-        this.dashboardManager.addChangedListener(this::loadDashboardList);
         this.objectMapper = objectMapper;
     }
 
-    private void loadDashboardList() {
-        dashboardList = this.dashboardManager.getDashboards()
-                                             .stream()
-                                             .map(dashboard -> {
-                                                 Dashboard.Metadata metadata = dashboard.getMetadata();
-                                                 if (metadata == null) {
-                                                     return null;
-                                                 } else {
-                                                     return new DisplayableText(dashboard.getName(), metadata.getTitle(), metadata.getFolder());
-                                                 }
-                                             })
-                                             .filter(Objects::nonNull)
-                                             .sorted(Comparator.comparing(o -> o.text))
-                                             .collect(Collectors.toList());
-    }
-
+    /**
+     * @deprecated use {@link #getDashboardList(String, String, String, int, int, String, String, boolean)} instead
+     */
     @Deprecated
     @GetMapping("/api/dashboard/names")
     public List<DisplayableText> getDashboardNames(@RequestParam(value = "folder", required = false) String folder) {
-        if (dashboardList == null) {
-            // no need to sync because it's acceptable
-            loadDashboardList();
-        }
-        if (StringUtils.hasText(folder)) {
-            return dashboardList.stream()
-                                .filter((dashboard) -> dashboard.folder != null && dashboard.folder.startsWith(folder))
-                                .collect(Collectors.toList());
-        } else {
-            return dashboardList;
-        }
+        final boolean filterOnFolder = StringUtils.hasText(folder);
+        return this.dashboardManager.getDashboards()
+                                    .stream()
+                                    .filter((dashboard) -> !filterOnFolder || (dashboard.getFolder() != null && dashboard.getFolder().startsWith(folder)))
+                                    .map(dashboard -> new DisplayableText(dashboard.getId(), dashboard.getTitle(), dashboard.getFolder()))
+                                    .sorted(Comparator.comparing(o -> o.text))
+                                    .collect(Collectors.toList());
     }
 
     @GetMapping("/api/dashboard/list")
@@ -161,12 +140,12 @@ public class DashboardApi {
                 List<Dashboard> dashboards = this.dashboardManager.getDashboards();
 
                 // sort by name
-                dashboards.sort(Comparator.comparing(Dashboard::getName));
+                dashboards.sort(Comparator.comparing(Dashboard::getId));
 
                 for (int i = 0; i < dashboards.size(); i++) {
 
                     writer.write("\"");
-                    writer.write(dashboards.get(i).getName());
+                    writer.write(dashboards.get(i).getId());
                     writer.write("\"");
                     writer.write(":");
                     writer.write(dashboards.get(i).getPayload());

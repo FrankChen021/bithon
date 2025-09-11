@@ -16,8 +16,6 @@
 
 package org.bithon.server.web.service.dashboard.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.concurrency.ScheduledExecutorServiceFactory;
@@ -53,7 +51,6 @@ public class DashboardManager implements SmartLifecycle {
         void onChanged();
     }
 
-    private final ObjectMapper objectMapper;
     private final IDashboardStorage storage;
     private ScheduledExecutorService loaderScheduler;
     private long lastLoadAt;
@@ -61,8 +58,7 @@ public class DashboardManager implements SmartLifecycle {
 
     private final List<IDashboardChangedListener> listeners = Collections.synchronizedList(new ArrayList<>());
 
-    public DashboardManager(ObjectMapper objectMapper, IDashboardStorage storage) {
-        this.objectMapper = objectMapper;
+    public DashboardManager(IDashboardStorage storage) {
         this.storage = storage;
     }
 
@@ -70,7 +66,9 @@ public class DashboardManager implements SmartLifecycle {
         String sig = this.storage.put(id, folder, title, payload);
 
         this.dashboards.put(id, Dashboard.builder()
-                                         .name(id)
+                                         .id(id)
+                                         .folder(folder)
+                                         .title(title)
                                          .payload(payload)
                                          .signature(sig)
                                          .build());
@@ -117,11 +115,9 @@ public class DashboardManager implements SmartLifecycle {
         if (!changedDashboards.isEmpty()) {
             for (Dashboard dashboard : changedDashboards) {
                 if (dashboard.isDeleted()) {
-                    this.dashboards.remove(dashboard.getName());
+                    this.dashboards.remove(dashboard.getId());
                 } else {
-                    dashboard.setMetadata(getMetadata(dashboard));
-
-                    this.dashboards.put(dashboard.getName(), dashboard);
+                    this.dashboards.put(dashboard.getId(), dashboard);
                 }
             }
 
@@ -129,14 +125,6 @@ public class DashboardManager implements SmartLifecycle {
         }
 
         this.lastLoadAt = now;
-    }
-
-    private Dashboard.Metadata getMetadata(Dashboard dashboard) {
-        try {
-            return objectMapper.readValue(dashboard.getPayload(), Dashboard.Metadata.class);
-        } catch (JsonProcessingException ignored) {
-            return null;
-        }
     }
 
     public Dashboard getDashboard(String boardName) {

@@ -16,7 +16,6 @@
 
 package org.bithon.server.storage.dashboard;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,23 +32,13 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Dashboard {
-    private String name;
-    private String payload;
-    private String signature;
-    private Timestamp timestamp;
-    private boolean deleted;
-
-    // Enhanced fields for better performance and filtering
+    private String id;
     private String title;
     private String folder;
+
+    private String payload;
+    private String signature;
+    private Timestamp createdAt;
     private Timestamp lastModified;
-
-    @Data
-    public static class Metadata {
-        private String title;
-        private String folder;
-    }
-
-    @JsonIgnore
-    private Metadata metadata;
+    private boolean deleted;
 }

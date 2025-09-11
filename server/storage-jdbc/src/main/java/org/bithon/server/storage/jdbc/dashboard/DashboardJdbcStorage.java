@@ -19,7 +19,6 @@ package org.bithon.server.storage.jdbc.dashboard;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.HashUtils;
 import org.bithon.server.storage.dashboard.Dashboard;
@@ -169,7 +168,7 @@ public class DashboardJdbcStorage implements IDashboardStorage {
         }
 
         // Count total results
-        long totalElements = dslContext.selectCount()
+        Long totalElements = dslContext.selectCount()
                                        .from(Tables.BITHON_WEB_DASHBOARD)
                                        .where(conditions)
                                        .fetchOne(0, long.class);
@@ -189,7 +188,7 @@ public class DashboardJdbcStorage implements IDashboardStorage {
                                                .offset(validatedPage * validatedSize)
                                                .fetch(this::toDashboard);
 
-        return DashboardListResult.of(dashboards, validatedPage, validatedSize, totalElements);
+        return DashboardListResult.of(dashboards, validatedPage, validatedSize, totalElements == null ? 0 : totalElements);
     }
 
     @Override
@@ -281,13 +280,11 @@ public class DashboardJdbcStorage implements IDashboardStorage {
 
     protected Dashboard toDashboard(Record record) {
         Dashboard dashboard = new Dashboard();
-        dashboard.setName(record.get(Tables.BITHON_WEB_DASHBOARD.ID));
+        dashboard.setId(record.get(Tables.BITHON_WEB_DASHBOARD.ID));
         dashboard.setPayload(record.get(Tables.BITHON_WEB_DASHBOARD.PAYLOAD));
-        dashboard.setTimestamp(Timestamp.valueOf(record.get(Tables.BITHON_WEB_DASHBOARD.CREATEDAT)));
+        dashboard.setCreatedAt(Timestamp.valueOf(record.get(Tables.BITHON_WEB_DASHBOARD.CREATEDAT)));
         dashboard.setSignature(record.get(Tables.BITHON_WEB_DASHBOARD.SIGNATURE));
         dashboard.setDeleted(record.get(Tables.BITHON_WEB_DASHBOARD.DELETED) == 1);
-
-        // Set enhanced fields
         dashboard.setTitle(record.get(Tables.BITHON_WEB_DASHBOARD.TITLE));
         dashboard.setFolder(record.get(Tables.BITHON_WEB_DASHBOARD.FOLDER));
 
@@ -296,21 +293,7 @@ public class DashboardJdbcStorage implements IDashboardStorage {
             dashboard.setLastModified(Timestamp.valueOf(lastModified));
         }
 
-        // Set metadata for backward compatibility
-        Dashboard.Metadata metadata = new Dashboard.Metadata();
-        metadata.setTitle(dashboard.getTitle());
-        metadata.setFolder(dashboard.getFolder());
-        dashboard.setMetadata(metadata);
-
         return dashboard;
-    }
-
-    protected Dashboard.Metadata extractMetadata(String payload) {
-        try {
-            return objectMapper.readValue(payload, Dashboard.Metadata.class);
-        } catch (JsonProcessingException e) {
-            return null;
-        }
     }
 
     protected OrderField<?> getSortField(String sort, String order) {
