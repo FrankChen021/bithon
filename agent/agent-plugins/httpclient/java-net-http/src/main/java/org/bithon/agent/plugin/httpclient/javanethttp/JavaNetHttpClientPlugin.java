@@ -18,6 +18,8 @@ package org.bithon.agent.plugin.httpclient.javanethttp;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.JdkVersionPrecondition;
 
 import java.util.Arrays;
 import java.util.List;
@@ -30,11 +32,16 @@ import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.Interc
  * This plugin intercepts the following key methods:
  * - HttpClient.send() and sendAsync() - to start tracing spans and collect request metrics
  * - HttpResponse handling - to collect response metrics and complete tracing spans
- * 
+ *
  * @author frank.chen021@outlook.com
  * @date 2024/12/19
  */
 public class JavaNetHttpClientPlugin implements IPlugin {
+
+    @Override
+    public IInterceptorPrecondition getPreconditions() {
+        return JdkVersionPrecondition.gte(11);
+    }
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {

@@ -36,7 +36,7 @@ import java.net.http.HttpResponse;
 import java.util.Optional;
 
 /**
- * Intercepts java.net.http.HttpClient.send() method
+ * {@link java.net.http.HttpClient#send(HttpRequest, HttpResponse.BodyHandler)}
  * 
  * @author frank.chen021@outlook.com
  * @date 2024/12/19
