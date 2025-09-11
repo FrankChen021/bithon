@@ -16,10 +16,10 @@
 
 package org.bithon.server.storage.dashboard;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 import java.io.IOException;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * @author Frank Chen

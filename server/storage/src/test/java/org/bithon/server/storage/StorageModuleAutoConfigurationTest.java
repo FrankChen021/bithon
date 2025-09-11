@@ -16,11 +16,11 @@
 
 package org.bithon.server.storage;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Unit tests for StorageModuleAutoConfiguration

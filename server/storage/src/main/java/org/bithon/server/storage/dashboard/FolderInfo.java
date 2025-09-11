@@ -16,16 +16,16 @@
 
 package org.bithon.server.storage.dashboard;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * Folder information for dashboard organization
- * 
+ *
  * @author Frank Chen
  * @date 2025-09-11
  */
@@ -34,32 +34,32 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FolderInfo {
-    
+
     /**
      * Full folder path (e.g., "observability/apps")
      */
     private String path;
-    
+
     /**
      * Folder name (e.g., "apps" for path "observability/apps")
      */
     private String name;
-    
+
     /**
      * Number of dashboards directly in this folder
      */
     private long dashboardCount;
-    
+
     /**
      * Child folders
      */
     private List<FolderInfo> children;
-    
+
     /**
      * Parent folder path (null for root folders)
      */
     private String parentPath;
-    
+
     /**
      * Depth level (0 for root folders)
      */

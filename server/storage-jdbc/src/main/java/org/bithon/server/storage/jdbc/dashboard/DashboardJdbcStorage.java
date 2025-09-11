@@ -42,6 +42,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -154,7 +155,7 @@ public class DashboardJdbcStorage implements IDashboardStorage {
 
         // Apply search filter
         if (filter.hasSearch()) {
-            String searchPattern = "%" + filter.getTrimmedSearch().toLowerCase() + "%";
+            String searchPattern = "%" + filter.getTrimmedSearch().toLowerCase(Locale.ENGLISH) + "%";
             if (filter.hasFolder()) {
                 // Search only in title when folder is specified
                 conditions.add(Tables.BITHON_WEB_DASHBOARD.TITLE.likeIgnoreCase(searchPattern));
@@ -313,7 +314,7 @@ public class DashboardJdbcStorage implements IDashboardStorage {
     }
 
     protected OrderField<?> getSortField(String sort, String order) {
-        Field<?> field = switch (sort.toLowerCase()) {
+        Field<?> field = switch (sort.toLowerCase(Locale.ENGLISH)) {
             case "folder" -> Tables.BITHON_WEB_DASHBOARD.FOLDER;
             case "lastmodified", "last_modified" -> Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED;
             case "id" -> Tables.BITHON_WEB_DASHBOARD.ID;

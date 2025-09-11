@@ -38,6 +38,7 @@ import org.jooq.OrderField;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
@@ -144,7 +145,7 @@ public class DashboardStorage extends DashboardJdbcStorage {
 
         // Apply search filter
         if (filter.hasSearch()) {
-            String searchPattern = "%" + filter.getTrimmedSearch().toLowerCase() + "%";
+            String searchPattern = "%" + filter.getTrimmedSearch().toLowerCase(Locale.ENGLISH) + "%";
             if (filter.hasFolder()) {
                 // Search only in title when folder is specified
                 conditions.add(Tables.BITHON_WEB_DASHBOARD.TITLE.likeIgnoreCase(searchPattern));

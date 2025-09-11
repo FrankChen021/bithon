@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * Filter criteria for dashboard queries
- * 
+ *
  * @author Frank Chen
  * @date 2025-09-11
  */
@@ -32,107 +32,107 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DashboardFilter {
-    
+
     /**
      * Search term to match against title and folder (when folder is not specified)
      * or just title (when folder is specified)
      */
     private String search;
-    
+
     /**
      * Exact folder path to filter by
      */
     private String folder;
-    
+
     /**
      * Folder prefix to filter by (alternative to exact folder match)
      */
     private String folderPrefix;
-    
+
     /**
      * Page number (0-based)
      */
     @Builder.Default
     private int page = 0;
-    
+
     /**
      * Page size (max results per page)
      */
     @Builder.Default
     private int size = 100;
-    
+
     /**
      * Sort field (title, folder, lastModified, name)
      */
     @Builder.Default
     private String sort = "title";
-    
+
     /**
      * Sort order (asc, desc)
      */
     @Builder.Default
     private String order = "asc";
-    
+
     /**
      * Include deleted dashboards
      */
     @Builder.Default
     private boolean includeDeleted = false;
-    
+
     /**
      * Maximum page size allowed
      */
     public static final int MAX_PAGE_SIZE = 1000;
-    
+
     /**
      * Get validated page size (ensure it's within limits)
      */
     public int getValidatedSize() {
         return Math.min(Math.max(1, size), MAX_PAGE_SIZE);
     }
-    
+
     /**
      * Get validated page number (ensure it's not negative)
      */
     public int getValidatedPage() {
         return Math.max(0, page);
     }
-    
+
     /**
      * Check if search term is provided and meaningful
      */
     public boolean hasSearch() {
         return search != null && search.trim().length() >= 2;
     }
-    
+
     /**
      * Check if folder filter is provided
      */
     public boolean hasFolder() {
         return folder != null && !folder.trim().isEmpty();
     }
-    
+
     /**
      * Check if folder prefix filter is provided
      */
     public boolean hasFolderPrefix() {
         return folderPrefix != null && !folderPrefix.trim().isEmpty();
     }
-    
+
     /**
      * Get trimmed search term
      */
     public String getTrimmedSearch() {
         return search != null ? search.trim() : null;
     }
-    
+
     /**
      * Get trimmed folder
      */
     public String getTrimmedFolder() {
         return folder != null ? folder.trim() : null;
     }
-    
+
     /**
      * Get trimmed folder prefix
      */
