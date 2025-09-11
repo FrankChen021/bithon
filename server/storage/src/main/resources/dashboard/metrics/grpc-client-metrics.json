@@ -1,7 +1,6 @@
 {
-  "name": "grpc-client-metrics",
+  "id": "grpc-client-metrics",
   "title": "GRPC Client",
-  "folder": "metrics",
   "filter": {
     "selectors": [
       {
@@ -39,34 +38,16 @@
       ],
       "query": {
         "dataSource": "grpc-client-metrics",
-        "fields": [
-          "qps",
-          "callCount"
-        ]
+        "fields": ["qps", "callCount"]
       },
       "details": {
         "type": "groupBy",
-        "columns": [
-          "server",
-          "service",
-          "method",
-          "status",
-          "qps",
-          "callCount"
-        ],
+        "columns": ["server", "service", "method", "status", "qps", "callCount"],
         "query": {
           "type": "timeseries",
           "dataSource": "grpc-client-metrics",
-          "fields": [
-            "qps",
-            "callCount"
-          ],
-          "groupBy": [
-            "server",
-            "service",
-            "method",
-            "status"
-          ],
+          "fields": ["qps", "callCount"],
+          "groupBy": ["server", "service", "method", "status"],
           "orderBy": {
             "name": "qps",
             "order": "desc"
@@ -105,11 +86,7 @@
       "query": {
         "type": "timeseries",
         "dataSource": "grpc-client-metrics",
-        "fields": [
-          "minResponseTime",
-          "avgResponseTime",
-          "maxResponseTime"
-        ]
+        "fields": ["minResponseTime", "avgResponseTime", "maxResponseTime"]
       },
       "details": {
         "columns": [
@@ -136,18 +113,8 @@
         ],
         "query": {
           "type": "groupBy",
-          "fields": [
-            "callCount",
-            "minResponseTime",
-            "avgResponseTime",
-            "maxResponseTime"
-          ],
-          "groupBy": [
-            "server",
-            "service",
-            "method",
-            "status"
-          ],
+          "fields": ["callCount", "minResponseTime", "avgResponseTime", "maxResponseTime"],
+          "groupBy": ["server", "service", "method", "status"],
           "orderBy": {
             "name": "avgResponseTime",
             "order": "desc"
@@ -169,37 +136,18 @@
       "title": "Errors",
       "width": 4,
       "type": "line",
-      "columns": [
-        "errorCount"
-      ],
+      "columns": ["errorCount"],
       "query": {
         "dataSource": "grpc-client-metrics",
         "type": "timeseries",
-        "fields": [
-          "errorCount"
-        ]
+        "fields": ["errorCount"]
       },
       "details": {
-        "columns": [
-          "server",
-          "service",
-          "method",
-          "status",
-          "callCount",
-          "errorCount"
-        ],
+        "columns": ["server", "service", "method", "status", "callCount", "errorCount"],
         "query": {
           "type": "groupBy",
-          "fields": [
-            "callCount",
-            "errorCount"
-          ],
-          "groupBy": [
-            "server",
-            "service",
-            "method",
-            "status"
-          ],
+          "fields": ["callCount", "errorCount"],
+          "groupBy": ["server", "service", "method", "status"],
           "filter": "status <> 'OK'",
           "orderBy": {
             "name": "errorCount",
@@ -245,12 +193,7 @@
       "query": {
         "dataSource": "grpc-client-metrics",
         "type": "timeseries",
-        "fields": [
-          "bytesSentRate",
-          "bytesReceivedRate",
-          "bytesSent",
-          "bytesReceived"
-        ]
+        "fields": ["bytesSentRate", "bytesReceivedRate", "bytesSent", "bytesReceived"]
       },
       "details": {
         "columns": [
@@ -270,17 +213,8 @@
         ],
         "query": {
           "type": "groupBy",
-          "fields": [
-            "callCount",
-            "bytesSentRate",
-            "bytesReceivedRate"
-          ],
-          "groupBy": [
-            "server",
-            "service",
-            "method",
-            "status"
-          ],
+          "fields": ["callCount", "bytesSentRate", "bytesReceivedRate"],
+          "groupBy": ["server", "service", "method", "status"],
           "orderBy": {
             "name": "bytesSentRate",
             "order": "desc"

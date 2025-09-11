@@ -1,7 +1,6 @@
 {
-  "name": "jvm-metrics",
+  "id": "jvm-metrics",
   "title": "JVM",
-  "folder": "metrics",
   "filter": {
     "selectors": [
       {
@@ -77,18 +76,13 @@
           "heapMax",
           "processCpuLoad"
         ],
-        "groupBy": [
-          "appName",
-          "instanceName"
-        ],
+        "groupBy": ["appName", "instanceName"],
         "orderBy": {
           "name": "instanceUpTime",
           "order": "asc"
         },
         "precondition": {
-          "filters": [
-            "appName"
-          ]
+          "filters": ["appName"]
         }
       }
     },
@@ -340,13 +334,8 @@
       "query": {
         "type": "timeseries",
         "dataSource": "jvm-gc-metrics",
-        "fields": [
-          "gcCount",
-          "avgGcTime"
-        ],
-        "groupBy": [
-          "gcName"
-        ],
+        "fields": ["gcCount", "avgGcTime"],
+        "groupBy": ["gcName"],
         "filter": "generation in ('new', 'ZGC Cycles', 'ZGC Pauses', 'ZGC Minor Cycles', 'ZGC Minor Pauses')"
       }
     },
@@ -381,9 +370,7 @@
             "expression": "sum(gcTime)/sum(gcCount)"
           }
         ],
-        "groupBy": [
-          "gcName"
-        ],
+        "groupBy": ["gcName"],
         "filter": "generation in ('old', 'ZGC Major Cycles', 'ZGC Major Pauses')"
       }
     }

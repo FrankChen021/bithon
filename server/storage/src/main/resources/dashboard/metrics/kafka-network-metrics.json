@@ -1,14 +1,13 @@
 {
-  "name": "kafka-network-metrics",
+  "id": "kafka-network-metrics",
   "title": "Kafka Network",
-  "folder": "metrics",
   "filter": {
     "selectors": [
       {
         "type": "datasource",
         "name": "kafka-network-metrics",
         "fields": [
-          {"name": "appName", "width": 200, "allowClear": false},
+          { "name": "appName", "width": 200, "allowClear": false },
           "instanceName",
           "type",
           "cluster",
@@ -25,16 +24,11 @@
       "title": "QPS",
       "width": 4,
       "type": "line",
-      "columns": [
-        "qps"
-      ],
+      "columns": ["qps"],
       "query": {
         "type": "timeseries",
         "dataSource": "kafka-network-metrics",
-        "fields": [
-          "type",
-          "qps"
-        ]
+        "fields": ["type", "qps"]
       }
     },
     {
@@ -46,19 +40,11 @@
           "format": "millisecond"
         }
       ],
-      "columns": [
-        "minResponseTime",
-        "avgResponseTime",
-        "maxResponseTime"
-      ],
+      "columns": ["minResponseTime", "avgResponseTime", "maxResponseTime"],
       "query": {
         "type": "timeseries",
         "dataSource": "kafka-network-metrics",
-        "fields": [
-          "minResponseTime",
-          "avgResponseTime",
-          "maxResponseTime"
-        ]
+        "fields": ["minResponseTime", "avgResponseTime", "maxResponseTime"]
       },
       "details": {
         "columns": [
@@ -81,7 +67,7 @@
           "type": "groupBy",
           "dataSource": "kafka-network-metrics",
           "fields": [
-            {"name": "count","expression": "count()"},
+            { "name": "count", "expression": "count()" },
             "minResponseTime",
             "avgResponseTime",
             "maxResponseTime"

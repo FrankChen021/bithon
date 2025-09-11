@@ -1,6 +1,5 @@
 {
-  "name": "application-overview",
-  "folder": "metrics",
+  "id": "application-overview",
   "title": "Application Overview",
   "filter": {
     "selectors": [
@@ -36,9 +35,7 @@
           }
         ],
         "precondition": {
-          "filters": [
-            "appName"
-          ]
+          "filters": ["appName"]
         }
       }
     },
@@ -57,9 +54,7 @@
           }
         ],
         "precondition": {
-          "filters": [
-            "appName"
-          ]
+          "filters": ["appName"]
         }
       }
     },
@@ -78,9 +73,7 @@
           }
         ],
         "precondition": {
-          "filters": [
-            "appName"
-          ]
+          "filters": ["appName"]
         }
       }
     },
@@ -99,9 +92,7 @@
           }
         ],
         "precondition": {
-          "filters": [
-            "appName"
-          ]
+          "filters": ["appName"]
         }
       }
     },
@@ -120,9 +111,7 @@
           }
         ],
         "precondition": {
-          "filters": [
-            "appName"
-          ]
+          "filters": ["appName"]
         }
       }
     },
@@ -141,9 +130,7 @@
           }
         ],
         "precondition": {
-          "filters": [
-            "appName"
-          ]
+          "filters": ["appName"]
         }
       }
     },
@@ -162,9 +149,7 @@
           }
         ],
         "precondition": {
-          "filters": [
-            "appName"
-          ]
+          "filters": ["appName"]
         }
       }
     },
@@ -183,9 +168,7 @@
           }
         ],
         "precondition": {
-          "filters": [
-            "appName"
-          ]
+          "filters": ["appName"]
         }
       }
     },
@@ -204,9 +187,7 @@
           }
         ],
         "precondition": {
-          "filters": [
-            "appName"
-          ]
+          "filters": ["appName"]
         }
       }
     },
@@ -225,9 +206,7 @@
           }
         ],
         "precondition": {
-          "filters": [
-            "appName"
-          ]
+          "filters": ["appName"]
         }
       }
     },
@@ -246,9 +225,7 @@
           }
         ],
         "precondition": {
-          "filters": [
-            "appName"
-          ]
+          "filters": ["appName"]
         }
       }
     },
@@ -267,9 +244,7 @@
           }
         ],
         "precondition": {
-          "filters": [
-            "appName"
-          ]
+          "filters": ["appName"]
         }
       }
     }

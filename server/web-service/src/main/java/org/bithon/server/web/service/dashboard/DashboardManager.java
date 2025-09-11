@@ -16,9 +16,14 @@
 
 package org.bithon.server.web.service.dashboard;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.concurrency.ScheduledExecutorServiceFactory;
 import org.bithon.component.commons.time.DateTime;
@@ -31,13 +36,10 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Frank Chen
@@ -66,14 +68,14 @@ public class DashboardManager implements SmartLifecycle {
         this.storage = storage;
     }
 
-    public void update(String name, String payload) {
-        String sig = this.storage.put(name, payload);
+    public void update(String id, String folder, String title, String payload) {
+        String sig = this.storage.put(id, folder, title, payload);
 
-        this.dashboards.put(name, Dashboard.builder()
-                                           .name(name)
-                                           .payload(payload)
-                                           .signature(sig)
-                                           .build());
+        this.dashboards.put(id, Dashboard.builder()
+                                         .name(id)
+                                         .payload(payload)
+                                         .signature(sig)
+                                         .build());
         this.onChanged();
     }
 
@@ -149,6 +151,10 @@ public class DashboardManager implements SmartLifecycle {
 
     public void addChangedListener(IDashboardChangedListener listener) {
         this.listeners.add(listener);
+    }
+
+    public IDashboardStorage getDashboardStorage() {
+        return this.storage;
     }
 
     private void onChanged() {

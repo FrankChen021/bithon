@@ -1,14 +1,13 @@
 {
-  "name": "kafka-producer-metrics",
+  "id": "kafka-producer-metrics",
   "title": "Kafka Producer",
-  "folder": "metrics",
   "filter": {
     "selectors": [
       {
         "type": "datasource",
         "name": "kafka-producer-metrics",
         "fields": [
-          {"name": "appName", "width": 200, "allowClear": false},
+          { "name": "appName", "width": 200, "allowClear": false },
           "instanceName",
           "cluster",
           "nodeId",
@@ -23,29 +22,19 @@
       "title": "Produce Records",
       "width": 2,
       "type": "line",
-      "columns": [
-        "recordCount",
-        "errorRecordCount",
-        "retryRecordCount"
-      ],
+      "columns": ["recordCount", "errorRecordCount", "retryRecordCount"],
       "query": {
         "type": "timeseries",
         "dataSource": "kafka-producer-metrics",
-        "fields": [
-          "recordCount",
-          "errorRecordCount",
-          "retryRecordCount"
-        ]
+        "fields": ["recordCount", "errorRecordCount", "retryRecordCount"]
       },
       "details": {
-        "columns": ["cluster","topic","clientId","recordCount","errorRecordCount"],
+        "columns": ["cluster", "topic", "clientId", "recordCount", "errorRecordCount"],
         "query": {
           "type": "groupBy",
           "dataSource": "kafka-producer-metrics",
-          "fields": [
-            "recordCount","errorRecordCount"
-          ],
-          "groupBy": ["cluster","topic","clientId"],
+          "fields": ["recordCount", "errorRecordCount"],
+          "groupBy": ["cluster", "topic", "clientId"],
           "orderBy": {
             "name": "recordCount",
             "order": "desc"
@@ -76,10 +65,7 @@
       "query": {
         "type": "timeseries",
         "dataSource": "kafka-network-metrics",
-        "fields": [
-          "qps",
-          "requestCount"
-        ],
+        "fields": ["qps", "requestCount"],
         "filter": "type = 'Produce'"
       }
     },
@@ -92,17 +78,11 @@
           "format": "binary_byte"
         }
       ],
-      "columns": [
-        "batchSize",
-        "maxRecordBytes"
-      ],
+      "columns": ["batchSize", "maxRecordBytes"],
       "query": {
         "type": "timeseries",
         "dataSource": "kafka-producer-metrics",
-        "fields": [
-          "batchSize",
-          "maxRecordBytes"
-        ]
+        "fields": ["batchSize", "maxRecordBytes"]
       }
     },
     {
@@ -114,19 +94,11 @@
           "format": "millisecond"
         }
       ],
-      "columns": [
-        "minResponseTime",
-        "avgResponseTime",
-        "maxResponseTime"
-      ],
+      "columns": ["minResponseTime", "avgResponseTime", "maxResponseTime"],
       "query": {
         "type": "timeseries",
         "dataSource": "kafka-network-metrics",
-        "fields": [
-          "minResponseTime",
-          "avgResponseTime",
-          "maxResponseTime"
-        ],
+        "fields": ["minResponseTime", "avgResponseTime", "maxResponseTime"],
         "filter": "type = 'Produce'"
       }
     }

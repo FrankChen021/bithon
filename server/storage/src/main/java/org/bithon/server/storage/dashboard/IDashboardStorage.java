@@ -43,7 +43,7 @@ public interface IDashboardStorage {
      */
     List<FolderInfo> getFolderStructure(int maxDepth);
 
-    String put(String id, String payload);
+    String put(String id, String folder, String title, String payload);
 
     void putIfNotExist(String id, String folder, String title, String payload) throws IOException;
 

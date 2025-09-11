@@ -237,14 +237,18 @@ public class StorageModuleAutoConfiguration {
             for (Resource resource : resources) {
 
                 ObjectNode dashboard = (ObjectNode) om.readTree(resource.getInputStream());
-                JsonNode idNode = dashboard.get("name");
-                if (idNode == null) {
-                    throw new RuntimeException(StringUtils.format("dashboard [%s] miss the name property", resource.getFilename()));
+                JsonNode id = dashboard.get("id");
+                if (id == null) {
+                    // Keep compatible with old version
+                    id = dashboard.get("name");
+                    if (id == null) {
+                        throw new RuntimeException(StringUtils.format("dashboard [%s] miss the id property", resource.getFilename()));
+                    }
                 }
 
-                String id = idNode.asText();
-                if (StringUtils.isEmpty(id)) {
-                    throw new RuntimeException(StringUtils.format("dashboard [%s] has empty name property", resource.getFilename()));
+                String idText = id.asText();
+                if (StringUtils.isEmpty(idText)) {
+                    throw new RuntimeException(StringUtils.format("dashboard [%s] has empty id property", resource.getFilename()));
                 }
 
                 // Determine folder from resource path
@@ -258,7 +262,7 @@ public class StorageModuleAutoConfiguration {
                 // deserialize and then serialize again to compact the json string
                 String payload = om.writeValueAsString(dashboard);
 
-                storage.putIfNotExist(id, folder, title.asText(), payload);
+                storage.putIfNotExist(idText, folder, title.asText(), payload);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -275,24 +279,24 @@ public class StorageModuleAutoConfiguration {
     public static String extractFolderFromResourcePath(URI uri) {
         try {
             String uriString = uri.toString();
-            
+
             // Find the dashboard directory in the path
             String dashboardPrefix = "/dashboard/";
             int dashboardIndex = uriString.indexOf(dashboardPrefix);
             if (dashboardIndex == -1) {
                 return "";
             }
-            
+
             // Extract the path after /dashboard/
             String pathAfterDashboard = uriString.substring(dashboardIndex + dashboardPrefix.length());
-            
+
             // Find the last slash to separate directory from filename
             int lastSlashIndex = pathAfterDashboard.lastIndexOf('/');
             if (lastSlashIndex == -1) {
                 // The File is directly in the dashboard directory (root level)
                 return "";
             }
-            
+
             // Return the directory path (everything before the last slash)
             return pathAfterDashboard.substring(0, lastSlashIndex);
         } catch (Exception e) {

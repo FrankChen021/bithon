@@ -19,6 +19,7 @@ package org.bithon.server.web.service.dashboard;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -26,6 +27,9 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.dashboard.Dashboard;
+import org.bithon.server.storage.dashboard.DashboardFilter;
+import org.bithon.server.storage.dashboard.DashboardListResult;
+import org.bithon.server.storage.dashboard.FolderInfo;
 import org.bithon.server.storage.dashboard.IDashboardStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -99,6 +103,7 @@ public class DashboardController {
                                              .collect(Collectors.toList());
     }
 
+    @Deprecated
     @GetMapping("/api/dashboard/names")
     public List<DisplayableText> getDashboardNames(@RequestParam(value = "folder", required = false) String folder) {
         if (dashboardList == null) {
@@ -106,11 +111,44 @@ public class DashboardController {
             loadDashboardList();
         }
         if (StringUtils.hasText(folder)) {
-            return dashboardList.stream().filter((dashboard) -> dashboard.folder != null && dashboard.folder.startsWith(folder)).collect(Collectors.toList());
+            return dashboardList.stream()
+                                .filter((dashboard) -> dashboard.folder != null && dashboard.folder.startsWith(folder))
+                                .collect(Collectors.toList());
         } else {
             return dashboardList;
         }
     }
+
+    @GetMapping("/api/dashboard/list")
+    public DashboardListResult getDashboardList(
+        @RequestParam(value = "search", required = false) String search,
+        @RequestParam(value = "folder", required = false) String folder,
+        @RequestParam(value = "folderPrefix", required = false) String folderPrefix,
+        @RequestParam(value = "page", defaultValue = "0") int page,
+        @RequestParam(value = "size", defaultValue = "100") int size,
+        @RequestParam(value = "sort", defaultValue = "title") String sort,
+        @RequestParam(value = "order", defaultValue = "asc") String order,
+        @RequestParam(value = "includeDeleted", defaultValue = "false") boolean includeDeleted) {
+
+        DashboardFilter filter = DashboardFilter.builder()
+                                                .search(search)
+                                                .folder(folder)
+                                                .folderPrefix(folderPrefix)
+                                                .page(page)
+                                                .size(size)
+                                                .sort(sort)
+                                                .order(order)
+                                                .includeDeleted(includeDeleted)
+                                                .build();
+
+        return dashboardManager.getDashboardStorage().getDashboards(filter);
+    }
+
+    @GetMapping("/api/dashboard/folders")
+    public List<FolderInfo> getFolderStructure(@RequestParam(value = "depth", defaultValue = "10") int depth) {
+        return dashboardManager.getDashboardStorage().getFolderStructure(Math.max(1, Math.min(depth, 20))); // Limit depth between 1-20
+    }
+
 
     @GetMapping("/api/dashboard/all")
     public void getAllDashboards(HttpServletResponse response) throws IOException {
@@ -161,30 +199,41 @@ public class DashboardController {
     @PostMapping("/api/dashboard/update")
     public void updateDashboard(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-        JsonNode dashboard;
+        ObjectNode dashboard;
         try {
             // check if it's well-formed
-            dashboard = objectMapper.readTree(request.getInputStream());
+            JsonNode doc = objectMapper.readTree(request.getInputStream());
+            if (!(doc instanceof ObjectNode)) {
+                response.getWriter().println(StringUtils.format("Invalid JSON formatted dashboard: The document should be an object."));
+                response.setStatus(HttpStatus.BAD_REQUEST.value());
+                return;
+            }
+            dashboard = (ObjectNode) doc;
         } catch (JsonParseException e) {
             response.getWriter().println(StringUtils.format("Invalid JSON formatted dashboard: %s", e.getMessage()));
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             return;
         }
 
-        JsonNode titleNode = dashboard.get("title");
+        JsonNode titleNode = dashboard.remove("title");
         if (titleNode == null || StringUtils.isBlank(titleNode.asText())) {
             response.getWriter().println("title is missing.");
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             return;
         }
 
-        JsonNode nameNode = dashboard.get("name");
-        if (nameNode == null || StringUtils.isBlank(nameNode.asText())) {
+        JsonNode idNode = dashboard.remove("id");
+        if (idNode == null || StringUtils.isBlank(idNode.asText())) {
             response.getWriter().println("name is missing.");
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             return;
         }
 
-        this.dashboardManager.update(nameNode.asText(), objectMapper.writeValueAsString(dashboard));
+        JsonNode folderNode = dashboard.remove("folder");
+
+        this.dashboardManager.update(idNode.asText(),
+                                     folderNode == null ? "" : folderNode.asText(),
+                                     titleNode.asText(),
+                                     objectMapper.writeValueAsString(dashboard));
     }
 }

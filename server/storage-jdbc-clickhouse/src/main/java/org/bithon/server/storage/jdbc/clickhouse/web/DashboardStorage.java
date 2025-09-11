@@ -83,21 +83,19 @@ public class DashboardStorage extends DashboardJdbcStorage {
     }
 
     @Override
-    public String put(String id, String payload) {
+    public String put(String id, String folder, String title, String payload) {
         String signature = HashUtils.sha256Hex(payload);
 
-        // Extract title and folder from payload
-        Dashboard.Metadata metadata = extractMetadata(payload);
         Timestamp now = new Timestamp(System.currentTimeMillis());
 
         dslContext.insertInto(Tables.BITHON_WEB_DASHBOARD)
                   .set(Tables.BITHON_WEB_DASHBOARD.ID, id)
+                  .set(Tables.BITHON_WEB_DASHBOARD.FOLDER, folder)
+                  .set(Tables.BITHON_WEB_DASHBOARD.TITLE, title)
                   .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                   .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
                   .set(Tables.BITHON_WEB_DASHBOARD.CREATEDAT, now.toLocalDateTime())
                   .set(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED, now.toLocalDateTime())
-                  .set(Tables.BITHON_WEB_DASHBOARD.TITLE, metadata != null ? metadata.getTitle() : null)
-                  .set(Tables.BITHON_WEB_DASHBOARD.FOLDER, metadata != null ? metadata.getFolder() : null)
                   .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
                   .execute();
 

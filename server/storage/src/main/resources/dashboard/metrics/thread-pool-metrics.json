@@ -1,7 +1,6 @@
 {
-  "name": "thread-pool-metrics",
+  "id": "thread-pool-metrics",
   "title": "Thread Pool",
-  "folder": "metrics",
   "filter": {
     "selectors": [
       {
@@ -25,53 +24,33 @@
       "title": "Thread Pool Count",
       "width": 2,
       "type": "line",
-      "columns": [
-        "poolCount"
-      ],
+      "columns": ["poolCount"],
       "query": {
         "type": "timeseries",
         "dataSource": "thread-pool-metrics",
-        "fields": [
-          "poolCount"
-        ]
+        "fields": ["poolCount"]
       }
     },
     {
       "title": "Thread Pool",
       "width": 2,
       "type": "line",
-      "columns": [
-        "activeThreads",
-        "currentPoolSize"
-      ],
+      "columns": ["activeThreads", "currentPoolSize"],
       "query": {
         "type": "timeseries",
         "dataSource": "thread-pool-metrics",
-        "fields": [
-          "activeThreads",
-          "currentPoolSize"
-        ]
+        "fields": ["activeThreads", "currentPoolSize"]
       }
     },
     {
       "title": "Tasks",
       "width": 4,
       "type": "line",
-      "columns": [
-        "totalTaskCount",
-        "successfulTaskCount",
-        "queuedTaskCount",
-        "exceptionTaskCount"
-      ],
+      "columns": ["totalTaskCount", "successfulTaskCount", "queuedTaskCount", "exceptionTaskCount"],
       "query": {
         "type": "timeseries",
         "dataSource": "thread-pool-metrics",
-        "fields": [
-          "totalTaskCount",
-          "successfulTaskCount",
-          "queuedTaskCount",
-          "exceptionTaskCount"
-        ]
+        "fields": ["totalTaskCount", "successfulTaskCount", "queuedTaskCount", "exceptionTaskCount"]
       },
       "details": {
         "columns": [
@@ -85,16 +64,8 @@
         "query": {
           "type": "groupBy",
           "dataSource": "thread-pool-metrics",
-          "fields": [
-            "totalTaskCount",
-            "successfulTaskCount",
-            "queuedTaskCount",
-            "exceptionTaskCount"
-          ],
-          "groupBy": [
-            "executorClass",
-            "poolName"
-          ],
+          "fields": ["totalTaskCount", "successfulTaskCount", "queuedTaskCount", "exceptionTaskCount"],
+          "groupBy": ["executorClass", "poolName"],
           "orderBy": {
             "name": "totalTaskCount",
             "order": "desc"
@@ -111,19 +82,11 @@
           "format": "microsecond"
         }
       ],
-      "columns": [
-        "minDuration",
-        "avgDuration",
-        "maxDuration"
-      ],
+      "columns": ["minDuration", "avgDuration", "maxDuration"],
       "query": {
         "type": "timeseries",
         "dataSource": "thread-pool-metrics",
-        "fields": [
-          "minDuration",
-          "avgDuration",
-          "maxDuration"
-        ],
+        "fields": ["minDuration", "avgDuration", "maxDuration"],
         "filter": "totalTaskCount > 0"
       },
       "details": {
@@ -147,16 +110,8 @@
         "query": {
           "type": "groupBy",
           "dataSource": "thread-pool-metrics",
-          "fields": [
-            "totalTaskCount",
-            "minDuration",
-            "avgDuration",
-            "maxDuration"
-          ],
-          "groupBy": [
-            "executorClass",
-            "poolName"
-          ],
+          "fields": ["totalTaskCount", "minDuration", "avgDuration", "maxDuration"],
+          "groupBy": ["executorClass", "poolName"],
           "filter": "totalTaskCount > 0",
           "orderBy": {
             "name": "totalTaskCount",
@@ -232,10 +187,7 @@
             "discardedOldestTaskCount",
             "userRejectedPolicyCount"
           ],
-          "groupBy": [
-            "executorClass",
-            "poolName"
-          ],
+          "groupBy": ["executorClass", "poolName"],
           "filter": "totalRejectedCount > 0",
           "orderBy": {
             "name": "totalRejectedCount",

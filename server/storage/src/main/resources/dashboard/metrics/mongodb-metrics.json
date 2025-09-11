@@ -1,14 +1,13 @@
 {
-  "name": "mongodb-metrics",
+  "id": "mongodb-metrics",
   "title": "MongoDb",
-  "folder": "metrics",
   "filter": {
     "selectors": [
       {
         "type": "datasource",
         "name": "mongodb-metrics",
         "fields": [
-          {"name": "appName", "width": 200, "allowClear": false},
+          { "name": "appName", "width": 200, "allowClear": false },
           "instanceName",
           "server",
           "database",
@@ -33,10 +32,7 @@
       "query": {
         "type": "timeseries",
         "dataSource": "mongodb-metrics",
-        "fields": [
-          "tps",
-          "totalCount"
-        ]
+        "fields": ["tps", "totalCount"]
       }
     },
     {
@@ -48,19 +44,11 @@
           "format": "nanoFormatter"
         }
       ],
-      "columns": [
-        "avgResponseTime",
-        "minResponseTime",
-        "maxResponseTime"
-      ],
+      "columns": ["avgResponseTime", "minResponseTime", "maxResponseTime"],
       "query": {
         "type": "timeseries",
         "dataSource": "mongodb-metrics",
-        "fields": [
-          "avgResponseTime",
-          "minResponseTime",
-          "maxResponseTime"
-        ]
+        "fields": ["avgResponseTime", "minResponseTime", "maxResponseTime"]
       }
     },
     {
@@ -96,12 +84,7 @@
       "query": {
         "type": "timeseries",
         "dataSource": "mongodb-metrics",
-        "fields": [
-          "requestByteRate",
-          "responseByteRate",
-          "requestBytes",
-          "responseBytes"
-        ]
+        "fields": ["requestByteRate", "responseByteRate", "requestBytes", "responseBytes"]
       }
     }
   ]

@@ -1,18 +1,12 @@
 {
-  "name": "jdbc-pool-metrics",
+  "id": "jdbc-pool-metrics",
   "title": "JDBC Connection Pool",
-  "folder": "metrics",
   "filter": {
     "selectors": [
       {
         "type": "datasource",
         "name": "jdbc-pool-metrics",
-        "fields": [
-          {"name": "appName", "width": 200, "allowClear": false},
-          "instanceName",
-          "server",
-          "database"
-        ]
+        "fields": [{ "name": "appName", "width": 200, "allowClear": false }, "instanceName", "server", "database"]
       }
     ]
   },
@@ -21,22 +15,16 @@
       "title": "JDBC Connection Pool",
       "width": 4,
       "type": "line",
-      "columns": [
-        "activeCount",
-        "poolingCount",
-        "createCount",
-        "destroyCount",
-        "waitThreadCount"
-      ],
+      "columns": ["activeCount", "poolingCount", "createCount", "destroyCount", "waitThreadCount"],
       "query": {
         "type": "timeseries",
         "dataSource": "jdbc-pool-metrics",
         "fields": [
-          {"name": "activeCount","aggregator": "last"},
-          {"name": "poolingCount","aggregator": "sum"},
-          {"name": "createCount","aggregator": "sum"},
-          {"name": "destroyCount","aggregator": "sum"},
-          {"name": "waitThreadCount","aggregator": "last"}
+          { "name": "activeCount", "aggregator": "last" },
+          { "name": "poolingCount", "aggregator": "sum" },
+          { "name": "createCount", "aggregator": "sum" },
+          { "name": "destroyCount", "aggregator": "sum" },
+          { "name": "waitThreadCount", "aggregator": "last" }
         ]
       }
     },
@@ -44,21 +32,11 @@
       "title": "Transaction",
       "width": 4,
       "type": "line",
-      "columns": [
-        "executeCount",
-        "startTransactionCount",
-        "commitCount",
-        "rollbackCount"
-      ],
+      "columns": ["executeCount", "startTransactionCount", "commitCount", "rollbackCount"],
       "query": {
         "type": "timeseries",
         "dataSource": "jdbc-pool-metrics",
-        "fields": [
-          "executeCount",
-          "startTransactionCount",
-          "commitCount",
-          "rollbackCount"
-        ]
+        "fields": ["executeCount", "startTransactionCount", "commitCount", "rollbackCount"]
       }
     }
   ]
