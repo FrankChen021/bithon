@@ -16,12 +16,11 @@
 
 package org.bithon.server.storage.jdbc.dashboard;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.OptBoolean;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.HashUtils;
 import org.bithon.server.storage.dashboard.Dashboard;
 import org.bithon.server.storage.dashboard.DashboardFilter;
@@ -39,11 +38,11 @@ import org.jooq.Record;
 import org.jooq.impl.DSL;
 import org.springframework.dao.DuplicateKeyException;
 
-import com.fasterxml.jackson.annotation.JacksonInject;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.OptBoolean;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Frank Chen
@@ -82,7 +81,7 @@ public class DashboardJdbcStorage implements IDashboardStorage {
     @Override
     public String put(String id, String payload) {
         String signature = HashUtils.sha256Hex(payload);
-        
+
         // Extract title and folder from payload
         Dashboard.Metadata metadata = extractMetadata(payload);
         Timestamp now = new Timestamp(System.currentTimeMillis());
@@ -116,24 +115,22 @@ public class DashboardJdbcStorage implements IDashboardStorage {
     }
 
     @Override
-    public void putIfNotExist(String id, String payload) {
+    public void putIfNotExist(String id, String folder, String title, String payload) {
         String signature = HashUtils.sha256Hex(payload);
-        
-        // Extract title and folder from payload
-        Dashboard.Metadata metadata = extractMetadata(payload);
+
         Timestamp now = new Timestamp(System.currentTimeMillis());
 
         // onDuplicateKeyIgnore is not supported on all DB
-        // use try-catch instead
+        // use try-catch insteadØ
         try {
             dslContext.insertInto(Tables.BITHON_WEB_DASHBOARD)
                       .set(Tables.BITHON_WEB_DASHBOARD.ID, id)
+                      .set(Tables.BITHON_WEB_DASHBOARD.FOLDER, folder)
+                      .set(Tables.BITHON_WEB_DASHBOARD.TITLE, title)
                       .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                       .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
                       .set(Tables.BITHON_WEB_DASHBOARD.CREATEDAT, now.toLocalDateTime())
                       .set(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED, now.toLocalDateTime())
-                      .set(Tables.BITHON_WEB_DASHBOARD.TITLE, metadata != null ? metadata.getTitle() : null)
-                      .set(Tables.BITHON_WEB_DASHBOARD.FOLDER, metadata != null ? metadata.getFolder() : null)
                       .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
                       .execute();
         } catch (DuplicateKeyException ignored) {
@@ -144,19 +141,19 @@ public class DashboardJdbcStorage implements IDashboardStorage {
     public DashboardListResult getDashboards(DashboardFilter filter) {
         // Build where conditions
         List<Condition> conditions = new ArrayList<>();
-        
+
         // Exclude deleted dashboards unless explicitly requested
         if (!filter.isIncludeDeleted()) {
             conditions.add(Tables.BITHON_WEB_DASHBOARD.DELETED.eq(0));
         }
-        
+
         // Apply folder filter
         if (filter.hasFolder()) {
             conditions.add(Tables.BITHON_WEB_DASHBOARD.FOLDER.eq(filter.getTrimmedFolder()));
         } else if (filter.hasFolderPrefix()) {
             conditions.add(Tables.BITHON_WEB_DASHBOARD.FOLDER.like(filter.getTrimmedFolderPrefix() + "%"));
         }
-        
+
         // Apply search filter
         if (filter.hasSearch()) {
             String searchPattern = "%" + filter.getTrimmedSearch().toLowerCase() + "%";
@@ -167,32 +164,32 @@ public class DashboardJdbcStorage implements IDashboardStorage {
                 // Search in both title and folder when no folder specified
                 conditions.add(
                     Tables.BITHON_WEB_DASHBOARD.TITLE.likeIgnoreCase(searchPattern)
-                    .or(Tables.BITHON_WEB_DASHBOARD.FOLDER.likeIgnoreCase(searchPattern))
+                                                     .or(Tables.BITHON_WEB_DASHBOARD.FOLDER.likeIgnoreCase(searchPattern))
                 );
             }
         }
-        
+
         // Count total results
         long totalElements = dslContext.selectCount()
-                                      .from(Tables.BITHON_WEB_DASHBOARD)
-                                      .where(conditions)
-                                      .fetchOne(0, long.class);
-        
+                                       .from(Tables.BITHON_WEB_DASHBOARD)
+                                       .where(conditions)
+                                       .fetchOne(0, long.class);
+
         // Apply sorting
         OrderField<?> orderField = getSortField(filter.getSort(), filter.getOrder());
-        
+
         // Apply pagination
         int validatedSize = filter.getValidatedSize();
         int validatedPage = filter.getValidatedPage();
-        
+
         // Execute query with pagination and sorting
         List<Dashboard> dashboards = dslContext.selectFrom(Tables.BITHON_WEB_DASHBOARD)
-                                              .where(conditions)
-                                              .orderBy(orderField)
-                                              .limit(validatedSize)
-                                              .offset(validatedPage * validatedSize)
-                                              .fetch(this::toDashboard);
-        
+                                               .where(conditions)
+                                               .orderBy(orderField)
+                                               .limit(validatedSize)
+                                               .offset(validatedPage * validatedSize)
+                                               .fetch(this::toDashboard);
+
         return DashboardListResult.of(dashboards, validatedPage, validatedSize, totalElements);
     }
 
@@ -200,15 +197,15 @@ public class DashboardJdbcStorage implements IDashboardStorage {
     public List<FolderInfo> getFolderStructure(int maxDepth) {
         // Get all unique folders with their dashboard counts
         var folderRecords = dslContext.select(
-                Tables.BITHON_WEB_DASHBOARD.FOLDER,
-                DSL.count().as("count")
-            )
-            .from(Tables.BITHON_WEB_DASHBOARD)
-            .where(Tables.BITHON_WEB_DASHBOARD.DELETED.eq(0))
-            .and(Tables.BITHON_WEB_DASHBOARD.FOLDER.isNotNull())
-            .and(Tables.BITHON_WEB_DASHBOARD.FOLDER.ne(""))
-            .groupBy(Tables.BITHON_WEB_DASHBOARD.FOLDER)
-            .fetch();
+                                          Tables.BITHON_WEB_DASHBOARD.FOLDER,
+                                          DSL.count().as("count")
+                                      )
+                                      .from(Tables.BITHON_WEB_DASHBOARD)
+                                      .where(Tables.BITHON_WEB_DASHBOARD.DELETED.eq(0))
+                                      .and(Tables.BITHON_WEB_DASHBOARD.FOLDER.isNotNull())
+                                      .and(Tables.BITHON_WEB_DASHBOARD.FOLDER.ne(""))
+                                      .groupBy(Tables.BITHON_WEB_DASHBOARD.FOLDER)
+                                      .fetch();
 
         // Build folder tree structure
         Map<String, FolderInfo> folderMap = new HashMap<>();
@@ -217,57 +214,57 @@ public class DashboardJdbcStorage implements IDashboardStorage {
         for (var record : folderRecords) {
             String folderPath = record.get(Tables.BITHON_WEB_DASHBOARD.FOLDER);
             long count = record.get("count", Long.class);
-            
+
             if (folderPath == null || folderPath.trim().isEmpty()) {
                 continue;
             }
-            
+
             String[] pathParts = folderPath.split("/");
             if (pathParts.length > maxDepth) {
                 continue;
             }
-            
+
             // Build folder hierarchy
             StringBuilder currentPath = new StringBuilder();
             FolderInfo parent = null;
-            
+
             for (int i = 0; i < pathParts.length; i++) {
                 if (i > 0) {
                     currentPath.append("/");
                 }
                 currentPath.append(pathParts[i]);
-                
+
                 String fullPath = currentPath.toString();
                 FolderInfo folder = folderMap.get(fullPath);
-                
+
                 if (folder == null) {
                     folder = FolderInfo.builder()
-                        .path(fullPath)
-                        .name(pathParts[i])
-                        .depth(i)
-                        .parentPath(parent != null ? parent.getPath() : null)
-                        .children(new ArrayList<>())
-                        .dashboardCount(0)
-                        .build();
-                    
+                                       .path(fullPath)
+                                       .name(pathParts[i])
+                                       .depth(i)
+                                       .parentPath(parent != null ? parent.getPath() : null)
+                                       .children(new ArrayList<>())
+                                       .dashboardCount(0)
+                                       .build();
+
                     folderMap.put(fullPath, folder);
-                    
+
                     if (parent == null) {
                         rootFolders.add(folder);
                     } else {
                         parent.getChildren().add(folder);
                     }
                 }
-                
+
                 // Add count only to the leaf folder
                 if (i == pathParts.length - 1) {
                     folder.setDashboardCount(count);
                 }
-                
+
                 parent = folder;
             }
         }
-        
+
         return rootFolders;
     }
 
@@ -290,25 +287,25 @@ public class DashboardJdbcStorage implements IDashboardStorage {
         dashboard.setTimestamp(Timestamp.valueOf(record.get(Tables.BITHON_WEB_DASHBOARD.CREATEDAT)));
         dashboard.setSignature(record.get(Tables.BITHON_WEB_DASHBOARD.SIGNATURE));
         dashboard.setDeleted(record.get(Tables.BITHON_WEB_DASHBOARD.DELETED) == 1);
-        
+
         // Set enhanced fields
         dashboard.setTitle(record.get(Tables.BITHON_WEB_DASHBOARD.TITLE));
         dashboard.setFolder(record.get(Tables.BITHON_WEB_DASHBOARD.FOLDER));
-        
+
         var lastModified = record.get(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED);
         if (lastModified != null) {
             dashboard.setLastModified(Timestamp.valueOf(lastModified));
         }
-        
+
         // Set metadata for backward compatibility
         Dashboard.Metadata metadata = new Dashboard.Metadata();
         metadata.setTitle(dashboard.getTitle());
         metadata.setFolder(dashboard.getFolder());
         dashboard.setMetadata(metadata);
-        
+
         return dashboard;
     }
-    
+
     protected Dashboard.Metadata extractMetadata(String payload) {
         try {
             return objectMapper.readValue(payload, Dashboard.Metadata.class);
@@ -316,7 +313,7 @@ public class DashboardJdbcStorage implements IDashboardStorage {
             return null;
         }
     }
-    
+
     protected OrderField<?> getSortField(String sort, String order) {
         Field<?> field = switch (sort.toLowerCase()) {
             case "folder" -> Tables.BITHON_WEB_DASHBOARD.FOLDER;

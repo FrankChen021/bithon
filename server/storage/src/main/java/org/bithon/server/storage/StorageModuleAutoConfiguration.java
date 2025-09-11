@@ -16,11 +16,10 @@
 
 package org.bithon.server.storage;
 
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.Module;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
+import java.io.IOException;
+import java.net.URI;
+import java.util.List;
+
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.provider.StorageProviderManager;
 import org.bithon.server.storage.dashboard.DashboardStorageConfig;
@@ -48,8 +47,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
-import java.io.IOException;
-import java.util.List;
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.jsontype.NamedType;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author frank.chen021@outlook.com
@@ -230,11 +233,10 @@ public class StorageModuleAutoConfiguration {
 
         // load or update schemas
         try {
-            Resource[] resources = new PathMatchingResourcePatternResolver()
-                .getResources("classpath:/dashboard/*.json");
+            Resource[] resources = new PathMatchingResourcePatternResolver().getResources("classpath:/dashboard/**/*.json");
             for (Resource resource : resources) {
 
-                JsonNode dashboard = om.readTree(resource.getInputStream());
+                ObjectNode dashboard = (ObjectNode) om.readTree(resource.getInputStream());
                 JsonNode idNode = dashboard.get("name");
                 if (idNode == null) {
                     throw new RuntimeException(StringUtils.format("dashboard [%s] miss the name property", resource.getFilename()));
@@ -245,15 +247,57 @@ public class StorageModuleAutoConfiguration {
                     throw new RuntimeException(StringUtils.format("dashboard [%s] has empty name property", resource.getFilename()));
                 }
 
+                // Determine folder from resource path
+                String folder = extractFolderFromResourcePath(resource.getURI());
+
+                JsonNode title = dashboard.get("title");
+                if (title == null) {
+                    throw new RuntimeException(StringUtils.format("dashboard [%s] miss the title property", resource.getFilename()));
+                }
+
                 // deserialize and then serialize again to compact the json string
                 String payload = om.writeValueAsString(dashboard);
 
-                storage.putIfNotExist(id, payload);
+                storage.putIfNotExist(id, folder, title.asText(), payload);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
         return storage;
+    }
+
+    /**
+     * Extract folder path from resource URI
+     * For example: "classpath:/dashboard/metrics/jvm-metrics.json" -> "metrics"
+     * For example: "classpath:/dashboard/application-overview.json" -> "" (root level)
+     */
+    public static String extractFolderFromResourcePath(URI uri) {
+        try {
+            String uriString = uri.toString();
+            
+            // Find the dashboard directory in the path
+            String dashboardPrefix = "/dashboard/";
+            int dashboardIndex = uriString.indexOf(dashboardPrefix);
+            if (dashboardIndex == -1) {
+                return "";
+            }
+            
+            // Extract the path after /dashboard/
+            String pathAfterDashboard = uriString.substring(dashboardIndex + dashboardPrefix.length());
+            
+            // Find the last slash to separate directory from filename
+            int lastSlashIndex = pathAfterDashboard.lastIndexOf('/');
+            if (lastSlashIndex == -1) {
+                // The File is directly in the dashboard directory (root level)
+                return "";
+            }
+            
+            // Return the directory path (everything before the last slash)
+            return pathAfterDashboard.substring(0, lastSlashIndex);
+        } catch (Exception e) {
+            // If we can't determine the folder, return "" (root level)
+            return "";
+        }
     }
 }

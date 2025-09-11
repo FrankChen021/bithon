@@ -45,7 +45,7 @@ public interface IDashboardStorage {
 
     String put(String id, String payload);
 
-    void putIfNotExist(String id, String payload) throws IOException;
+    void putIfNotExist(String id, String folder, String title, String payload) throws IOException;
 
     void initialize();
 }
