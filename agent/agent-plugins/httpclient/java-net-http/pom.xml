@@ -9,15 +9,6 @@
   </parent>
   <artifactId>agent-plugin-httpclient-java-net-http</artifactId>
 
-  <!--
-    java.net.http is introduced since jdk11
-    we set the target to 11 so that the agent-plugins-processor can help us identify the minimal jdk version during compilation time
-  -->
-  <properties>
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -29,6 +20,8 @@
     <finalName>${project.artifactId}</finalName>
     <plugins>
       <plugin>
+        <!-- The HttpClient is introduced in JDK 11
+         -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>

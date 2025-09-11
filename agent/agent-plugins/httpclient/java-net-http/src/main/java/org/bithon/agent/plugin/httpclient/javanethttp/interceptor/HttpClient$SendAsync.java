@@ -23,22 +23,22 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.httpclient.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
-import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
-import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 /**
- * Intercepts java.net.http.HttpClient.sendAsync() method
- * 
+ * {@link jdk.internal.net.http.HttpClientImpl#sendAsync(HttpRequest, HttpResponse.BodyHandler, HttpResponse.PushPromiseHandler, Executor)}
+ *
  * @author frank.chen021@outlook.com
  * @date 2024/12/19
  */
@@ -47,120 +47,175 @@ public class HttpClient$SendAsync extends AroundInterceptor {
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
     private final TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
 
-    @Override
-    public InterceptionDecision before(AopContext aopContext) {
-        HttpRequest request = aopContext.getArgAs(0);
-        
-        // Create context for metrics collection
-        IBithonObject bithonObject = aopContext.getTargetAs();
-        if (bithonObject.getInjectedObject() == null) {
-            bithonObject.setInjectedObject(new HttpClientContext());
+    private HttpRequest.Builder newRequest(HttpRequest request) {
+        final HttpRequest.Builder builder = HttpRequest.newBuilder();
+        builder.uri(request.uri());
+        builder.expectContinue(request.expectContinue());
+
+        for (Map.Entry<String, List<String>> entry : request.headers().map().entrySet()) {
+            String name = entry.getKey();
+            List<String> values = entry.getValue();
+            values.forEach(value -> builder.header(name, value));
         }
 
-        HttpClientContext context = (HttpClientContext) bithonObject.getInjectedObject();
-        context.setUrl(request.uri().toString());
-        context.setMethod(request.method());
-        context.setRequestStartTime(System.nanoTime());
+        request.version().ifPresent(builder::version);
+        request.timeout().ifPresent(builder::timeout);
+        var method = request.method();
+        request.bodyPublisher()
+               .ifPresentOrElse(
+                   // if body is present, set it
+                   bodyPublisher -> builder.method(method, bodyPublisher),
+                   // otherwise, the body is absent, special case for GET/DELETE/HEAD,
+                   // or else use empty body
+                   () -> {
+                       switch (method) {
+                           case "GET":
+                               builder.GET();
+                               break;
+                           case "DELETE":
+                               builder.DELETE();
+                               break;
+                           case "HEAD":
+                               builder.method("HEAD", HttpRequest.BodyPublishers.noBody());
+                               break;
+                           default:
+                               builder.method(method, HttpRequest.BodyPublishers.noBody());
+                               break;
+                       }
+                   }
+               );
+        return builder;
+    }
+
+    @Override
+    public InterceptionDecision before(AopContext aopContext) {
+        IBithonObject bithonObject = aopContext.getInjectedOnTargetAs();
+        if (bithonObject.getInjectedObject() != null) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
+
+        HttpRequest request = aopContext.getArgAs(0);
 
         // Start tracing span
-        ITraceSpan span = TraceContextFactory.newSpan("http-client", request.headers(), (headers, key, value) -> {
-            // HttpHeaders is immutable in java.net.http, so we can't add headers here
-            // The trace headers should be added by the user before calling sendAsync()
-        });
-        
+        ITraceSpan span = TraceContextFactory.newAsyncSpan("http-client");
         if (span != null) {
+            HttpRequest.Builder newRequestBuilder = newRequest(request);
+
             span.method(aopContext.getTargetClass(), aopContext.getMethod())
                 .kind(SpanKind.CLIENT)
                 .tag(Tags.Http.CLIENT, "java.net.http")
-                .tag(Tags.Http.URL, context.getUrl())
-                .tag(Tags.Http.METHOD, context.getMethod());
-
-            // Add configured request headers to trace
-            if (!traceConfig.getHeaders().getRequest().isEmpty()) {
-                for (String headerName : traceConfig.getHeaders().getRequest()) {
-                    Optional<String> headerValue = request.headers().firstValue(headerName);
-                    if (headerValue.isPresent()) {
-                        span.tag(Tags.Http.REQUEST_HEADER_PREFIX + headerName, headerValue.get());
+                .configIfTrue(!traceConfig.getHeaders().getRequest().isEmpty(), (s) -> {
+                    for (String headerName : traceConfig.getHeaders().getRequest()) {
+                        request.headers()
+                               .firstValue(headerName)
+                               .ifPresent(val -> s.tag(Tags.Http.REQUEST_HEADER_PREFIX + headerName, val));
                     }
-                }
-            }
+                })
+                .context()
+                .propagate(newRequestBuilder, HttpRequest.Builder::header);
 
-            span.start();
+            aopContext.getArgs()[0] = newRequestBuilder.build();
+            aopContext.setUserContext(span.start());
         }
-        
+
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        IBithonObject bithonObject = aopContext.getTargetAs();
-        HttpClientContext context = (HttpClientContext) bithonObject.getInjectedObject();
-        
+        HttpRequest request = aopContext.getArgAs(0);
+        final String url = request.uri().toString();
+        final String httpMethod = request.method();
+
+        final ITraceSpan span = aopContext.getUserContext();
+
+        if (span != null) {
+            span.tag(Tags.Http.URL, url)
+                .tag(Tags.Http.METHOD, httpMethod);
+        }
+
         if (aopContext.hasException()) {
-            // Record exception metrics immediately
-            long duration = System.nanoTime() - context.getRequestStartTime();
-            metricRegistry.addExceptionRequest(context.getUrl(), context.getMethod(), duration);
-            
+            metricRegistry.addExceptionRequest(url,
+                                               httpMethod,
+                                               aopContext.getExecutionTime());
+
             // Finish span with exception
-            ITraceContext ctx = TraceContextHolder.current();
-            if (ctx != null && ctx.traceMode().equals(TraceMode.TRACING)) {
-                ctx.currentSpan().finish();
+            if (span != null) {
+                span.finish();
             }
             return;
         }
 
         // For async operations, we need to hook into the returned CompletableFuture
-        CompletableFuture<HttpResponse<?>> future = aopContext.getReturningAs();
-        ITraceContext ctx = TraceContextHolder.current();
-        ITraceSpan currentSpan = (ctx != null && ctx.traceMode().equals(TraceMode.TRACING)) ? ctx.currentSpan() : null;
-        
+        CompletableFuture<HttpResponse<?>> returnFuture = aopContext.getReturningAs();
+
         // Wrap the returned CompletableFuture to handle completion/exception
-        CompletableFuture<HttpResponse<?>> wrappedFuture = future.whenComplete((response, throwable) -> {
-            long duration = System.nanoTime() - context.getRequestStartTime();
-            
+        final long startNanoTime = aopContext.getStartNanoTime();
+        CompletableFuture<HttpResponse<?>> wrappedFuture = returnFuture.whenComplete((response, throwable) -> {
+            long duration = System.nanoTime() - startNanoTime;
+
+            if (span != null) {
+                span.tag(throwable);
+            }
+
             if (throwable != null) {
                 // Record exception metrics
-                metricRegistry.addExceptionRequest(context.getUrl(), context.getMethod(), duration);
+                metricRegistry.addExceptionRequest(url, httpMethod, duration);
             } else {
                 // Extract response information
                 int statusCode = response.statusCode();
-                context.setResponseCode(statusCode);
 
                 // Calculate response size if possible
-                long responseSize = 0;
-                Optional<String> contentLength = response.headers().firstValue("content-length");
-                if (contentLength.isPresent()) {
-                    try {
-                        responseSize = Long.parseLong(contentLength.get());
-                    } catch (NumberFormatException ignored) {
-                        // Unable to parse content-length
-                    }
-                }
-                context.getReceiveBytes().update(responseSize);
+                long responseSize = getResponseSize(response);
 
                 // Record success metrics
-                metricRegistry.addRequest(context.getUrl(), context.getMethod(), statusCode, duration)
-                             .updateIOMetrics(context.getSentBytes().get(), context.getReceiveBytes().get());
+                metricRegistry.addRequest(url, httpMethod, statusCode, duration)
+                              .updateIOMetrics(getRequestSize(request), getResponseSize(response));
 
                 // Add response headers to trace
-                if (currentSpan != null && !traceConfig.getHeaders().getResponse().isEmpty()) {
-                    for (String headerName : traceConfig.getHeaders().getResponse()) {
-                        Optional<String> headerValue = response.headers().firstValue(headerName);
-                        if (headerValue.isPresent()) {
-                            currentSpan.tag(Tags.Http.RESPONSE_HEADER_PREFIX + headerName, headerValue.get());
+                if (span != null) {
+                    if (traceConfig.getHeaders() != null) {
+                        for (String headerName : traceConfig.getHeaders().getResponse()) {
+                            Optional<String> headerValue = response.headers().firstValue(headerName);
+                            headerValue.ifPresent(s -> span.tag(Tags.Http.RESPONSE_HEADER_PREFIX + headerName, s));
                         }
                     }
-                    currentSpan.tag(Tags.Http.STATUS, Integer.toString(statusCode));
+
+                    span.tag(Tags.Http.STATUS, Integer.toString(statusCode));
                 }
             }
 
             // Finish span
-            if (currentSpan != null) {
-                currentSpan.finish();
+            if (span != null) {
+                span.finish();
             }
         });
 
         // Replace the original future with our wrapped one
         aopContext.setReturning(wrappedFuture);
+    }
+
+    private long getRequestSize(HttpRequest request) {
+        Optional<String> contentLength = request.headers().firstValue("content-length");
+        if (contentLength.isPresent()) {
+            try {
+                return Long.parseLong(contentLength.get());
+            } catch (NumberFormatException ignored) {
+                return 0L;
+            }
+        }
+        return 0L;
+    }
+
+    private long getResponseSize(HttpResponse<?> response) {
+        Optional<String> contentLength = response.headers().firstValue("content-length");
+        if (contentLength.isPresent()) {
+            try {
+                return Long.parseLong(contentLength.get());
+            } catch (NumberFormatException ignored) {
+                return 0L;
+            }
+        }
+        return 0L;
     }
 }

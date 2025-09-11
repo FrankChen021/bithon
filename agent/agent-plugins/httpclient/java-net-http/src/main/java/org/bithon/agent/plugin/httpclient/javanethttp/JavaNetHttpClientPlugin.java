@@ -20,6 +20,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDe
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.JdkVersionPrecondition;
+import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,7 +28,7 @@ import java.util.List;
 import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptorBuilder.forClass;
 
 /**
- * Plugin for instrumenting java.net.http.HttpClient (introduced in Java 11)
+ * Plugin for instrumenting {@link java.net.http.HttpClient} (introduced in Java 11)
  * <p>
  * This plugin intercepts the following key methods:
  * - HttpClient.send() and sendAsync() - to start tracing spans and collect request metrics
@@ -48,23 +49,17 @@ public class JavaNetHttpClientPlugin implements IPlugin {
         return Arrays.asList(
 
             // Intercept synchronous HTTP requests
-            forClass("java.net.http.HttpClient")
+            forClass("jdk.internal.net.http.HttpClientImpl")
                 .onMethod("send")
                 .andArgs("java.net.http.HttpRequest", "java.net.http.HttpResponse$BodyHandler")
                 .interceptedBy("org.bithon.agent.plugin.httpclient.javanethttp.interceptor.HttpClient$Send")
                 .build(),
 
             // Intercept asynchronous HTTP requests
-            forClass("java.net.http.HttpClient")
+            forClass("jdk.internal.net.http.HttpClientImpl")
                 .onMethod("sendAsync")
-                .andArgs("java.net.http.HttpRequest", "java.net.http.HttpResponse$BodyHandler")
-                .interceptedBy("org.bithon.agent.plugin.httpclient.javanethttp.interceptor.HttpClient$SendAsync")
-                .build(),
-
-            // Intercept asynchronous HTTP requests with push promise handler
-            forClass("java.net.http.HttpClient")
-                .onMethod("sendAsync")
-                .andArgs("java.net.http.HttpRequest", "java.net.http.HttpResponse$BodyHandler", "java.net.http.HttpResponse$PushPromiseHandler")
+                .andArgsSize(4)
+                .andVisibility(Visibility.PRIVATE)
                 .interceptedBy("org.bithon.agent.plugin.httpclient.javanethttp.interceptor.HttpClient$SendAsync")
                 .build()
         );

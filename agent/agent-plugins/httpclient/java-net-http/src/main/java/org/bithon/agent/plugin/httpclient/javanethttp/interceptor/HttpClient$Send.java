@@ -36,8 +36,8 @@ import java.net.http.HttpResponse;
 import java.util.Optional;
 
 /**
- * {@link java.net.http.HttpClient#send(HttpRequest, HttpResponse.BodyHandler)}
- * 
+ * {@link jdk.internal.net.http.HttpClientImpl#send(HttpRequest, HttpResponse.BodyHandler)}
+ *
  * @author frank.chen021@outlook.com
  * @date 2024/12/19
  */
@@ -49,7 +49,7 @@ public class HttpClient$Send extends AroundInterceptor {
     @Override
     public InterceptionDecision before(AopContext aopContext) {
         HttpRequest request = aopContext.getArgAs(0);
-        
+
         // Create context for metrics collection
         IBithonObject bithonObject = aopContext.getTargetAs();
         if (bithonObject.getInjectedObject() == null) {
@@ -66,7 +66,7 @@ public class HttpClient$Send extends AroundInterceptor {
             // HttpHeaders is immutable in java.net.http, so we can't add headers here
             // The trace headers should be added by the user before calling send()
         });
-        
+
         if (span != null) {
             span.method(aopContext.getTargetClass(), aopContext.getMethod())
                 .kind(SpanKind.CLIENT)
@@ -78,15 +78,13 @@ public class HttpClient$Send extends AroundInterceptor {
             if (!traceConfig.getHeaders().getRequest().isEmpty()) {
                 for (String headerName : traceConfig.getHeaders().getRequest()) {
                     Optional<String> headerValue = request.headers().firstValue(headerName);
-                    if (headerValue.isPresent()) {
-                        span.tag(Tags.Http.REQUEST_HEADER_PREFIX + headerName, headerValue.get());
-                    }
+                    headerValue.ifPresent(s -> span.tag(Tags.Http.REQUEST_HEADER_PREFIX + headerName, s));
                 }
             }
 
             span.start();
         }
-        
+
         return InterceptionDecision.CONTINUE;
     }
 
@@ -94,9 +92,9 @@ public class HttpClient$Send extends AroundInterceptor {
     public void after(AopContext aopContext) {
         IBithonObject bithonObject = aopContext.getTargetAs();
         HttpClientContext context = (HttpClientContext) bithonObject.getInjectedObject();
-        
+
         long duration = System.nanoTime() - context.getRequestStartTime();
-        
+
         if (aopContext.hasException()) {
             // Record exception metrics
             metricRegistry.addExceptionRequest(context.getUrl(), context.getMethod(), duration);
@@ -116,11 +114,11 @@ public class HttpClient$Send extends AroundInterceptor {
                     // Unable to parse content-length
                 }
             }
-                            context.getReceiveBytes().update(responseSize);
+            context.getReceiveBytes().update(responseSize);
 
             // Record success metrics
             metricRegistry.addRequest(context.getUrl(), context.getMethod(), statusCode, duration)
-                         .updateIOMetrics(context.getSentBytes().get(), context.getReceiveBytes().get());
+                          .updateIOMetrics(context.getSentBytes().get(), context.getReceiveBytes().get());
 
             // Add response headers to trace and finish span
             finishTraceSpan(response);
@@ -132,16 +130,14 @@ public class HttpClient$Send extends AroundInterceptor {
         if (ctx == null || !ctx.traceMode().equals(TraceMode.TRACING)) {
             return;
         }
-        
+
         ITraceSpan span = ctx.currentSpan();
 
         // Add configured response headers to trace
         if (!traceConfig.getHeaders().getResponse().isEmpty()) {
             for (String headerName : traceConfig.getHeaders().getResponse()) {
                 Optional<String> headerValue = response.headers().firstValue(headerName);
-                if (headerValue.isPresent()) {
-                    span.tag(Tags.Http.RESPONSE_HEADER_PREFIX + headerName, headerValue.get());
-                }
+                headerValue.ifPresent(s -> span.tag(Tags.Http.RESPONSE_HEADER_PREFIX + headerName, s));
             }
         }
 
