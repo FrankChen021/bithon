@@ -41,6 +41,18 @@
       <artifactId>server-agent-controller</artifactId>
     </dependency>
 
+    <!-- Storage module for dashboard entities -->
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>server-storage</artifactId>
+    </dependency>
+
+    <!-- Server commons for exception handling -->
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>server-commons</artifactId>
+    </dependency>
+
     <!-- Sentinel API definition -->
     <dependency>
       <groupId>org.bithon.component</groupId>

@@ -17,11 +17,17 @@
 package org.bithon.server.web.service.dashboard.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.calcite.jdbc.CalciteConnection;
+import org.apache.calcite.schema.SchemaPlus;
+import org.apache.calcite.schema.impl.AbstractSchema;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.concurrency.ScheduledExecutorServiceFactory;
 import org.bithon.component.commons.time.DateTime;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.dashboard.Dashboard;
+import org.bithon.server.storage.dashboard.DashboardFilter;
+import org.bithon.server.storage.dashboard.DashboardListResult;
 import org.bithon.server.storage.dashboard.IDashboardStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -29,10 +35,17 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -58,8 +71,12 @@ public class DashboardManager implements SmartLifecycle {
 
     private final List<IDashboardChangedListener> listeners = Collections.synchronizedList(new ArrayList<>());
 
+    // Calcite connection for querying in-memory dashboards
+    private Connection calciteConnection;
+
     public DashboardManager(IDashboardStorage storage) {
         this.storage = storage;
+        initializeCalciteConnection();
     }
 
     public void update(String id, String folder, String title, String payload) {
@@ -99,6 +116,15 @@ public class DashboardManager implements SmartLifecycle {
                 loaderScheduler = null;
             }
         }
+
+        // Close Calcite connection
+        if (calciteConnection != null) {
+            try {
+                calciteConnection.close();
+            } catch (SQLException e) {
+                log.warn("Failed to close Calcite connection", e);
+            }
+        }
     }
 
     @Override
@@ -135,10 +161,6 @@ public class DashboardManager implements SmartLifecycle {
         return new ArrayList<>(dashboards.values());
     }
 
-    public void addChangedListener(IDashboardChangedListener listener) {
-        this.listeners.add(listener);
-    }
-
     public IDashboardStorage getDashboardStorage() {
         return this.storage;
     }
@@ -153,4 +175,134 @@ public class DashboardManager implements SmartLifecycle {
             }
         }
     }
+
+    /**
+     * Initialize Calcite JDBC connection for querying in-memory dashboard data
+     */
+    private void initializeCalciteConnection() {
+        try {
+            Properties info = new Properties();
+            info.setProperty("lex", "JAVA");
+
+            calciteConnection = DriverManager.getConnection("jdbc:calcite:", info);
+            CalciteConnection calciteConn = calciteConnection.unwrap(CalciteConnection.class);
+            SchemaPlus rootSchema = calciteConn.getRootSchema();
+
+            // Add dashboard schema with anonymous class
+            SchemaPlus dashboardSchema = rootSchema.add("dashboard", new AbstractSchema() {
+                // Empty anonymous implementation, tables are added manually
+            });
+            dashboardSchema.add("dashboards", new DashboardCalciteTable(dashboards));
+
+            log.info("Calcite connection initialized for dashboard queries");
+        } catch (SQLException e) {
+            log.error("Failed to initialize Calcite connection", e);
+            throw new RuntimeException("Failed to initialize dashboard query engine", e);
+        }
+    }
+
+    /**
+     * Query dashboards using SQL-like filter
+     */
+    public DashboardListResult queryDashboards(DashboardFilter filter) {
+        try {
+            StringBuilder sqlBuilder = new StringBuilder("SELECT id, title, folder, signature, createdAt, lastModified FROM dashboard.dashboards WHERE 1=1");
+
+            // Build WHERE clauses based on filter
+            if (StringUtils.hasText(filter.getSearch())) {
+                String escapedSearch = filter.getSearch().replace("'", "''");
+                sqlBuilder.append(StringUtils.format(" AND (title LIKE '%%%s%%')", escapedSearch));
+            }
+
+            if (StringUtils.hasText(filter.getFolder())) {
+                String escapedFolder = filter.getFolder().replace("'", "''");
+                sqlBuilder.append(StringUtils.format(" AND folder = '%s'", escapedFolder));
+            }
+
+            if (StringUtils.hasText(filter.getFolderPrefix())) {
+                String escapedFolderPrefix = filter.getFolderPrefix().replace("'", "''");
+                sqlBuilder.append(StringUtils.format(" AND folder LIKE '%s%%'", escapedFolderPrefix));
+            }
+
+            // Note: deleted filtering is handled at the application level since 'deleted' field is not in the Calcite table
+
+            // Add ordering
+            if (StringUtils.hasText(filter.getSort())) {
+                if ("desc".equalsIgnoreCase(filter.getOrder())) {
+                    sqlBuilder.append(StringUtils.format(" ORDER BY %s DESC", filter.getSort()));
+                } else {
+                    sqlBuilder.append(StringUtils.format(" ORDER BY %s", filter.getSort()));
+                }
+            }
+
+            // Add pagination
+            if (filter.getSize() > 0) {
+                if (filter.getPage() > 0) {
+                    sqlBuilder.append(StringUtils.format(" LIMIT %d OFFSET %d", filter.getSize(), filter.getPage() * filter.getSize()));
+                } else {
+                    sqlBuilder.append(StringUtils.format(" LIMIT %d", filter.getSize()));
+                }
+            }
+
+            List<Dashboard> results = new ArrayList<>();
+            try (Statement stmt = calciteConnection.createStatement();
+                 ResultSet rs = stmt.executeQuery(sqlBuilder.toString())) {
+
+                while (rs.next()) {
+                    String id = rs.getString("id");
+                    Dashboard dashboard = dashboards.get(id);
+                    if (dashboard != null) {
+                        results.add(dashboard);
+                    }
+                }
+            }
+
+            // Get total count for pagination
+            long totalCount = getTotalCount(filter);
+
+            return DashboardListResult.of(results, filter.getPage(), filter.getSize(), totalCount);
+
+        } catch (SQLException e) {
+            log.error("Failed to query dashboards with Calcite", e);
+            throw new RuntimeException("Dashboard query failed", e);
+        }
+    }
+
+    /**
+     * Get total count for pagination
+     * Since deleted filtering is at application level, we need to count matching dashboards manually
+     */
+    private long getTotalCount(DashboardFilter filter) {
+        long count = 0;
+        for (Dashboard dashboard : dashboards.values()) {
+            // Apply search filter
+            if (StringUtils.hasText(filter.getSearch())) {
+                String search = filter.getSearch().toLowerCase(Locale.ENGLISH);
+                boolean matches = (dashboard.getTitle() != null && dashboard.getTitle().toLowerCase(Locale.ENGLISH).contains(search)) ||
+                                  (dashboard.getId() != null && dashboard.getId().toLowerCase(Locale.ENGLISH).contains(search));
+                if (!matches) {
+                    continue;
+                }
+            }
+
+            // Apply folder filter
+            if (StringUtils.hasText(filter.getFolder())) {
+                if (dashboard.getFolder() == null || !dashboard.getFolder().equals(filter.getFolder())) {
+                    continue;
+                }
+            }
+
+            // Apply folder prefix filter
+            if (StringUtils.hasText(filter.getFolderPrefix())) {
+                if (dashboard.getFolder() == null || !dashboard.getFolder().startsWith(filter.getFolderPrefix())) {
+                    continue;
+                }
+            }
+
+            count++;
+        }
+
+        return count;
+    }
+
 }

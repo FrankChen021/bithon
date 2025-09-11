@@ -140,11 +140,6 @@ public class DashboardJdbcStorage implements IDashboardStorage {
         // Build where conditions
         List<Condition> conditions = new ArrayList<>();
 
-        // Exclude deleted dashboards unless explicitly requested
-        if (!filter.isIncludeDeleted()) {
-            conditions.add(Tables.BITHON_WEB_DASHBOARD.DELETED.eq(0));
-        }
-
         // Apply folder filter
         if (filter.hasFolder()) {
             conditions.add(Tables.BITHON_WEB_DASHBOARD.FOLDER.eq(filter.getTrimmedFolder()));

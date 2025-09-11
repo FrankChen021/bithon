@@ -74,12 +74,6 @@ public class DashboardFilter {
     private String order = "asc";
 
     /**
-     * Include deleted dashboards
-     */
-    @Builder.Default
-    private boolean includeDeleted = false;
-
-    /**
      * Maximum page size allowed
      */
     public static final int MAX_PAGE_SIZE = 1000;

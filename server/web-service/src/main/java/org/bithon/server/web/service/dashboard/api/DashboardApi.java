@@ -85,7 +85,7 @@ public class DashboardApi {
     }
 
     /**
-     * @deprecated use {@link #getDashboardList(String, String, String, int, int, String, String, boolean)} instead
+     * @deprecated use {@link #getDashboardList(String, String, String, int, int, String, String)} instead
      */
     @Deprecated
     @GetMapping("/api/dashboard/names")
@@ -107,8 +107,7 @@ public class DashboardApi {
         @RequestParam(value = "page", defaultValue = "0") int page,
         @RequestParam(value = "size", defaultValue = "100") int size,
         @RequestParam(value = "sort", defaultValue = "title") String sort,
-        @RequestParam(value = "order", defaultValue = "asc") String order,
-        @RequestParam(value = "includeDeleted", defaultValue = "false") boolean includeDeleted) {
+        @RequestParam(value = "order", defaultValue = "asc") String order) {
 
         DashboardFilter filter = DashboardFilter.builder()
                                                 .search(search)
@@ -118,10 +117,10 @@ public class DashboardApi {
                                                 .size(size)
                                                 .sort(sort)
                                                 .order(order)
-                                                .includeDeleted(includeDeleted)
                                                 .build();
 
-        return dashboardManager.getDashboardStorage().getDashboards(filter);
+        // Use Calcite-based query from in-memory data instead of storage
+        return dashboardManager.queryDashboards(filter);
     }
 
     @GetMapping("/api/dashboard/folders")
