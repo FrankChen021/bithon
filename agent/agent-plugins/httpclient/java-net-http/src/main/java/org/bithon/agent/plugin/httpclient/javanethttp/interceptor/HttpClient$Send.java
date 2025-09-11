@@ -31,6 +31,7 @@ import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 
+import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Optional;
@@ -62,11 +63,7 @@ public class HttpClient$Send extends AroundInterceptor {
         context.setRequestStartTime(System.nanoTime());
 
         // Start tracing span
-        ITraceSpan span = TraceContextFactory.newSpan("http-client", request.headers(), (headers, key, value) -> {
-            // HttpHeaders is immutable in java.net.http, so we can't add headers here
-            // The trace headers should be added by the user before calling send()
-        });
-
+        ITraceSpan span = TraceContextFactory.newSpan("http-client");
         if (span != null) {
             span.method(aopContext.getTargetClass(), aopContext.getMethod())
                 .kind(SpanKind.CLIENT)
@@ -82,7 +79,7 @@ public class HttpClient$Send extends AroundInterceptor {
                 }
             }
 
-            span.start();
+            aopContext.setUserContext(span.start());
         }
 
         return InterceptionDecision.CONTINUE;
@@ -93,14 +90,14 @@ public class HttpClient$Send extends AroundInterceptor {
         IBithonObject bithonObject = aopContext.getTargetAs();
         HttpClientContext context = (HttpClientContext) bithonObject.getInjectedObject();
 
-        long duration = System.nanoTime() - context.getRequestStartTime();
+        // Extract response information
+        HttpResponse<?> response = aopContext.getReturningAs();
 
+        long duration = System.nanoTime() - context.getRequestStartTime();
         if (aopContext.hasException()) {
             // Record exception metrics
             metricRegistry.addExceptionRequest(context.getUrl(), context.getMethod(), duration);
         } else {
-            // Extract response information
-            HttpResponse<?> response = aopContext.getReturningAs();
             int statusCode = response.statusCode();
             context.setResponseCode(statusCode);
 
@@ -119,29 +116,21 @@ public class HttpClient$Send extends AroundInterceptor {
             // Record success metrics
             metricRegistry.addRequest(context.getUrl(), context.getMethod(), statusCode, duration)
                           .updateIOMetrics(context.getSentBytes().get(), context.getReceiveBytes().get());
-
-            // Add response headers to trace and finish span
-            finishTraceSpan(response);
-        }
-    }
-
-    private void finishTraceSpan(HttpResponse<?> response) {
-        ITraceContext ctx = TraceContextHolder.current();
-        if (ctx == null || !ctx.traceMode().equals(TraceMode.TRACING)) {
-            return;
         }
 
-        ITraceSpan span = ctx.currentSpan();
-
-        // Add configured response headers to trace
-        if (!traceConfig.getHeaders().getResponse().isEmpty()) {
-            for (String headerName : traceConfig.getHeaders().getResponse()) {
-                Optional<String> headerValue = response.headers().firstValue(headerName);
-                headerValue.ifPresent(s -> span.tag(Tags.Http.RESPONSE_HEADER_PREFIX + headerName, s));
+        ITraceSpan span = aopContext.getUserContext();
+        if (span != null) {
+            // Add configured response headers to trace
+            if (!traceConfig.getHeaders().getResponse().isEmpty()) {
+                for (String headerName : traceConfig.getHeaders().getResponse()) {
+                    Optional<String> headerValue = response.headers().firstValue(headerName);
+                    headerValue.ifPresent(s -> span.tag(Tags.Http.RESPONSE_HEADER_PREFIX + headerName, s));
+                }
             }
-        }
 
-        span.tag(Tags.Http.STATUS, Integer.toString(response.statusCode()))
-            .finish();
+            span.tag(Tags.Http.STATUS, Integer.toString(response.statusCode()))
+                .tag(aopContext.getException())
+                .finish();
+        }
     }
 }

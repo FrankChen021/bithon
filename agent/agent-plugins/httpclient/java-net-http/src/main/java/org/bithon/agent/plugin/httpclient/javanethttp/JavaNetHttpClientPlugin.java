@@ -61,6 +61,16 @@ public class JavaNetHttpClientPlugin implements IPlugin {
                 .andArgsSize(4)
                 .andVisibility(Visibility.PRIVATE)
                 .interceptedBy("org.bithon.agent.plugin.httpclient.javanethttp.interceptor.HttpClient$SendAsync")
+                .build(),
+
+            // Intercept HttpRequest.headers() to propagate tracing headers
+            forClass("jdk.internal.net.http.HttpRequestImpl")
+                .onMethod("headers")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.javanethttp.interceptor.HttpRequest$Headers")
+                .build(),
+            forClass("jdk.internal.net.http.ImmutableHttpRequest")
+                .onMethod("headers")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.javanethttp.interceptor.HttpRequest$Headers")
                 .build()
         );
     }

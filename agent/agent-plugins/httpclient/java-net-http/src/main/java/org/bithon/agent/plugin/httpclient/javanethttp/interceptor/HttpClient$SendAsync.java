@@ -25,13 +25,13 @@ import org.bithon.agent.observability.metric.domain.httpclient.HttpOutgoingMetri
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -43,54 +43,16 @@ import java.util.concurrent.Executor;
  * @date 2024/12/19
  */
 public class HttpClient$SendAsync extends AroundInterceptor {
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(HttpClient$SendAsync.class);
 
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
     private final TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
-
-    private HttpRequest.Builder newRequest(HttpRequest request) {
-        final HttpRequest.Builder builder = HttpRequest.newBuilder();
-        builder.uri(request.uri());
-        builder.expectContinue(request.expectContinue());
-
-        for (Map.Entry<String, List<String>> entry : request.headers().map().entrySet()) {
-            String name = entry.getKey();
-            List<String> values = entry.getValue();
-            values.forEach(value -> builder.header(name, value));
-        }
-
-        request.version().ifPresent(builder::version);
-        request.timeout().ifPresent(builder::timeout);
-        var method = request.method();
-        request.bodyPublisher()
-               .ifPresentOrElse(
-                   // if body is present, set it
-                   bodyPublisher -> builder.method(method, bodyPublisher),
-                   // otherwise, the body is absent, special case for GET/DELETE/HEAD,
-                   // or else use empty body
-                   () -> {
-                       switch (method) {
-                           case "GET":
-                               builder.GET();
-                               break;
-                           case "DELETE":
-                               builder.DELETE();
-                               break;
-                           case "HEAD":
-                               builder.method("HEAD", HttpRequest.BodyPublishers.noBody());
-                               break;
-                           default:
-                               builder.method(method, HttpRequest.BodyPublishers.noBody());
-                               break;
-                       }
-                   }
-               );
-        return builder;
-    }
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
         IBithonObject bithonObject = aopContext.getInjectedOnTargetAs();
         if (bithonObject.getInjectedObject() != null) {
+            // the sendAsync may be called by the 'send' method internally
             return InterceptionDecision.SKIP_LEAVE;
         }
 
@@ -99,8 +61,6 @@ public class HttpClient$SendAsync extends AroundInterceptor {
         // Start tracing span
         ITraceSpan span = TraceContextFactory.newAsyncSpan("http-client");
         if (span != null) {
-            HttpRequest.Builder newRequestBuilder = newRequest(request);
-
             span.method(aopContext.getTargetClass(), aopContext.getMethod())
                 .kind(SpanKind.CLIENT)
                 .tag(Tags.Http.CLIENT, "java.net.http")
@@ -110,11 +70,8 @@ public class HttpClient$SendAsync extends AroundInterceptor {
                                .firstValue(headerName)
                                .ifPresent(val -> s.tag(Tags.Http.REQUEST_HEADER_PREFIX + headerName, val));
                     }
-                })
-                .context()
-                .propagate(newRequestBuilder, HttpRequest.Builder::header);
+                });
 
-            aopContext.getArgs()[0] = newRequestBuilder.build();
             aopContext.setUserContext(span.start());
         }
 
@@ -128,7 +85,6 @@ public class HttpClient$SendAsync extends AroundInterceptor {
         final String httpMethod = request.method();
 
         final ITraceSpan span = aopContext.getUserContext();
-
         if (span != null) {
             span.tag(Tags.Http.URL, url)
                 .tag(Tags.Http.METHOD, httpMethod);
@@ -152,42 +108,44 @@ public class HttpClient$SendAsync extends AroundInterceptor {
         // Wrap the returned CompletableFuture to handle completion/exception
         final long startNanoTime = aopContext.getStartNanoTime();
         CompletableFuture<HttpResponse<?>> wrappedFuture = returnFuture.whenComplete((response, throwable) -> {
-            long duration = System.nanoTime() - startNanoTime;
+            try {
+                long duration = System.nanoTime() - startNanoTime;
 
-            if (span != null) {
-                span.tag(throwable);
-            }
+                if (throwable != null) {
+                    // Record exception metrics
+                    metricRegistry.addExceptionRequest(url, httpMethod, duration);
+                } else {
+                    // Extract response information
+                    int statusCode = response.statusCode();
 
-            if (throwable != null) {
-                // Record exception metrics
-                metricRegistry.addExceptionRequest(url, httpMethod, duration);
-            } else {
-                // Extract response information
-                int statusCode = response.statusCode();
+                    // Calculate response size if possible
+                    long responseSize = getResponseSize(response);
 
-                // Calculate response size if possible
-                long responseSize = getResponseSize(response);
+                    // Record success metrics
+                    metricRegistry.addRequest(url, httpMethod, statusCode, duration)
+                                  .updateIOMetrics(getRequestSize(request), getResponseSize(response));
 
-                // Record success metrics
-                metricRegistry.addRequest(url, httpMethod, statusCode, duration)
-                              .updateIOMetrics(getRequestSize(request), getResponseSize(response));
-
-                // Add response headers to trace
-                if (span != null) {
-                    if (traceConfig.getHeaders() != null) {
-                        for (String headerName : traceConfig.getHeaders().getResponse()) {
-                            Optional<String> headerValue = response.headers().firstValue(headerName);
-                            headerValue.ifPresent(s -> span.tag(Tags.Http.RESPONSE_HEADER_PREFIX + headerName, s));
+                    // Add response headers to trace
+                    if (span != null) {
+                        if (traceConfig.getHeaders() != null) {
+                            for (String headerName : traceConfig.getHeaders().getResponse()) {
+                                Optional<String> headerValue = response.headers().firstValue(headerName);
+                                headerValue.ifPresent(s -> span.tag(Tags.Http.RESPONSE_HEADER_PREFIX + headerName, s));
+                            }
                         }
+
+                        span.tag(Tags.Http.STATUS, Integer.toString(statusCode));
                     }
-
-                    span.tag(Tags.Http.STATUS, Integer.toString(statusCode));
                 }
-            }
 
-            // Finish span
-            if (span != null) {
-                span.finish();
+                // Finish span
+                if (span != null) {
+                    span.tag(throwable)
+                        .finish();
+                }
+            } catch (Throwable t) {
+                // Catch all to prevent any exception from thrown from agent to user code
+                LOG.warn("Unexpected error in HttpClient$SendAsync", t);
             }
         });
 
