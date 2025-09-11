@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.dashboard;
+package org.bithon.server.web.service.dashboard.service;
 
 import java.util.ArrayList;
 import java.util.Collections;

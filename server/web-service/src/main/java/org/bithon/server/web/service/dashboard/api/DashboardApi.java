@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.dashboard;
+package org.bithon.server.web.service.dashboard.api;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -32,6 +32,7 @@ import org.bithon.server.storage.dashboard.DashboardListResult;
 import org.bithon.server.storage.dashboard.FolderInfo;
 import org.bithon.server.storage.dashboard.IDashboardStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.bithon.server.web.service.dashboard.service.DashboardManager;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
@@ -62,7 +63,7 @@ import java.util.stream.Collectors;
 @RestController
 @Conditional(WebServiceModuleEnabler.class)
 @ConditionalOnBean(IDashboardStorage.class)
-public class DashboardController {
+public class DashboardApi {
 
     private final DashboardManager dashboardManager;
     private final ObjectMapper objectMapper;
@@ -80,8 +81,8 @@ public class DashboardController {
 
     private List<DisplayableText> dashboardList;
 
-    public DashboardController(DashboardManager dashboardManager,
-                               ObjectMapper objectMapper) {
+    public DashboardApi(DashboardManager dashboardManager,
+                        ObjectMapper objectMapper) {
         this.dashboardManager = dashboardManager;
         this.dashboardManager.addChangedListener(this::loadDashboardList);
         this.objectMapper = objectMapper;

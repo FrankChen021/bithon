@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.dashboard;
+package org.bithon.server.web.service.dashboard.api;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
