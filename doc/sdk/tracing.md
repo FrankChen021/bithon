@@ -14,13 +14,13 @@ Add the Bithon Tracing API dependency to your project. The dependency is availab
 <dependency>
     <groupId>org.bithon.agent</groupId>
     <artifactId>agent-sdk</artifactId>
-    <version>1.2.2</version>
+    <version>1.2.3</version>
 </dependency>
 ```
 
 > NOTE:
 > 
-> 1.2.2 is the current release version. You can find the latest version in [Maven Central](https://search.maven.org/artifact/org.bithon.agent/agent-sdk).
+> 1.2.3 is the current release version. You can find the latest version in [Maven Central](https://search.maven.org/artifact/org.bithon.agent/agent-sdk).
 
 ### Step.2: Create trace spans
 
@@ -225,6 +225,7 @@ public class BackgroundTaskService {
 | `TraceContext.newTrace(String operationName)`      | Creates a new trace scope builder for the given operation. Returns a `TraceScopeBuilder` for configuration.    |
 | `TraceContext.currentTraceId()`                    | Gets the trace ID for the current request. Returns `null` if tracing is not enabled or request is not sampled. |
 | `TraceContext.currentSpanId()`                     | Gets the span ID for the current span. Returns `null` if tracing is not enabled or request is not sampled.     |
+| `TraceContext.currentSpan()`                       | Gets the active span on current running thread. Returns `null` if there's no tracing on running thread.        |
 
 
 ### Understand how the tracing SDK works

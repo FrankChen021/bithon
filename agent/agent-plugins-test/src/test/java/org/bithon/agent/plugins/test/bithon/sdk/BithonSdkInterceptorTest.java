@@ -92,7 +92,7 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
             // Bithon SDK - use local version for testing new API
-            MavenArtifact.of("org.bithon.agent", "agent-sdk", "1.2.2")
+            MavenArtifact.of("org.bithon.agent", "agent-sdk", "1.2.3")
         );
     }
 
@@ -427,15 +427,15 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
                         Assertions.assertEquals(level3SpanId, rootScope.currentSpan().spanId());
                     }
 
-                    // After level3 span is closed, current span should return to level2
+                    // After level3 span is closed, the current span should return to level2
                     Assertions.assertEquals(level2SpanId, rootScope.currentSpan().spanId());
                 }
 
-                // After level2 span is closed, current span should return to level1
+                // After level2 span is closed, the current span should return to level1
                 Assertions.assertEquals(level1SpanId, rootScope.currentSpan().spanId());
             }
 
-            // After level1 span is closed, current span should return to root
+            // After level1 span is closed, the current span should return to root
             Assertions.assertEquals(rootSpanId, rootScope.currentSpan().spanId());
         }
 
@@ -470,23 +470,35 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
 
     @Test
     public void testParentChildRelationships() {
-        String parentTraceId;
-        String parentSpanId;
+        Assertions.assertNull(TraceContext.currentSpan());
+
+        String traceId;
+        String spanId;
 
         // Create parent trace
         try (ITraceScope parentScope = TraceContext.newTrace("parent-operation").attach()) {
-            parentTraceId = parentScope.currentTraceId();
-            parentSpanId = parentScope.currentSpan().spanId();
+            traceId = parentScope.currentTraceId();
+            spanId = parentScope.currentSpan().spanId();
+
+            // Verify parent span setup via TraceContext.currentSpan API
+            ISpanScope currentSpan = TraceContext.currentSpan();
+            Assertions.assertNotNull(currentSpan);
+            Assertions.assertEquals(traceId, currentSpan.traceId());
+            Assertions.assertEquals(spanId, currentSpan.spanId());
+            Assertions.assertEquals("parent-operation", currentSpan.name());
+            // Set tag
+            currentSpan.tag("a1", "v1");
 
             parentScope.currentSpan().tag("parent", "true");
+            Assertions.assertEquals("v1", parentScope.currentSpan().tags().get("a1"));
         }
 
         // Create child trace with explicit parent
         try (ITraceScope childScope = TraceContext.newTrace("child-operation")
-                                                  .parent(parentTraceId, parentSpanId)
+                                                  .parent(traceId, spanId)
                                                   .attach()) {
 
-            Assertions.assertEquals(parentTraceId, childScope.currentTraceId());
+            Assertions.assertEquals(traceId, childScope.currentTraceId());
             // Note: SDK ISpan doesn't expose parentId(), but we can verify the trace ID matches
 
             childScope.currentSpan().tag("child", "true");
