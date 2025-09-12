@@ -92,7 +92,7 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
             // Bithon SDK - use local version for testing new API
-            MavenArtifact.of("org.bithon.agent", "agent-sdk", "1.2.2")
+            MavenArtifact.of("org.bithon.agent", "agent-sdk", "1.2.3")
         );
     }
 
