@@ -470,6 +470,8 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
 
     @Test
     public void testParentChildRelationships() {
+        Assertions.assertNull(TraceContext.currentSpan());
+
         String traceId;
         String spanId;
 

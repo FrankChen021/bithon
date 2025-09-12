@@ -68,7 +68,7 @@ public class TraceContext {
         if (shouldLog()) {
             LOGGER.warning("The agent is not loaded.");
         }
-        return ISpanScope.NOOP_INSTANCE;
+        return null;
     }
 
     /**
