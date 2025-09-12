@@ -39,6 +39,9 @@ public class TraceContext {
         return false;
     }
 
+    /**
+     * Returns the trace ID of the current trace context, or null if there is no active trace.
+     */
     public static String currentTraceId() {
         if (shouldLog()) {
             LOGGER.warning("The agent is not loaded.");
@@ -46,11 +49,26 @@ public class TraceContext {
         return null;
     }
 
+    /**
+     * Returns the span ID of the current span, or null if there is no active span.
+     */
     public static String currentSpanId() {
         if (shouldLog()) {
             LOGGER.warning("The agent is not loaded.");
         }
         return null;
+    }
+
+    /**
+     * Returns the current span scope, or a no-op span scope if there is no active span.
+     * Generally, you should not call the 'close' method after using the returned span scope.
+     * @since 1.2.3
+     */
+    public static ISpanScope currentSpan() {
+        if (shouldLog()) {
+            LOGGER.warning("The agent is not loaded.");
+        }
+        return ISpanScope.NOOP_INSTANCE;
     }
 
     /**
@@ -72,12 +90,12 @@ public class TraceContext {
      * <p>Examples:</p>
      * <pre>{@code
      * // Simple scoped span
-     * try (ISpan span = TraceContext.newScopedSpan("operation").attach()) {
+     * try (ISpanScope span = TraceContext.newScopedSpan("operation").attach()) {
      *     // do your work here
      * }
      *
      * // Scoped span with custom kind
-     * try (ISpan span = TraceContext.newScopedSpan("operation")
+     * try (ISpanScope span = TraceContext.newScopedSpan("operation")
      *         .kind(SpanKind.CLIENT)
      *         .attach()) {
      *     // do your work here
@@ -87,6 +105,7 @@ public class TraceContext {
      * @param operationName the name of the operation.
      * @return a SpanScopeBuilder for configuring and creating the span
      * @throws IllegalArgumentException if the given operation name is null
+     * @since 1.2.2
      */
     public static SpanScopeBuilder newScopedSpan(String operationName) {
         if (operationName == null) {
@@ -125,6 +144,7 @@ public class TraceContext {
      * @param operationName the name of the operation.
      * @return a TraceScopeBuilder for configuring and creating the trace
      * @throws IllegalArgumentException if the given operation name is null
+     * @since 1.2.2
      */
     public static TraceScopeBuilder newTrace(String operationName) {
         if (operationName == null) {

@@ -478,7 +478,16 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
             parentTraceId = parentScope.currentTraceId();
             parentSpanId = parentScope.currentSpan().spanId();
 
+            // Verify parent span setup via TraceContext.currentSpan API
+            ISpanScope scope = TraceContext.currentSpan();
+            Assertions.assertEquals(parentTraceId, scope.traceId());
+            Assertions.assertEquals(parentSpanId, scope.parentId());
+            Assertions.assertEquals("parent-operation", scope.name());
+            // Set tag
+            scope.tag("a1", "v1");
+
             parentScope.currentSpan().tag("parent", "true");
+            Assertions.assertEquals("v1", parentScope.currentSpan().tags().get("a1"));
         }
 
         // Create child trace with explicit parent
