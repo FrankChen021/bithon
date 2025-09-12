@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -85,7 +86,7 @@ public class DashboardApi {
     }
 
     /**
-     * @deprecated use {@link #getDashboardList(String, String, String, int, int, String, String)} instead
+     * @deprecated use {@link #getDashboardList(DashboardFilter)}
      */
     @Deprecated
     @GetMapping("/api/dashboard/names")
@@ -99,26 +100,8 @@ public class DashboardApi {
                                     .collect(Collectors.toList());
     }
 
-    @GetMapping("/api/dashboard/list")
-    public DashboardListResult getDashboardList(
-        @RequestParam(value = "search", required = false) String search,
-        @RequestParam(value = "folder", required = false) String folder,
-        @RequestParam(value = "folderPrefix", required = false) String folderPrefix,
-        @RequestParam(value = "page", defaultValue = "0") int page,
-        @RequestParam(value = "size", defaultValue = "100") int size,
-        @RequestParam(value = "sort", defaultValue = "title") String sort,
-        @RequestParam(value = "order", defaultValue = "asc") String order) {
-
-        DashboardFilter filter = DashboardFilter.builder()
-                                                .search(search)
-                                                .folder(folder)
-                                                .folderPrefix(folderPrefix)
-                                                .page(page)
-                                                .size(size)
-                                                .sort(sort)
-                                                .order(order)
-                                                .build();
-
+    @PostMapping("/api/dashboard/list")
+    public DashboardListResult getDashboardList(@RequestBody DashboardFilter filter) {
         // Use Calcite-based query from in-memory data instead of storage
         return dashboardManager.queryDashboards(filter);
     }

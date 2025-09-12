@@ -38,7 +38,7 @@ public class DashboardListResult {
     /**
      * List of dashboards in current page
      */
-    private List<Dashboard> content;
+    private List<Dashboard> data;
 
     /**
      * Current page number (0-based)
@@ -53,7 +53,7 @@ public class DashboardListResult {
     /**
      * Total number of elements across all pages
      */
-    private long totalElements;
+    private long total;
 
     /**
      * Total number of pages
@@ -87,10 +87,10 @@ public class DashboardListResult {
         int totalPages = (int) Math.ceil((double) totalElements / size);
 
         return DashboardListResult.builder()
-                                  .content(content)
+                                  .data(content)
                                   .page(page)
                                   .size(size)
-                                  .totalElements(totalElements)
+                                  .total(totalElements)
                                   .totalPages(totalPages)
                                   .hasNext(page < totalPages - 1)
                                   .hasPrevious(page > 0)
