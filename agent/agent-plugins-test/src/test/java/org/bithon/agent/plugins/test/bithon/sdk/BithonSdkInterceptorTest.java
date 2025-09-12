@@ -427,15 +427,15 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
                         Assertions.assertEquals(level3SpanId, rootScope.currentSpan().spanId());
                     }
 
-                    // After level3 span is closed, current span should return to level2
+                    // After level3 span is closed, the current span should return to level2
                     Assertions.assertEquals(level2SpanId, rootScope.currentSpan().spanId());
                 }
 
-                // After level2 span is closed, current span should return to level1
+                // After level2 span is closed, the current span should return to level1
                 Assertions.assertEquals(level1SpanId, rootScope.currentSpan().spanId());
             }
 
-            // After level1 span is closed, current span should return to root
+            // After level1 span is closed, the current span should return to root
             Assertions.assertEquals(rootSpanId, rootScope.currentSpan().spanId());
         }
 
@@ -482,6 +482,7 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
 
             // Verify parent span setup via TraceContext.currentSpan API
             ISpanScope currentSpan = TraceContext.currentSpan();
+            Assertions.assertNotNull(currentSpan);
             Assertions.assertEquals(traceId, currentSpan.traceId());
             Assertions.assertEquals(spanId, currentSpan.spanId());
             Assertions.assertEquals("parent-operation", currentSpan.name());
