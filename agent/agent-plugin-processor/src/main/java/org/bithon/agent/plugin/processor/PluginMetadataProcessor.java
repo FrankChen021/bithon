@@ -48,7 +48,7 @@ import java.util.Set;
 /**
  * Annotation processor that analyzes interceptor classes at compile time
  * to determine their type (BEFORE, AFTER, AROUND, REPLACEMENT) based on inheritance hierarchy.
- * Generates a registry class with static mappings to at the package where plugin class is located.
+ * Generates a registry class with static mappings to at the package where the plugin class is located.
  * This generated class will be loaded during a plugin is loaded, and the interceptor types
  *
  * @author frank.chen021@outlook.com
@@ -75,21 +75,40 @@ public class PluginMetadataProcessor extends AbstractProcessor {
     private String detectJdkVersion(ProcessingEnvironment processingEnv) {
         Map<String, String> options = processingEnv.getOptions();
 
-        String target = null;
+        String target;
 
         // First priority: maven.compiler.release (this overrides both source and target)
         target = options.get("maven.compiler.release");
-        if (target != null && !"${maven.compiler.release}".equals(target)) {
-            return target;
+        if (target != null && !"${maven.compiler.release}".equals(target) && !target.startsWith("${")) {
+            return normalizeJdkVersion(target);
         }
 
         // Second priority: maven.compiler.target
         target = options.get("maven.compiler.target");
         if (target != null) {
-            return target;
+            return normalizeJdkVersion(target);
         }
 
         return null;
+    }
+
+    /**
+     * Normalize JDK version to expected format.
+     * Converts "1.8" to "8", "1.7" to "7", etc.
+     * For versions 9 and above, returns as-is.
+     */
+    private String normalizeJdkVersion(String version) {
+        if (version == null) {
+            return null;
+        }
+
+        // Handle "1.x" format (e.g., "1.8" -> "8", "1.7" -> "7")
+        if (version.startsWith("1.") && version.length() > 2) {
+            return version.substring(2);
+        }
+
+        // For versions 9 and above, or any other format, return as-is
+        return version;
     }
 
     @Override
