@@ -470,21 +470,21 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
 
     @Test
     public void testParentChildRelationships() {
-        String parentTraceId;
-        String parentSpanId;
+        String traceId;
+        String spanId;
 
         // Create parent trace
         try (ITraceScope parentScope = TraceContext.newTrace("parent-operation").attach()) {
-            parentTraceId = parentScope.currentTraceId();
-            parentSpanId = parentScope.currentSpan().spanId();
+            traceId = parentScope.currentTraceId();
+            spanId = parentScope.currentSpan().spanId();
 
             // Verify parent span setup via TraceContext.currentSpan API
-            ISpanScope scope = TraceContext.currentSpan();
-            Assertions.assertEquals(parentTraceId, scope.traceId());
-            Assertions.assertEquals(parentSpanId, scope.parentId());
-            Assertions.assertEquals("parent-operation", scope.name());
+            ISpanScope currentSpan = TraceContext.currentSpan();
+            Assertions.assertEquals(traceId, currentSpan.traceId());
+            Assertions.assertEquals(spanId, currentSpan.spanId());
+            Assertions.assertEquals("parent-operation", currentSpan.name());
             // Set tag
-            scope.tag("a1", "v1");
+            currentSpan.tag("a1", "v1");
 
             parentScope.currentSpan().tag("parent", "true");
             Assertions.assertEquals("v1", parentScope.currentSpan().tags().get("a1"));
@@ -492,10 +492,10 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
 
         // Create child trace with explicit parent
         try (ITraceScope childScope = TraceContext.newTrace("child-operation")
-                                                  .parent(parentTraceId, parentSpanId)
+                                                  .parent(traceId, spanId)
                                                   .attach()) {
 
-            Assertions.assertEquals(parentTraceId, childScope.currentTraceId());
+            Assertions.assertEquals(traceId, childScope.currentTraceId());
             // Note: SDK ISpan doesn't expose parentId(), but we can verify the trace ID matches
 
             childScope.currentSpan().tag("child", "true");
