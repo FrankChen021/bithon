@@ -224,8 +224,8 @@ public class DashboardManager implements SmartLifecycle {
      */
     public GetDashboardListResponse getDashboards(GetDashboardListRequest filter) {
         try {
-            StringBuilder sqlBuilder = new StringBuilder("SELECT id, title, folder, signature, createdAt, lastModified FROM dashboard.dashboards");
-
+            StringBuilder sqlBuilder = new StringBuilder("SELECT id, title, folder, signature, createdAt, lastModified, visible FROM dashboard.dashboards");
+ 
             // Add shared WHERE clause
             sqlBuilder.append(toDashboardSQLFilter(filter));
 
@@ -252,11 +252,18 @@ public class DashboardManager implements SmartLifecycle {
                  ResultSet rs = stmt.executeQuery(sqlBuilder.toString())) {
 
                 while (rs.next()) {
-                    String id = rs.getString("id");
-                    Dashboard dashboard = dashboards.get(id);
-                    if (dashboard != null) {
-                        results.add(dashboard);
-                    }
+                    Dashboard dashboard = Dashboard.builder()
+                        .id(rs.getString("id"))
+                        .title(rs.getString("title"))
+                        .folder(rs.getString("folder"))
+                        .signature(rs.getString("signature"))
+                        .createdAt(rs.getTimestamp("createdAt"))
+                        .lastModified(rs.getTimestamp("lastModified"))
+                        .visible(rs.getBoolean("visible"))
+                        .deleted(false) // Since we filter out deleted dashboards in the WHERE clause
+                        .payload(null) // Payload is not included in list API responses
+                        .build();
+                    results.add(dashboard);
                 }
             }
 

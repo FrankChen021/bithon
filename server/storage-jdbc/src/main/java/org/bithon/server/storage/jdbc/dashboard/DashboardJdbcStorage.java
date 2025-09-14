@@ -85,6 +85,7 @@ public class DashboardJdbcStorage implements IDashboardStorage {
                       .set(Tables.BITHON_WEB_DASHBOARD.CREATEDAT, now.toLocalDateTime())
                       .set(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED, now.toLocalDateTime())
                       .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
+                      .set(Tables.BITHON_WEB_DASHBOARD.VISIBLE, 1)
                       .execute();
         } catch (DuplicateKeyException ignored) {
             // try to update if duplicated
@@ -95,6 +96,7 @@ public class DashboardJdbcStorage implements IDashboardStorage {
                       .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
                       .set(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED, now.toLocalDateTime())
                       .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
+                      .set(Tables.BITHON_WEB_DASHBOARD.VISIBLE, 1)
                       .where(Tables.BITHON_WEB_DASHBOARD.ID.eq(id))
                       .execute();
         }
@@ -119,6 +121,7 @@ public class DashboardJdbcStorage implements IDashboardStorage {
                       .set(Tables.BITHON_WEB_DASHBOARD.CREATEDAT, now.toLocalDateTime())
                       .set(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED, now.toLocalDateTime())
                       .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
+                      .set(Tables.BITHON_WEB_DASHBOARD.VISIBLE, 1)
                       .execute();
         } catch (DuplicateKeyException ignored) {
         }
@@ -145,6 +148,7 @@ public class DashboardJdbcStorage implements IDashboardStorage {
         dashboard.setDeleted(record.get(Tables.BITHON_WEB_DASHBOARD.DELETED) == 1);
         dashboard.setTitle(record.get(Tables.BITHON_WEB_DASHBOARD.TITLE));
         dashboard.setFolder(record.get(Tables.BITHON_WEB_DASHBOARD.FOLDER));
+        dashboard.setVisible(record.get(Tables.BITHON_WEB_DASHBOARD.VISIBLE) == 1);
 
         var lastModified = record.get(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED);
         if (lastModified != null) {
