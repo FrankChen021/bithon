@@ -16,6 +16,9 @@
 
 package org.bithon.server.web.service.dashboard.service;
 
+import org.apache.calcite.DataContext;
+import org.apache.calcite.linq4j.Enumerable;
+import org.apache.calcite.linq4j.Linq4j;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.schema.ScannableTable;
@@ -23,6 +26,7 @@ import org.apache.calcite.schema.impl.AbstractTable;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.bithon.server.storage.dashboard.Dashboard;
 
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -48,34 +52,33 @@ public class DashboardCalciteTable extends AbstractTable implements ScannableTab
         builder.add("signature", typeFactory.createSqlType(SqlTypeName.VARCHAR));
         builder.add("createdAt", typeFactory.createSqlType(SqlTypeName.TIMESTAMP));
         builder.add("lastModified", typeFactory.createSqlType(SqlTypeName.TIMESTAMP));
+        builder.add("visible", typeFactory.createSqlType(SqlTypeName.BOOLEAN));
         return builder.build();
     }
 
     @Override
-    public org.apache.calcite.linq4j.Enumerable<Object[]> scan(org.apache.calcite.DataContext root) {
-        // Return an Enumerable based on iterator of dashboard values without creating intermediate list
-        return org.apache.calcite.linq4j.Linq4j.asEnumerable(() -> {
-            return new java.util.Iterator<Object[]>() {
-                private final java.util.Iterator<Dashboard> dashboardIterator = dashboards.values().iterator();
+    public Enumerable<Object[]> scan(DataContext root) {
+        return Linq4j.asEnumerable(() -> new Iterator<>() {
+            private final Iterator<Dashboard> dashboardIterator = dashboards.values().iterator();
 
-                @Override
-                public boolean hasNext() {
-                    return dashboardIterator.hasNext();
-                }
+            @Override
+            public boolean hasNext() {
+                return dashboardIterator.hasNext();
+            }
 
-                @Override
-                public Object[] next() {
-                    Dashboard dashboard = dashboardIterator.next();
-                    return new Object[]{
-                        dashboard.getId(),
-                        dashboard.getTitle(),
-                        dashboard.getFolder(),
-                        dashboard.getSignature(),
-                        dashboard.getCreatedAt(),
-                        dashboard.getLastModified()
-                    };
-                }
-            };
+            @Override
+            public Object[] next() {
+                Dashboard dashboard = dashboardIterator.next();
+                return new Object[]{
+                    dashboard.getId(),
+                    dashboard.getTitle(),
+                    dashboard.getFolder(),
+                    dashboard.getSignature(),
+                    dashboard.getCreatedAt(),
+                    dashboard.getLastModified(),
+                    dashboard.isVisible()
+                };
+            }
         });
     }
 }

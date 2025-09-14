@@ -15,12 +15,12 @@ import org.bithon.server.storage.jdbc.common.jooq.Keys;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonWebDashboardRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function8;
+import org.jooq.Function9;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row8;
+import org.jooq.Row9;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -94,6 +94,12 @@ public class BithonWebDashboard extends TableImpl<BithonWebDashboardRecord> {
      * The column <code>bithon_web_dashboard.deleted</code>.
      */
     public final TableField<BithonWebDashboardRecord, Integer> DELETED = createField(DSL.name("deleted"), SQLDataType.INTEGER.nullable(false), this, "");
+
+    /**
+     * The column <code>bithon_web_dashboard.visible</code>. if the dashboard is
+     * visible to users
+     */
+    public final TableField<BithonWebDashboardRecord, Integer> VISIBLE = createField(DSL.name("visible"), SQLDataType.INTEGER.nullable(false), this, "if the dashboard is visible to users");
 
     private BithonWebDashboard(Name alias, Table<BithonWebDashboardRecord> aliased) {
         this(alias, aliased, null);
@@ -183,18 +189,18 @@ public class BithonWebDashboard extends TableImpl<BithonWebDashboardRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row8 type methods
+    // Row9 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row8<String, String, String, String, String, LocalDateTime, LocalDateTime, Integer> fieldsRow() {
-        return (Row8) super.fieldsRow();
+    public Row9<String, String, String, String, String, LocalDateTime, LocalDateTime, Integer, Integer> fieldsRow() {
+        return (Row9) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function8<? super String, ? super String, ? super String, ? super String, ? super String, ? super LocalDateTime, ? super LocalDateTime, ? super Integer, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function9<? super String, ? super String, ? super String, ? super String, ? super String, ? super LocalDateTime, ? super LocalDateTime, ? super Integer, ? super Integer, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -202,7 +208,7 @@ public class BithonWebDashboard extends TableImpl<BithonWebDashboardRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function8<? super String, ? super String, ? super String, ? super String, ? super String, ? super LocalDateTime, ? super LocalDateTime, ? super Integer, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function9<? super String, ? super String, ? super String, ? super String, ? super String, ? super LocalDateTime, ? super LocalDateTime, ? super Integer, ? super Integer, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

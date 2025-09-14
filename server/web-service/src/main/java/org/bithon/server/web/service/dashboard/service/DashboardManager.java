@@ -16,7 +16,20 @@
 
 package org.bithon.server.web.service.dashboard.service;
 
-import lombok.extern.slf4j.Slf4j;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.schema.impl.AbstractSchema;
@@ -35,19 +48,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Frank Chen
@@ -200,7 +201,7 @@ public class DashboardManager implements SmartLifecycle {
      * Build SQL WHERE clauses based on filter criteria
      */
     private String toDashboardSQLFilter(GetDashboardListRequest filter) {
-        StringBuilder whereClause = new StringBuilder(" WHERE 1=1");
+        StringBuilder whereClause = new StringBuilder(" WHERE 1=1 AND visible = true");
 
         // Build WHERE clauses based on filter
         if (StringUtils.hasText(filter.getSearch())) {
@@ -211,11 +212,6 @@ public class DashboardManager implements SmartLifecycle {
         if (StringUtils.hasText(filter.getFolder())) {
             String escapedFolder = filter.getFolder().replace("'", "''");
             whereClause.append(StringUtils.format(" AND folder = '%s'", escapedFolder));
-        }
-
-        if (StringUtils.hasText(filter.getFolderPrefix())) {
-            String escapedFolderPrefix = filter.getFolderPrefix().replace("'", "''");
-            whereClause.append(StringUtils.format(" AND folder LIKE '%s%%'", escapedFolderPrefix));
         }
 
         // Note: deleted filtering is handled at the application level since 'deleted' field is not in the Calcite table

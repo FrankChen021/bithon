@@ -45,11 +45,6 @@ public class GetDashboardListRequest {
     private String folder;
 
     /**
-     * Folder prefix to filter by (alternative to exact folder match)
-     */
-    private String folderPrefix;
-
-    /**
      * Page number (0-based)
      */
     @Builder.Default

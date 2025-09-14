@@ -44,4 +44,5 @@ public class Dashboard {
     private Timestamp createdAt;
     private Timestamp lastModified;
     private boolean deleted;
+    private boolean visible;
 }
