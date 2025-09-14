@@ -36,6 +36,9 @@ public class Dashboard {
     private String title;
     private String folder;
 
+    /**
+     * Might be null in some API responses (e.g. list API)
+     */
     private String payload;
     private String signature;
     private Timestamp createdAt;

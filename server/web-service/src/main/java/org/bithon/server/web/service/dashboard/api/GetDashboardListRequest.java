@@ -16,29 +16,60 @@
 
 package org.bithon.server.web.service.dashboard.api;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import lombok.Getter;
-import lombok.Setter;
-import org.bithon.server.datasource.query.Order;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2025/9/11 21:10
+ * Filter criteria for dashboard queries
+ *
+ * @author Frank Chen
+ * @date 2025-09-11
  */
-@Getter
-@Setter
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class GetDashboardListRequest {
-    private String folder;
+
+    /**
+     * Search term to match against title and folder (when folder is not specified)
+     * or just title (when folder is specified)
+     */
     private String search;
 
-    private Order order = Order.desc;
-    private String orderBy = "";
+    /**
+     * Exact folder path to filter by
+     */
+    private String folder;
 
-    @Min(0)
-    private int pageNumber = 0;
+    /**
+     * Folder prefix to filter by (alternative to exact folder match)
+     */
+    private String folderPrefix;
 
-    @Min(5)
-    @Max(1000)
-    private int pageSize = 10;
+    /**
+     * Page number (0-based)
+     */
+    @Builder.Default
+    private int page = 0;
+
+    /**
+     * Page size (max results per page)
+     */
+    @Builder.Default
+    private int size = 100;
+
+    /**
+     * Sort field (title, folder, lastModified, name)
+     */
+    @Builder.Default
+    private String sort = "title";
+
+    /**
+     * Sort order (asc, desc)
+     */
+    @Builder.Default
+    private String order = "asc";
 }

@@ -33,16 +33,6 @@ public interface IDashboardStorage {
      */
     List<Dashboard> getDashboard(long afterTimestamp);
 
-    /**
-     * Get dashboards with filtering and pagination
-     */
-    DashboardListResult getDashboards(DashboardFilter filter);
-
-    /**
-     * Get folder structure with dashboard counts
-     */
-    List<FolderInfo> getFolderStructure(int maxDepth);
-
     String put(String id, String folder, String title, String payload);
 
     void putIfNotExist(String id, String folder, String title, String payload) throws IOException;

@@ -23,8 +23,6 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.HashUtils;
 import org.bithon.server.storage.dashboard.Dashboard;
-import org.bithon.server.storage.dashboard.DashboardFilter;
-import org.bithon.server.storage.dashboard.DashboardListResult;
 import org.bithon.server.storage.dashboard.DashboardStorageConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
@@ -32,13 +30,9 @@ import org.bithon.server.storage.jdbc.clickhouse.common.SecondaryIndex;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.dashboard.DashboardJdbcStorage;
-import org.jooq.Condition;
-import org.jooq.OrderField;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
@@ -126,62 +120,4 @@ public class DashboardStorage extends DashboardJdbcStorage {
                   .execute();
     }
 
-    @Override
-    public DashboardListResult getDashboards(DashboardFilter filter) {
-        // For ClickHouse, we need to use FINAL for ReplacingMergeTree
-        List<Condition> conditions = new ArrayList<>();
-
-        // Apply folder filter
-        if (filter.hasFolder()) {
-            conditions.add(Tables.BITHON_WEB_DASHBOARD.FOLDER.eq(filter.getTrimmedFolder()));
-        } else if (filter.hasFolderPrefix()) {
-            conditions.add(Tables.BITHON_WEB_DASHBOARD.FOLDER.like(filter.getTrimmedFolderPrefix() + "%"));
-        }
-
-        // Apply search filter
-        if (filter.hasSearch()) {
-            String searchPattern = "%" + filter.getTrimmedSearch().toLowerCase(Locale.ENGLISH) + "%";
-            if (filter.hasFolder()) {
-                // Search only in title when folder is specified
-                conditions.add(Tables.BITHON_WEB_DASHBOARD.TITLE.likeIgnoreCase(searchPattern));
-            } else {
-                // Search in both title and folder when no folder specified
-                conditions.add(
-                    Tables.BITHON_WEB_DASHBOARD.TITLE.likeIgnoreCase(searchPattern)
-                                                     .or(Tables.BITHON_WEB_DASHBOARD.FOLDER.likeIgnoreCase(searchPattern))
-                );
-            }
-        }
-
-        // Build condition SQL
-        String whereClause = conditions.isEmpty() ? "" : (" WHERE " +
-                                                          conditions.stream()
-                                                                    .map(dslContext::renderInlined)
-                                                                    .reduce((a, b) -> a + " AND " + b)
-                                                                    .orElse(""));
-
-        // Count total results
-        String countSql = "SELECT count() FROM " + Tables.BITHON_WEB_DASHBOARD.getName() + " FINAL" + whereClause;
-        long totalElements = dslContext.fetch(countSql).get(0).get(0, Long.class);
-
-        // Apply sorting
-        OrderField<?> orderField = getSortField(filter.getSort(), filter.getOrder());
-        String orderClause = " ORDER BY " + dslContext.renderInlined(orderField);
-
-        // Apply pagination
-        int validatedSize = filter.getValidatedSize();
-        int validatedPage = filter.getValidatedPage();
-        String limitClause = " LIMIT " + validatedSize + " OFFSET " + (validatedPage * validatedSize);
-
-        // Execute main query
-        String sql = "SELECT * FROM " + Tables.BITHON_WEB_DASHBOARD.getName() + " FINAL" +
-                     whereClause + orderClause + limitClause;
-
-        List<Dashboard> dashboards = dslContext.fetch(sql)
-                                               .stream()
-                                               .map(this::toDashboard)
-                                               .collect(Collectors.toList());
-
-        return DashboardListResult.of(dashboards, validatedPage, validatedSize, totalElements);
-    }
 }

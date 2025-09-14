@@ -22,27 +22,16 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.HashUtils;
 import org.bithon.server.storage.dashboard.Dashboard;
-import org.bithon.server.storage.dashboard.DashboardFilter;
-import org.bithon.server.storage.dashboard.DashboardListResult;
 import org.bithon.server.storage.dashboard.DashboardStorageConfig;
-import org.bithon.server.storage.dashboard.FolderInfo;
 import org.bithon.server.storage.dashboard.IDashboardStorage;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
-import org.jooq.Condition;
 import org.jooq.DSLContext;
-import org.jooq.Field;
-import org.jooq.OrderField;
 import org.jooq.Record;
-import org.jooq.impl.DSL;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 /**
  * @author Frank Chen
@@ -136,132 +125,6 @@ public class DashboardJdbcStorage implements IDashboardStorage {
     }
 
     @Override
-    public DashboardListResult getDashboards(DashboardFilter filter) {
-        // Build where conditions
-        List<Condition> conditions = new ArrayList<>();
-
-        // Apply folder filter
-        if (filter.hasFolder()) {
-            conditions.add(Tables.BITHON_WEB_DASHBOARD.FOLDER.eq(filter.getTrimmedFolder()));
-        } else if (filter.hasFolderPrefix()) {
-            conditions.add(Tables.BITHON_WEB_DASHBOARD.FOLDER.like(filter.getTrimmedFolderPrefix() + "%"));
-        }
-
-        // Apply search filter
-        if (filter.hasSearch()) {
-            String searchPattern = "%" + filter.getTrimmedSearch().toLowerCase(Locale.ENGLISH) + "%";
-            if (filter.hasFolder()) {
-                // Search only in title when folder is specified
-                conditions.add(Tables.BITHON_WEB_DASHBOARD.TITLE.likeIgnoreCase(searchPattern));
-            } else {
-                // Search in both title and folder when no folder specified
-                conditions.add(
-                    Tables.BITHON_WEB_DASHBOARD.TITLE.likeIgnoreCase(searchPattern)
-                                                     .or(Tables.BITHON_WEB_DASHBOARD.FOLDER.likeIgnoreCase(searchPattern))
-                );
-            }
-        }
-
-        // Count total results
-        Long totalElements = dslContext.selectCount()
-                                       .from(Tables.BITHON_WEB_DASHBOARD)
-                                       .where(conditions)
-                                       .fetchOne(0, long.class);
-
-        // Apply sorting
-        OrderField<?> orderField = getSortField(filter.getSort(), filter.getOrder());
-
-        // Apply pagination
-        int validatedSize = filter.getValidatedSize();
-        int validatedPage = filter.getValidatedPage();
-
-        // Execute query with pagination and sorting
-        List<Dashboard> dashboards = dslContext.selectFrom(Tables.BITHON_WEB_DASHBOARD)
-                                               .where(conditions)
-                                               .orderBy(orderField)
-                                               .limit(validatedSize)
-                                               .offset(validatedPage * validatedSize)
-                                               .fetch(this::toDashboard);
-
-        return DashboardListResult.of(dashboards, validatedPage, validatedSize, totalElements == null ? 0 : totalElements);
-    }
-
-    @Override
-    public List<FolderInfo> getFolderStructure(int maxDepth) {
-        // Get all unique folders with their dashboard counts
-        var folderRecords = dslContext.select(
-                                          Tables.BITHON_WEB_DASHBOARD.FOLDER,
-                                          DSL.count().as("count")
-                                      )
-                                      .from(Tables.BITHON_WEB_DASHBOARD)
-                                      .where(Tables.BITHON_WEB_DASHBOARD.DELETED.eq(0))
-                                      .and(Tables.BITHON_WEB_DASHBOARD.FOLDER.isNotNull())
-                                      .and(Tables.BITHON_WEB_DASHBOARD.FOLDER.ne(""))
-                                      .groupBy(Tables.BITHON_WEB_DASHBOARD.FOLDER)
-                                      .fetch();
-
-        // Build folder tree structure
-        Map<String, FolderInfo> folderMap = new HashMap<>();
-        List<FolderInfo> rootFolders = new ArrayList<>();
-
-        for (var record : folderRecords) {
-            String folderPath = record.get(Tables.BITHON_WEB_DASHBOARD.FOLDER);
-            long count = record.get("count", Long.class);
-
-            if (folderPath == null || folderPath.trim().isEmpty()) {
-                continue;
-            }
-
-            String[] pathParts = folderPath.split("/");
-            if (pathParts.length > maxDepth) {
-                continue;
-            }
-
-            // Build folder hierarchy
-            StringBuilder currentPath = new StringBuilder();
-            FolderInfo parent = null;
-
-            for (int i = 0; i < pathParts.length; i++) {
-                if (i > 0) {
-                    currentPath.append("/");
-                }
-                currentPath.append(pathParts[i]);
-
-                String fullPath = currentPath.toString();
-                FolderInfo folder = folderMap.get(fullPath);
-
-                if (folder == null) {
-                    folder = FolderInfo.builder()
-                                       .path(fullPath)
-                                       .name(pathParts[i])
-                                       .depth(i)
-                                       .parentPath(parent != null ? parent.getPath() : null)
-                                       .children(new ArrayList<>())
-                                       .dashboardCount(0)
-                                       .build();
-
-                    folderMap.put(fullPath, folder);
-
-                    if (parent == null) {
-                        rootFolders.add(folder);
-                    } else {
-                        parent.getChildren().add(folder);
-                    }
-                }
-
-                // Add count only to the leaf folder
-                if (i == pathParts.length - 1) {
-                    folder.setDashboardCount(count);
-                }
-
-                parent = folder;
-            }
-        }
-
-        return rootFolders;
-    }
-
-    @Override
     public void initialize() {
         if (!this.storageConfig.isCreateTable()) {
             return;
@@ -289,16 +152,5 @@ public class DashboardJdbcStorage implements IDashboardStorage {
         }
 
         return dashboard;
-    }
-
-    protected OrderField<?> getSortField(String sort, String order) {
-        Field<?> field = switch (sort.toLowerCase(Locale.ENGLISH)) {
-            case "folder" -> Tables.BITHON_WEB_DASHBOARD.FOLDER;
-            case "lastmodified", "last_modified" -> Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED;
-            case "id" -> Tables.BITHON_WEB_DASHBOARD.ID;
-            default -> Tables.BITHON_WEB_DASHBOARD.TITLE;
-        };
-
-        return "desc".equalsIgnoreCase(order) ? field.desc() : field.asc();
     }
 }

@@ -16,20 +16,15 @@
 
 package org.bithon.server.web.service.dashboard.api;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.dashboard.Dashboard;
-import org.bithon.server.storage.dashboard.DashboardFilter;
-import org.bithon.server.storage.dashboard.DashboardListResult;
-import org.bithon.server.storage.dashboard.FolderInfo;
 import org.bithon.server.storage.dashboard.IDashboardStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.dashboard.service.DashboardManager;
@@ -44,12 +39,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This is a temporary solution that reads configuration from file
@@ -86,13 +85,13 @@ public class DashboardApi {
     }
 
     /**
-     * @deprecated use {@link #getDashboardList(DashboardFilter)}
+     * @deprecated use {@link #getDashboardList(GetDashboardListRequest)}
      */
     @Deprecated
     @GetMapping("/api/dashboard/names")
     public List<DisplayableText> getDashboardNames(@RequestParam(value = "folder", required = false) String folder) {
         final boolean filterOnFolder = StringUtils.hasText(folder);
-        return this.dashboardManager.getDashboards()
+        return this.dashboardManager.getAllDashboards()
                                     .stream()
                                     .filter((dashboard) -> !filterOnFolder || (dashboard.getFolder() != null && dashboard.getFolder().startsWith(folder)))
                                     .map(dashboard -> new DisplayableText(dashboard.getId(), dashboard.getTitle(), dashboard.getFolder()))
@@ -101,16 +100,9 @@ public class DashboardApi {
     }
 
     @PostMapping("/api/dashboard/list")
-    public DashboardListResult getDashboardList(@RequestBody DashboardFilter filter) {
-        // Use Calcite-based query from in-memory data instead of storage
-        return dashboardManager.queryDashboards(filter);
+    public GetDashboardListResponse getDashboardList(@RequestBody GetDashboardListRequest filter) {
+        return dashboardManager.getDashboards(filter);
     }
-
-    @GetMapping("/api/dashboard/folders")
-    public List<FolderInfo> getFolderStructure(@RequestParam(value = "depth", defaultValue = "10") int depth) {
-        return dashboardManager.getDashboardStorage().getFolderStructure(Math.max(1, Math.min(depth, 20))); // Limit depth between 1-20
-    }
-
 
     @GetMapping("/api/dashboard/all")
     public void getAllDashboards(HttpServletResponse response) throws IOException {
@@ -119,7 +111,7 @@ public class DashboardApi {
         try (OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8)) {
             writer.write('[');
             {
-                List<Dashboard> dashboards = this.dashboardManager.getDashboards();
+                List<Dashboard> dashboards = this.dashboardManager.getAllDashboards();
 
                 // sort by name
                 dashboards.sort(Comparator.comparing(Dashboard::getId));

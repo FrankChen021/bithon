@@ -26,10 +26,10 @@ import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.dashboard.Dashboard;
-import org.bithon.server.storage.dashboard.DashboardFilter;
-import org.bithon.server.storage.dashboard.DashboardListResult;
 import org.bithon.server.storage.dashboard.IDashboardStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.bithon.server.web.service.dashboard.api.GetDashboardListRequest;
+import org.bithon.server.web.service.dashboard.api.GetDashboardListResponse;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Conditional;
@@ -43,7 +43,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -157,12 +156,8 @@ public class DashboardManager implements SmartLifecycle {
         return dashboards.get(boardName);
     }
 
-    public List<Dashboard> getDashboards() {
+    public List<Dashboard> getAllDashboards() {
         return new ArrayList<>(dashboards.values());
-    }
-
-    public IDashboardStorage getDashboardStorage() {
-        return this.storage;
     }
 
     private void onChanged() {
@@ -202,29 +197,41 @@ public class DashboardManager implements SmartLifecycle {
     }
 
     /**
-     * Query dashboards using SQL-like filter
+     * Build SQL WHERE clauses based on filter criteria
      */
-    public DashboardListResult queryDashboards(DashboardFilter filter) {
+    private String toDashboardSQLFilter(GetDashboardListRequest filter) {
+        StringBuilder whereClause = new StringBuilder(" WHERE 1=1");
+
+        // Build WHERE clauses based on filter
+        if (StringUtils.hasText(filter.getSearch())) {
+            String escapedSearch = filter.getSearch().replace("'", "''");
+            whereClause.append(StringUtils.format(" AND (title ILIKE '%%%s%%')", escapedSearch));
+        }
+
+        if (StringUtils.hasText(filter.getFolder())) {
+            String escapedFolder = filter.getFolder().replace("'", "''");
+            whereClause.append(StringUtils.format(" AND folder = '%s'", escapedFolder));
+        }
+
+        if (StringUtils.hasText(filter.getFolderPrefix())) {
+            String escapedFolderPrefix = filter.getFolderPrefix().replace("'", "''");
+            whereClause.append(StringUtils.format(" AND folder LIKE '%s%%'", escapedFolderPrefix));
+        }
+
+        // Note: deleted filtering is handled at the application level since 'deleted' field is not in the Calcite table
+
+        return whereClause.toString();
+    }
+
+    /**
+     * Use Calcite-based query from in-memory data
+     */
+    public GetDashboardListResponse getDashboards(GetDashboardListRequest filter) {
         try {
-            StringBuilder sqlBuilder = new StringBuilder("SELECT id, title, folder, signature, createdAt, lastModified FROM dashboard.dashboards WHERE 1=1");
+            StringBuilder sqlBuilder = new StringBuilder("SELECT id, title, folder, signature, createdAt, lastModified FROM dashboard.dashboards");
 
-            // Build WHERE clauses based on filter
-            if (StringUtils.hasText(filter.getSearch())) {
-                String escapedSearch = filter.getSearch().replace("'", "''");
-                sqlBuilder.append(StringUtils.format(" AND (title LIKE '%%%s%%')", escapedSearch));
-            }
-
-            if (StringUtils.hasText(filter.getFolder())) {
-                String escapedFolder = filter.getFolder().replace("'", "''");
-                sqlBuilder.append(StringUtils.format(" AND folder = '%s'", escapedFolder));
-            }
-
-            if (StringUtils.hasText(filter.getFolderPrefix())) {
-                String escapedFolderPrefix = filter.getFolderPrefix().replace("'", "''");
-                sqlBuilder.append(StringUtils.format(" AND folder LIKE '%s%%'", escapedFolderPrefix));
-            }
-
-            // Note: deleted filtering is handled at the application level since 'deleted' field is not in the Calcite table
+            // Add shared WHERE clause
+            sqlBuilder.append(toDashboardSQLFilter(filter));
 
             // Add ordering
             if (StringUtils.hasText(filter.getSort())) {
@@ -260,7 +267,7 @@ public class DashboardManager implements SmartLifecycle {
             // Get total count for pagination
             long totalCount = getTotalCount(filter);
 
-            return DashboardListResult.of(results, filter.getPage(), filter.getSize(), totalCount);
+            return GetDashboardListResponse.of(results, filter.getPage(), filter.getSize(), totalCount);
 
         } catch (SQLException e) {
             log.error("Failed to query dashboards with Calcite", e);
@@ -269,40 +276,25 @@ public class DashboardManager implements SmartLifecycle {
     }
 
     /**
-     * Get total count for pagination
-     * Since deleted filtering is at application level, we need to count matching dashboards manually
+     * Get total count for pagination using SQL over Calcite
      */
-    private long getTotalCount(DashboardFilter filter) {
-        long count = 0;
-        for (Dashboard dashboard : dashboards.values()) {
-            // Apply search filter
-            if (StringUtils.hasText(filter.getSearch())) {
-                String search = filter.getSearch().toLowerCase(Locale.ENGLISH);
-                boolean matches = (dashboard.getTitle() != null && dashboard.getTitle().toLowerCase(Locale.ENGLISH).contains(search)) ||
-                                  (dashboard.getId() != null && dashboard.getId().toLowerCase(Locale.ENGLISH).contains(search));
-                if (!matches) {
-                    continue;
+    private long getTotalCount(GetDashboardListRequest filter) {
+        try {
+            String sql = "SELECT COUNT(*) as total FROM dashboard.dashboards" + toDashboardSQLFilter(filter);
+
+            try (Statement stmt = calciteConnection.createStatement();
+                 ResultSet rs = stmt.executeQuery(sql)) {
+
+                if (rs.next()) {
+                    return rs.getLong(1);
                 }
+                return 0;
             }
 
-            // Apply folder filter
-            if (StringUtils.hasText(filter.getFolder())) {
-                if (dashboard.getFolder() == null || !dashboard.getFolder().equals(filter.getFolder())) {
-                    continue;
-                }
-            }
-
-            // Apply folder prefix filter
-            if (StringUtils.hasText(filter.getFolderPrefix())) {
-                if (dashboard.getFolder() == null || !dashboard.getFolder().startsWith(filter.getFolderPrefix())) {
-                    continue;
-                }
-            }
-
-            count++;
+        } catch (SQLException e) {
+            log.error("Failed to get total count with Calcite", e);
+            throw new RuntimeException("Dashboard count query failed", e);
         }
-
-        return count;
     }
 
 }

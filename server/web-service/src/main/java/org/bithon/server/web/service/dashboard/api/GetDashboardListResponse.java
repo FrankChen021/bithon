@@ -14,12 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.dashboard;
+package org.bithon.server.web.service.dashboard.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bithon.server.storage.dashboard.Dashboard;
 
 import java.util.List;
 
@@ -33,7 +34,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DashboardListResult {
+public class GetDashboardListResponse {
 
     /**
      * List of dashboards in current page
@@ -56,46 +57,17 @@ public class DashboardListResult {
     private long total;
 
     /**
-     * Total number of pages
-     */
-    private int totalPages;
-
-    /**
-     * Whether there are more pages after current page
-     */
-    private boolean hasNext;
-
-    /**
-     * Whether there are pages before current page
-     */
-    private boolean hasPrevious;
-
-    /**
-     * Whether this is the first page
-     */
-    private boolean first;
-
-    /**
-     * Whether this is the last page
-     */
-    private boolean last;
-
-    /**
      * Create a DashboardListResult with calculated pagination info
      */
-    public static DashboardListResult of(List<Dashboard> content, int page, int size, long totalElements) {
-        int totalPages = (int) Math.ceil((double) totalElements / size);
-
-        return DashboardListResult.builder()
-                                  .data(content)
-                                  .page(page)
-                                  .size(size)
-                                  .total(totalElements)
-                                  .totalPages(totalPages)
-                                  .hasNext(page < totalPages - 1)
-                                  .hasPrevious(page > 0)
-                                  .first(page == 0)
-                                  .last(page >= totalPages - 1)
-                                  .build();
+    public static GetDashboardListResponse of(List<Dashboard> dashboards,
+                                              int page,
+                                              int size,
+                                              long totalElements) {
+        return GetDashboardListResponse.builder()
+                                       .data(dashboards)
+                                       .page(page)
+                                       .size(size)
+                                       .total(totalElements)
+                                       .build();
     }
 }
