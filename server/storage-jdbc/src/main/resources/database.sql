@@ -185,7 +185,7 @@ CREATE TABLE `bithon_web_dashboard`
     `payload`      MEDIUMTEXT NOT NULL COMMENT 'Schema in JSON',
     `signature`    VARCHAR(250) NOT NULL COMMENT 'Signature of payload field, currently SHA256 is applied',
     `createdAt`    DATETIME(3) NOT NULL COMMENT 'Created Timestamp',
-    `lastModified` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last modified time',
+    `lastModified` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'Last modified time',
     `deleted`   INT NOT NULL COMMENT '',
     `visible`   INT NOT NULL COMMENT 'if the dashboard is visible to users',
     UNIQUE `idx_web_dashboard_id` (`id`),

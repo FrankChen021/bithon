@@ -88,7 +88,7 @@ public class BithonWebDashboard extends TableImpl<BithonWebDashboardRecord> {
      * The column <code>bithon_web_dashboard.lastModified</code>. Last modified
      * time
      */
-    public final TableField<BithonWebDashboardRecord, LocalDateTime> LASTMODIFIED = createField(DSL.name("lastModified"), SQLDataType.LOCALDATETIME(0).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP", SQLDataType.LOCALDATETIME)), this, "Last modified time");
+    public final TableField<BithonWebDashboardRecord, LocalDateTime> LASTMODIFIED = createField(DSL.name("lastModified"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "Last modified time");
 
     /**
      * The column <code>bithon_web_dashboard.deleted</code>.
