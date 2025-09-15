@@ -248,10 +248,21 @@ public class DashboardManager implements SmartLifecycle {
 
         public PreparedStatement prepareStatement(Connection connection) throws SQLException {
             PreparedStatement stmt = connection.prepareStatement(sql.toString());
-            for (int i = 0; i < parameters.size(); i++) {
-                stmt.setObject(i + 1, parameters.get(i));
+            try {
+                for (int i = 0; i < parameters.size(); i++) {
+                    stmt.setObject(i + 1, parameters.get(i));
+                }
+                return stmt;
+            } catch (SQLException e) {
+                // Ensure the PreparedStatement is closed if parameter binding fails
+                try {
+                    stmt.close();
+                } catch (SQLException closeException) {
+                    // Add the close exception as suppressed to preserve the original exception
+                    e.addSuppressed(closeException);
+                }
+                throw e;
             }
-            return stmt;
         }
 
         /**
