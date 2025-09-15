@@ -16,20 +16,7 @@
 
 package org.bithon.server.web.service.dashboard.service;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.schema.impl.AbstractSchema;
@@ -48,7 +35,21 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
-import lombok.extern.slf4j.Slf4j;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Frank Chen
@@ -59,6 +60,17 @@ import lombok.extern.slf4j.Slf4j;
 @Conditional(WebServiceModuleEnabler.class)
 @ConditionalOnBean(IDashboardStorage.class)
 public class DashboardManager implements SmartLifecycle {
+
+    // Allowlist of valid sort columns to prevent SQL injection
+    private static final Set<String> ALLOWED_SORT_COLUMNS = Set.of(
+        "id", "title", "folder", "signature", "createdAt", "lastModified"
+    );
+
+    // Valid order directions
+    private static final Set<String> ALLOWED_ORDER_DIRECTIONS = Set.of("asc", "desc");
+
+    // Maximum length for search and folder inputs to prevent extremely long malicious inputs
+    private static final int MAX_INPUT_LENGTH = 1000;
 
     public interface IDashboardChangedListener {
         void onChanged();
@@ -197,72 +209,151 @@ public class DashboardManager implements SmartLifecycle {
         }
     }
 
+
     /**
-     * Build SQL WHERE clauses based on filter criteria
+     * Build secure SQL with parameterized queries where possible
      */
-    private String toDashboardSQLFilter(GetDashboardListRequest filter) {
-        StringBuilder whereClause = new StringBuilder(" WHERE 1=1 AND visible = true");
+    private static class SecureSqlBuilder {
+        private final StringBuilder sql = new StringBuilder();
+        private final List<Object> parameters = new ArrayList<>();
 
-        // Build WHERE clauses based on filter
-        if (StringUtils.hasText(filter.getSearch())) {
-            String escapedSearch = filter.getSearch().replace("'", "''");
-            whereClause.append(StringUtils.format(" AND (title ILIKE '%%%s%%')", escapedSearch));
+        public SecureSqlBuilder append(String sqlFragment) {
+            sql.append(sqlFragment);
+            return this;
         }
 
-        if (StringUtils.hasText(filter.getFolder())) {
-            String escapedFolder = filter.getFolder().replace("'", "''");
-            whereClause.append(StringUtils.format(" AND folder = '%s'", escapedFolder));
+        public SecureSqlBuilder appendParameter(String paramPlaceholder, Object value) {
+            sql.append(paramPlaceholder);
+            parameters.add(value);
+            return this;
         }
 
-        // Note: deleted filtering is handled at the application level since 'deleted' field is not in the Calcite table
+        public SecureSqlBuilder orderBy(String sortColumn, String orderDirection) {
+            sql.append(" ORDER BY ")
+               .append(validateSortColumn(sortColumn))
+               .append(" ")
+               .append(validateOrderDirection(orderDirection));
+            return this;
+        }
 
-        return whereClause.toString();
+        public SecureSqlBuilder limit(int limit) {
+            sql.append(" LIMIT ").append(limit);
+            return this;
+        }
+
+        public SecureSqlBuilder offset(int offset) {
+            sql.append(" OFFSET ").append(offset);
+            return this;
+        }
+
+        public PreparedStatement prepareStatement(Connection connection) throws SQLException {
+            PreparedStatement stmt = connection.prepareStatement(sql.toString());
+            for (int i = 0; i < parameters.size(); i++) {
+                stmt.setObject(i + 1, parameters.get(i));
+            }
+            return stmt;
+        }
+
+        /**
+         * Build secure SQL query with proper input validation and parameterization
+         */
+        public static SecureSqlBuilder from(GetDashboardListRequest filter, boolean isCountQuery) {
+            // Validate inputs
+            validateInput(filter.getSearch(), "search");
+            validateInput(filter.getFolder(), "folder");
+
+            SecureSqlBuilder builder = new SecureSqlBuilder();
+
+            if (isCountQuery) {
+                builder.append("SELECT COUNT(*) as total FROM dashboard.dashboards");
+            } else {
+                builder.append("SELECT id, title, folder, signature, createdAt, lastModified FROM dashboard.dashboards");
+            }
+
+            builder.append(" WHERE 1=1 AND visible = true");
+
+            // Add search filter with parameterization
+            if (StringUtils.hasText(filter.getSearch())) {
+                builder.append(" AND (title ILIKE ").appendParameter("?", "%" + filter.getSearch() + "%").append(")");
+            }
+
+            // Add folder filter with parameterization  
+            if (StringUtils.hasText(filter.getFolder())) {
+                builder.append(" AND folder = ").appendParameter("?", filter.getFolder());
+            }
+
+            return builder;
+        }
+
+        /**
+         * Validate and sanitize user input to prevent SQL injection
+         */
+        private static void validateInput(String input, String fieldName) {
+            if (input != null && input.length() > MAX_INPUT_LENGTH) {
+                throw new IllegalArgumentException(fieldName + " exceeds maximum length of " + MAX_INPUT_LENGTH);
+            }
+        }
+
+        /**
+         * Validate sort column against allowlist
+         */
+        private static String validateSortColumn(String sortColumn) {
+            if (StringUtils.hasText(sortColumn)) {
+                String normalizedSort = sortColumn.toLowerCase(Locale.ENGLISH).trim();
+                if (ALLOWED_SORT_COLUMNS.contains(normalizedSort)) {
+                    return normalizedSort;
+                }
+            }
+            return "title"; // Default safe sort column
+        }
+
+        /**
+         * Validate order direction against allowlist
+         */
+        private static String validateOrderDirection(String order) {
+            if (StringUtils.hasText(order)) {
+                String normalizedOrder = order.toLowerCase(Locale.ENGLISH).trim();
+                if (ALLOWED_ORDER_DIRECTIONS.contains(normalizedOrder)) {
+                    return normalizedOrder;
+                }
+            }
+            return "asc"; // Default safe order
+        }
     }
 
+
     /**
-     * Use Calcite-based query from in-memory data
+     * Use Calcite-based query from in-memory data with secure SQL building
      */
     public GetDashboardListResponse getDashboards(GetDashboardListRequest filter) {
         try {
-            StringBuilder sqlBuilder = new StringBuilder("SELECT id, title, folder, signature, createdAt, lastModified, visible FROM dashboard.dashboards");
- 
-            // Add shared WHERE clause
-            sqlBuilder.append(toDashboardSQLFilter(filter));
+            // Build secure query with ordering and pagination
+            SecureSqlBuilder builder = SecureSqlBuilder.from(filter, false)
+                                                       .orderBy(filter.getSort(), filter.getOrder());
 
-            // Add ordering
-            if (StringUtils.hasText(filter.getSort())) {
-                if ("desc".equalsIgnoreCase(filter.getOrder())) {
-                    sqlBuilder.append(StringUtils.format(" ORDER BY %s DESC", filter.getSort()));
-                } else {
-                    sqlBuilder.append(StringUtils.format(" ORDER BY %s", filter.getSort()));
-                }
-            }
-
-            // Add pagination
+            // Add pagination if specified
             if (filter.getSize() > 0) {
+                builder.limit(filter.getSize());
                 if (filter.getPage() > 0) {
-                    sqlBuilder.append(StringUtils.format(" LIMIT %d OFFSET %d", filter.getSize(), filter.getPage() * filter.getSize()));
-                } else {
-                    sqlBuilder.append(StringUtils.format(" LIMIT %d", filter.getSize()));
+                    builder.offset(filter.getPage() * filter.getSize());
                 }
             }
 
             List<Dashboard> results = new ArrayList<>();
-            try (Statement stmt = calciteConnection.createStatement();
-                 ResultSet rs = stmt.executeQuery(sqlBuilder.toString())) {
+            try (PreparedStatement stmt = builder.prepareStatement(calciteConnection);
+                 ResultSet rs = stmt.executeQuery()) {
 
                 while (rs.next()) {
                     Dashboard dashboard = Dashboard.builder()
-                        .id(rs.getString("id"))
-                        .title(rs.getString("title"))
-                        .folder(rs.getString("folder"))
-                        .signature(rs.getString("signature"))
-                        .createdAt(rs.getTimestamp("createdAt"))
-                        .lastModified(rs.getTimestamp("lastModified"))
-                        .visible(rs.getBoolean("visible"))
-                        .deleted(false) // Since we filter out deleted dashboards in the WHERE clause
-                        .payload(null) // Payload is not included in list API responses
-                        .build();
+                                                   .id(rs.getString("id"))
+                                                   .title(rs.getString("title"))
+                                                   .folder(rs.getString("folder"))
+                                                   .signature(rs.getString("signature"))
+                                                   .createdAt(rs.getTimestamp("createdAt"))
+                                                   .lastModified(rs.getTimestamp("lastModified"))
+                                                   .deleted(false) // Since we filter out deleted dashboards in the WHERE clause
+                                                   .payload(null) // Payload is not included in list API responses
+                                                   .build();
                     results.add(dashboard);
                 }
             }
@@ -279,14 +370,14 @@ public class DashboardManager implements SmartLifecycle {
     }
 
     /**
-     * Get total count for pagination using SQL over Calcite
+     * Get total count for pagination using secure SQL over Calcite
      */
     private long getTotalCount(GetDashboardListRequest filter) {
         try {
-            String sql = "SELECT COUNT(*) as total FROM dashboard.dashboards" + toDashboardSQLFilter(filter);
+            SecureSqlBuilder builder = SecureSqlBuilder.from(filter, true);
 
-            try (Statement stmt = calciteConnection.createStatement();
-                 ResultSet rs = stmt.executeQuery(sql)) {
+            try (PreparedStatement stmt = builder.prepareStatement(calciteConnection);
+                 ResultSet rs = stmt.executeQuery()) {
 
                 if (rs.next()) {
                     return rs.getLong(1);
