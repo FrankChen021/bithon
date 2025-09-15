@@ -26,7 +26,7 @@ import org.jooq.impl.Internal;
 /**
  * A class modelling indexes of tables in the default schema.
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Indexes {
 
     // -------------------------------------------------------------------------

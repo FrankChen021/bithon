@@ -16,7 +16,7 @@ import org.jooq.impl.TableRecordImpl;
 /**
  * Change logs of alert
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAlertChangeLogRecord extends TableRecordImpl<BithonAlertChangeLogRecord> implements Record6<String, String, String, String, String, LocalDateTime> {
 
     private static final long serialVersionUID = 1L;
