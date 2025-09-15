@@ -14,7 +14,7 @@
 --    limitations under the License.
 --
 
-DROP DATABASE IF EXISTS bithon_codegen;
+-- DROP DATABASE IF EXISTS bithon_codegen;
 CREATE DATABASE IF NOT EXISTS `bithon_codegen` DEFAULT CHARSET utf8mb4;
 USE `bithon_codegen`;
 
@@ -25,7 +25,7 @@ CREATE TABLE `bithon_application_instance`
     `appName` varchar(128) NOT NULL,
     `appType` varchar(64)  NOT NULL,
     `instanceName`    varchar(64)  NOT NULL,
-    KEY `idx_app_instance_timestamp` (`timestamp`) COMMENT 'clickouse: minmax',
+    KEY `idx_app_instance_timestamp` (`timestamp`) COMMENT 'clickhouse: minmax',
     UNIQUE `uq_name_type_instance` (`appName`, `appType`, `instanceName`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -179,13 +179,18 @@ CREATE TABLE `bithon_event`
 DROP TABLE IF EXISTS `bithon_web_dashboard`;
 CREATE TABLE `bithon_web_dashboard`
 (
-    `timestamp`    TIMESTAMP(3) NOT NULL COMMENT 'Created Timestamp',
-    `name`         VARCHAR(64)  NOT NULL COMMENT 'Name',
+    `id`           VARCHAR(64)  NOT NULL COMMENT 'Name, unique id',
+    `folder`       VARCHAR(256) DEFAULT '' COMMENT 'Folder/Category',
+    `title`        VARCHAR(256) DEFAULT '' COMMENT 'Title',
     `payload`      MEDIUMTEXT NOT NULL COMMENT 'Schema in JSON',
     `signature`    VARCHAR(250) NOT NULL COMMENT 'Signature of payload field, currently SHA256 is applied',
+    `createdAt`    DATETIME(3) NOT NULL COMMENT 'Created Timestamp',
+    `lastModified` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'Last modified time',
     `deleted`   INT NOT NULL COMMENT '',
-    UNIQUE `idx_web_dashboard_name` (`name`),
-    KEY `idx_web_dashboard_timestamp` (`timestamp`)
+    `visible`   INT NOT NULL COMMENT 'if the dashboard is visible to users',
+    UNIQUE `idx_web_dashboard_id` (`id`),
+    KEY `idx_web_dashboard_createdAt` (`createdAt`),
+    KEY `idx_web_dashboard_lastModified` (`lastModified`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='';
 

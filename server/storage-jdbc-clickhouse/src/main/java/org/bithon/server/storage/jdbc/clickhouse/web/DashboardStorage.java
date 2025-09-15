@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.HashUtils;
 import org.bithon.server.storage.dashboard.Dashboard;
 import org.bithon.server.storage.dashboard.DashboardStorageConfig;
@@ -44,8 +45,9 @@ public class DashboardStorage extends DashboardJdbcStorage {
 
     @JsonCreator
     public DashboardStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration configuration,
-                            @JacksonInject(useInput = OptBoolean.FALSE) DashboardStorageConfig storageConfig) {
-        super(configuration.getDslContext(), storageConfig);
+                            @JacksonInject(useInput = OptBoolean.FALSE) DashboardStorageConfig storageConfig,
+                            @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
+        super(configuration.getDslContext(), storageConfig, objectMapper);
         this.config = configuration.getClickHouseConfig();
     }
 
@@ -55,9 +57,11 @@ public class DashboardStorage extends DashboardJdbcStorage {
             return;
         }
 
-        new TableCreator(config, dslContext).useReplacingMergeTree(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.getName())
+        new TableCreator(config, dslContext).useReplacingMergeTree(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED.getName())
                                             .partitionByExpression(null)
-                                            .secondaryIndex(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.getName(), new SecondaryIndex("minmax", 512))
+                                            .secondaryIndex(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED.getName(), new SecondaryIndex("minmax", 1))
+                                            .secondaryIndex(Tables.BITHON_WEB_DASHBOARD.FOLDER.getName(), new SecondaryIndex("bloom_filter(0.001)", 1))
+                                            .secondaryIndex(Tables.BITHON_WEB_DASHBOARD.TITLE.getName(), new SecondaryIndex("bloom_filter(0.001)", 1))
                                             .createIfNotExist(Tables.BITHON_WEB_DASHBOARD);
     }
 
@@ -65,7 +69,7 @@ public class DashboardStorage extends DashboardJdbcStorage {
     public List<Dashboard> getDashboard(long afterTimestamp) {
         String sql = dslContext.selectFrom(Tables.BITHON_WEB_DASHBOARD)
                                .getSQL() + " FINAL WHERE ";
-        sql += dslContext.renderInlined(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.ge(new Timestamp(afterTimestamp).toLocalDateTime()));
+        sql += dslContext.renderInlined(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED.ge(new Timestamp(afterTimestamp).toLocalDateTime()));
 
         return dslContext.fetch(sql)
                          .stream()
@@ -74,15 +78,19 @@ public class DashboardStorage extends DashboardJdbcStorage {
     }
 
     @Override
-    public String put(String name, String payload) {
+    public String put(String id, String folder, String title, String payload) {
         String signature = HashUtils.sha256Hex(payload);
 
         Timestamp now = new Timestamp(System.currentTimeMillis());
+
         dslContext.insertInto(Tables.BITHON_WEB_DASHBOARD)
-                  .set(Tables.BITHON_WEB_DASHBOARD.NAME, name)
+                  .set(Tables.BITHON_WEB_DASHBOARD.ID, id)
+                  .set(Tables.BITHON_WEB_DASHBOARD.FOLDER, folder)
+                  .set(Tables.BITHON_WEB_DASHBOARD.TITLE, title)
                   .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                   .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
-                  .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, now.toLocalDateTime())
+                  .set(Tables.BITHON_WEB_DASHBOARD.CREATEDAT, now.toLocalDateTime())
+                  .set(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED, now.toLocalDateTime())
                   .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
                   .execute();
 
@@ -90,21 +98,26 @@ public class DashboardStorage extends DashboardJdbcStorage {
     }
 
     @Override
-    public void putIfNotExist(String name, String payload) {
+    public void putIfNotExist(String id, String folder, String title, String payload) {
         String signature = HashUtils.sha256Hex(payload);
 
         if (dslContext.fetchCount(Tables.BITHON_WEB_DASHBOARD,
-                                  Tables.BITHON_WEB_DASHBOARD.NAME.eq(name)) > 0) {
+                                  Tables.BITHON_WEB_DASHBOARD.ID.eq(id)) > 0) {
             return;
         }
 
         Timestamp now = new Timestamp(System.currentTimeMillis());
+
         dslContext.insertInto(Tables.BITHON_WEB_DASHBOARD)
-                  .set(Tables.BITHON_WEB_DASHBOARD.NAME, name)
+                  .set(Tables.BITHON_WEB_DASHBOARD.ID, id)
+                  .set(Tables.BITHON_WEB_DASHBOARD.FOLDER, folder)
+                  .set(Tables.BITHON_WEB_DASHBOARD.TITLE, title)
                   .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                   .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
-                  .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, now.toLocalDateTime())
+                  .set(Tables.BITHON_WEB_DASHBOARD.CREATEDAT, now.toLocalDateTime())
+                  .set(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED, now.toLocalDateTime())
                   .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
                   .execute();
     }
+
 }

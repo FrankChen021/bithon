@@ -1,18 +1,12 @@
 {
-  "name": "redis-metrics",
+  "id": "redis-metrics",
   "title": "Redis",
-  "folder": "metrics",
   "filter": {
     "selectors": [
       {
         "type": "datasource",
         "name": "redis-metrics",
-        "fields": [
-          {"name": "appName", "width": 200, "allowClear": false},
-          "instanceName",
-          "uri",
-          "command"
-        ]
+        "fields": [{ "name": "appName", "width": 200, "allowClear": false }, "instanceName", "uri", "command"]
       }
     ],
     "showFilterInput": true
@@ -32,24 +26,13 @@
       "query": {
         "type": "timeseries",
         "dataSource": "redis-metrics",
-        "fields": [
-          "qps",
-          "totalCount"
-        ]
+        "fields": ["qps", "totalCount"]
       },
       "details": {
-        "columns": [
-          "uri",
-          "command",
-          "qps",
-          "totalCount"
-        ],
+        "columns": ["uri", "command", "qps", "totalCount"],
         "query": {
           "type": "groupBy",
-          "fields": [
-            "qps",
-            "totalCount"
-          ],
+          "fields": ["qps", "totalCount"],
           "groupBy": ["uri", "command"],
           "orderBy": {
             "name": "totalCount",
@@ -74,19 +57,11 @@
           "format": "nanoFormatter"
         }
       ],
-      "columns": [
-        "minResponseTime",
-        "avgResponseTime",
-        "maxResponseTime"
-      ],
+      "columns": ["minResponseTime", "avgResponseTime", "maxResponseTime"],
       "query": {
         "type": "timeseries",
         "dataSource": "redis-metrics",
-        "fields": [
-          "minResponseTime",
-          "avgResponseTime",
-          "maxResponseTime"
-        ]
+        "fields": ["minResponseTime", "avgResponseTime", "maxResponseTime"]
       }
     },
     {
@@ -126,12 +101,7 @@
       "query": {
         "type": "timeseries",
         "dataSource": "redis-metrics",
-        "fields": [
-          "requestByteRate",
-          "responseByteRate",
-          "requestBytes",
-          "responseBytes"
-        ]
+        "fields": ["requestByteRate", "responseByteRate", "requestBytes", "responseBytes"]
       }
     }
   ]

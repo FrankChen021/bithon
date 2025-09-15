@@ -14,35 +14,57 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.dashboard;
+package org.bithon.server.web.service.dashboard.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Timestamp;
-
 /**
+ * Filter criteria for dashboard queries
+ *
  * @author Frank Chen
- * @date 19/8/22 5:42 pm
+ * @date 2025-09-11
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Dashboard {
-    private String id;
-    private String title;
+public class GetDashboardListRequest {
+
+    /**
+     * Search term to match against title and folder (when folder is not specified)
+     * or just title (when folder is specified)
+     */
+    private String search;
+
+    /**
+     * Exact folder path to filter by
+     */
     private String folder;
 
     /**
-     * Might be null in some API responses (e.g. list API)
+     * Page number (0-based)
      */
-    private String payload;
-    private String signature;
-    private Timestamp createdAt;
-    private Timestamp lastModified;
-    private boolean deleted;
-    private boolean visible;
+    @Builder.Default
+    private int page = 0;
+
+    /**
+     * Page size (max results per page)
+     */
+    @Builder.Default
+    private int size = 100;
+
+    /**
+     * Sort field (title, folder, lastModified, name)
+     */
+    @Builder.Default
+    private String sort = "title";
+
+    /**
+     * Sort order (asc, desc)
+     */
+    @Builder.Default
+    private String order = "asc";
 }

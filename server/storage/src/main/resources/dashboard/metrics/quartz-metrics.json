@@ -1,14 +1,13 @@
 {
-  "name": "quartz-metrics",
+  "id": "quartz-metrics",
   "title": "Quartz",
-  "folder": "metrics",
   "filter": {
     "selectors": [
       {
         "type": "datasource",
         "name": "quartz-metrics",
         "fields": [
-          {"name": "appName", "width": 200, "allowClear": false},
+          { "name": "appName", "width": 200, "allowClear": false },
           "instanceName",
           "job",
           "class",
@@ -35,10 +34,7 @@
       "query": {
         "type": "timeseries",
         "dataSource": "quartz-metrics",
-        "fields": [
-          "successfulCount",
-          "exceptionCount"
-        ]
+        "fields": ["successfulCount", "exceptionCount"]
       },
 
       "details": {
@@ -73,14 +69,7 @@
         "pagination": [25, 50, 100],
         "query": {
           "type": "list",
-          "fields": [
-            "timestamp",
-            "job",
-            "class",
-            "exception",
-            "duration",
-            "traceId"
-          ],
+          "fields": ["timestamp", "job", "class", "exception", "duration", "traceId"],
           "orderBy": {
             "name": "timestamp",
             "order": "asc"

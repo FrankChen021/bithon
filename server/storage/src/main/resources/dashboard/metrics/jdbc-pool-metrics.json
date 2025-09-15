@@ -1,0 +1,43 @@
+{
+  "id": "jdbc-pool-metrics",
+  "title": "JDBC Connection Pool",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "jdbc-pool-metrics",
+        "fields": [{ "name": "appName", "width": 200, "allowClear": false }, "instanceName", "server", "database"]
+      }
+    ]
+  },
+  "charts": [
+    {
+      "title": "JDBC Connection Pool",
+      "width": 4,
+      "type": "line",
+      "columns": ["activeCount", "poolingCount", "createCount", "destroyCount", "waitThreadCount"],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "jdbc-pool-metrics",
+        "fields": [
+          { "name": "activeCount", "aggregator": "last" },
+          { "name": "poolingCount", "aggregator": "sum" },
+          { "name": "createCount", "aggregator": "sum" },
+          { "name": "destroyCount", "aggregator": "sum" },
+          { "name": "waitThreadCount", "aggregator": "last" }
+        ]
+      }
+    },
+    {
+      "title": "Transaction",
+      "width": 4,
+      "type": "line",
+      "columns": ["executeCount", "startTransactionCount", "commitCount", "rollbackCount"],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "jdbc-pool-metrics",
+        "fields": ["executeCount", "startTransactionCount", "commitCount", "rollbackCount"]
+      }
+    }
+  ]
+}

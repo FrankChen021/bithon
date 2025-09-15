@@ -14,8 +14,7 @@
 --    limitations under the License.
 --
 
-CREATE
-DATABASE IF NOT EXISTS `bithon_codegen` DEFAULT CHARSET utf8mb4;
+CREATE DATABASE IF NOT EXISTS `bithon_codegen` DEFAULT CHARSET utf8mb4;
 USE `bithon_codegen`;
 
 DROP TABLE IF EXISTS `bithon_alert_object`;

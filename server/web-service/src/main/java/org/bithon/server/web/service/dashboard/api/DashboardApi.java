@@ -14,11 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.dashboard;
+package org.bithon.server.web.service.dashboard.api;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -28,6 +29,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.dashboard.Dashboard;
 import org.bithon.server.storage.dashboard.IDashboardStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.bithon.server.web.service.dashboard.service.DashboardManager;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
@@ -35,6 +37,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -43,7 +46,6 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -58,7 +60,7 @@ import java.util.stream.Collectors;
 @RestController
 @Conditional(WebServiceModuleEnabler.class)
 @ConditionalOnBean(IDashboardStorage.class)
-public class DashboardController {
+public class DashboardApi {
 
     private final DashboardManager dashboardManager;
     private final ObjectMapper objectMapper;
@@ -74,42 +76,30 @@ public class DashboardController {
         private final String folder;
     }
 
-    private List<DisplayableText> dashboardList;
-
-    public DashboardController(DashboardManager dashboardManager,
-                               ObjectMapper objectMapper) {
+    public DashboardApi(DashboardManager dashboardManager,
+                        ObjectMapper objectMapper) {
         this.dashboardManager = dashboardManager;
-        this.dashboardManager.addChangedListener(this::loadDashboardList);
         this.objectMapper = objectMapper;
     }
 
-    private void loadDashboardList() {
-        dashboardList = this.dashboardManager.getDashboards()
-                                             .stream()
-                                             .map(dashboard -> {
-                                                 Dashboard.Metadata metadata = dashboard.getMetadata();
-                                                 if (metadata == null) {
-                                                     return null;
-                                                 } else {
-                                                     return new DisplayableText(dashboard.getName(), metadata.getTitle(), metadata.getFolder());
-                                                 }
-                                             })
-                                             .filter(Objects::nonNull)
-                                             .sorted(Comparator.comparing(o -> o.text))
-                                             .collect(Collectors.toList());
-    }
-
+    /**
+     * @deprecated use {@link #getDashboardList(GetDashboardListRequest)}
+     */
+    @Deprecated
     @GetMapping("/api/dashboard/names")
     public List<DisplayableText> getDashboardNames(@RequestParam(value = "folder", required = false) String folder) {
-        if (dashboardList == null) {
-            // no need to sync because it's acceptable
-            loadDashboardList();
-        }
-        if (StringUtils.hasText(folder)) {
-            return dashboardList.stream().filter((dashboard) -> dashboard.folder != null && dashboard.folder.startsWith(folder)).collect(Collectors.toList());
-        } else {
-            return dashboardList;
-        }
+        final boolean filterOnFolder = StringUtils.hasText(folder);
+        return this.dashboardManager.getAllDashboards()
+                                    .stream()
+                                    .filter((dashboard) -> !filterOnFolder || (dashboard.getFolder() != null && dashboard.getFolder().startsWith(folder)))
+                                    .map(dashboard -> new DisplayableText(dashboard.getId(), dashboard.getTitle(), dashboard.getFolder()))
+                                    .sorted(Comparator.comparing(o -> o.text))
+                                    .collect(Collectors.toList());
+    }
+
+    @PostMapping("/api/dashboard/list")
+    public GetDashboardListResponse getDashboardList(@RequestBody GetDashboardListRequest filter) {
+        return dashboardManager.getDashboards(filter);
     }
 
     @GetMapping("/api/dashboard/all")
@@ -119,15 +109,15 @@ public class DashboardController {
         try (OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8)) {
             writer.write('[');
             {
-                List<Dashboard> dashboards = this.dashboardManager.getDashboards();
+                List<Dashboard> dashboards = this.dashboardManager.getAllDashboards();
 
                 // sort by name
-                dashboards.sort(Comparator.comparing(Dashboard::getName));
+                dashboards.sort(Comparator.comparing(Dashboard::getId));
 
                 for (int i = 0; i < dashboards.size(); i++) {
 
                     writer.write("\"");
-                    writer.write(dashboards.get(i).getName());
+                    writer.write(dashboards.get(i).getId());
                     writer.write("\"");
                     writer.write(":");
                     writer.write(dashboards.get(i).getPayload());
@@ -161,30 +151,41 @@ public class DashboardController {
     @PostMapping("/api/dashboard/update")
     public void updateDashboard(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-        JsonNode dashboard;
+        ObjectNode dashboard;
         try {
             // check if it's well-formed
-            dashboard = objectMapper.readTree(request.getInputStream());
+            JsonNode doc = objectMapper.readTree(request.getInputStream());
+            if (!(doc instanceof ObjectNode)) {
+                response.getWriter().println(StringUtils.format("Invalid JSON formatted dashboard: The document should be an object."));
+                response.setStatus(HttpStatus.BAD_REQUEST.value());
+                return;
+            }
+            dashboard = (ObjectNode) doc;
         } catch (JsonParseException e) {
             response.getWriter().println(StringUtils.format("Invalid JSON formatted dashboard: %s", e.getMessage()));
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             return;
         }
 
-        JsonNode titleNode = dashboard.get("title");
+        JsonNode titleNode = dashboard.remove("title");
         if (titleNode == null || StringUtils.isBlank(titleNode.asText())) {
             response.getWriter().println("title is missing.");
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             return;
         }
 
-        JsonNode nameNode = dashboard.get("name");
-        if (nameNode == null || StringUtils.isBlank(nameNode.asText())) {
+        JsonNode idNode = dashboard.remove("id");
+        if (idNode == null || StringUtils.isBlank(idNode.asText())) {
             response.getWriter().println("name is missing.");
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             return;
         }
 
-        this.dashboardManager.update(nameNode.asText(), objectMapper.writeValueAsString(dashboard));
+        JsonNode folderNode = dashboard.remove("folder");
+
+        this.dashboardManager.update(idNode.asText(),
+                                     folderNode == null ? "" : folderNode.asText(),
+                                     titleNode.asText(),
+                                     objectMapper.writeValueAsString(dashboard));
     }
 }

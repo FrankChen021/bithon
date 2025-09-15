@@ -33,9 +33,9 @@ public interface IDashboardStorage {
      */
     List<Dashboard> getDashboard(long afterTimestamp);
 
-    String put(String name, String payload);
+    String put(String id, String folder, String title, String payload);
 
-    void putIfNotExist(String name, String payload) throws IOException;
+    void putIfNotExist(String id, String folder, String title, String payload) throws IOException;
 
     void initialize();
 }

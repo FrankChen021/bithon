@@ -1,7 +1,6 @@
 {
-  "name": "sql-metrics",
+  "id": "sql-metrics",
   "title": "SQL",
-  "folder": "metrics",
   "filter": {
     "selectors": [
       {
@@ -39,28 +38,14 @@
       "query": {
         "type": "timeseries",
         "dataSource": "sql-metrics",
-        "fields": [
-          "tps",
-          "callCount"
-        ]
+        "fields": ["tps", "callCount"]
       },
       "details": {
-        "columns": [
-          "database",
-          "sqlType",
-          "tps",
-          "callCount"
-        ],
+        "columns": ["database", "sqlType", "tps", "callCount"],
         "query": {
           "type": "groupBy",
-          "fields": [
-            "tps",
-            "callCount"
-          ],
-          "groupBy": [
-            "database",
-            "sqlType"
-          ],
+          "fields": ["tps", "callCount"],
+          "groupBy": ["database", "sqlType"],
           "orderBy": {
             "name": "callCount",
             "order": "desc"
@@ -83,19 +68,11 @@
           "format": "nanoFormatter"
         }
       ],
-      "columns": [
-        "minResponseTime",
-        "avgResponseTime",
-        "maxResponseTime"
-      ],
+      "columns": ["minResponseTime", "avgResponseTime", "maxResponseTime"],
       "query": {
         "type": "timeseries",
         "dataSource": "sql-metrics",
-        "fields": [
-          "minResponseTime",
-          "avgResponseTime",
-          "maxResponseTime"
-        ]
+        "fields": ["minResponseTime", "avgResponseTime", "maxResponseTime"]
       },
       "details": {
         "columns": [
@@ -117,16 +94,8 @@
         ],
         "query": {
           "type": "groupBy",
-          "fields": [
-            "callCount",
-            "minResponseTime",
-            "avgResponseTime",
-            "maxResponseTime"
-          ],
-          "groupBy": [
-            "database",
-            "sqlType"
-          ],
+          "fields": ["callCount", "minResponseTime", "avgResponseTime", "maxResponseTime"],
+          "groupBy": ["database", "sqlType"],
           "orderBy": {
             "name": "avgResponseTime",
             "order": "desc"
@@ -143,15 +112,11 @@
           "format": "binary_byte"
         }
       ],
-      "columns": [
-        "bytesOut"
-      ],
+      "columns": ["bytesOut"],
       "query": {
         "type": "timeseries",
         "dataSource": "sql-metrics",
-        "fields": [
-          "bytesOut"
-        ]
+        "fields": ["bytesOut"]
       },
       "details": {
         "columns": [
@@ -164,13 +129,8 @@
         ],
         "query": {
           "type": "groupBy",
-          "fields": [
-            "bytesOut"
-          ],
-          "groupBy": [
-            "database",
-            "sqlType"
-          ],
+          "fields": ["bytesOut"],
+          "groupBy": ["database", "sqlType"],
           "orderBy": {
             "name": "bytesOut",
             "order": "desc"
@@ -196,7 +156,7 @@
           "format": "nanosecond",
           "sortable": "true"
         },
-        { "name": "statement", "format": "sql"},
+        { "name": "statement", "format": "sql" },
         {
           "name": "traceId",
           "format": "template",
@@ -206,14 +166,7 @@
       "query": {
         "dataSource": "sql-metrics",
         "type": "list",
-        "fields": [
-          "timestamp",
-          "server",
-          "database",
-          "responseTime",
-          "statement",
-          "traceId"
-        ],
+        "fields": ["timestamp", "server", "database", "responseTime", "statement", "traceId"],
         "limit": "10",
         "orderBy": {
           "name": "responseTime",
@@ -221,9 +174,7 @@
         },
         "filter": "statement <> ''",
         "precondition": {
-          "filters": [
-            "appName"
-          ]
+          "filters": ["appName"]
         }
       }
     }

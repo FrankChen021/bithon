@@ -1,7 +1,6 @@
 {
-  "name": "http-outgoing-metrics",
+  "id": "http-outgoing-metrics",
   "title": "HTTP Outgoing",
-  "folder": "metrics",
   "filter": {
     "selectors": [
       {
@@ -29,8 +28,8 @@
       "width": 4,
       "type": "table",
       "columns": [
-          "path",
-        {"name":  "qps", "sortable": true},
+        "path",
+        { "name": "qps", "sortable": true },
         {
           "name": "requestCount",
           "format": "compact_number",
@@ -78,19 +77,14 @@
           },
           "avgResponseTime"
         ],
-        "groupBy": [
-          "appName",
-          "path"
-        ],
+        "groupBy": ["appName", "path"],
         "limit": 10,
         "orderBy": {
           "name": "requestCount",
           "order": "desc"
         },
         "precondition": {
-          "filters": [
-            "appName"
-          ]
+          "filters": ["appName"]
         }
       }
     },
@@ -107,34 +101,16 @@
       ],
       "query": {
         "dataSource": "http-outgoing-metrics",
-        "fields": [
-          "qps",
-          "requestCount"
-        ]
+        "fields": ["qps", "requestCount"]
       },
       "details": {
         "type": "groupBy",
-        "columns": [
-          "targetHostPort",
-          "method",
-          "path",
-          "statusCode",
-          "qps",
-          "requestCount"
-        ],
+        "columns": ["targetHostPort", "method", "path", "statusCode", "qps", "requestCount"],
         "query": {
           "type": "timeseries",
           "dataSource": "http-outgoing-metrics",
-          "fields": [
-            "qps",
-            "requestCount"
-          ],
-          "groupBy": [
-            "targetHostPort",
-            "method",
-            "path",
-            "statusCode"
-          ],
+          "fields": ["qps", "requestCount"],
+          "groupBy": ["targetHostPort", "method", "path", "statusCode"],
           "orderBy": {
             "name": "qps",
             "order": "desc"
@@ -173,11 +149,7 @@
       "query": {
         "type": "timeseries",
         "dataSource": "http-outgoing-metrics",
-        "fields": [
-          "minResponseTime",
-          "avgResponseTime",
-          "maxResponseTime"
-        ]
+        "fields": ["minResponseTime", "avgResponseTime", "maxResponseTime"]
       },
       "details": {
         "columns": [
@@ -204,18 +176,8 @@
         ],
         "query": {
           "type": "groupBy",
-          "fields": [
-            "requestCount",
-            "minResponseTime",
-            "avgResponseTime",
-            "maxResponseTime"
-          ],
-          "groupBy": [
-            "targetHostPort",
-            "method",
-            "path",
-            "statusCode"
-          ],
+          "fields": ["requestCount", "minResponseTime", "avgResponseTime", "maxResponseTime"],
+          "groupBy": ["targetHostPort", "method", "path", "statusCode"],
           "orderBy": {
             "name": "avgResponseTime",
             "order": "desc"
@@ -237,39 +199,18 @@
       "title": "Errors",
       "width": 4,
       "type": "line",
-      "columns": [
-        "count4xx",
-        "count5xx",
-        "countException"
-      ],
+      "columns": ["count4xx", "count5xx", "countException"],
       "query": {
         "dataSource": "http-outgoing-metrics",
         "type": "timeseries",
-        "fields": [
-          "count4xx",
-          "count5xx",
-          "countException"
-        ]
+        "fields": ["count4xx", "count5xx", "countException"]
       },
       "details": {
-        "columns": [
-          "targetHostPort",
-          "method",
-          "path",
-          "statusCode",
-          "requestCount"
-        ],
+        "columns": ["targetHostPort", "method", "path", "statusCode", "requestCount"],
         "query": {
           "type": "groupBy",
-          "fields": [
-            "statusCode",
-            "requestCount"
-          ],
-          "groupBy": [
-            "targetHostPort",
-            "method",
-            "path"
-          ],
+          "fields": ["statusCode", "requestCount"],
+          "groupBy": ["targetHostPort", "method", "path"],
           "filter": "statusCode >= '400'",
           "orderBy": {
             "name": "requestCount",
@@ -315,12 +256,7 @@
       "query": {
         "dataSource": "http-outgoing-metrics",
         "type": "timeseries",
-        "fields": [
-          "requestByteRate",
-          "responseByteRate",
-          "requestBytes",
-          "responseBytes"
-        ]
+        "fields": ["requestByteRate", "responseByteRate", "requestBytes", "responseBytes"]
       },
       "details": {
         "columns": [
@@ -340,17 +276,8 @@
         ],
         "query": {
           "type": "groupBy",
-          "fields": [
-            "requestCount",
-            "requestByteRate",
-            "responseByteRate"
-          ],
-          "groupBy": [
-            "targetHostPort",
-            "method",
-            "path",
-            "statusCode"
-          ],
+          "fields": ["requestCount", "requestByteRate", "responseByteRate"],
+          "groupBy": ["targetHostPort", "method", "path", "statusCode"],
           "orderBy": {
             "name": "requestByteRate",
             "order": "desc"

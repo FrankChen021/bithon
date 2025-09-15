@@ -15,12 +15,12 @@ import org.bithon.server.storage.jdbc.common.jooq.Keys;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonWebDashboardRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function5;
+import org.jooq.Function9;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row5;
+import org.jooq.Row9;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -54,14 +54,19 @@ public class BithonWebDashboard extends TableImpl<BithonWebDashboardRecord> {
     }
 
     /**
-     * The column <code>bithon_web_dashboard.timestamp</code>. Created Timestamp
+     * The column <code>bithon_web_dashboard.id</code>. Name, unique id
      */
-    public final TableField<BithonWebDashboardRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "Created Timestamp");
+    public final TableField<BithonWebDashboardRecord, String> ID = createField(DSL.name("id"), SQLDataType.VARCHAR(64).nullable(false), this, "Name, unique id");
 
     /**
-     * The column <code>bithon_web_dashboard.name</code>. Name
+     * The column <code>bithon_web_dashboard.folder</code>. Folder/Category
      */
-    public final TableField<BithonWebDashboardRecord, String> NAME = createField(DSL.name("name"), SQLDataType.VARCHAR(64).nullable(false), this, "Name");
+    public final TableField<BithonWebDashboardRecord, String> FOLDER = createField(DSL.name("folder"), SQLDataType.VARCHAR(256).defaultValue(DSL.inline("", SQLDataType.VARCHAR)), this, "Folder/Category");
+
+    /**
+     * The column <code>bithon_web_dashboard.title</code>. Title
+     */
+    public final TableField<BithonWebDashboardRecord, String> TITLE = createField(DSL.name("title"), SQLDataType.VARCHAR(256).defaultValue(DSL.inline("", SQLDataType.VARCHAR)), this, "Title");
 
     /**
      * The column <code>bithon_web_dashboard.payload</code>. Schema in JSON
@@ -75,9 +80,26 @@ public class BithonWebDashboard extends TableImpl<BithonWebDashboardRecord> {
     public final TableField<BithonWebDashboardRecord, String> SIGNATURE = createField(DSL.name("signature"), SQLDataType.VARCHAR(250).nullable(false), this, "Signature of payload field, currently SHA256 is applied");
 
     /**
+     * The column <code>bithon_web_dashboard.createdAt</code>. Created Timestamp
+     */
+    public final TableField<BithonWebDashboardRecord, LocalDateTime> CREATEDAT = createField(DSL.name("createdAt"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "Created Timestamp");
+
+    /**
+     * The column <code>bithon_web_dashboard.lastModified</code>. Last modified
+     * time
+     */
+    public final TableField<BithonWebDashboardRecord, LocalDateTime> LASTMODIFIED = createField(DSL.name("lastModified"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "Last modified time");
+
+    /**
      * The column <code>bithon_web_dashboard.deleted</code>.
      */
     public final TableField<BithonWebDashboardRecord, Integer> DELETED = createField(DSL.name("deleted"), SQLDataType.INTEGER.nullable(false), this, "");
+
+    /**
+     * The column <code>bithon_web_dashboard.visible</code>. if the dashboard is
+     * visible to users
+     */
+    public final TableField<BithonWebDashboardRecord, Integer> VISIBLE = createField(DSL.name("visible"), SQLDataType.INTEGER.nullable(false), this, "if the dashboard is visible to users");
 
     private BithonWebDashboard(Name alias, Table<BithonWebDashboardRecord> aliased) {
         this(alias, aliased, null);
@@ -119,12 +141,12 @@ public class BithonWebDashboard extends TableImpl<BithonWebDashboardRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.BITHON_WEB_DASHBOARD_IDX_WEB_DASHBOARD_TIMESTAMP);
+        return Arrays.asList(Indexes.BITHON_WEB_DASHBOARD_IDX_WEB_DASHBOARD_CREATEDAT, Indexes.BITHON_WEB_DASHBOARD_IDX_WEB_DASHBOARD_LASTMODIFIED);
     }
 
     @Override
     public List<UniqueKey<BithonWebDashboardRecord>> getUniqueKeys() {
-        return Arrays.asList(Keys.KEY_BITHON_WEB_DASHBOARD_IDX_WEB_DASHBOARD_NAME);
+        return Arrays.asList(Keys.KEY_BITHON_WEB_DASHBOARD_IDX_WEB_DASHBOARD_ID);
     }
 
     @Override
@@ -167,18 +189,18 @@ public class BithonWebDashboard extends TableImpl<BithonWebDashboardRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row5 type methods
+    // Row9 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row5<LocalDateTime, String, String, String, Integer> fieldsRow() {
-        return (Row5) super.fieldsRow();
+    public Row9<String, String, String, String, String, LocalDateTime, LocalDateTime, Integer, Integer> fieldsRow() {
+        return (Row9) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function5<? super LocalDateTime, ? super String, ? super String, ? super String, ? super Integer, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function9<? super String, ? super String, ? super String, ? super String, ? super String, ? super LocalDateTime, ? super LocalDateTime, ? super Integer, ? super Integer, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -186,7 +208,7 @@ public class BithonWebDashboard extends TableImpl<BithonWebDashboardRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function5<? super LocalDateTime, ? super String, ? super String, ? super String, ? super Integer, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function9<? super String, ? super String, ? super String, ? super String, ? super String, ? super LocalDateTime, ? super LocalDateTime, ? super Integer, ? super Integer, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

@@ -1,14 +1,13 @@
 {
-  "name": "zookeeper-client-metrics",
+  "id": "zookeeper-client-metrics",
   "title": "ZooKeeper Client",
-  "folder": "metrics",
   "filter": {
     "selectors": [
       {
         "type": "datasource",
         "name": "zookeeper-client-metrics",
         "fields": [
-          {"name": "appName", "width": 200, "allowClear": false},
+          { "name": "appName", "width": 200, "allowClear": false },
           "instanceName",
           "operation",
           "status",
@@ -32,31 +31,15 @@
       "query": {
         "type": "timeseries",
         "dataSource": "zookeeper-client-metrics",
-        "fields": [
-          "qps",
-          "totalCount"
-        ]
+        "fields": ["qps", "totalCount"]
       },
       "details": {
-        "columns": [
-          "operation",
-          "status",
-          "server",
-          "totalCount",
-          "qps"
-        ],
+        "columns": ["operation", "status", "server", "totalCount", "qps"],
         "query": {
           "dataSource": "zookeeper-client-metrics",
           "type": "groupBy",
-          "fields": [
-            "qps",
-            "totalCount"
-          ],
-          "groupBy": [
-            "operation",
-            "status",
-            "server"
-          ],
+          "fields": ["qps", "totalCount"],
+          "groupBy": ["operation", "status", "server"],
           "orderBy": {
             "name": "totalCount",
             "order": "desc"
@@ -74,19 +57,11 @@
           "format": "nanoFormatter"
         }
       ],
-      "columns": [
-        "minResponseTime",
-        "avgResponseTime",
-        "maxResponseTime"
-      ],
+      "columns": ["minResponseTime", "avgResponseTime", "maxResponseTime"],
       "query": {
         "dataSource": "zookeeper-client-metrics",
         "type": "timeseries",
-        "fields": [
-          "minResponseTime",
-          "avgResponseTime",
-          "maxResponseTime"
-        ]
+        "fields": ["minResponseTime", "avgResponseTime", "maxResponseTime"]
       },
       "details": {
         "columns": [
@@ -110,17 +85,8 @@
         "query": {
           "dataSource": "zookeeper-client-metrics",
           "type": "groupBy",
-          "fields": [
-            "totalCount",
-            "minResponseTime",
-            "avgResponseTime",
-            "maxResponseTime"
-          ],
-          "groupBy": [
-            "operation",
-            "status",
-            "server"
-          ],
+          "fields": ["totalCount", "minResponseTime", "avgResponseTime", "maxResponseTime"],
+          "groupBy": ["operation", "status", "server"],
           "orderBy": {
             "name": "avgResponseTime",
             "order": "desc"
@@ -133,10 +99,7 @@
       "title": "IO",
       "width": 4,
       "type": "line",
-      "columns": [
-        "bytesSent",
-        "bytesReceived"
-      ],
+      "columns": ["bytesSent", "bytesReceived"],
       "yAxis": [
         {
           "format": "binary_byte"
@@ -145,33 +108,15 @@
       "query": {
         "type": "timeseries",
         "dataSource": "zookeeper-client-metrics",
-        "fields": [
-          "bytesSent",
-          "bytesReceived"
-        ]
+        "fields": ["bytesSent", "bytesReceived"]
       },
       "details": {
-        "columns": [
-          "operation",
-          "status",
-          "server",
-          "totalCount",
-          "bytesSent",
-          "bytesReceived"
-        ],
+        "columns": ["operation", "status", "server", "totalCount", "bytesSent", "bytesReceived"],
         "query": {
           "dataSource": "zookeeper-client-metrics",
           "type": "groupBy",
-          "fields": [
-            "totalCount",
-            "bytesSent",
-            "bytesReceived"
-          ],
-          "groupBy": [
-            "operation",
-            "status",
-            "server"
-          ],
+          "fields": ["totalCount", "bytesSent", "bytesReceived"],
+          "groupBy": ["operation", "status", "server"],
           "orderBy": {
             "name": "totalCount",
             "order": "desc"

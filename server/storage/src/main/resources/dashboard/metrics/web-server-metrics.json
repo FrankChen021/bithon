@@ -1,16 +1,12 @@
 {
-  "name": "web-server-metrics",
+  "id": "web-server-metrics",
   "title": "Web Server",
-  "folder": "metrics",
   "filter": {
     "selectors": [
       {
         "type": "datasource",
         "name": "web-server-metrics",
-        "fields": [
-          {"name": "appName", "width": 200, "allowClear": false},
-          "instanceName"
-        ]
+        "fields": [{ "name": "appName", "width": 200, "allowClear": false }, "instanceName"]
       }
     ]
   },
@@ -19,51 +15,33 @@
       "title": "Web Server Connections",
       "width": 4,
       "type": "line",
-      "columns": [
-        "connectionCount",
-        {"name":"maxConnections", "fill": false}
-      ],
+      "columns": ["connectionCount", { "name": "maxConnections", "fill": false }],
       "query": {
         "type": "timeseries",
         "dataSource": "web-server-metrics",
-        "fields": [
-          "connectionCount",
-          "maxConnections"
-        ]
+        "fields": ["connectionCount", "maxConnections"]
       }
     },
     {
       "title": "Queued Tasks",
       "width": 4,
       "type": "line",
-      "columns": [
-        "queueSize"
-      ],
+      "columns": ["queueSize"],
       "query": {
         "type": "timeseries",
         "dataSource": "web-server-metrics",
-        "fields": [
-          "queueSize"
-        ]
+        "fields": ["queueSize"]
       }
     },
     {
       "title": "Web Server Threads",
       "width": 4,
       "type": "line",
-      "columns": [
-        "activeThreads",
-        "pooledThreads",
-        {"name": "maxThreads", "fill": false}
-      ],
+      "columns": ["activeThreads", "pooledThreads", { "name": "maxThreads", "fill": false }],
       "query": {
         "type": "timeseries",
         "dataSource": "web-server-metrics",
-        "fields": [
-          "activeThreads",
-          "pooledThreads",
-          "maxThreads"
-        ]
+        "fields": ["activeThreads", "pooledThreads", "maxThreads"]
       }
     }
   ]

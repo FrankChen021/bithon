@@ -19,6 +19,7 @@ package org.bithon.server.storage.jdbc.dashboard;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.HashUtils;
 import org.bithon.server.storage.dashboard.Dashboard;
 import org.bithon.server.storage.dashboard.DashboardStorageConfig;
@@ -40,65 +41,87 @@ public class DashboardJdbcStorage implements IDashboardStorage {
 
     protected final DSLContext dslContext;
     protected final DashboardStorageConfig storageConfig;
+    protected final ObjectMapper objectMapper;
 
     @JsonCreator
     public DashboardJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration providerConfiguration,
-                                @JacksonInject(useInput = OptBoolean.FALSE) DashboardStorageConfig storageConfig) {
-        this(providerConfiguration.getDslContext(), storageConfig);
+                                @JacksonInject(useInput = OptBoolean.FALSE) DashboardStorageConfig storageConfig,
+                                @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
+        this(providerConfiguration.getDslContext(), storageConfig, objectMapper);
     }
 
     public DashboardJdbcStorage(DSLContext dslContext, DashboardStorageConfig storageConfig) {
+        this(dslContext, storageConfig, new ObjectMapper());
+    }
+
+    public DashboardJdbcStorage(DSLContext dslContext, DashboardStorageConfig storageConfig, ObjectMapper objectMapper) {
         this.dslContext = dslContext;
         this.storageConfig = storageConfig;
+        this.objectMapper = objectMapper;
     }
 
     @Override
     public List<Dashboard> getDashboard(long afterTimestamp) {
         return dslContext.selectFrom(Tables.BITHON_WEB_DASHBOARD)
-                         .where(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.ge(new Timestamp(afterTimestamp).toLocalDateTime()))
+                         .where(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED.ge(new Timestamp(afterTimestamp).toLocalDateTime()))
                          .fetch(this::toDashboard);
     }
 
     @Override
-    public String put(String name, String payload) {
+    public String put(String id, String folder, String title, String payload) {
         String signature = HashUtils.sha256Hex(payload);
+
+        Timestamp now = new Timestamp(System.currentTimeMillis());
 
         // onDuplicateKeyIgnore is not supported on all DB
         // use try-catch instead
         try {
             dslContext.insertInto(Tables.BITHON_WEB_DASHBOARD)
-                      .set(Tables.BITHON_WEB_DASHBOARD.NAME, name)
+                      .set(Tables.BITHON_WEB_DASHBOARD.ID, id)
+                      .set(Tables.BITHON_WEB_DASHBOARD.FOLDER, folder)
+                      .set(Tables.BITHON_WEB_DASHBOARD.TITLE, title)
                       .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                       .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
-                      .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                      .set(Tables.BITHON_WEB_DASHBOARD.CREATEDAT, now.toLocalDateTime())
+                      .set(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED, now.toLocalDateTime())
                       .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
+                      .set(Tables.BITHON_WEB_DASHBOARD.VISIBLE, 1)
                       .execute();
         } catch (DuplicateKeyException ignored) {
             // try to update if duplicated
             dslContext.update(Tables.BITHON_WEB_DASHBOARD)
+                      .set(Tables.BITHON_WEB_DASHBOARD.FOLDER, folder)
+                      .set(Tables.BITHON_WEB_DASHBOARD.TITLE, title)
                       .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                       .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
-                      .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                      .set(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED, now.toLocalDateTime())
                       .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
-                      .where(Tables.BITHON_WEB_DASHBOARD.NAME.eq(name))
+                      .set(Tables.BITHON_WEB_DASHBOARD.VISIBLE, 1)
+                      .where(Tables.BITHON_WEB_DASHBOARD.ID.eq(id))
                       .execute();
         }
         return signature;
     }
 
     @Override
-    public void putIfNotExist(String name, String payload) {
+    public void putIfNotExist(String id, String folder, String title, String payload) {
         String signature = HashUtils.sha256Hex(payload);
 
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+
         // onDuplicateKeyIgnore is not supported on all DB
-        // use try-catch instead
+        // use try-catch insteadØ
         try {
             dslContext.insertInto(Tables.BITHON_WEB_DASHBOARD)
-                      .set(Tables.BITHON_WEB_DASHBOARD.NAME, name)
+                      .set(Tables.BITHON_WEB_DASHBOARD.ID, id)
+                      .set(Tables.BITHON_WEB_DASHBOARD.FOLDER, folder)
+                      .set(Tables.BITHON_WEB_DASHBOARD.TITLE, title)
                       .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                       .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
-                      .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                      .set(Tables.BITHON_WEB_DASHBOARD.CREATEDAT, now.toLocalDateTime())
+                      .set(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED, now.toLocalDateTime())
                       .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
+                      .set(Tables.BITHON_WEB_DASHBOARD.VISIBLE, 1)
                       .execute();
         } catch (DuplicateKeyException ignored) {
         }
@@ -118,11 +141,20 @@ public class DashboardJdbcStorage implements IDashboardStorage {
 
     protected Dashboard toDashboard(Record record) {
         Dashboard dashboard = new Dashboard();
-        dashboard.setName(record.get(Tables.BITHON_WEB_DASHBOARD.NAME));
+        dashboard.setId(record.get(Tables.BITHON_WEB_DASHBOARD.ID));
         dashboard.setPayload(record.get(Tables.BITHON_WEB_DASHBOARD.PAYLOAD));
-        dashboard.setTimestamp(Timestamp.valueOf(record.get(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP)));
+        dashboard.setCreatedAt(Timestamp.valueOf(record.get(Tables.BITHON_WEB_DASHBOARD.CREATEDAT)));
         dashboard.setSignature(record.get(Tables.BITHON_WEB_DASHBOARD.SIGNATURE));
         dashboard.setDeleted(record.get(Tables.BITHON_WEB_DASHBOARD.DELETED) == 1);
+        dashboard.setTitle(record.get(Tables.BITHON_WEB_DASHBOARD.TITLE));
+        dashboard.setFolder(record.get(Tables.BITHON_WEB_DASHBOARD.FOLDER));
+        dashboard.setVisible(record.get(Tables.BITHON_WEB_DASHBOARD.VISIBLE) == 1);
+
+        var lastModified = record.get(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED);
+        if (lastModified != null) {
+            dashboard.setLastModified(Timestamp.valueOf(lastModified));
+        }
+
         return dashboard;
     }
 }
