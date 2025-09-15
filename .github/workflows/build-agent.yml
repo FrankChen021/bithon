@@ -105,6 +105,12 @@ jobs:
             distribution: 'temurin'
           - java-version: '21'
             distribution: 'temurin'
+          - java-version: '22'
+            distribution: 'zulu'
+          - java-version: '23'
+            distribution: 'zulu'
+          - java-version: '24'
+            distribution: 'zulu'
           # Non-LTS versions using zulu (better historical support)
           - java-version: '9'
             distribution: 'zulu'
