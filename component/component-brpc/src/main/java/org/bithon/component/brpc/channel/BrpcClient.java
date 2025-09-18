@@ -231,10 +231,12 @@ public class BrpcClient implements IBrpcChannel, Closeable {
                 }
                 int leftCount = maxRetry - i - 1;
                 if (leftCount > 0) {
-                    LOG.warn("Unable to connect to remote service at [{}:{}]. Left retry count:{}",
-                             server.getHost(),
-                             server.getPort(),
-                             maxRetry - i - 1);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Unable to connect to remote service at [{}:{}]. Left retry count:{}",
+                                  server.getHost(),
+                                  server.getPort(),
+                                  maxRetry - i - 1);
+                    }
                     Thread.sleep(retryBackoff.toMillis());
                 }
             } catch (InterruptedException ignored) {
