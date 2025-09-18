@@ -16,12 +16,12 @@
 
 package org.bithon.server.storage;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.jsontype.NamedType;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.provider.StorageProviderManager;
 import org.bithon.server.storage.dashboard.DashboardStorageConfig;
@@ -49,12 +49,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.Module;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -302,7 +301,7 @@ public class StorageModuleAutoConfiguration {
 
             // Return the directory path (everything before the last slash)
             String folderPath = pathAfterDashboard.substring(0, lastSlashIndex);
-            
+
             // URL decode to handle encoded characters like %20 (space)
             return URLDecoder.decode(folderPath, StandardCharsets.UTF_8);
         } catch (Exception e) {
