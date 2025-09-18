@@ -16,6 +16,10 @@
 
 package org.bithon.server.web.service.dashboard.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.apache.calcite.schema.SchemaPlus;
@@ -41,7 +45,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -61,33 +64,19 @@ import java.util.concurrent.TimeUnit;
 @ConditionalOnBean(IDashboardStorage.class)
 public class DashboardManager implements SmartLifecycle {
 
-    // Allowlist of valid sort columns to prevent SQL injection
-    private static final Set<String> ALLOWED_SORT_COLUMNS = Set.of(
-        "id", "title", "folder", "signature", "createdAt", "lastModified"
-    );
-
-    // Valid order directions
-    private static final Set<String> ALLOWED_ORDER_DIRECTIONS = Set.of("asc", "desc");
-
-    // Maximum length for search and folder inputs to prevent extremely long malicious inputs
-    private static final int MAX_INPUT_LENGTH = 1000;
-
-    public interface IDashboardChangedListener {
-        void onChanged();
-    }
-
     private final IDashboardStorage storage;
+    private final ObjectMapper objectMapper;
+
     private ScheduledExecutorService loaderScheduler;
     private long lastLoadAt;
     private final Map<String, Dashboard> dashboards = new ConcurrentHashMap<>(9);
 
-    private final List<IDashboardChangedListener> listeners = Collections.synchronizedList(new ArrayList<>());
-
     // Calcite connection for querying in-memory dashboards
     private Connection calciteConnection;
 
-    public DashboardManager(IDashboardStorage storage) {
+    public DashboardManager(IDashboardStorage storage, ObjectMapper objectMapper) {
         this.storage = storage;
+        this.objectMapper = objectMapper;
         initializeCalciteConnection();
     }
 
@@ -101,7 +90,6 @@ public class DashboardManager implements SmartLifecycle {
                                          .payload(payload)
                                          .signature(sig)
                                          .build());
-        this.onChanged();
     }
 
     @Override
@@ -155,11 +143,18 @@ public class DashboardManager implements SmartLifecycle {
                 if (dashboard.isDeleted()) {
                     this.dashboards.remove(dashboard.getId());
                 } else {
+                    // Set the title/folder into payload so that when a dashboard is fetched by id, the title/folder is always up-to-date
+                    try {
+                        ObjectNode payload = (ObjectNode) this.objectMapper.readTree(dashboard.getPayload());
+                        payload.set("title", new TextNode(dashboard.getTitle()));
+                        payload.set("folder", new TextNode(dashboard.getFolder()));
+                        dashboard.setPayload(this.objectMapper.writeValueAsString(payload));
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
                     this.dashboards.put(dashboard.getId(), dashboard);
                 }
             }
-
-            onChanged();
         }
 
         this.lastLoadAt = now;
@@ -171,17 +166,6 @@ public class DashboardManager implements SmartLifecycle {
 
     public List<Dashboard> getAllDashboards() {
         return new ArrayList<>(dashboards.values());
-    }
-
-    private void onChanged() {
-        IDashboardChangedListener[] listeners = this.listeners.toArray(new IDashboardChangedListener[0]);
-        for (IDashboardChangedListener listener : listeners) {
-            try {
-                listener.onChanged();
-            } catch (Exception e) {
-                log.error("onChanged", e);
-            }
-        }
     }
 
     /**
@@ -214,6 +198,17 @@ public class DashboardManager implements SmartLifecycle {
      * Build secure SQL with parameterized queries where possible
      */
     private static class SecureSqlBuilder {
+        // Allowlist of valid sort columns to prevent SQL injection
+        private static final Set<String> ALLOWED_SORT_COLUMNS = Set.of(
+            "id", "title", "folder", "signature", "createdAt", "lastModified"
+        );
+
+        // Valid order directions
+        private static final Set<String> ALLOWED_ORDER_DIRECTIONS = Set.of("asc", "desc");
+
+        // Maximum length for search and folder inputs to prevent extremely long malicious inputs
+        private static final int MAX_INPUT_LENGTH = 1000;
+
         private final StringBuilder sql = new StringBuilder();
         private final List<Object> parameters = new ArrayList<>();
 
@@ -291,6 +286,10 @@ public class DashboardManager implements SmartLifecycle {
             // Add folder filter with parameterization  
             if (StringUtils.hasText(filter.getFolder())) {
                 builder.append(" AND folder = ").appendParameter("?", filter.getFolder());
+            }
+
+            if (StringUtils.hasText(filter.getId())) {
+                builder.append(" AND id = ").appendParameter("?", filter.getId());
             }
 
             return builder;

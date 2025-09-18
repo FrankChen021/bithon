@@ -133,8 +133,8 @@ public class DashboardApi {
         }
     }
 
-    @GetMapping("/api/dashboard/get/{name}")
-    public void getDashboard(@PathVariable("name") String name, HttpServletResponse response) throws IOException {
+    @GetMapping("/api/dashboard/get/{id}")
+    public void getDashboard(@PathVariable("id") String name, HttpServletResponse response) throws IOException {
         response.setContentType("application/json");
 
         Dashboard board = this.dashboardManager.getDashboard(name);
