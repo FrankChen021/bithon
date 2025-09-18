@@ -14,7 +14,7 @@
 
 #
 # This docker-compose file demonstrates how to deploy bithon(including the Web UI) with ClickHouse as the storage.
-# Once deployed, you can:
+# Once deployed, you can
 #   access the Web UI at http://localhost:9900
 #   deploy the agent with your application to send data to this server
 #
