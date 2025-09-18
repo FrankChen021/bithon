@@ -16,12 +16,12 @@
 
 package org.bithon.server.storage;
 
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.Module;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.provider.StorageProviderManager;
 import org.bithon.server.storage.dashboard.DashboardStorageConfig;
@@ -49,9 +49,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.List;
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.jsontype.NamedType;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author frank.chen021@outlook.com
@@ -258,7 +261,7 @@ public class StorageModuleAutoConfiguration {
                     throw new RuntimeException(StringUtils.format("dashboard [%s] miss the title property", resource.getFilename()));
                 }
 
-                // deserialize and then serialize again to compact the json string
+                // deserialize and then serialize again to compact the JSON string
                 String payload = om.writeValueAsString(dashboard);
 
                 storage.putIfNotExist(idText, folder, title.asText(), payload);
@@ -274,6 +277,7 @@ public class StorageModuleAutoConfiguration {
      * Extract folder path from resource URI
      * For example: "classpath:/dashboard/metrics/jvm-metrics.json" -> "metrics"
      * For example: "classpath:/dashboard/application-overview.json" -> "" (root level)
+     * For example: "classpath:/dashboard/test%20folder/metrics.json" -> "test folder"
      */
     public static String extractFolderFromResourcePath(URI uri) {
         try {
@@ -297,7 +301,10 @@ public class StorageModuleAutoConfiguration {
             }
 
             // Return the directory path (everything before the last slash)
-            return pathAfterDashboard.substring(0, lastSlashIndex);
+            String folderPath = pathAfterDashboard.substring(0, lastSlashIndex);
+            
+            // URL decode to handle encoded characters like %20 (space)
+            return URLDecoder.decode(folderPath, StandardCharsets.UTF_8);
         } catch (Exception e) {
             // If we can't determine the folder, return "" (root level)
             return "";

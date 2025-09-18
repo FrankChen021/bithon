@@ -16,11 +16,11 @@
 
 package org.bithon.server.storage;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.net.URI;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for StorageModuleAutoConfiguration
@@ -105,5 +105,45 @@ class StorageModuleAutoConfigurationTest {
         URI uri = new URI("classpath:/dashboard");
         String result = StorageModuleAutoConfiguration.extractFolderFromResourcePath(uri);
         assertEquals("", result, "URI with only dashboard prefix should return empty string");
+    }
+
+    @Test
+    void testExtractFolderFromResourcePath_PathWithSpaces() throws Exception {
+        // Test path with spaces (encoded as %20)
+        URI uri = new URI("classpath:/dashboard/test%20folder/dashboard.json");
+        String result = StorageModuleAutoConfiguration.extractFolderFromResourcePath(uri);
+        assertEquals("test folder", result, "Paths with spaces should be URL decoded");
+    }
+
+    @Test
+    void testExtractFolderFromResourcePath_PathWithMultipleSpaces() throws Exception {
+        // Test path with multiple spaces and levels
+        URI uri = new URI("classpath:/dashboard/my%20app/user%20metrics/performance.json");
+        String result = StorageModuleAutoConfiguration.extractFolderFromResourcePath(uri);
+        assertEquals("my app/user metrics", result, "Multiple levels with spaces should be URL decoded");
+    }
+
+    @Test
+    void testExtractFolderFromResourcePath_PathWithSpecialCharacters() throws Exception {
+        // Test path with various URL-encoded special characters
+        URI uri = new URI("classpath:/dashboard/app%2Btest/metrics%26data/dashboard.json");
+        String result = StorageModuleAutoConfiguration.extractFolderFromResourcePath(uri);
+        assertEquals("app+test/metrics&data", result, "Special characters should be URL decoded");
+    }
+
+    @Test
+    void testExtractFolderFromResourcePath_PathWithUnicodeCharacters() throws Exception {
+        // Test path with Unicode characters (encoded)
+        URI uri = new URI("classpath:/dashboard/%E6%B5%8B%E8%AF%95%E6%96%87%E4%BB%B6%E5%A4%B9/dashboard.json");
+        String result = StorageModuleAutoConfiguration.extractFolderFromResourcePath(uri);
+        assertEquals("测试文件夹", result, "Unicode characters should be URL decoded");
+    }
+
+    @Test
+    void testExtractFolderFromResourcePath_MixedEncodingAndRegular() throws Exception {
+        // Test path mixing encoded and regular characters
+        URI uri = new URI("classpath:/dashboard/app-prod/user%20data/test_dashboard.json");
+        String result = StorageModuleAutoConfiguration.extractFolderFromResourcePath(uri);
+        assertEquals("app-prod/user data", result, "Mixed encoding should handle both encoded and regular characters");
     }
 }
