@@ -121,11 +121,6 @@
 
     <dependency>
       <groupId>org.bithon.server</groupId>
-      <artifactId>server-web-app</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.bithon.server</groupId>
       <artifactId>service-discovery-registration</artifactId>
     </dependency>
 
