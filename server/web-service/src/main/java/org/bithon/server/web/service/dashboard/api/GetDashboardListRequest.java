@@ -34,6 +34,11 @@ import lombok.NoArgsConstructor;
 public class GetDashboardListRequest {
 
     /**
+     * Exact dashboard id to filter by
+     */
+    private String id;
+
+    /**
      * Search term to match against title and folder (when folder is not specified)
      * or just title (when folder is specified)
      */
