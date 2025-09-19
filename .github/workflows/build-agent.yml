@@ -165,7 +165,18 @@ jobs:
             exit 1
           fi
 
-      # Execute UT with the current JDK version - skip compilation since artifacts are pre-compiled
+      - name: Debug test setup
+        run: |
+          echo "=== Checking for test classes ==="
+          find . -name "*Test.java" -type f | head -10
+          echo "=== Checking compiled test classes ==="
+          find . -path "*/target/test-classes/*Test.class" -type f | head -10
+          echo "=== Checking agent modules ==="
+          ls -la agent/
+          echo "=== Checking a specific agent module ==="
+          ls -la agent/agent-core/target/ || echo "No target directory"
+
+      # Execute UT with the current JDK version - skip compilation, just run tests
       - name: Run tests with JDK ${{ matrix.java-version }}
         run: mvn surefire:test --activate-profiles agent -P-server -ntp
 
