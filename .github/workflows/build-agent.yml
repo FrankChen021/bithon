@@ -167,7 +167,7 @@ jobs:
 
       # Execute UT with the current JDK version - skip compilation since artifacts are pre-compiled
       - name: Run tests with JDK ${{ matrix.java-version }}
-        run: mvn surefire:test -P-component -P-server -ntp
+        run: mvn surefire:test --activate-profiles agent -P-server -ntp
 
   release:
     needs: [build, test]
