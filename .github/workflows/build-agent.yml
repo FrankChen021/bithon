@@ -59,6 +59,9 @@ jobs:
       - name: Compilation
         run: mvn clean install -T 1C -ntp --activate-profiles agent,component -Dmaven.javadoc.skip=true -DskipTests
 
+      - name: Code Check
+        run: mvn --ntp -T 1C -P-server animal-sniffer:check checkstyle:checkstyle com.github.spotbugs:spotbugs-maven-plugin:check dependency:analyze-only
+
       - name: Verify agent distribution was built
         run: |
           if [ -f "agent/agent-distribution/target/agent-distribution.zip" ]; then
@@ -84,6 +87,7 @@ jobs:
             **/target/classes/**
             **/target/test-classes/**
             **/target/**/*.jar
+            **/target/**/*.tar
             **/target/**/*.zip
             **/pom.xml
             pom.xml
