@@ -165,16 +165,29 @@ jobs:
             exit 1
           fi
 
-      - name: Debug test setup
+      - name: Restore build artifacts to correct locations
         run: |
-          echo "=== Checking for test classes ==="
-          find . -name "*Test.java" -type f | head -10
-          echo "=== Checking compiled test classes ==="
-          find . -path "*/target/test-classes/*Test.class" -type f | head -10
-          echo "=== Checking agent modules ==="
-          ls -la agent/
-          echo "=== Checking a specific agent module ==="
-          ls -la agent/agent-core/target/ || echo "No target directory"
+          echo "=== Moving artifacts from GitHub Actions paths to workspace paths ==="
+          # Find and move target directories from artifact paths to workspace paths
+          if [ -d "work/bithon/bithon" ]; then
+            echo "Found artifacts in work/bithon/bithon/, copying to workspace..."
+            # Copy all target directories to the correct locations
+            find work/bithon/bithon -name "target" -type d | while read target_dir; do
+              # Extract the relative path after work/bithon/bithon/
+              relative_path=${target_dir#work/bithon/bithon/}
+              workspace_target="$relative_path"
+              echo "Copying $target_dir to $workspace_target"
+              mkdir -p "$(dirname "$workspace_target")"
+              cp -r "$target_dir" "$workspace_target"
+            done
+            echo "✅ Artifacts copied to workspace locations"
+          else
+            echo "No work/bithon/bithon directory found, artifacts may already be in correct location"
+          fi
+
+          echo "=== Verifying target directories now exist ==="
+          ls -la agent/agent-core/target/ || echo "Still no target directory"
+          find agent/ -name "*Test.class" -type f | head -5
 
       # Execute UT with the current JDK version - skip compilation, just run tests
       - name: Run tests with JDK ${{ matrix.java-version }}
