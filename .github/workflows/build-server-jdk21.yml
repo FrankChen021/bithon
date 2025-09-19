@@ -5,9 +5,15 @@ name: JDK21 Build
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
+    paths-ignore:
+      - "agent/**"
   pull_request:
-    branches: [ master ]
+    branches: [master]
+    paths-ignore:
+      - "agent/**"
+      - ".github/workflows/build-agent.yml"
+      - ".github/workflows/push-docker-agent-images.yml"
 
 concurrency:
   # https://stackoverflow.com/questions/68418857/how-to-cancel-existing-runs-when-a-new-push-happens-on-github-actions-but-only
@@ -28,16 +34,16 @@ jobs:
       - name: Setup JDK21
         uses: actions/setup-java@v2
         with:
-          java-version: '21'
-          distribution: 'adopt'
+          java-version: "21"
+          distribution: "adopt"
 
       - name: Compilation
-        run: mvn clean install -T 1C -ntp --activate-profiles shaded,jooq,server,component,agent -Dmaven.javadoc.skip=true -DskipTests
+        run: mvn clean install -T 1C -ntp --activate-profiles shaded,jooq,server,component -Dmaven.javadoc.skip=true -DskipTests
 
       # No use of -T parameter because it will mess up the output message
       - name: Dependency Check
-        run: mvn -ntp dependency:analyze-only
+        run: mvn -ntp -P-agent dependency:analyze-only
 
       # Execute UT excluding component modules
       - name: UT
-        run: mvn test -P-component
+        run: mvn test -P-component -P-agent
