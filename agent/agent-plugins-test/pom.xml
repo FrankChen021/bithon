@@ -194,6 +194,12 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-httpclient-java-net-http</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
 
 
     <!-- HTTP Server Plugins -->
@@ -341,4 +347,36 @@
       </plugin>
     </plugins>
   </build>
+
+  <!-- Profiles for JDK version-specific test handling -->
+  <profiles>
+    <!-- Profile for JDK 11 and above - run all tests -->
+    <profile>
+      <id>jdk11-and-above</id>
+      <activation>
+        <jdk>[11,)</jdk>
+      </activation>
+    </profile>
+
+    <!-- Profile for JDK below 11 - skip java-net-http tests -->
+    <profile>
+      <id>jdk-below-11</id>
+      <activation>
+        <jdk>(,11)</jdk>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <exclude>**/JavaNetHttpClientPluginInterceptorTest.java</exclude>
+              </excludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

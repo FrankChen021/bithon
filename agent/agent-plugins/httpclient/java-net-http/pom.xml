@@ -9,6 +9,13 @@
   </parent>
   <artifactId>agent-plugin-httpclient-java-net-http</artifactId>
 
+  <!-- The HttpClient is introduced from JDK 11
+ -->
+  <properties>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -18,17 +25,5 @@
 
   <build>
     <finalName>${project.artifactId}</finalName>
-    <plugins>
-      <plugin>
-        <!-- The HttpClient is introduced in JDK 11
-         -->
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>11</source>
-          <target>11</target>
-        </configuration>
-      </plugin>
-    </plugins>
   </build>
 </project>
