@@ -5,25 +5,25 @@ name: Agent Build
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
     paths:
-      - 'agent/**'
-      - 'component/**'
-      - 'shaded/**'
-      - 'license/**'
-      - 'dev/**'
-      - 'pom.xml'
-      - '.github/workflows/build-agent.yml'
+      - "agent/**"
+      - "component/**"
+      - "shaded/**"
+      - "license/**"
+      - "dev/**"
+      - "pom.xml"
+      - ".github/workflows/build-agent.yml"
   pull_request:
-    branches: [ master ]
+    branches: [master]
     paths:
-      - 'agent/**'
-      - 'component/**'
-      - 'shaded/**'
-      - 'license/**'
-      - 'dev/**'
-      - 'pom.xml'
-      - '.github/workflows/build-agent.yml'
+      - "agent/**"
+      - "component/**"
+      - "shaded/**"
+      - "license/**"
+      - "dev/**"
+      - "pom.xml"
+      - ".github/workflows/build-agent.yml"
 
 concurrency:
   # https://stackoverflow.com/questions/68418857/how-to-cancel-existing-runs-when-a-new-push-happens-on-github-actions-but-only
@@ -46,8 +46,8 @@ jobs:
       - name: Setup JDK17
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
-          distribution: 'adopt'
+          java-version: "17"
+          distribution: "adopt"
 
       #
       # separate shaded building from other modules because if it's built with other modules,
@@ -97,41 +97,41 @@ jobs:
       matrix:
         include:
           # LTS versions using temurin
-          - java-version: '8'
-            distribution: 'temurin'
-          - java-version: '11'
-            distribution: 'temurin'
-          - java-version: '17'
-            distribution: 'temurin'
-          - java-version: '21'
-            distribution: 'temurin'
-          - java-version: '22'
-            distribution: 'zulu'
-          - java-version: '23'
-            distribution: 'zulu'
-          - java-version: '24'
-            distribution: 'zulu'
+          - java-version: "8"
+            distribution: "temurin"
+          - java-version: "11"
+            distribution: "temurin"
+          - java-version: "17"
+            distribution: "temurin"
+          - java-version: "21"
+            distribution: "temurin"
+          - java-version: "22"
+            distribution: "zulu"
+          - java-version: "23"
+            distribution: "zulu"
+          - java-version: "24"
+            distribution: "zulu"
           # Non-LTS versions using zulu (better historical support)
-          - java-version: '9'
-            distribution: 'zulu'
-          - java-version: '10'
-            distribution: 'zulu'
-          - java-version: '12'
-            distribution: 'zulu'
-          - java-version: '13'
-            distribution: 'zulu'
-          - java-version: '14'
-            distribution: 'zulu'
-          - java-version: '15'
-            distribution: 'zulu'
-          - java-version: '16'
-            distribution: 'zulu'
-          - java-version: '18'
-            distribution: 'zulu'
-          - java-version: '19'
-            distribution: 'zulu'
-          - java-version: '20'
-            distribution: 'zulu'
+          - java-version: "9"
+            distribution: "zulu"
+          - java-version: "10"
+            distribution: "zulu"
+          - java-version: "12"
+            distribution: "zulu"
+          - java-version: "13"
+            distribution: "zulu"
+          - java-version: "14"
+            distribution: "zulu"
+          - java-version: "15"
+            distribution: "zulu"
+          - java-version: "16"
+            distribution: "zulu"
+          - java-version: "18"
+            distribution: "zulu"
+          - java-version: "19"
+            distribution: "zulu"
+          - java-version: "20"
+            distribution: "zulu"
       fail-fast: false
     steps:
       - name: Checkout repository and submodules
@@ -170,6 +170,9 @@ jobs:
     runs-on: ubuntu-latest
     # Only run on master branch AND if both build and test jobs succeeded
     if: github.ref == 'refs/heads/master' && needs.build.result == 'success' && needs.test.result == 'success'
+    concurrency:
+      group: "release-agent-distribution"
+      cancel-in-progress: false
     steps:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -216,7 +219,7 @@ jobs:
               exit 1
             fi
           fi
-          
+
           echo "agent-zip-path=$AGENT_ZIP_PATH" >> $GITHUB_OUTPUT
           echo "Final path: $AGENT_ZIP_PATH"
           ls -la "$AGENT_ZIP_PATH"
@@ -228,18 +231,35 @@ jobs:
       # https://github.com/marketplace/actions/delete-tag-and-release
       - name: Delete agent tag
         uses: dev-drprasad/delete-tag-and-release@v1.1
+        continue-on-error: true
         with:
           delete_release: true # default: false
           tag_name: agent-distribution-latest
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Wait before recreating release
+        run: sleep 5
+
       - name: Release agent
         uses: svenstaro/upload-release-action@v2
         with:
-          body: "The latest agent"
+          body: "The latest agent built from commit ${{ github.sha }}"
           overwrite: true
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           release_name: agent-distribution-latest
           tag: agent-distribution-latest
           asset_name: agent-distribution.zip
           file: ${{ steps.find-agent-zip.outputs.agent-zip-path }}
+
+      - name: Verify release created
+        run: |
+          # Wait a moment for the release to be available
+          sleep 10
+          # Check if the release was created successfully
+          RELEASE_URL="https://api.github.com/repos/${{ github.repository }}/releases/tags/agent-distribution-latest"
+          if curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$RELEASE_URL" | grep -q '"tag_name"'; then
+            echo "✅ Release verification successful"
+          else
+            echo "❌ Release verification failed - release may not have been created properly"
+            exit 1
+          fi
