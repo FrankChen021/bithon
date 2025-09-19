@@ -14,9 +14,9 @@
 #   limitations under the License.
 #
 
-ARG JDK_VERSION=21
+ARG JDK_VERSION=24
 
-FROM maven:3.9.6-eclipse-temurin-${JDK_VERSION} AS builder
+FROM maven:3.9.11-eclipse-temurin-${JDK_VERSION} AS builder
 
 ARG BUILD_FROM_SOURCE="true"
 
