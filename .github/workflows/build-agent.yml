@@ -196,51 +196,70 @@ jobs:
             echo "✅ Maven repository restored for release"
           fi
 
-      - name: Find agent distribution and set path
-        id: find-agent-zip
+      - name: Find agent distribution files and set paths
+        id: find-agent-files
         run: |
-          # Check the expected path first
+          # Check for ZIP file
           if [ -f "agent/agent-distribution/target/agent-distribution.zip" ]; then
             AGENT_ZIP_PATH="agent/agent-distribution/target/agent-distribution.zip"
-            echo "✅ Found agent distribution at expected path: $AGENT_ZIP_PATH"
+            echo "✅ Found agent ZIP at expected path: $AGENT_ZIP_PATH"
           else
             # Search for the file anywhere if not found at expected location
             AGENT_ZIP_PATH=$(find . -name "agent-distribution.zip" -type f | head -1)
             if [ -n "$AGENT_ZIP_PATH" ]; then
-              echo "✅ Found agent distribution at: $AGENT_ZIP_PATH"
+              echo "✅ Found agent ZIP at: $AGENT_ZIP_PATH"
               # Remove leading ./ if present
               AGENT_ZIP_PATH=${AGENT_ZIP_PATH#./}
             else
               echo "❌ Error: agent-distribution.zip not found anywhere!"
               echo "=== Available ZIP files: ==="
               find . -name "*.zip" -type f
-              echo "=== Contents of agent/agent-distribution/target/: ==="
-              ls -la agent/agent-distribution/target/ || echo "Directory doesn't exist"
+              exit 1
+            fi
+          fi
+
+          # Check for TAR file
+          if [ -f "agent/agent-distribution/target/agent-distribution.tar" ]; then
+            AGENT_TAR_PATH="agent/agent-distribution/target/agent-distribution.tar"
+            echo "✅ Found agent TAR at expected path: $AGENT_TAR_PATH"
+          else
+            # Search for the file anywhere if not found at expected location
+            AGENT_TAR_PATH=$(find . -name "agent-distribution.tar" -type f | head -1)
+            if [ -n "$AGENT_TAR_PATH" ]; then
+              echo "✅ Found agent TAR at: $AGENT_TAR_PATH"
+              # Remove leading ./ if present
+              AGENT_TAR_PATH=${AGENT_TAR_PATH#./}
+            else
+              echo "❌ Error: agent-distribution.tar not found anywhere!"
+              echo "=== Available TAR files: ==="
+              find . -name "*.tar" -type f
               exit 1
             fi
           fi
 
           echo "agent-zip-path=$AGENT_ZIP_PATH" >> $GITHUB_OUTPUT
-          echo "Final path: $AGENT_ZIP_PATH"
-          ls -la "$AGENT_ZIP_PATH"
+          echo "agent-tar-path=$AGENT_TAR_PATH" >> $GITHUB_OUTPUT
+          echo "ZIP path: $AGENT_ZIP_PATH"
+          echo "TAR path: $AGENT_TAR_PATH"
+          ls -la "$AGENT_ZIP_PATH" "$AGENT_TAR_PATH"
 
       #
       # Follow steps are for release, we only enable them for changes on the master branch
-      # Only delete tag if we have successfully built and tested the agent
+      # Delete both tag and release if we have successfully built and tested the agent
       #
       # https://github.com/marketplace/actions/delete-tag-and-release
-      - name: Delete agent tag
+      - name: Delete previous agent tag and release
         uses: dev-drprasad/delete-tag-and-release@v1.1
         continue-on-error: true
         with:
-          delete_release: true # default: false
+          delete_release: true # This deletes both the release and the tag
           tag_name: agent-distribution-latest
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Wait before recreating release
         run: sleep 5
 
-      - name: Release agent
+      - name: Release agent ZIP
         uses: svenstaro/upload-release-action@v2
         with:
           body: "The latest agent built from commit ${{ github.sha }}"
@@ -249,7 +268,15 @@ jobs:
           release_name: agent-distribution-latest
           tag: agent-distribution-latest
           asset_name: agent-distribution.zip
-          file: ${{ steps.find-agent-zip.outputs.agent-zip-path }}
+          file: ${{ steps.find-agent-files.outputs.agent-zip-path }}
+
+      - name: Release agent TAR
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: agent-distribution-latest
+          asset_name: agent-distribution.tar
+          file: ${{ steps.find-agent-files.outputs.agent-tar-path }}
 
       - name: Verify release created
         run: |
