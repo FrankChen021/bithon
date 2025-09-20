@@ -18,7 +18,6 @@ echo "Downloading agent from ${AGENT_URI} to ${TEMP_DIR}"
 if ! curl -sSL --connect-timeout 5 -o agent.tar "${AGENT_URI}"; then
   echo "Failed to download agent from ${AGENT_URI}. Injection skipped."
   rm -f agent.tar  # Clean up any partial download
-  cd - > /dev/null
   rm -rf "$TEMP_DIR"
   return 0
 fi
@@ -26,7 +25,6 @@ fi
 # Check if agent.tar was successfully created
 if [ ! -f agent.tar ] ; then
   echo "Can't find downloaded agent. Injection skipped."
-  cd - > /dev/null
   rm -rf "$TEMP_DIR"
   return 0
 fi

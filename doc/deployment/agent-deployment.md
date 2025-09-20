@@ -26,7 +26,7 @@ For example:
 if [ "$INJECT_AGENT" = true ] ; then
   TEMP_SCRIPT=$(mktemp)
   if curl -sSL https://raw.githubusercontent.com/FrankChen021/bithon/refs/heads/master/docker/inject-agent.sh -o "$TEMP_SCRIPT"; then
-      if source "$TEMP_SCRIPT"; then
+      if . "$TEMP_SCRIPT"; then
           echo "Agent injection script executed successfully"
       else
           echo "WARNING: Agent injection script failed to execute"
@@ -61,7 +61,7 @@ This is similar to the standalone deployment, we can use above script to do the 
 if [ "$INJECT_AGENT" = true ] ; then
   TEMP_SCRIPT=$(mktemp)
   if curl -sSL https://raw.githubusercontent.com/FrankChen021/bithon/refs/heads/master/docker/inject-agent.sh -o "$TEMP_SCRIPT"; then
-      if source "$TEMP_SCRIPT"; then
+      if . "$TEMP_SCRIPT"; then
           echo "Agent injection script executed successfully"
       else
           echo "WARNING: Agent injection script failed to execute"
@@ -84,9 +84,9 @@ COPY startup.sh /startup.sh
 RUN chmod +x /startup.sh 
  
 ENV JAVA_TOOL_OPTIONS ""
-ENV WITH_AGENT=true
 
-# Remember to change this URL to your own agent distribution URL
+# Enable the agent injection
+ENV INJECT_AGENT=true
 ENV AGENT_URI https://github.com/FrankChen021/bithon/releases/download/agent-distribution-latest/agent-distribution.tar
  
 WORKDIR /opt
@@ -95,7 +95,7 @@ WORKDIR /opt
 ENTRYPOINT ["/startup.sh"]
 ```
 
-or you can add the script to your docker file:
+or you can add the script to your docker image:
 
 
 ```dockerfile
@@ -103,7 +103,7 @@ COPY startup.sh /startup.sh
 RUN chmod +x /startup.sh 
  
 ENV JAVA_TOOL_OPTIONS ""
-ENV WITH_AGENT=true
+ENV INJECT_AGENT=true
 
 # Remember to change this URL to your own agent distribution URL
 ENV AGENT_URI https://github.com/FrankChen021/bithon/releases/download/agent-distribution-latest/agent-distribution.tar
