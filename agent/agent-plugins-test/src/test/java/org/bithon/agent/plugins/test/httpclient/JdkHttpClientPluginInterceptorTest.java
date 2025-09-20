@@ -18,6 +18,7 @@ package org.bithon.agent.plugins.test.httpclient;
 
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.httpclient.jdk.JdkHttpClientPlugin;
+import org.bithon.agent.plugins.test.AbstractPluginInterceptorTest;
 
 
 /**
@@ -25,8 +26,9 @@ import org.bithon.agent.plugin.httpclient.jdk.JdkHttpClientPlugin;
  *
  * @author frankchen
  */
-public class JdkHttpClientPluginInterceptorTest {
+public class JdkHttpClientPluginInterceptorTest extends AbstractPluginInterceptorTest {
 
+    @Override
     protected IPlugin[] getPlugins() {
         return new IPlugin[]{new JdkHttpClientPlugin()};
     }

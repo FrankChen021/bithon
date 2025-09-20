@@ -120,7 +120,7 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.2.13</version>
+      <version>1.5.12</version>
       <scope>test</scope>
     </dependency>
 
@@ -331,6 +331,43 @@
 
   <build>
     <plugins>
+      <!-- Copy agent-instrumentation jar to target directory for bootstrap classpath -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-agent-instrumentation</id>
+            <phase>process-test-classes</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.bithon.agent</groupId>
+                  <artifactId>agent-instrumentation</artifactId>
+                  <version>${project.version}</version>
+                  <type>jar</type>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/test-lib</outputDirectory>
+                  <destFileName>agent-instrumentation.jar</destFileName>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.bithon.shaded</groupId>
+                  <artifactId>shaded-bytebuddy</artifactId>
+                  <version>${project.version}</version>
+                  <type>jar</type>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/test-lib</outputDirectory>
+                  <destFileName>shaded-bytebuddy.jar</destFileName>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -341,6 +378,7 @@
           <argLine>
             -Xmx2048m
             -Djdk.attach.allowAttachSelf=true
+            -Xbootclasspath/a:${project.build.directory}/test-lib/agent-instrumentation.jar:${project.build.directory}/test-lib/shaded-bytebuddy.jar
           </argLine>
           <trimStackTrace>false</trimStackTrace>
         </configuration>
