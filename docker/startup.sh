@@ -11,11 +11,10 @@ if [ "$INJECT_AGENT" = true ] ; then
   TEMP_SCRIPT=$(mktemp)
   if curl -sSL https://raw.githubusercontent.com/FrankChen021/bithon/refs/heads/master/docker/inject-agent.sh -o "$TEMP_SCRIPT"; then
       # shellcheck disable=SC1090
-      if . "$TEMP_SCRIPT"; then
-          echo "Agent injection script executed successfully"
-      else
+      if ! . "$TEMP_SCRIPT"; then
           echo "WARNING: Agent injection script failed to execute"
       fi
+
       rm -f "$TEMP_SCRIPT"
   else
       echo "Agent injection skipped: Failed to download agent injection script"
@@ -24,4 +23,5 @@ else
   echo "Agent injection is NOT enabled. Injection skipped."
 fi
 
-exec java "${JAVA_OPTS}" -jar /opt/bithon-server-starter.jar "${APP_OPTS}"
+# shellcheck disable=SC2086
+exec java ${JAVA_OPTS} -jar /opt/bithon-server-starter.jar ${APP_OPTS}
