@@ -206,9 +206,12 @@ And in theory, this matrix works both for Windows and Linux.
 | HTTP Client - Netty                                          | 3.10.6      | < 4.0       | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
 | HTTP Client - okhttp3                                        | 3.2         | 4.9         | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
 | HTTP Client - reactor-netty                                  | 1.0.11      |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
+| HTTP Client - JDK HttpURLConnection                          | 1.8         |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
+| HTTP Client - JDK 11+ HttpClient (java.net.http.HttpClient)  | 11          |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
 | Jersey                                                       | 1.19.4      |             |                                                | &check; |
 | JDBC - Alibaba Druid                                         | 1.0.28      |             | &check;                                        | &check; |
 | JDBC - Apache Derby                                          | 10.14.2     |             | &check;                                        | &check; |
+| JDBC - ClickHouse                                            | 0.3.1       |             | &check;                                        | &check; |
 | JDBC - H2                                                    | 2.2.224     |             | &check;                                        | &check; |
 | JDBC - MySQL                                                 | 5.x         | 8.x         | &check;                                        | &check; |
 | JDBC - PostgreSQL                                            | 42.4.3      |             | &check;                                        | &check; |

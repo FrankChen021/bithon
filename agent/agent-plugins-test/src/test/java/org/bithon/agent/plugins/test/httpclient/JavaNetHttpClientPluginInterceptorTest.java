@@ -17,19 +17,24 @@
 package org.bithon.agent.plugins.test.httpclient;
 
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.plugin.httpclient.jdk.JdkHttpClientPlugin;
+import org.bithon.agent.plugin.httpclient.javanethttp.JavaNetHttpClientPlugin;
 import org.bithon.agent.plugins.test.AbstractPluginInterceptorTest;
 
-
 /**
- * Test case for JDK HTTP Client plugin
+ * Test case for Java Net HTTP Client plugin (JDK 11+)
+ * <p>
+ * This test only runs on JDK 11 and above since java.net.http.HttpClient
+ * was introduced in Java 11. The plugin itself uses JdkVersionPrecondition.gte(11)
+ * to ensure it only loads on compatible JDK versions.
+ * <p>
+ * Maven profiles are configured to exclude this test on JDK versions below 11.
  *
  * @author frankchen
  */
-public class JdkHttpClientPluginInterceptorTest extends AbstractPluginInterceptorTest {
+public class JavaNetHttpClientPluginInterceptorTest extends AbstractPluginInterceptorTest {
 
     @Override
     protected IPlugin[] getPlugins() {
-        return new IPlugin[]{new JdkHttpClientPlugin()};
+        return new IPlugin[]{new JavaNetHttpClientPlugin()};
     }
 }

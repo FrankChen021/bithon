@@ -54,6 +54,7 @@
     <module>httpclient/jetty</module>
     <module>httpclient/netty3</module>
     <module>httpclient/reactor</module>
+    <module>httpclient/java-net-http</module>
     <module>httpserver/tomcat</module>
     <module>httpserver/undertow</module>
     <module>httpserver/jetty</module>

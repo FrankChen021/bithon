@@ -42,6 +42,7 @@ import org.mockito.Mockito;
 import org.slf4j.Logger;
 
 import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.security.CodeSource;
 import java.util.Arrays;
 import java.util.Collections;
@@ -186,7 +187,7 @@ public abstract class AbstractPluginInterceptorTest {
             try {
                 log.info("Loading class {} with {}", clazzName,
                          customClassLoader == null ? "system loader" : customClassLoader.getClass().getSimpleName());
-                Class<?> clazz = Class.forName(clazzName, false, customClassLoader);
+                Class<?> clazz = customClassLoader == null ? Class.forName(clazzName) : Class.forName(clazzName, false, customClassLoader);
 
                 Assertions.assertNotNull(clazz, "Class " + clazzName + " should be loadable");
                 CodeSource codeSource = clazz.getProtectionDomain().getCodeSource();
@@ -198,6 +199,7 @@ public abstract class AbstractPluginInterceptorTest {
                 String classLoaderInfo = customClassLoader != null ?
                                          " using custom class loader: " + customClassLoader.getClass().getSimpleName() :
                                          " using default class loader";
+                classLoaderInfo += ". JDK version: " + getCurrentJavaVersion();
                 Assertions.fail("Class " + clazzName + " not found" + classLoaderInfo);
             } catch (NoClassDefFoundError error) {
                 log.error("Class not found", error);
@@ -209,6 +211,18 @@ public abstract class AbstractPluginInterceptorTest {
                 }
                 Assertions.fail("Fail to load class " + clazzName + " not found:" + error.getMessage());
             }
+        }
+    }
+
+    private static int getCurrentJavaVersion() {
+        String specVersion = ManagementFactory.getRuntimeMXBean().getSpecVersion();
+        String[] versionParts = specVersion.split("\\.");
+        if (versionParts[0].equals("1")) {
+            // For Java 1.x (e.g., 1.8)
+            return Integer.parseInt(versionParts[1]);
+        } else {
+            // For Java 9 and above
+            return Integer.parseInt(versionParts[0]);
         }
     }
 
