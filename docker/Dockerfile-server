@@ -16,7 +16,7 @@
 
 ARG JDK_VERSION=21
 
-FROM maven:3.9.6-eclipse-temurin-${JDK_VERSION} AS builder
+FROM maven:3.9.11-eclipse-temurin-${JDK_VERSION} AS builder
 
 ARG BUILD_FROM_SOURCE="true"
 
@@ -61,13 +61,13 @@ RUN chmod +x /startup.sh \
 
 ENV JAVA_OPTS=""
 ENV APP_OPTS=""
-ENV ENABLE_AGENT=true
-
-# Remember to replace the URI to the URI of your own distribution
-ENV AGENT_URI=https://github.com/FrankChen021/bithon/releases/download/agent-distribution-latest/agent-distribution.zip
+ENV INJECT_AGENT=true
 
 # Replace the glibc memory allocator to jemalloc
-ENV LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libjemalloc.so"
+# by dynamically finding jemalloc library path based on architecture
+RUN JEMALLOC_PATH=$(find /usr/lib -name "libjemalloc.so*" | head -1) && \
+    echo "export LD_PRELOAD=\"$JEMALLOC_PATH\"" >> /etc/environment && \
+    echo "JEMALLOC_PATH=$JEMALLOC_PATH" >> /etc/environment \
 
 VOLUME /opt/shared/conf
 

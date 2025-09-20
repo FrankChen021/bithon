@@ -14,55 +14,34 @@ For standalone deployment, we need a script to download the agent, and start the
 The reason we download the agent in the script everytime before starting the Java application is to ensure that
 each time the target application loads the latest stable java agent.
 
-Here's a sample script:
+We have already shipped the agent injection script which does the above things automatically for you, what you need to do is just 
+copy-paste the following if-else script into your start up script.
+
+For example:
 
 ```bash
 #!/bin/sh
 
-# Remember to change this URL to your own agent distribution URL
-AGENT_URI=https://github.com/FrankChen021/bithon/releases/download/agent-distribution-latest/agent-distribution.zip
-
-echo "Downloading agent from ${AGENT_URI}"
-wget -T 10 -O agent.zip "${AGENT_URI}"
-
-if [ -f agent.zip ] ; then
-echo "Cleaning up agent..."
-rm -fr ./agent-distribution
-
-echo "Unzip agent compress file..."
-unzip agent.zip
+# COPY the entire if-else block of the following before the command where your application starts
+if [ "$INJECT_AGENT" = true ] ; then
+  TEMP_SCRIPT=$(mktemp)
+  if curl -sSL https://raw.githubusercontent.com/FrankChen021/bithon/refs/heads/master/docker/inject-agent.sh -o "$TEMP_SCRIPT"; then
+      if . "$TEMP_SCRIPT"; then
+          echo "Agent injection script executed successfully"
+      else
+          echo "WARNING: Agent injection script failed to execute"
+      fi
+      rm -f "$TEMP_SCRIPT"
+  else
+      echo "Agent injection skipped: Failed to download agent injection script"
+  fi
 else
-echo "Failed to downloading agent..."
+  echo "Agent injection is NOT enabled. Injection skipped."
 fi
 
-JAVA_TOOL_OPTIONS="-Dbithon.application.name=YOU_APPLICATION_NAME -Dbithon.application.env=YOUR_APPLICATION_ENV $JAVA_TOOL_OPTIONS"
-
-# Automatically detect the JRE version and set the JAVA_OPTS accordingly.
-JAVA_MAJOR="$(java -version 2>&1 | sed -n -E 's/.* version "([^."-]*).*/\1/p')"
-echo "Detected JRE version: ${JAVA_MAJOR}"
-if [ "$JAVA_MAJOR" != "" ] && [ "$JAVA_MAJOR" -ge "11" ]
-then
-  # Disable strong encapsulation for certain packages on Java 11+.
-  JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS\
-  --add-opens=java.base/jdk.internal.misc=ALL-UNNAMED \
-  --add-opens=java.base/sun.net.www=ALL-UNNAMED \
-  --add-opens=java.base/java.net=ALL-UNNAMED \
-  "
-fi
-
-if [ -f /opt/agent-distribution/agent-main.jar ] ; then
-  #
-  # Assuming the agent is extracted to /opt/agent-distribution/agent-main.jar
-  # If not, change the path accordingly. Note that the path must be absolute.
-  #
-  JAVA_TOOL_OPTIONS="-javaagent:/opt/agent-distribution/agent-main.jar $JAVA_TOOL_OPTIONS"
-  echo "Starting application with agent: $JAVA_TOOL_OPTIONS"
-fi
-
+# Assume this is the command line that starts your target application
 exec java -jar YOUR_JAVA_APPLICATION.jar
 ```
-
-If you already have a script to start your Java application, you can simply integrate above script into your existing script.
 
 # Docker Deployment
 
@@ -70,53 +49,29 @@ This section describes how to deploy the agent to your applications running in a
 
 > Note:
 > 
-> If your Java application is running in a Kubernetes cluster, you should skip this section and refer to the Kubernetes Deployment section below.
+> If your Java application is running in a Kubernetes cluster, you can skip this section and refer to the Kubernetes Deployment section below.
 
 ## Add a startup script to your Docker image
 This is similar to the standalone deployment, we can use above script to do the similar thing in the Docker container.
-But the difference is that we set the environment variable outside the script.
 
 ```bash
 #!/bin/sh
 
-echo "Downloading agent from ${AGENT_URI}"
-wget -T 10 -O agent.tar "${AGENT_URI}"
-
-if [ "$WITH_AGENT" = true ] ; then
-  echo "Downloading agent from ${AGENT_URI}"
-  wget -T 10 -O agent.tar "${AGENT_URI}"
- 
-  if [ -f agent.tar ] ; then
-    echo "Cleaning up agent..."
-    rm -fr ./agent-distribution
- 
-    echo "Unzip agent compress file..."
-    tar -xvf agent.tar
+# COPY the entire if-else block of the following before the command where your application starts
+if [ "$INJECT_AGENT" = true ] ; then
+  TEMP_SCRIPT=$(mktemp)
+  if curl -sSL https://raw.githubusercontent.com/FrankChen021/bithon/refs/heads/master/docker/inject-agent.sh -o "$TEMP_SCRIPT"; then
+      if . "$TEMP_SCRIPT"; then
+          echo "Agent injection script executed successfully"
+      else
+          echo "WARNING: Agent injection script failed to execute"
+      fi
+      rm -f "$TEMP_SCRIPT"
   else
-    echo "Failed to downloading agent..."
+      echo "Agent injection skipped: Failed to download agent injection script"
   fi
-fi
-
-# Automatically detect the JRE version and set the options accordingly.
-JAVA_MAJOR="$(java -version 2>&1 | sed -n -E 's/.* version "([^."-]*).*/\1/p')"
-echo "Detected JRE version: ${JAVA_MAJOR}"
-if [ "$JAVA_MAJOR" != "" ] && [ "$JAVA_MAJOR" -ge "11" ]
-then
-  # Disable strong encapsulation for certain packages on Java 11+.
-  JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS\
-  --add-opens=java.base/jdk.internal.misc=ALL-UNNAMED \
-  --add-opens=java.base/sun.net.www=ALL-UNNAMED \
-  --add-opens=java.base/java.net=ALL-UNNAMED \
-  "
-fi
-
-if [ -f /opt/agent-distribution/agent-main.jar ] ; then
-  #
-  # Assuming the agent is extracted to /opt/agent-distribution/agent-main.jar
-  # If not, change the path accordingly. Note that the path must be absolute.
-  #
-  JAVA_TOOL_OPTIONS="-javaagent:/opt/agent-distribution/agent-main.jar $JAVA_TOOL_OPTIONS"
-  echo "Starting application with agent: $JAVA_TOOL_OPTIONS"
+else
+  echo "Agent injection is NOT enabled. Injection skipped."
 fi
 
 exec java -jar YOUR_JAVA_APPLICATION.jar
@@ -129,9 +84,9 @@ COPY startup.sh /startup.sh
 RUN chmod +x /startup.sh 
  
 ENV JAVA_TOOL_OPTIONS ""
-ENV WITH_AGENT=true
 
-# Remember to change this URL to your own agent distribution URL
+# Enable the agent injection
+ENV INJECT_AGENT=true
 ENV AGENT_URI https://github.com/FrankChen021/bithon/releases/download/agent-distribution-latest/agent-distribution.tar
  
 WORKDIR /opt
@@ -139,6 +94,37 @@ WORKDIR /opt
 # Replace the ENTRYPOINT to the startup.sh
 ENTRYPOINT ["/startup.sh"]
 ```
+
+or you can add the script to your docker image:
+
+
+```dockerfile
+COPY startup.sh /startup.sh
+RUN chmod +x /startup.sh 
+ 
+ENV JAVA_TOOL_OPTIONS ""
+ENV INJECT_AGENT=true
+
+# Remember to change this URL to your own agent distribution URL
+ENV AGENT_URI https://github.com/FrankChen021/bithon/releases/download/agent-distribution-latest/agent-distribution.tar
+
+# Add the inject-agent.sh script into docker file
+ADD https://raw.githubusercontent.com/FrankChen021/bithon/main/docker/inject-agent.sh /tmp/inject-agent.sh
+
+WORKDIR /opt
+ 
+# Replace the ENTRYPOINT to the startup.sh
+ENTRYPOINT ["/startup.sh"]
+```
+
+```bash
+# Run the script to inject agent
+source /tmp/inject-agent.sh
+
+# Assume this is the command that starts your application
+exec java -jar YOUR_JAVA_APPLICATION.jar
+```
+
 
 ## Start the Docker container
 
@@ -177,6 +163,7 @@ spec:
           #
           image:  bithon/agent:latest
           # It's recommended to use the latest agent image so that every time the containers starts, it downloads the latest agent distribution.
+          # But BE CAREFUL that this imposes a strong dependency to the image registry service. If it's down, the container is not able to start
           imagePullPolicy: Always
           command: ["sh", "-c", "cp -r /opt/agent-distribution/* /opt/bithon/agent"]
           volumeMounts:
@@ -184,11 +171,11 @@ spec:
             name: bithon-agent
           resources:
             requests:
-              cpu: 1
-              memory: 500Mi
+              cpu: 500m
+              memory: 64Mi
             limits:
-              cpu: 1
-              memory: 500Mi
+              cpu: 500m
+              memory: 64Mi
       #----------------Added End-------------- 
       containers:
         - name: your-container-name
