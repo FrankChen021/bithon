@@ -6,7 +6,7 @@
 
 # Set default AGENT_URI if not defined
 if [ -z "$AGENT_URI" ] ; then
-  AGENT_URI=https://github.com/FrankChen021/bithon/releases/download/agent-distribution-latest/agent-distribution.zip
+  AGENT_URI=https://github.com/FrankChen021/bithon/releases/download/agent-distribution-latest/agent-distribution.tar
 fi
 
 # Create temporary directory for agent download
