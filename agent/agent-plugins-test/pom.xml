@@ -120,7 +120,8 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.5.12</version>
+      <!--Don't upgrade which would break the logging in test cases-->
+      <version>1.2.12</version>
       <scope>test</scope>
     </dependency>
 
@@ -379,6 +380,8 @@
             -Xmx2048m
             -Djdk.attach.allowAttachSelf=true
             -Xbootclasspath/a:${project.build.directory}/test-lib/agent-instrumentation.jar:${project.build.directory}/test-lib/shaded-bytebuddy.jar
+            -Dlogback.configurationFile=src/test/resources/logback-test.xml
+            -Dorg.slf4j.simpleLogger.defaultLogLevel=INFO
           </argLine>
           <trimStackTrace>false</trimStackTrace>
         </configuration>
