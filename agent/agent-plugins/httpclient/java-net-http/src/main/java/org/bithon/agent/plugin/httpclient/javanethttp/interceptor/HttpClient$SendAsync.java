@@ -50,7 +50,7 @@ public class HttpClient$SendAsync extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        IBithonObject bithonObject = aopContext.getInjectedOnTargetAs();
+        IBithonObject bithonObject = aopContext.getTargetAs();
         if (bithonObject.getInjectedObject() != null) {
             // the sendAsync may be called by the 'send' method internally
             return InterceptionDecision.SKIP_LEAVE;
@@ -98,6 +98,7 @@ public class HttpClient$SendAsync extends AroundInterceptor {
             // Finish span with exception
             if (span != null) {
                 span.finish();
+                span.context().finish();
             }
             return;
         }
@@ -117,9 +118,6 @@ public class HttpClient$SendAsync extends AroundInterceptor {
                 } else {
                     // Extract response information
                     int statusCode = response.statusCode();
-
-                    // Calculate response size if possible
-                    long responseSize = getResponseSize(response);
 
                     // Record success metrics
                     metricRegistry.addRequest(url, httpMethod, statusCode, duration)
@@ -142,6 +140,7 @@ public class HttpClient$SendAsync extends AroundInterceptor {
                 if (span != null) {
                     span.tag(throwable)
                         .finish();
+                    span.context().finish();
                 }
             } catch (Throwable t) {
                 // Catch all to prevent any exception from thrown from agent to user code
