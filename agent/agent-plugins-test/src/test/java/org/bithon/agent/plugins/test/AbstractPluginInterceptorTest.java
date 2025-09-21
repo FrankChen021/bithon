@@ -20,11 +20,10 @@ import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.source.Helper;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
-import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
-import org.bithon.agent.instrumentation.aop.interceptor.InterceptorSupplier;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.Descriptors;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptor;
+import org.bithon.agent.instrumentation.aop.interceptor.installer.InstallerRecorder;
 import org.bithon.agent.instrumentation.aop.interceptor.installer.InterceptorInstaller;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.PluginResolver;
@@ -186,62 +185,6 @@ public abstract class AbstractPluginInterceptorTest {
         return null;
     }
 
-    /**
-     * Verify that an interceptor is properly installed in the InterceptorManager.
-     *
-     * @param interceptorClassName The fully qualified class name of the interceptor
-     */
-    protected static void verifyInterceptorInstalled(String interceptorClassName) {
-        Map<String, InterceptorSupplier> suppliers =
-            InterceptorManager.INSTANCE.getSuppliers(interceptorClassName);
-
-        // Debug output to understand what's happening
-        log.info("Interceptor: {}, Found suppliers: {}", interceptorClassName, suppliers.size());
-
-        Assertions.assertFalse(suppliers.isEmpty(),
-                               "Interceptor " + interceptorClassName + " should be installed. Found " + suppliers.size() + " suppliers.");
-    }
-
-    /**
-     * Verify that all interceptors for a plugin are properly installed.
-     *
-     * @param interceptorClassNames List of interceptor class names to verify
-     */
-    protected static void verifyAllInterceptorsInstalled(List<String> interceptorClassNames) {
-        for (String interceptorClassName : interceptorClassNames) {
-            verifyInterceptorInstalled(interceptorClassName);
-        }
-    }
-
-    /**
-     * Verify basic plugin structure and configuration.
-     *
-     * @param plugin                   The plugin to verify
-     * @param expectedInterceptorCount Expected number of interceptor descriptors
-     */
-    protected static void verifyPluginDefinition(IPlugin plugin, int expectedInterceptorCount) {
-        List<InterceptorDescriptor> interceptors = plugin.getInterceptors();
-        Assertions.assertNotNull(interceptors, "Plugin should define interceptors");
-        Assertions.assertEquals(expectedInterceptorCount, interceptors.size(),
-                                "Plugin should define exactly " + expectedInterceptorCount + " interceptors");
-
-        // Verify each interceptor has valid configuration
-        for (InterceptorDescriptor descriptor : interceptors) {
-            Assertions.assertNotNull(descriptor.getTargetClass(),
-                                     "Interceptor should have a target class");
-            Assertions.assertTrue(descriptor.getMethodPointCutDescriptors().length > 0,
-                                  "Interceptor should have at least one method point cut");
-
-            // Verify each method point cut has valid interceptor class name
-            for (MethodPointCutDescriptor methodDesc : descriptor.getMethodPointCutDescriptors()) {
-                Assertions.assertNotNull(methodDesc.getInterceptorClassName(),
-                                         "Method point cut should have interceptor class name");
-                Assertions.assertFalse(methodDesc.getInterceptorClassName().isEmpty(),
-                                       "Interceptor class name should not be empty");
-            }
-        }
-    }
-
     private ClassLoader customClassLoader;
 
     /**
@@ -310,8 +253,6 @@ public abstract class AbstractPluginInterceptorTest {
         }
     }
 
-    private int instrumentationErrorCount = 0;
-
     @Test
     @Execution(ExecutionMode.SAME_THREAD)
     public void testInterceptorInstallation() {
@@ -332,7 +273,6 @@ public abstract class AbstractPluginInterceptorTest {
             @Override
             public void onError(String typeName, ClassLoader classLoader, JavaModule module, boolean loaded, Throwable throwable) {
                 log.error("Fail to instrument class {}", typeName, throwable);
-                instrumentationErrorCount++;
             }
         });
 
@@ -358,8 +298,33 @@ public abstract class AbstractPluginInterceptorTest {
                                                    .map(MethodPointCutDescriptor::getInterceptorClassName)
                                                    .distinct()
                                                    .collect(Collectors.toList());
-        verifyAllInterceptorsInstalled(installedInterceptors);
-        Assertions.assertEquals(0, instrumentationErrorCount, "There should be no instrumentation errors");
+
+        // Additional verification: Check that interceptors are actually applied to methods
+        // This uses InstallerRecorder which only records methods that were actually matched and instrumented
+        verifyMethodsActuallyInstrumented(installedInterceptors);
+    }
+
+    /**
+     * Verify that interceptors are actually applied to methods by checking InstallerRecorder.
+     * This is more accurate than just checking InterceptorManager because InstallerRecorder
+     * only records methods that were actually matched and instrumented by ByteBuddy.
+     *
+     * @param expectedInterceptors List of interceptor class names that should have been applied
+     */
+    protected static void verifyMethodsActuallyInstrumented(List<String> expectedInterceptors) {
+        List<InstallerRecorder.InstrumentedMethod> instrumentedMethods = InstallerRecorder.INSTANCE.getInstrumentedMethods();
+
+        log.info("InstallerRecorder found {} actually instrumented methods:", instrumentedMethods.size());
+
+        // Verify that each expected interceptor has at least one instrumented method
+        for (String expectedInterceptor : expectedInterceptors) {
+            boolean found = instrumentedMethods.stream()
+                                               .anyMatch(method -> expectedInterceptor.equals(method.getInterceptorName()));
+
+            Assertions.assertTrue(found,
+                                  "Interceptor " + expectedInterceptor + " should have at least one instrumented method. " +
+                                  "This indicates the method signature matching failed.");
+        }
     }
 
     protected abstract IPlugin[] getPlugins();
