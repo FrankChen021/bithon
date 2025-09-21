@@ -16,6 +16,7 @@
 
 package org.bithon.agent.plugins.test;
 
+import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.source.Helper;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
@@ -28,7 +29,15 @@ import org.bithon.agent.instrumentation.aop.interceptor.installer.InterceptorIns
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.PluginResolver;
 import org.bithon.agent.instrumentation.loader.PluginClassLoader;
+import org.bithon.agent.observability.exporter.IMessageConverter;
+import org.bithon.agent.observability.exporter.IMessageExporter;
+import org.bithon.agent.observability.exporter.IMessageExporterFactory;
+import org.bithon.agent.observability.exporter.config.ExporterConfig;
 import org.bithon.agent.observability.metric.collector.jvm.JmxBeans;
+import org.bithon.agent.observability.tracing.Tracer;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
+import org.bithon.agent.observability.tracing.reporter.ReporterConfig;
 import org.bithon.shaded.net.bytebuddy.agent.ByteBuddyAgent;
 import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import org.bithon.shaded.net.bytebuddy.utility.JavaModule;
@@ -44,6 +53,7 @@ import org.slf4j.Logger;
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.security.CodeSource;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -102,16 +112,74 @@ public abstract class AbstractPluginInterceptorTest {
         initializeBeforeEachTestCase();
     }
 
-    protected void initializeBeforeEachTestCase() {
-        // for override
+    protected final List<ITraceSpan> reportedSpans = Collections.synchronizedList(new ArrayList<>());
+    protected static final List<Object> REPORTED_METRICS = new ArrayList<>();
+
+    public static class TestFactory implements IMessageExporterFactory {
+        @Override
+        public IMessageExporter createMetricExporter(ExporterConfig exporterConfig) {
+            return new IMessageExporter() {
+                @Override
+                public void export(Object message) {
+                    REPORTED_METRICS.add(message);
+                }
+
+                @Override
+                public void close() {
+                }
+            };
+        }
+
+        @Override
+        public IMessageExporter createTracingExporter(ExporterConfig exporterConfig) {
+            return new IMessageExporter() {
+                @Override
+                public void export(Object message) {
+                }
+
+                @Override
+                public void close() {
+                }
+            };
+        }
+
+        @Override
+        public IMessageExporter createEventExporter(ExporterConfig exporterConfig) {
+            return null;
+        }
+
+        @Override
+        public IMessageConverter createMessageConverter() {
+            return null;
+        }
     }
 
-    /**
-     * Override this method in subclasses to provide custom environment variables for testing.
-     * The default implementation provides some basic test environment variables.
-     */
     protected Map<String, String> getEnvironmentVariables() {
-        return Collections.emptyMap();
+        // Add SDK-specific environment variables for testing
+        return ImmutableMap.of(
+            "bithon_exporters_tracing_client_factory", TestFactory.class.getName(),
+            "bithon_exporters_metric_client_factory", TestFactory.class.getName(),
+            "bithon_tracing_debug", "true"
+        );
+    }
+
+    protected void initializeBeforeEachTestCase() {
+        reportedSpans.clear();
+        REPORTED_METRICS.clear();
+
+        // Replace default report
+        Tracer.get()
+              .reporter(new ITraceReporter() {
+                  @Override
+                  public ReporterConfig getReporterConfig() {
+                      return new ReporterConfig();
+                  }
+
+                  @Override
+                  public void report(List<ITraceSpan> spans) {
+                      reportedSpans.addAll(spans);
+                  }
+              });
     }
 
     protected ClassLoader getCustomClassLoader() {
@@ -179,7 +247,7 @@ public abstract class AbstractPluginInterceptorTest {
     /**
      * Attempt to load a target class and verify it can be found.
      * This simulates what happens when the target application loads classes at runtime.
-     * Uses the custom class loader set via setClassLoader() if available, otherwise uses Class.forName().
+     * Use the custom class loader set via setClassLoader() if available, otherwise use Class.forName().
      *
      */
     protected void attemptClassLoading(List<String> classNames) {
@@ -197,8 +265,8 @@ public abstract class AbstractPluginInterceptorTest {
                          codeSource == null ? "<unknown>" : codeSource.getLocation());
             } catch (ClassNotFoundException e) {
                 String classLoaderInfo = customClassLoader != null ?
-                                         " using custom class loader: " + customClassLoader.getClass().getSimpleName() :
-                                         " using default class loader";
+                    " using custom class loader: " + customClassLoader.getClass().getSimpleName() :
+                    " using default class loader";
                 classLoaderInfo += ". JDK version: " + getCurrentJavaVersion();
                 Assertions.fail("Class " + clazzName + " not found" + classLoaderInfo);
             } catch (NoClassDefFoundError error) {

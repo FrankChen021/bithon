@@ -17,8 +17,22 @@
 package org.bithon.agent.plugins.test.httpclient;
 
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
+import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 import org.bithon.agent.plugin.httpclient.javanethttp.JavaNetHttpClientPlugin;
 import org.bithon.agent.plugins.test.AbstractPluginInterceptorTest;
+import org.bithon.component.commons.tracing.Tags;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+
+import java.io.Closeable;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 /**
  * Test case for Java Net HTTP Client plugin (JDK 11+)
@@ -36,5 +50,53 @@ public class JavaNetHttpClientPluginInterceptorTest extends AbstractPluginInterc
     @Override
     protected IPlugin[] getPlugins() {
         return new IPlugin[]{new JavaNetHttpClientPlugin()};
+    }
+
+    /**
+     * Override the parent test to ensure it runs first
+     */
+    @Test
+    @Order(0)
+    @Override
+    public void testInterceptorInstallation() {
+        super.testInterceptorInstallation();
+    }
+
+    @Test
+    public void testInterceptor() throws Exception {
+        ITraceContext ctx = TraceContextFactory.newContext(SamplingMode.FULL);
+        ctx.currentSpan().name("ROOT");
+
+        try (Closeable c = TraceContextHolder::detach) {
+            TraceContextHolder.attach(ctx);
+
+            Assertions.assertNotNull(TraceContextHolder.current());
+
+
+            // Create HTTP request to a reliable endpoint
+            HttpRequest request = HttpRequest.newBuilder()
+                                             .uri(URI.create("https://github.com"))
+                                             .GET()
+                                             .build();
+
+            // Send HTTP request using Java Net HTTP Client
+            HttpResponse<String> response = HttpClient.newHttpClient()
+                                                      .send(request, HttpResponse.BodyHandlers.ofString());
+
+            // Verify the HTTP request was successful
+            Assertions.assertTrue(response.statusCode() >= 200 && response.statusCode() < 400,
+                                  "HTTP request should be successful, got status: " + response.statusCode());
+            Assertions.assertNotNull(response.body(), "Response body should not be null");
+        }
+        ctx.currentSpan().finish();
+        ctx.finish();
+
+        Assertions.assertEquals(2, this.reportedSpans.size());
+        Assertions.assertEquals("send", this.reportedSpans.get(0).method());
+        Assertions.assertEquals("http-client", this.reportedSpans.get(0).name());
+        Assertions.assertEquals("java.net.http", this.reportedSpans.get(0).tags().get(Tags.Http.CLIENT));
+        Assertions.assertEquals("GET", this.reportedSpans.get(0).tags().get(Tags.Http.METHOD));
+        Assertions.assertEquals("https://github.com", this.reportedSpans.get(0).tags().get(Tags.Http.URL));
+        Assertions.assertEquals("200", this.reportedSpans.get(0).tags().get(Tags.Http.STATUS));
     }
 }

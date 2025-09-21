@@ -17,16 +17,8 @@
 package org.bithon.agent.plugins.test.bithon.sdk;
 
 
-import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.observability.exporter.IMessageConverter;
-import org.bithon.agent.observability.exporter.IMessageExporter;
-import org.bithon.agent.observability.exporter.IMessageExporterFactory;
-import org.bithon.agent.observability.exporter.config.ExporterConfig;
-import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
-import org.bithon.agent.observability.tracing.reporter.ReporterConfig;
 import org.bithon.agent.plugin.bithon.sdk.BithonSdkPlugin;
 import org.bithon.agent.plugins.test.AbstractPluginInterceptorTest;
 import org.bithon.agent.plugins.test.MavenArtifact;
@@ -45,8 +37,6 @@ import org.junit.jupiter.api.TestMethodOrder;
 
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,39 +45,6 @@ import java.util.Map;
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
-
-    private final List<ITraceSpan> reportedSpans = new ArrayList<>();
-
-    public static class TestFactory implements IMessageExporterFactory {
-        @Override
-        public IMessageExporter createMetricExporter(ExporterConfig exporterConfig) {
-            return null;
-        }
-
-        @Override
-        public IMessageExporter createTracingExporter(ExporterConfig exporterConfig) {
-            return new IMessageExporter() {
-                @Override
-                public void export(Object message) {
-                }
-
-                @Override
-                public void close() {
-                }
-            };
-        }
-
-        @Override
-        public IMessageExporter createEventExporter(ExporterConfig exporterConfig) {
-            return null;
-        }
-
-        @Override
-        public IMessageConverter createMessageConverter() {
-            return null;
-        }
-    }
-
     @Override
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
@@ -97,37 +54,10 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
     }
 
     @Override
-    protected Map<String, String> getEnvironmentVariables() {
-        // Add SDK-specific environment variables for testing
-        return ImmutableMap.of(
-            "bithon_exporters_tracing_client_factory", TestFactory.class.getName()
-        );
-    }
-
-    @Override
     protected IPlugin[] getPlugins() {
         return new IPlugin[]{
             new BithonSdkPlugin()
         };
-    }
-
-    @Override
-    protected void initializeBeforeEachTestCase() {
-        reportedSpans.clear();
-
-        // Replace default report
-        Tracer.get()
-              .reporter(new ITraceReporter() {
-                  @Override
-                  public ReporterConfig getReporterConfig() {
-                      return new ReporterConfig();
-                  }
-
-                  @Override
-                  public void report(List<ITraceSpan> spans) {
-                      reportedSpans.addAll(spans);
-                  }
-              });
     }
 
     /**
