@@ -180,13 +180,12 @@ public class InterceptorInstaller {
             }
 
             int supplierIndex = InterceptorManager.INSTANCE.getOrCreateSupplier(descriptor.getInterceptorClassName(), classLoader);
-            AdviceAnnotation.InterceptorNameResolver nameResolver = new AdviceAnnotation.InterceptorNameResolver(supplierIndex, descriptor.getInterceptorClassName());
             AdviceAnnotation.InterceptorIndexResolver indexResolver = new AdviceAnnotation.InterceptorIndexResolver(supplierIndex);
 
             switch (descriptor.getInterceptorType()) {
                 case BEFORE:
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
-                                                               .bind(AdviceAnnotation.InterceptorName.class, nameResolver)
+                                                               .bind(AdviceAnnotation.InterceptorName.class, new AdviceAnnotation.InterceptorNameResolver(Advice.OffsetMapping.Sort.ENTER, supplierIndex, descriptor.getInterceptorClassName()))
                                                                .bind(AdviceAnnotation.InterceptorIndex.class, indexResolver)
                                                                .to(BeforeAdvice.class),
                                                          descriptor.getMethodMatcher()));
@@ -195,7 +194,7 @@ public class InterceptorInstaller {
                     Class<?> adviceClazz = descriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ? AfterAdvice.class : ConstructorAfterAdvice.class;
 
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
-                                                               .bind(AdviceAnnotation.InterceptorName.class, nameResolver)
+                                                               .bind(AdviceAnnotation.InterceptorName.class, new AdviceAnnotation.InterceptorNameResolver(Advice.OffsetMapping.Sort.EXIT, supplierIndex, descriptor.getInterceptorClassName()))
                                                                .bind(AdviceAnnotation.InterceptorIndex.class, indexResolver)
                                                                .to(adviceClazz),
                                                          descriptor.getMethodMatcher()));
@@ -206,7 +205,7 @@ public class InterceptorInstaller {
                     Class<?> adviceClazz = descriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ? AroundAdvice.class : AroundConstructorAdvice.class;
 
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
-                                                               .bind(AdviceAnnotation.InterceptorName.class, nameResolver)
+                                                               .bind(AdviceAnnotation.InterceptorName.class, new AdviceAnnotation.InterceptorNameResolver(Advice.OffsetMapping.Sort.EXIT, supplierIndex, descriptor.getInterceptorClassName()))
                                                                .bind(AdviceAnnotation.InterceptorIndex.class, indexResolver)
                                                                .to(adviceClazz),
                                                          descriptor.getMethodMatcher()));
@@ -220,7 +219,7 @@ public class InterceptorInstaller {
                     }
                     builder = builder.method(descriptor.getMethodMatcher())
                                      .intercept(Advice.withCustomMapping()
-                                                      .bind(AdviceAnnotation.InterceptorName.class, nameResolver)
+                                                      .bind(AdviceAnnotation.InterceptorName.class, new AdviceAnnotation.InterceptorNameResolver(Advice.OffsetMapping.Sort.EXIT, supplierIndex, descriptor.getInterceptorClassName()))
                                                       .bind(AdviceAnnotation.InterceptorIndex.class, indexResolver)
                                                       .to(ReplacementAdvice.class)
                                                       .wrap(StubMethod.INSTANCE));
