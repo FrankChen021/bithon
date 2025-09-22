@@ -67,7 +67,7 @@ ENV INJECT_AGENT=true
 # by dynamically finding jemalloc library path based on architecture
 RUN JEMALLOC_PATH=$(find /usr/lib -name "libjemalloc.so*" | head -1) && \
     echo "export LD_PRELOAD=\"$JEMALLOC_PATH\"" >> /etc/environment && \
-    echo "JEMALLOC_PATH=$JEMALLOC_PATH" >> /etc/environment \
+    echo "JEMALLOC_PATH=$JEMALLOC_PATH" >> /etc/environment
 
 VOLUME /opt/shared/conf
 
