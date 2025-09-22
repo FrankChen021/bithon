@@ -28,6 +28,8 @@ import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 
 /**
+ * {@link org.apache.kafka.clients.admin.KafkaAdminClient}
+ *
  * @author Frank Chen
  * @date 2/1/24 11:47 am
  */

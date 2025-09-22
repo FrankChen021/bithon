@@ -144,7 +144,7 @@ public class KafkaPlugin implements IPlugin {
                 .build(),
 
             forClass("org.apache.kafka.clients.admin.KafkaAdminClient")
-                .onMethod(Matchers.implement("org.apache.kafka.clients.admin.Admin"))
+                .onMethod(Matchers.extend("org.apache.kafka.clients.admin.AdminClient"))
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.admin.interceptor.KafkaAdminClient$All")
                 .build()
         );

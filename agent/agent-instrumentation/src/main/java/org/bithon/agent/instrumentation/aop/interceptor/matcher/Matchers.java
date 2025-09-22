@@ -231,8 +231,8 @@ public class Matchers {
             } else {
                 for (int i = 0; i < args.length; i++) {
                     String paramType = matchRawArgType
-                        ? parameterList.get(i).getType().asRawType().getTypeName()
-                        : parameterList.get(i).getType().getTypeName();
+                                       ? parameterList.get(i).getType().asRawType().getTypeName()
+                                       : parameterList.get(i).getType().getTypeName();
                     if (!paramType.equals(args[i])) {
                         if (debug) {
                             log.info("matching [{}]: type of parameter {} not match. Given is {}, actual is {}",
@@ -267,19 +267,19 @@ public class Matchers {
     public static <T extends MethodDescription> ElementMatcher.Junction<T> implement(String interfaceName) {
         return ElementMatchers.isPublic()
                               .and(ElementMatchers.not(ElementMatchers.isDefaultMethod()))
-                              .and(new IsMethodOverriddenFrom<>(interfaceName));
+                              .and(new ImplementsMatcher<>(interfaceName));
     }
 
     public static <T extends MethodDescription> ElementMatcher.Junction<T> implement(String... interfaceNames) {
         return ElementMatchers.isPublic()
                               .and(ElementMatchers.not(ElementMatchers.isDefaultMethod()))
-                              .and(new IsMethodOverriddenFrom<>(interfaceNames));
+                              .and(new ImplementsMatcher<>(interfaceNames));
     }
 
-    public static <T extends MethodDescription> ElementMatcher.Junction<T> declared(String... interfaceNames) {
+    public static <T extends MethodDescription> ElementMatcher.Junction<T> extend(String... interfaceNames) {
         return ElementMatchers.isPublic()
                               .and(ElementMatchers.not(ElementMatchers.isDefaultMethod()))
-                              .and(ElementMatchers.isDeclaredBy(ElementMatchers.namedOneOf(interfaceNames)));
+                              .and(new ExtendsMatcher<>(interfaceNames));
 
     }
 }

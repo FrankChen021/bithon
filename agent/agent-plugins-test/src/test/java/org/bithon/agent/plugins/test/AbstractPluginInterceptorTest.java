@@ -208,8 +208,8 @@ public abstract class AbstractPluginInterceptorTest {
                          codeSource == null ? "<unknown>" : codeSource.getLocation());
             } catch (ClassNotFoundException e) {
                 String classLoaderInfo = customClassLoader != null ?
-                    " using custom class loader: " + customClassLoader.getClass().getSimpleName() :
-                    " using default class loader";
+                                         " using custom class loader: " + customClassLoader.getClass().getSimpleName() :
+                                         " using default class loader";
                 classLoaderInfo += ". JDK version: " + getCurrentJavaVersion();
                 Assertions.fail("Class " + clazzName + " not found" + classLoaderInfo);
             } catch (NoClassDefFoundError error) {
@@ -321,6 +321,14 @@ public abstract class AbstractPluginInterceptorTest {
             boolean found = instrumentedMethods.stream()
                                                .anyMatch(method -> expectedInterceptor.equals(method.getInterceptorName()));
 
+            if (!found) {
+                log.warn("Interceptor {} has no instrumented methods recorded in InstallerRecorder. " +
+                         "Instrumented methods: {}",
+                         expectedInterceptor,
+                         instrumentedMethods.stream()
+                                            .map(InstallerRecorder.InstrumentedMethod::toString)
+                                            .collect(Collectors.joining("\n")));
+            }
             Assertions.assertTrue(found,
                                   "Interceptor " + expectedInterceptor + " should have at least one instrumented method. " +
                                   "This indicates the method signature matching failed.");
