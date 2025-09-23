@@ -28,11 +28,17 @@ import org.bithon.agent.instrumentation.aop.interceptor.installer.InterceptorIns
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.PluginResolver;
 import org.bithon.agent.instrumentation.loader.PluginClassLoader;
+import org.bithon.agent.observability.event.EventMessage;
 import org.bithon.agent.observability.exporter.IMessageConverter;
 import org.bithon.agent.observability.exporter.IMessageExporter;
 import org.bithon.agent.observability.exporter.IMessageExporterFactory;
 import org.bithon.agent.observability.exporter.config.ExporterConfig;
 import org.bithon.agent.observability.metric.collector.jvm.JmxBeans;
+import org.bithon.agent.observability.metric.domain.jvm.JvmMetrics;
+import org.bithon.agent.observability.metric.model.IMeasurement;
+import org.bithon.agent.observability.metric.model.schema.Schema;
+import org.bithon.agent.observability.metric.model.schema.Schema2;
+import org.bithon.agent.observability.metric.model.schema.Schema3;
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
@@ -54,6 +60,7 @@ import java.lang.management.ManagementFactory;
 import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -112,7 +119,7 @@ public abstract class AbstractPluginInterceptorTest {
     }
 
     protected final List<ITraceSpan> reportedSpans = Collections.synchronizedList(new ArrayList<>());
-    protected static final List<Object> REPORTED_METRICS = new ArrayList<>();
+    protected static final List<IMeasurement> REPORTED_METRICS = Collections.synchronizedList(new ArrayList<>());
 
     public static class TestFactory implements IMessageExporterFactory {
         @Override
@@ -120,7 +127,12 @@ public abstract class AbstractPluginInterceptorTest {
             return new IMessageExporter() {
                 @Override
                 public void export(Object message) {
-                    REPORTED_METRICS.add(message);
+                    if (message instanceof Collection) {
+                        //noinspection unchecked
+                        REPORTED_METRICS.addAll((Collection<IMeasurement>) message);
+                    } else {
+                        REPORTED_METRICS.add((IMeasurement) message);
+                    }
                 }
 
                 @Override
@@ -149,7 +161,48 @@ public abstract class AbstractPluginInterceptorTest {
 
         @Override
         public IMessageConverter createMessageConverter() {
-            return null;
+            return new IMessageConverter() {
+                @Override
+                public Object from(long timestamp, int interval, JvmMetrics metrics) {
+                    return null;
+                }
+
+                @Override
+                public Object from(ITraceSpan span) {
+                    return null;
+                }
+
+                @Override
+                public Object from(EventMessage event) {
+                    return null;
+                }
+
+                @Override
+                public Object from(Map<String, String> log) {
+                    return null;
+                }
+
+                @Override
+                public Object from(Schema schema,
+                                   Collection<IMeasurement> measurementList,
+                                   long timestamp,
+                                   int interval) {
+                    return measurementList;
+                }
+
+                @Override
+                public Object from(Schema2 schema,
+                                   Collection<IMeasurement> measurementList,
+                                   long timestamp,
+                                   int interval) {
+                    return measurementList;
+                }
+
+                @Override
+                public Object from(Schema3 schema, List<Object[]> measurementList, long timestamp, int interval) {
+                    return measurementList;
+                }
+            };
         }
     }
 
