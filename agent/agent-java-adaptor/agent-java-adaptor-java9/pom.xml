@@ -12,7 +12,6 @@
   </parent>
 
   <artifactId>agent-java-adaptor-java9</artifactId>
-  <name>Agent Java Adaptor JDK9+</name>
   <description>JDK 9+ specific adaptations for the agent</description>
 
   <dependencies>
