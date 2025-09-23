@@ -38,4 +38,34 @@ public class NumberUtilsTest {
 
         Assertions.assertEquals("1b", NumberUtils.toHexString(new byte[]{0x1b}));
     }
+
+    @Test
+    public void testToHexStringLong() {
+        // Test zero
+        Assertions.assertEquals("0000000000000000", NumberUtils.toHexString(0L));
+        
+        // Test small positive numbers
+        Assertions.assertEquals("0000000000000001", NumberUtils.toHexString(1L));
+        Assertions.assertEquals("00000000000000ff", NumberUtils.toHexString(255L));
+        Assertions.assertEquals("0000000000001000", NumberUtils.toHexString(4096L));
+        
+        // Test maximum positive long
+        Assertions.assertEquals("7fffffffffffffff", NumberUtils.toHexString(Long.MAX_VALUE));
+        
+        // Test negative numbers
+        Assertions.assertEquals("ffffffffffffffff", NumberUtils.toHexString(-1L));
+        Assertions.assertEquals("ffffffffffffff00", NumberUtils.toHexString(-256L));
+        Assertions.assertEquals("8000000000000000", NumberUtils.toHexString(Long.MIN_VALUE));
+        
+        // Test some specific values
+        Assertions.assertEquals("0000000000001234", NumberUtils.toHexString(0x1234L));
+        Assertions.assertEquals("0000000012345678", NumberUtils.toHexString(0x12345678L));
+        Assertions.assertEquals("123456789abcdef0", NumberUtils.toHexString(0x123456789abcdef0L));
+        
+        // Test that all 16 characters are always present (leading zeros)
+        Assertions.assertEquals(16, NumberUtils.toHexString(1L).length());
+        Assertions.assertEquals(16, NumberUtils.toHexString(0L).length());
+        Assertions.assertEquals(16, NumberUtils.toHexString(Long.MAX_VALUE).length());
+        Assertions.assertEquals(16, NumberUtils.toHexString(Long.MIN_VALUE).length());
+    }
 }

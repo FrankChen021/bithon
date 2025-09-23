@@ -21,7 +21,7 @@ import io.jaegertracing.thriftjava.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
-import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.component.commons.utils.NumberUtils;
 import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.nio.charset.StandardCharsets;
@@ -35,9 +35,9 @@ public class JaegerSpanConverter {
     public static TraceSpan convert(ApplicationInstance instance, Span jaegerSpan) {
         TraceSpan span = new TraceSpan();
 
-        span.traceId = StringUtils.format("%016x%016x", jaegerSpan.getTraceIdHigh(), jaegerSpan.getTraceIdLow());
-        span.spanId = Long.toHexString(jaegerSpan.getSpanId());
-        span.parentSpanId = jaegerSpan.getParentSpanId() == 0 ? "" : Long.toHexString(jaegerSpan.getParentSpanId());
+        span.traceId = NumberUtils.toHexString(jaegerSpan.getTraceIdHigh()) + NumberUtils.toHexString(jaegerSpan.getTraceIdLow());
+        span.spanId = NumberUtils.toHexString(jaegerSpan.getSpanId());
+        span.parentSpanId = jaegerSpan.getParentSpanId() == 0 ? "" : NumberUtils.toHexString(jaegerSpan.getParentSpanId());
         span.name = jaegerSpan.getOperationName();
         span.startTime = jaegerSpan.getStartTime();
         span.endTime = jaegerSpan.getStartTime() + jaegerSpan.getDuration();
