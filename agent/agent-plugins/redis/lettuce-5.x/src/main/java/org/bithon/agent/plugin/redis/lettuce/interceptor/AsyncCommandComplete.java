@@ -24,11 +24,11 @@ import org.bithon.agent.observability.metric.domain.redis.RedisMetricRegistry;
 import org.bithon.agent.plugin.redis.lettuce.LettuceAsyncContext;
 
 /**
- * {@link io.lettuce.core.protocol.AsyncCommand#completeResult()}
+ * base class for AsyncCommand interceptors
  *
  * @author frankchen
  */
-public class AsyncCommand$Complete extends AfterInterceptor {
+public abstract class AsyncCommandComplete extends AfterInterceptor {
 
     private final RedisMetricRegistry metricRegistry = RedisMetricRegistry.get();
 
@@ -57,4 +57,6 @@ public class AsyncCommand$Complete extends AfterInterceptor {
 
         }
     }
+
+    protected abstract boolean isFailure();
 }
