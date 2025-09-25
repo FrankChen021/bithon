@@ -94,13 +94,13 @@ public class JavaNetHttpClientPluginInterceptorTest extends AbstractPluginInterc
         ctx.finish();
 
         // Verify tracing span logs
-        Assertions.assertEquals(2, this.REPORTED_SPANS.size());
-        Assertions.assertEquals("send", this.REPORTED_SPANS.get(0).method());
-        Assertions.assertEquals("http-client", this.REPORTED_SPANS.get(0).name());
-        Assertions.assertEquals("java.net.http", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.CLIENT));
-        Assertions.assertEquals("GET", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.METHOD));
-        Assertions.assertEquals("https://github.com", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.URL));
-        Assertions.assertEquals("200", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.STATUS));
+        Assertions.assertEquals(2, REPORTED_SPANS.size());
+        Assertions.assertEquals("send", REPORTED_SPANS.get(0).method());
+        Assertions.assertEquals("http-client", REPORTED_SPANS.get(0).name());
+        Assertions.assertEquals("java.net.http", REPORTED_SPANS.get(0).tags().get(Tags.Http.CLIENT));
+        Assertions.assertEquals("GET", REPORTED_SPANS.get(0).tags().get(Tags.Http.METHOD));
+        Assertions.assertEquals("https://github.com", REPORTED_SPANS.get(0).tags().get(Tags.Http.URL));
+        Assertions.assertEquals("200", REPORTED_SPANS.get(0).tags().get(Tags.Http.STATUS));
 
         // Wait for metrics to be exported
         Thread.sleep(11_000);
@@ -150,13 +150,13 @@ public class JavaNetHttpClientPluginInterceptorTest extends AbstractPluginInterc
         ctx.finish();
 
         // Verify tracing span logs
-        Assertions.assertEquals(2, this.REPORTED_SPANS.size());
-        Assertions.assertEquals("send", this.REPORTED_SPANS.get(0).method());
-        Assertions.assertEquals("http-client", this.REPORTED_SPANS.get(0).name());
-        Assertions.assertEquals("java.net.http", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.CLIENT));
-        Assertions.assertEquals("GET", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.METHOD));
-        Assertions.assertEquals("https://non-exists.com", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.URL));
-        Assertions.assertNotNull(this.REPORTED_SPANS.get(0).tags().get(Tags.Exception.TYPE));
+        Assertions.assertEquals(2, REPORTED_SPANS.size());
+        Assertions.assertEquals("send", REPORTED_SPANS.get(0).method());
+        Assertions.assertEquals("http-client", REPORTED_SPANS.get(0).name());
+        Assertions.assertEquals("java.net.http", REPORTED_SPANS.get(0).tags().get(Tags.Http.CLIENT));
+        Assertions.assertEquals("GET", REPORTED_SPANS.get(0).tags().get(Tags.Http.METHOD));
+        Assertions.assertEquals("https://non-exists.com", REPORTED_SPANS.get(0).tags().get(Tags.Http.URL));
+        Assertions.assertNotNull(REPORTED_SPANS.get(0).tags().get(Tags.Exception.TYPE));
 
         // Wait for metrics to be exported
         Thread.sleep(11_000);
@@ -208,13 +208,13 @@ public class JavaNetHttpClientPluginInterceptorTest extends AbstractPluginInterc
         ctx.currentSpan().finish();
         ctx.finish();
 
-        Assertions.assertEquals(2, this.REPORTED_SPANS.size());
-        Assertions.assertEquals("sendAsync", this.REPORTED_SPANS.get(0).method());
-        Assertions.assertEquals("http-client", this.REPORTED_SPANS.get(0).name());
-        Assertions.assertEquals("java.net.http", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.CLIENT));
-        Assertions.assertEquals("GET", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.METHOD));
-        Assertions.assertEquals("https://github.com", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.URL));
-        Assertions.assertEquals("200", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.STATUS));
+        Assertions.assertEquals(2, REPORTED_SPANS.size());
+        Assertions.assertEquals("sendAsync", REPORTED_SPANS.get(0).method());
+        Assertions.assertEquals("http-client", REPORTED_SPANS.get(0).name());
+        Assertions.assertEquals("java.net.http", REPORTED_SPANS.get(0).tags().get(Tags.Http.CLIENT));
+        Assertions.assertEquals("GET", REPORTED_SPANS.get(0).tags().get(Tags.Http.METHOD));
+        Assertions.assertEquals("https://github.com", REPORTED_SPANS.get(0).tags().get(Tags.Http.URL));
+        Assertions.assertEquals("200", REPORTED_SPANS.get(0).tags().get(Tags.Http.STATUS));
 
         // Wait for metrics to be exported
         Thread.sleep(11_000);
