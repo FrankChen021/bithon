@@ -17,10 +17,12 @@
 package org.bithon.agent.plugin.redis.lettuce.interceptor;
 
 import io.lettuce.core.api.StatefulConnection;
+import io.lettuce.core.protocol.AsyncCommand;
 import io.lettuce.core.protocol.RedisCommand;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.agent.observability.metric.model.schema.Dimensions;
 import org.bithon.agent.plugin.redis.lettuce.LettuceAsyncContext;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
@@ -33,20 +35,20 @@ public class AbstractRedisAsyncCommands$Dispatch extends AfterInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        if (!(aopContext.getReturning() instanceof IBithonObject)) {
-            return;
-        }
-        IBithonObject result = (IBithonObject) aopContext.getReturning();
-
-        LettuceAsyncContext asyncContext = new LettuceAsyncContext();
-        asyncContext.setStartTime(System.nanoTime());
-        result.setInjectedObject(asyncContext);
-
         StatefulConnection<?, ?> connection = ((StatefulConnection<?, ?>) ReflectionUtils.getFieldValue(aopContext.getTarget(),
                                                                                                         "connection"));
-        if (connection instanceof IBithonObject) {
-            String endpoint = (String) ((IBithonObject) connection).getInjectedObject();
-            asyncContext.setEndpoint(endpoint);
+        if (!(connection instanceof IBithonObject)) {
+            // In case the instrumentation is not successful
+            return;
         }
+
+        AsyncCommand<?, ?, ?> asyncCommand = aopContext.getReturningAs();
+
+        LettuceAsyncContext asyncContext = new LettuceAsyncContext();
+        String endpoint = (String) ((IBithonObject) connection).getInjectedObject();
+        asyncContext.setDimensions(Dimensions.of(endpoint, asyncCommand.getType().name()));
+        asyncContext.setStartTime(System.nanoTime());
+
+        ((IBithonObject) asyncCommand).setInjectedObject(asyncContext);
     }
 }

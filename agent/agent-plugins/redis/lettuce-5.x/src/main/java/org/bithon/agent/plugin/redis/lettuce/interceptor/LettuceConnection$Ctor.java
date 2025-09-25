@@ -19,13 +19,10 @@ package org.bithon.agent.plugin.redis.lettuce.interceptor;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
-import org.bithon.component.commons.utils.ReflectionUtils;
 
 /**
- * Hook on {@link org.springframework.data.redis.connection.lettuce.LettuceConnection}
- * to get connection info for Commands.
- * <p>
- * See {@link Command$Execute}
+ * Hook on {@link org.springframework.data.redis.connection.lettuce.LettuceConnection} ctor
+ * to copy context information from given connection to this LettuceConnection
  *
  * @author frank.chen021@outlook.com
  * @date 1/5/24 11:12 am
@@ -40,27 +37,11 @@ public class LettuceConnection$Ctor extends AfterInterceptor {
             return;
         }
 
+        // The endpoint is injected in RedisClient$Connect
         String endpoint = (String) ((IBithonObject) connection).getInjectedObject();
         int dbIndex = aopContext.getArgAs(3);
 
-        String[] commandFields = new String[]{
-            "geoCommands",
-            "hashCommands",
-            "hyperLogLogCommands",
-            "keyCommands",
-            "listCommands",
-            "scriptingCommands",
-            "setCommands",
-            "serverCommands",
-            "streamCommands",
-            "stringCommands",
-            "zSetCommands"
-        };
-        for (String commandField : commandFields) {
-            Object stringCommand = ReflectionUtils.getFieldValue(aopContext.getTarget(), commandField);
-            if (stringCommand instanceof IBithonObject) {
-                ((IBithonObject) stringCommand).setInjectedObject(new ConnectionContext(endpoint, dbIndex));
-            }
-        }
+        // Set the connection context info to the target object, so when commands object are returned(see LettuceConnection#Command), the context info can be got
+        ((IBithonObject) aopContext.getTarget()).setInjectedObject(new ConnectionContext(endpoint, dbIndex));
     }
 }

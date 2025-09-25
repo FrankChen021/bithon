@@ -16,25 +16,24 @@
 
 package org.bithon.agent.plugin.redis.lettuce.interceptor;
 
-
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.resource.ClientResources;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.agent.observability.utils.HostAndPort;
 
 /**
- * {@link io.lettuce.core.DefaultConnectionFuture#get()}
- *
- * Copy the target information to the returned object
- *
- * @author frankchen
+ * hook on {@link io.lettuce.core.RedisClient#RedisClient(ClientResources, RedisURI)}
+ * See {@link LettuceConnection$Commands} to know more about how context object are passed
  */
-public class DefaultConnectionFuture$Get extends AfterInterceptor {
+public class RedisClient$Ctor extends AfterInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        Object result = aopContext.getReturning();
-        if (result instanceof IBithonObject && aopContext.getTarget() instanceof IBithonObject) {
-            ((IBithonObject) result).setInjectedObject(((IBithonObject) aopContext.getTarget()).getInjectedObject());
+        RedisURI uri = aopContext.getArgAs(1);
+        if (uri != null) {
+            ((IBithonObject) aopContext.getTarget()).setInjectedObject(HostAndPort.of(uri.getHost(), uri.getPort()));
         }
     }
 }

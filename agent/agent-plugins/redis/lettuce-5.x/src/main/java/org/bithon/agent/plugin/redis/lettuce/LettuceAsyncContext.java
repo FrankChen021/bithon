@@ -16,12 +16,14 @@
 
 package org.bithon.agent.plugin.redis.lettuce;
 
+import org.bithon.agent.observability.metric.model.schema.Dimensions;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/27 5:35 下午
  */
 public class LettuceAsyncContext {
-    private String endpoint;
+    private Dimensions dimensions;
     private Long startNano;
     private int responseSize;
     private int requestSize;
@@ -30,12 +32,12 @@ public class LettuceAsyncContext {
         this.startNano = startNano;
     }
 
-    public void setEndpoint(String endpoint) {
-        this.endpoint = endpoint;
+    public void setDimensions(Dimensions dimensions) {
+        this.dimensions = dimensions;
     }
 
-    public String getEndpoint() {
-        return endpoint;
+    public Dimensions getDimensions() {
+        return dimensions;
     }
 
     public Long getStartTime() {

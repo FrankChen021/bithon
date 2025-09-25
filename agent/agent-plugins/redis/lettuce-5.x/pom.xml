@@ -10,10 +10,6 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>agent-plugin-redis-lettuce-5.x</artifactId>
 
-  <properties>
-    <lettuce.version>5.1.2.RELEASE</lettuce.version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>${project.parent.groupId}</groupId>
@@ -22,7 +18,15 @@
     <dependency>
       <groupId>io.lettuce</groupId>
       <artifactId>lettuce-core</artifactId>
-      <version>${lettuce.version}</version>
+      <version>5.1.2.RELEASE</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.springframework.data/spring-data-redis -->
+    <dependency>
+      <groupId>org.springframework.data</groupId>
+      <artifactId>spring-data-redis</artifactId>
+      <version>2.7.18</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>

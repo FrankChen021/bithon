@@ -67,6 +67,13 @@ public class MetricRegistry<T extends IMetricSet> {
         return createMetrics(Dimensions.of(dimensions), supplier.get());
     }
 
+    public T getOrCreateMetrics(Dimensions dimensions) {
+        if (dimensions.length() != this.schema.getDimensionsSpec().size()) {
+            throw new AgentException("required dimension size is %d, but input is %d", this.schema.getDimensionsSpec().size(), dimensions.length());
+        }
+        return createMetrics(dimensions, supplier.get());
+    }
+
     @SuppressWarnings("unchecked")
     public T getMetrics(Dimensions dimensions) {
         if (dimensions.length() != this.schema.getDimensionsSpec().size()) {

@@ -16,34 +16,24 @@
 
 package org.bithon.agent.plugin.redis.lettuce.interceptor;
 
-import io.lettuce.core.RedisURI;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
-import org.bithon.agent.observability.utils.HostAndPort;
-import org.bithon.component.commons.utils.ReflectionUtils;
 
 
 /**
+ * Hook {@link io.lettuce.core.RedisClient#connect()}
+ * Pass the context object from this RedisClient to the returned connection object
+ *
  * @author frankchen
  */
 public class RedisClient$Connect extends AfterInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        if (aopContext.hasException()) {
-            return;
-        }
-
-        Object connection = aopContext.getReturning();
-        if (connection instanceof IBithonObject) {
-            // forward endpoint to connection
-            RedisURI uri = ((RedisURI) ReflectionUtils.getFieldValue(aopContext.getTarget(), "redisURI"));
-
-            // Since RedisClient allows passing RedisURI to connect method
-            // it's a little bit complex to intercept this method to keep HostAndPort on RedisClient
-            // So, we always construct a HostAndPort string here
-            ((IBithonObject) connection).setInjectedObject(HostAndPort.of(uri.getHost(), uri.getPort()));
+        Object returningConnection = aopContext.getReturning();
+        if (returningConnection instanceof IBithonObject) {
+            ((IBithonObject) returningConnection).setInjectedObject(((IBithonObject) aopContext.getTarget()).getInjectedObject());
         }
     }
 }
