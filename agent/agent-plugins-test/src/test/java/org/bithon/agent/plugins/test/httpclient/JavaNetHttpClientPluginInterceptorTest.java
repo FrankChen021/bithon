@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
 import java.io.Closeable;
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -93,13 +94,13 @@ public class JavaNetHttpClientPluginInterceptorTest extends AbstractPluginInterc
         ctx.finish();
 
         // Verify tracing span logs
-        Assertions.assertEquals(2, this.reportedSpans.size());
-        Assertions.assertEquals("send", this.reportedSpans.get(0).method());
-        Assertions.assertEquals("http-client", this.reportedSpans.get(0).name());
-        Assertions.assertEquals("java.net.http", this.reportedSpans.get(0).tags().get(Tags.Http.CLIENT));
-        Assertions.assertEquals("GET", this.reportedSpans.get(0).tags().get(Tags.Http.METHOD));
-        Assertions.assertEquals("https://github.com", this.reportedSpans.get(0).tags().get(Tags.Http.URL));
-        Assertions.assertEquals("200", this.reportedSpans.get(0).tags().get(Tags.Http.STATUS));
+        Assertions.assertEquals(2, this.REPORTED_SPANS.size());
+        Assertions.assertEquals("send", this.REPORTED_SPANS.get(0).method());
+        Assertions.assertEquals("http-client", this.REPORTED_SPANS.get(0).name());
+        Assertions.assertEquals("java.net.http", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.CLIENT));
+        Assertions.assertEquals("GET", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.METHOD));
+        Assertions.assertEquals("https://github.com", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.URL));
+        Assertions.assertEquals("200", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.STATUS));
 
         // Wait for metrics to be exported
         Thread.sleep(11_000);
@@ -131,7 +132,6 @@ public class JavaNetHttpClientPluginInterceptorTest extends AbstractPluginInterc
 
             Assertions.assertNotNull(TraceContextHolder.current());
 
-
             // Create HTTP request to a reliable endpoint
             HttpRequest request = HttpRequest.newBuilder()
                                              .uri(URI.create("https://non-exists.com"))
@@ -139,33 +139,32 @@ public class JavaNetHttpClientPluginInterceptorTest extends AbstractPluginInterc
                                              .build();
 
             // Send HTTP request using Java Net HTTP Client
-            HttpResponse<String> response = HttpClient.newHttpClient()
-                                                      .send(request, HttpResponse.BodyHandlers.ofString());
-
-            // Verify the HTTP request was successful
-            Assertions.assertTrue(response.statusCode() >= 200 && response.statusCode() < 400,
-                                  "HTTP request should be successful, got status: " + response.statusCode());
-            Assertions.assertNotNull(response.body(), "Response body should not be null");
+            try {
+                HttpClient.newHttpClient()
+                          .send(request, HttpResponse.BodyHandlers.ofString());
+                Assertions.fail("Should have thrown ConnectException");
+            } catch (ConnectException ignored) {
+            }
         }
         ctx.currentSpan().finish();
         ctx.finish();
 
         // Verify tracing span logs
-        Assertions.assertEquals(2, this.reportedSpans.size());
-        Assertions.assertEquals("send", this.reportedSpans.get(0).method());
-        Assertions.assertEquals("http-client", this.reportedSpans.get(0).name());
-        Assertions.assertEquals("java.net.http", this.reportedSpans.get(0).tags().get(Tags.Http.CLIENT));
-        Assertions.assertEquals("GET", this.reportedSpans.get(0).tags().get(Tags.Http.METHOD));
-        Assertions.assertEquals("https://non-exists.com", this.reportedSpans.get(0).tags().get(Tags.Http.URL));
-        Assertions.assertNotNull(this.reportedSpans.get(0).tags().get(Tags.Exception.TYPE));
+        Assertions.assertEquals(2, this.REPORTED_SPANS.size());
+        Assertions.assertEquals("send", this.REPORTED_SPANS.get(0).method());
+        Assertions.assertEquals("http-client", this.REPORTED_SPANS.get(0).name());
+        Assertions.assertEquals("java.net.http", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.CLIENT));
+        Assertions.assertEquals("GET", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.METHOD));
+        Assertions.assertEquals("https://non-exists.com", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.URL));
+        Assertions.assertNotNull(this.REPORTED_SPANS.get(0).tags().get(Tags.Exception.TYPE));
 
         // Wait for metrics to be exported
         Thread.sleep(11_000);
 
         // Verify metrics, See HttpOutgoingMetricsRegistry for definition
-        Assertions.assertEquals(1, REPORTED_METRICS.size());
+        Assertions.assertEquals(1, REPORTED_METRICS.size(), "There should be one metric exported:" + REPORTED_METRICS);
         IMeasurement measurement = REPORTED_METRICS.get(0);
-        Assertions.assertEquals("https://github.com", measurement.getDimensions().getValue(0));
+        Assertions.assertEquals("https://non-exists.com", measurement.getDimensions().getValue(0));
         Assertions.assertEquals("GET", measurement.getDimensions().getValue(1));
         Assertions.assertEquals("", measurement.getDimensions().getValue(2));
 
@@ -176,7 +175,7 @@ public class JavaNetHttpClientPluginInterceptorTest extends AbstractPluginInterc
         Assertions.assertEquals(0, measurement.getMetricValue(3)); //count4xx
         Assertions.assertEquals(0, measurement.getMetricValue(4)); //count5xx
         Assertions.assertEquals(1, measurement.getMetricValue(5)); //countException
-        Assertions.assertEquals(0, measurement.getMetricValue(6)); //requestCount
+        Assertions.assertEquals(1, measurement.getMetricValue(6)); //requestCount
     }
 
     @Test
@@ -209,12 +208,31 @@ public class JavaNetHttpClientPluginInterceptorTest extends AbstractPluginInterc
         ctx.currentSpan().finish();
         ctx.finish();
 
-        Assertions.assertEquals(2, this.reportedSpans.size());
-        Assertions.assertEquals("sendAsync", this.reportedSpans.get(0).method());
-        Assertions.assertEquals("http-client", this.reportedSpans.get(0).name());
-        Assertions.assertEquals("java.net.http", this.reportedSpans.get(0).tags().get(Tags.Http.CLIENT));
-        Assertions.assertEquals("GET", this.reportedSpans.get(0).tags().get(Tags.Http.METHOD));
-        Assertions.assertEquals("https://github.com", this.reportedSpans.get(0).tags().get(Tags.Http.URL));
-        Assertions.assertEquals("200", this.reportedSpans.get(0).tags().get(Tags.Http.STATUS));
+        Assertions.assertEquals(2, this.REPORTED_SPANS.size());
+        Assertions.assertEquals("sendAsync", this.REPORTED_SPANS.get(0).method());
+        Assertions.assertEquals("http-client", this.REPORTED_SPANS.get(0).name());
+        Assertions.assertEquals("java.net.http", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.CLIENT));
+        Assertions.assertEquals("GET", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.METHOD));
+        Assertions.assertEquals("https://github.com", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.URL));
+        Assertions.assertEquals("200", this.REPORTED_SPANS.get(0).tags().get(Tags.Http.STATUS));
+
+        // Wait for metrics to be exported
+        Thread.sleep(11_000);
+
+        // Verify metrics, See HttpOutgoingMetricsRegistry for definition
+        Assertions.assertEquals(1, REPORTED_METRICS.size(), "There should be one metric exported:" + REPORTED_METRICS);
+        IMeasurement measurement = REPORTED_METRICS.get(0);
+        Assertions.assertEquals("https://github.com", measurement.getDimensions().getValue(0));
+        Assertions.assertEquals("GET", measurement.getDimensions().getValue(1));
+        Assertions.assertEquals("200", measurement.getDimensions().getValue(2));
+
+        // See HttpOutgoingMetrics
+        measurement.getMetricValue(0); // responseTime
+        measurement.getMetricValue(1); // maxResponseTime
+        measurement.getMetricValue(2); // minResponseTime
+        Assertions.assertEquals(0, measurement.getMetricValue(3)); //count4xx
+        Assertions.assertEquals(0, measurement.getMetricValue(4)); //count5xx
+        Assertions.assertEquals(0, measurement.getMetricValue(5)); //countException
+        Assertions.assertEquals(1, measurement.getMetricValue(6)); //requestCount
     }
 }

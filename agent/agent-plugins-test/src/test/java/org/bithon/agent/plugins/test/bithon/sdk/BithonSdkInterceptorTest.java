@@ -81,10 +81,10 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
             Assertions.assertEquals(TracingMode.TRACING, traceScope.tracingMode());
         }
 
-        Assertions.assertEquals(1, reportedSpans.size());
-        Assertions.assertEquals("root", reportedSpans.get(0).name());
-        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.INTERNAL, reportedSpans.get(0).kind());
-        Assertions.assertEquals("value1", reportedSpans.get(0).tags().get("key1"));
+        Assertions.assertEquals(1, REPORTED_SPANS.size());
+        Assertions.assertEquals("root", REPORTED_SPANS.get(0).name());
+        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.INTERNAL, REPORTED_SPANS.get(0).kind());
+        Assertions.assertEquals("value1", REPORTED_SPANS.get(0).tags().get("key1"));
     }
 
     @Test
@@ -100,9 +100,9 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
             }
         }
 
-        Assertions.assertEquals(1, reportedSpans.size());
-        Assertions.assertEquals("root", reportedSpans.get(0).name());
-        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.INTERNAL, reportedSpans.get(0).kind());
+        Assertions.assertEquals(1, REPORTED_SPANS.size());
+        Assertions.assertEquals("root", REPORTED_SPANS.get(0).name());
+        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.INTERNAL, REPORTED_SPANS.get(0).kind());
     }
 
     @Test
@@ -182,17 +182,17 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
         }
 
         // Verify spans were reported
-        Assertions.assertEquals(3, reportedSpans.size()); // root + 2 child spans
+        Assertions.assertEquals(3, REPORTED_SPANS.size()); // root + 2 child spans
 
         // Verify span names
-        Assertions.assertEquals("child-operation", reportedSpans.get(0).name());
-        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.INTERNAL, reportedSpans.get(0).kind());
+        Assertions.assertEquals("child-operation", REPORTED_SPANS.get(0).name());
+        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.INTERNAL, REPORTED_SPANS.get(0).kind());
 
-        Assertions.assertEquals("client-operation", reportedSpans.get(1).name());
-        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.CLIENT, reportedSpans.get(1).kind());
+        Assertions.assertEquals("client-operation", REPORTED_SPANS.get(1).name());
+        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.CLIENT, REPORTED_SPANS.get(1).kind());
 
-        Assertions.assertEquals("root-operation", reportedSpans.get(2).name());
-        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.INTERNAL, reportedSpans.get(2).kind());
+        Assertions.assertEquals("root-operation", REPORTED_SPANS.get(2).name());
+        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.INTERNAL, REPORTED_SPANS.get(2).kind());
     }
 
     @Test
@@ -252,8 +252,8 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
         }
 
         // Verify tags were set correctly
-        Assertions.assertEquals(1, reportedSpans.size());
-        Map<String, String> tags = reportedSpans.get(0).tags();
+        Assertions.assertEquals(1, REPORTED_SPANS.size());
+        Map<String, String> tags = REPORTED_SPANS.get(0).tags();
 
         Assertions.assertEquals("string-value", tags.get("string-tag"));
         Assertions.assertEquals("42", tags.get("int-tag"));
@@ -370,11 +370,11 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
         }
 
         // Verify all spans were reported (root + 3 nested scoped spans)
-        Assertions.assertEquals(4, reportedSpans.size());
+        Assertions.assertEquals(4, REPORTED_SPANS.size());
 
         // Verify all spans have the same trace ID
-        String expectedTraceId = reportedSpans.get(0).traceId();
-        for (ITraceSpan span : reportedSpans) {
+        String expectedTraceId = REPORTED_SPANS.get(0).traceId();
+        for (ITraceSpan span : REPORTED_SPANS) {
             Assertions.assertEquals(expectedTraceId, span.traceId());
         }
     }

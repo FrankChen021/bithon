@@ -118,8 +118,8 @@ public abstract class AbstractPluginInterceptorTest {
         initializeBeforeEachTestCase();
     }
 
-    protected final List<ITraceSpan> reportedSpans = Collections.synchronizedList(new ArrayList<>());
-    protected static final List<IMeasurement> REPORTED_METRICS = Collections.synchronizedList(new ArrayList<>());
+    protected static List<ITraceSpan> REPORTED_SPANS;
+    protected static List<IMeasurement> REPORTED_METRICS;
 
     public static class TestFactory implements IMessageExporterFactory {
         @Override
@@ -216,8 +216,8 @@ public abstract class AbstractPluginInterceptorTest {
     }
 
     protected void initializeBeforeEachTestCase() {
-        reportedSpans.clear();
-        REPORTED_METRICS.clear();
+        REPORTED_SPANS = Collections.synchronizedList(new ArrayList<>());
+        REPORTED_METRICS = Collections.synchronizedList(new ArrayList<>());
 
         // Replace default report
         Tracer.get()
@@ -229,7 +229,7 @@ public abstract class AbstractPluginInterceptorTest {
 
                   @Override
                   public void report(List<ITraceSpan> spans) {
-                      reportedSpans.addAll(spans);
+                      REPORTED_SPANS.addAll(spans);
                   }
               });
     }
