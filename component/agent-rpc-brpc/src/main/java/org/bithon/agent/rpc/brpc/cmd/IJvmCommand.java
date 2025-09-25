@@ -180,10 +180,10 @@ public interface IJvmCommand {
     String getBeanAttribute(String beanName, String attributeName);
 
     /**
-     * Dump class histogram using DiagnosticCommandMBean
-     * Same as 'jcmd <pid> GC.class_histogram'
-     * @param all if true, skip the full GC (-all option). If false, force GC before histogram
+     * Execute a diagnostic command using DiagnosticCommandMBean
+     * @param command the diagnostic command name (e.g., "gcClassHistogram", "dynlibs", "classloader_stats", "native_memory")
+     * @param arguments the command arguments
      * @return Raw string output from the MBean
      */
-    String dumpClassHistogram(boolean all) throws Exception;
+    String executeDiagnosticCommand(String command, String[] arguments) throws Exception;
 }

@@ -356,16 +356,10 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
     }
 
     @Override
-    public String dumpClassHistogram(boolean all) throws Exception {
-        String[] signature = {String[].class.getName()};
-
-        java.util.ArrayList<String> opts = new java.util.ArrayList<>();
-        Object[] params = {new String[]{"-all"}};
-
+    public String executeDiagnosticCommand(String command, String[] arguments) throws Exception {
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         ObjectName dcName = new ObjectName("com.sun.management:type=DiagnosticCommand");
 
-        return (String) mbs.invoke(dcName, "gcClassHistogram", params, signature);
+        return (String) mbs.invoke(dcName, command, new Object[]{arguments}, new String[]{String[].class.getName()});
     }
-
 }

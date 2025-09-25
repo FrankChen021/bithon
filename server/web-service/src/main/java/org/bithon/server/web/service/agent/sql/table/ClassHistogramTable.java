@@ -24,7 +24,6 @@ import org.bithon.server.web.service.common.calcite.SqlExecutionContext;
 import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -69,7 +68,7 @@ public class ClassHistogramTable extends AbstractBaseTable implements IPushdownP
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
         try {
             String histogramText = proxyFactory.createBroadcastProxy(executionContext.getParameters(), IJvmCommand.class)
-                                               .dumpClassHistogram(false);
+                                               .executeDiagnosticCommand("gcClassHistogram", new String[]{"-all"});
 
             return parseHistogram(histogramText).stream()
                                                 .map(HistogramEntry::toObjects)
