@@ -127,6 +127,14 @@ public class MetricRegistry<T extends IMetricSet> {
         public long getMetricValue(int index) {
             return metrics.getMetrics()[index].get();
         }
+
+        @Override
+        public String toString() {
+            return "Measurement{" +
+                   "dimensions=" + dimensions +
+                   ", metrics=" + metrics +
+                   '}';
+        }
     }
 
     static class Collector<T extends IMetricSet> implements IMetricCollector2 {

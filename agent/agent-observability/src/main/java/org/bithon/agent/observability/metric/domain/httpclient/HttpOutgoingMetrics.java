@@ -94,4 +94,19 @@ public class HttpOutgoingMetrics implements IMetricSet {
             responseBytes
         };
     }
+
+    @Override
+    public String toString() {
+        return "HttpOutgoingMetrics{" +
+               "responseTime=" + responseTime +
+               ", maxResponseTime=" + maxResponseTime +
+               ", minResponseTime=" + minResponseTime +
+               ", count4xx=" + count4xx +
+               ", count5xx=" + count5xx +
+               ", countException=" + countException +
+               ", requestCount=" + requestCount +
+               ", requestBytes=" + requestBytes +
+               ", responseBytes=" + responseBytes +
+               '}';
+    }
 }

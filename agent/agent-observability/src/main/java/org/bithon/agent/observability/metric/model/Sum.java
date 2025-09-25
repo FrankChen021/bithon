@@ -55,4 +55,9 @@ public class Sum implements IMetricValueUpdater, IMetricValueProvider {
     public long peek() {
         return value.get();
     }
+
+    @Override
+    public String toString() {
+        return value.toString();
+    }
 }

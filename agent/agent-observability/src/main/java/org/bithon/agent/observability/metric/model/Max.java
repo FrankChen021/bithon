@@ -35,4 +35,9 @@ public class Max implements IMetricValueUpdater, IMetricValueProvider {
         long value = this.value.getAndSet(Long.MIN_VALUE);
         return value == Long.MIN_VALUE ? 0 : value;
     }
+
+    @Override
+    public String toString() {
+        return value.toString();
+    }
 }
