@@ -178,4 +178,12 @@ public interface IJvmCommand {
      * @return value in JSON format
      */
     String getBeanAttribute(String beanName, String attributeName);
+
+    /**
+     * Dump class histogram using DiagnosticCommandMBean
+     * Same as 'jcmd <pid> GC.class_histogram'
+     * @param all if true, skip the full GC (-all option). If false, force GC before histogram
+     * @return Raw string output from the MBean
+     */
+    String dumpClassHistogram(boolean all) throws Exception;
 }
