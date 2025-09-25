@@ -87,6 +87,7 @@ public class HttpClient$Send extends AroundInterceptor {
         HttpClientContext context = (HttpClientContext) bithonObject.getInjectedObject();
 
         // Extract response information
+        // The response can be null if exception happens
         HttpResponse<?> response = aopContext.getReturningAs();
 
         long duration = System.nanoTime() - context.getRequestStartTime();
@@ -124,8 +125,11 @@ public class HttpClient$Send extends AroundInterceptor {
                 }
             }
 
-            span.tag(Tags.Http.STATUS, Integer.toString(response.statusCode()))
-                .tag(aopContext.getException())
+            if (response != null) {
+                span.tag(Tags.Http.STATUS, Integer.toString(response.statusCode()));
+            }
+
+            span.tag(aopContext.getException())
                 .finish();
         }
     }
