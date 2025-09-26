@@ -18,8 +18,6 @@ package org.bithon.agent.plugin.httpclient.javanethttp;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
-import org.bithon.agent.instrumentation.aop.interceptor.precondition.JdkVersionPrecondition;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 
 import java.util.Arrays;
@@ -38,11 +36,6 @@ import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.Interc
  * @date 2024/12/19
  */
 public class JavaNetHttpClientPlugin implements IPlugin {
-
-    @Override
-    public IInterceptorPrecondition getPreconditions() {
-        return JdkVersionPrecondition.gte(11);
-    }
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
