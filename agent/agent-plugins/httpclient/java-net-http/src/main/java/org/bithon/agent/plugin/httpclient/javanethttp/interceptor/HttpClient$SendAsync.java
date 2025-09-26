@@ -25,6 +25,7 @@ import org.bithon.agent.observability.metric.domain.httpclient.HttpOutgoingMetri
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
+import org.bithon.agent.plugin.httpclient.javanethttp.utils.HttpClientUtils;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -114,14 +115,15 @@ public class HttpClient$SendAsync extends AroundInterceptor {
 
                 if (throwable != null) {
                     // Record exception metrics
-                    metricRegistry.addExceptionRequest(url, httpMethod, duration);
+                    metricRegistry.addExceptionRequest(url, httpMethod, duration)
+                                  .updateIOMetrics(HttpClientUtils.getRequestSize(request), 0);
                 } else {
                     // Extract response information
                     int statusCode = response.statusCode();
 
                     // Record success metrics
                     metricRegistry.addRequest(url, httpMethod, statusCode, duration)
-                                  .updateIOMetrics(getRequestSize(request), getResponseSize(response));
+                                  .updateIOMetrics(HttpClientUtils.getRequestSize(request), HttpClientUtils.getResponseSize(response));
 
                     // Add response headers to trace
                     if (span != null) {
@@ -150,29 +152,5 @@ public class HttpClient$SendAsync extends AroundInterceptor {
 
         // Replace the original future with our wrapped one
         aopContext.setReturning(wrappedFuture);
-    }
-
-    private long getRequestSize(HttpRequest request) {
-        Optional<String> contentLength = request.headers().firstValue("content-length");
-        if (contentLength.isPresent()) {
-            try {
-                return Long.parseLong(contentLength.get());
-            } catch (NumberFormatException ignored) {
-                return 0L;
-            }
-        }
-        return 0L;
-    }
-
-    private long getResponseSize(HttpResponse<?> response) {
-        Optional<String> contentLength = response.headers().firstValue("content-length");
-        if (contentLength.isPresent()) {
-            try {
-                return Long.parseLong(contentLength.get());
-            } catch (NumberFormatException ignored) {
-                return 0L;
-            }
-        }
-        return 0L;
     }
 }

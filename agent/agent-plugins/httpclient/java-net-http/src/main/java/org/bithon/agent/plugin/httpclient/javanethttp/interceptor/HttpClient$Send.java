@@ -25,6 +25,7 @@ import org.bithon.agent.observability.metric.domain.httpclient.HttpOutgoingMetri
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
+import org.bithon.agent.plugin.httpclient.javanethttp.utils.HttpClientUtils;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 
@@ -83,36 +84,21 @@ public class HttpClient$Send extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
+        // Get the context from current HttpClient object
         IBithonObject bithonObject = aopContext.getTargetAs();
         HttpClientContext context = (HttpClientContext) bithonObject.getInjectedObject();
 
-        // Extract response information
-        // The response can be null if exception happens
-        HttpResponse<?> response = aopContext.getReturningAs();
+        HttpRequest httpRequest = aopContext.getArgAs(0);
+        HttpResponse<?> httpResponse = aopContext.getReturningAs();  // The response can be null if exception happens
 
+        // Collect metrics
         long duration = System.nanoTime() - context.getRequestStartTime();
         if (aopContext.hasException()) {
-            // Record exception metrics
-            metricRegistry.addExceptionRequest(context.getUrl(), context.getMethod(), duration);
+            metricRegistry.addExceptionRequest(context.getUrl(), context.getMethod(), duration)
+                          .updateIOMetrics(HttpClientUtils.getRequestSize(httpRequest), 0);
         } else {
-            int statusCode = response.statusCode();
-            context.setResponseCode(statusCode);
-
-            // Calculate response size if possible
-            long responseSize = 0;
-            Optional<String> contentLength = response.headers().firstValue("content-length");
-            if (contentLength.isPresent()) {
-                try {
-                    responseSize = Long.parseLong(contentLength.get());
-                } catch (NumberFormatException ignored) {
-                    // Unable to parse content-length
-                }
-            }
-            context.getReceiveBytes().update(responseSize);
-
-            // Record success metrics
-            metricRegistry.addRequest(context.getUrl(), context.getMethod(), statusCode, duration)
-                          .updateIOMetrics(context.getSentBytes().get(), context.getReceiveBytes().get());
+            metricRegistry.addRequest(context.getUrl(), context.getMethod(), httpResponse.statusCode(), duration)
+                          .updateIOMetrics(HttpClientUtils.getRequestSize(httpRequest), HttpClientUtils.getResponseSize(httpResponse));
         }
 
         ITraceSpan span = aopContext.getUserContext();
@@ -120,13 +106,13 @@ public class HttpClient$Send extends AroundInterceptor {
             // Add configured response headers to trace
             if (!traceConfig.getHeaders().getResponse().isEmpty()) {
                 for (String headerName : traceConfig.getHeaders().getResponse()) {
-                    Optional<String> headerValue = response.headers().firstValue(headerName);
+                    Optional<String> headerValue = httpResponse.headers().firstValue(headerName);
                     headerValue.ifPresent(s -> span.tag(Tags.Http.RESPONSE_HEADER_PREFIX + headerName, s));
                 }
             }
 
-            if (response != null) {
-                span.tag(Tags.Http.STATUS, Integer.toString(response.statusCode()));
+            if (httpResponse != null) {
+                span.tag(Tags.Http.STATUS, Integer.toString(httpResponse.statusCode()));
             }
 
             span.tag(aopContext.getException())
