@@ -236,7 +236,7 @@ And in theory, this matrix works both for Windows and Linux.
 ## Restrictions
 1. For Apache Druid, the Jersey plugin is required to be enabled to collect query information.
 2. From Apache Kafka clients 3.7, the consumer metrics only works when the `group.protocol` is configured as `classic` which is the default configuration of the consumer client. 
-3. For Lettuce, the tracing support is only available when it's used with Spring Data Redis API.
+3. For Lettuce, the tracing support is only available when it's used with Spring Data Redis API(org.springframework.data:spring-data-redis) from 2.3.4-RELEASE .
 
 
 
