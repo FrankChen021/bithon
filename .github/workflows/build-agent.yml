@@ -115,6 +115,8 @@ jobs:
             distribution: "zulu"
           - java-version: "24"
             distribution: "zulu"
+          - java-version: "25"
+            distribution: "temurin"
           # Non-LTS versions using zulu (better historical support)
           - java-version: "9"
             distribution: "zulu"
