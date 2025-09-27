@@ -120,7 +120,7 @@
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
       <!--Don't upgrade which would break the logging in test cases-->
-      <version>1.2.12</version>
+      <version>1.2.13</version>
       <scope>test</scope>
     </dependency>
 
