@@ -39,11 +39,11 @@ import javax.tools.StandardLocation;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * Annotation processor that analyzes interceptor classes at compile time
@@ -57,7 +57,7 @@ import java.util.Set;
 @SupportedAnnotationTypes("*")
 public class PluginMetadataProcessor extends AbstractProcessor {
 
-    private final Map<String, InterceptorType> interceptorTypes = new HashMap<>();
+    private final Map<String, InterceptorType> interceptorTypes = new TreeMap<>();
     private String pluginClass = null;
     private String minimalJdkVersion = null;
     private boolean metadataGenerated = false;

@@ -124,6 +124,13 @@
       <scope>test</scope>
     </dependency>
 
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-java-adaptor-java9</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
     <!-- Apache Druid -->
     <dependency>
       <groupId>org.bithon.agent</groupId>

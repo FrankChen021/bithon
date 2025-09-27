@@ -24,9 +24,11 @@ import org.bithon.agent.observability.metric.domain.redis.RedisMetricRegistry;
 import org.bithon.agent.plugin.redis.lettuce.LettuceAsyncContext;
 
 /**
+ * base class for AsyncCommand interceptors
+ *
  * @author frankchen
  */
-public class AsyncCommand$Complete extends AfterInterceptor {
+public abstract class AsyncCommandComplete extends AfterInterceptor {
 
     private final RedisMetricRegistry metricRegistry = RedisMetricRegistry.get();
 
@@ -39,7 +41,7 @@ public class AsyncCommand$Complete extends AfterInterceptor {
         LettuceAsyncContext asyncContext = (LettuceAsyncContext) ((IBithonObject) aopContext.getTarget()).getInjectedObject();
 
         if (asyncContext != null &&
-            asyncContext.getEndpoint() != null &&
+            asyncContext.getDimensions() != null &&
             asyncContext.getStartTime() != null) {
 
             AsyncCommand<?, ?, ?> asyncCommand = (AsyncCommand<?, ?, ?>) aopContext.getTarget();
@@ -48,12 +50,13 @@ public class AsyncCommand$Complete extends AfterInterceptor {
                            || asyncCommand.getOutput().hasError()
                            || "doCompleteExceptionally".equals(aopContext.getMethod());
 
-            this.metricRegistry.getOrCreateMetrics(asyncContext.getEndpoint(),
-                                                   asyncCommand.getType().name())
+            this.metricRegistry.getOrCreateMetrics(asyncContext.getDimensions())
                                .addRequest(System.nanoTime() - asyncContext.getStartTime(), fail ? 1 : 0)
                                .addRequestBytes(asyncContext.getRequestSize())
                                .addResponseBytes(asyncContext.getResponseSize());
 
         }
     }
+
+    protected abstract boolean isFailure();
 }

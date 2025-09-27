@@ -16,25 +16,15 @@
 
 package org.bithon.agent.plugin.redis.lettuce.interceptor;
 
-
-import org.bithon.agent.instrumentation.aop.IBithonObject;
-import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
-
 /**
- * {@link io.lettuce.core.DefaultConnectionFuture#get()}
- *
- * Copy the target information to the returned object
+ * {@link io.lettuce.core.protocol.AsyncCommand#cancel(boolean)}
  *
  * @author frankchen
  */
-public class DefaultConnectionFuture$Get extends AfterInterceptor {
+public class AsyncCommand$Cancel extends AsyncCommandComplete {
 
     @Override
-    public void after(AopContext aopContext) {
-        Object result = aopContext.getReturning();
-        if (result instanceof IBithonObject && aopContext.getTarget() instanceof IBithonObject) {
-            ((IBithonObject) result).setInjectedObject(((IBithonObject) aopContext.getTarget()).getInjectedObject());
-        }
+    protected boolean isFailure() {
+        return true;
     }
 }

@@ -57,6 +57,10 @@ public class LettucePlugin implements IPlugin {
             // add interceptor for forward Endpoint to Connection
             //
             forClass("io.lettuce.core.RedisClient")
+                .onConstructor()
+                .andArgs(1, "io.lettuce.core.RedisURI")
+                .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.RedisClient$Ctor")
+
                 .onMethod("connect")
                 .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.RedisClient$Connect")
 
@@ -103,15 +107,15 @@ public class LettucePlugin implements IPlugin {
 
                 .onMethod("completeResult")
                 .andNoArgs()
-                .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.AsyncCommand$Complete")
+                .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.AsyncCommand$CompleteResult")
 
                 .onMethod("cancel")
-                .andArgs("java.lang.boolean")
-                .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.AsyncCommand$Complete")
+                .andArgs("boolean")
+                .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.AsyncCommand$Cancel")
 
                 .onMethod("doCompleteExceptionally")
                 .andArgs("java.lang.Throwable")
-                .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.AsyncCommand$Complete")
+                .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.AsyncCommand$DoCompleteExceptionally")
                 .build(),
 
             forClass("io.lettuce.core.protocol.CommandHandler")
@@ -125,10 +129,26 @@ public class LettucePlugin implements IPlugin {
             // Only works on Spring Data Redis
             // because this layer is a synchronized interface while the lettuce provides async operations
             forClass("org.springframework.data.redis.connection.lettuce.LettuceConnection")
+                // Interceptor to hold the connection context
                 .onConstructor()
                 .andArgsSize(4)
                 .andArgs(0, "io.lettuce.core.api.StatefulConnection")
                 .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.LettuceConnection$Ctor")
+
+                .onMethod(Matchers.names("geoCommands",
+                                         "hashCommands",
+                                         "hyperLogLogCommands",
+                                         "keyCommands",
+                                         "listCommands",
+                                         "scriptingCommands",
+                                         "setCommands",
+                                         "serverCommands",
+                                         "streamCommands",
+                                         "stringCommands",
+                                         "zSetCommands"))
+                .andNoArgs()
+                .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.LettuceConnection$Commands")
+
                 .build(),
 
             forClass("org.springframework.data.redis.connection.lettuce.LettuceGeoCommands")

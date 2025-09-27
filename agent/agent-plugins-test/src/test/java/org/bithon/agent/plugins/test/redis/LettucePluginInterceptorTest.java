@@ -16,11 +16,17 @@
 
 package org.bithon.agent.plugins.test.redis;
 
+import org.bithon.agent.instrumentation.aop.interceptor.installer.InstallerRecorder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.redis.lettuce.LettucePlugin;
 import org.bithon.agent.plugins.test.AbstractPluginInterceptorTest;
 import org.bithon.agent.plugins.test.MavenArtifact;
 import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Test case for Lettuce 5.x plugin
@@ -69,5 +75,36 @@ public class LettucePluginInterceptorTest extends AbstractPluginInterceptorTest 
                              "spring-tx",
                              "5.3.13")
         );
+    }
+
+    @Test
+    @Override
+    public void testInterceptorInstallation() {
+        super.testInterceptorInstallation();
+
+        // Verify if methods as below are instrumented on target class: org.springframework.data.redis.connection.lettuce.LettuceConnection
+        String[] commandMethods = new String[]{
+            "geoCommands",
+            "hashCommands",
+            "hyperLogLogCommands",
+            "keyCommands",
+            "listCommands",
+            "scriptingCommands",
+            "setCommands",
+            "serverCommands",
+            "streamCommands",
+            "stringCommands",
+            "zSetCommands"
+        };
+        List<InstallerRecorder.InstrumentedMethod> instrumentedMethods = InstallerRecorder.INSTANCE.getInstrumentedMethods()
+                                                                                                   .stream()
+                                                                                                   .filter(instrumentedMethod -> "org.springframework.data.redis.connection.lettuce.LettuceConnection".equals(instrumentedMethod.getType()))
+                                                                                                   .collect(Collectors.toList());
+
+        for (String commandMethod : commandMethods) {
+            Assertions.assertTrue(instrumentedMethods.stream()
+                                                     .anyMatch((m) -> commandMethod.equals(m.getMethodName())),
+                                  "Method " + commandMethod + " is not instrumented");
+        }
     }
 }

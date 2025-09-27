@@ -55,7 +55,8 @@ public class JavaAdaptorFactory {
                                                                      JavaAdaptorFactory.class.getClassLoader())) {
                     Class<?> adaptorClass = classLoader.loadClass(String.format(Locale.ENGLISH, "org.bithon.agent.java.adaptor.Java%dAdaptor",
                                                                                 detectJavaVersion));
-                    ADAPTOR = (IJavaAdaptor) adaptorClass.getConstructor(Instrumentation.class).newInstance(instrumentation);
+                    ADAPTOR = (IJavaAdaptor) adaptorClass.getConstructor(Instrumentation.class)
+                                                         .newInstance(instrumentation);
                     return ADAPTOR;
                 }
             } catch (Throwable e) {
@@ -78,5 +79,12 @@ public class JavaAdaptorFactory {
         }
 
         throw new AgentException("JavaAdaptorFactory is not created. Please report to agent maintainers.");
+    }
+
+    /**
+     * ONLY for test purpose
+     */
+    public static void setAdaptor(IJavaAdaptor adaptor) {
+        ADAPTOR = adaptor;
     }
 }
