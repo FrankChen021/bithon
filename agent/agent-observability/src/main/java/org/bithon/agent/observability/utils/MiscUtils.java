@@ -29,6 +29,44 @@ public class MiscUtils {
      * because the rules are a little bit complex which would cause more frequent upgrading of agent
      */
     public static String cleanupConnectionString(String connectionString) {
-        return connectionString.split("\\?")[0].split(";")[0];
+        if (connectionString == null || connectionString.isEmpty()) {
+            return connectionString;
+        }
+        
+        // Vectorized search for '?' or ';' - process 4 characters at a time
+        int len = connectionString.length();
+        int i = 0;
+        
+        // Process 4 characters at a time for vectorization
+        for (; i < len - 3; i += 4) {
+            char c1 = connectionString.charAt(i);
+            char c2 = connectionString.charAt(i + 1);
+            char c3 = connectionString.charAt(i + 2);
+            char c4 = connectionString.charAt(i + 3);
+            
+            if (c1 == '?' || c1 == ';') {
+                return connectionString.substring(0, i);
+            }
+            if (c2 == '?' || c2 == ';') {
+                return connectionString.substring(0, i + 1);
+            }
+            if (c3 == '?' || c3 == ';') {
+                return connectionString.substring(0, i + 2);
+            }
+            if (c4 == '?' || c4 == ';') {
+                return connectionString.substring(0, i + 3);
+            }
+        }
+        
+        // Handle remaining characters (less than 4)
+        for (; i < len; i++) {
+            char c = connectionString.charAt(i);
+            if (c == '?' || c == ';') {
+                return connectionString.substring(0, i);
+            }
+        }
+        
+        // If neither character is found, return the original string
+        return connectionString;
     }
 }
