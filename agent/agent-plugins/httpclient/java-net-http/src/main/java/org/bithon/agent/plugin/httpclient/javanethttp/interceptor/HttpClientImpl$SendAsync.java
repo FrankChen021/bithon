@@ -43,8 +43,8 @@ import java.util.concurrent.Executor;
  * @author frank.chen021@outlook.com
  * @date 2024/12/19
  */
-public class HttpClient$SendAsync extends AroundInterceptor {
-    private static final ILogAdaptor LOG = LoggerFactory.getLogger(HttpClient$SendAsync.class);
+public class HttpClientImpl$SendAsync extends AroundInterceptor {
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(HttpClientImpl$SendAsync.class);
 
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
     private final TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);

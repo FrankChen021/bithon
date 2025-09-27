@@ -39,7 +39,7 @@ import java.util.Optional;
  * @author frank.chen021@outlook.com
  * @date 2024/12/19
  */
-public class HttpClient$Send extends AroundInterceptor {
+public class HttpClientImpl$Send extends AroundInterceptor {
 
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
     private final TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);

@@ -17,6 +17,7 @@
 package org.bithon.agent.java.adaptor;
 
 import java.lang.instrument.Instrumentation;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,6 +36,11 @@ public interface IJavaAdaptor {
 
         openPackages(inst, classFromSourceModule, openPackageTo);
     }
+
+    void openPackages(Instrumentation inst,
+                      Class<?> classFromSourceModule,
+                      String packageToOpen,
+                      Collection<ClassLoader> targetClassLoader);
 
     /**
      * Open necessary modules and packages for agent operation.
