@@ -110,7 +110,7 @@ public class LettucePlugin implements IPlugin {
                 .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.AsyncCommand$CompleteResult")
 
                 .onMethod("cancel")
-                .andArgs("java.lang.boolean")
+                .andArgs("boolean")
                 .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.AsyncCommand$Cancel")
 
                 .onMethod("doCompleteExceptionally")
