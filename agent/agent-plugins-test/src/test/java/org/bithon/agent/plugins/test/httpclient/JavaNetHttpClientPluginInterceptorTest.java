@@ -16,7 +16,10 @@
 
 package org.bithon.agent.plugins.test.httpclient;
 
+import net.bytebuddy.agent.ByteBuddyAgent;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
+import org.bithon.agent.java.adaptor.Java9Adaptor;
+import org.bithon.agent.java.adaptor.JavaAdaptorFactory;
 import org.bithon.agent.observability.metric.model.IMeasurement;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
@@ -61,6 +64,9 @@ public class JavaNetHttpClientPluginInterceptorTest extends AbstractPluginInterc
     @Order(0)
     @Override
     public void testInterceptorInstallation() {
+        // initialize the factory which is used in the plugin
+        JavaAdaptorFactory.setAdaptor(new Java9Adaptor(ByteBuddyAgent.getInstrumentation()));
+
         super.testInterceptorInstallation();
     }
 

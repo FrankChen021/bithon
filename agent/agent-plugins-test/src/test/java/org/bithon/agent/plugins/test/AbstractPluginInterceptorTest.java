@@ -322,6 +322,7 @@ public abstract class AbstractPluginInterceptorTest {
         }
         PluginResolver.resolveInterceptorType(descriptors.getAllDescriptor(), Collections.emptyMap());
 
+        InstrumentationHelper.setInstance(ByteBuddyAgent.getInstrumentation());
         InstrumentationHelper.setErrorHandler(new AgentBuilder.Listener.Adapter() {
             @Override
             public void onError(String typeName, ClassLoader classLoader, JavaModule module, boolean loaded, Throwable throwable) {
