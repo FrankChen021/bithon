@@ -39,6 +39,11 @@ public class LettuceConnection$Ctor extends AfterInterceptor {
 
         // The endpoint is injected in RedisClient$Connect
         String endpoint = (String) ((IBithonObject) connection).getInjectedObject();
+        if (endpoint == null) {
+            // this should not happen as it is injected in RedisClient$Connect
+            return;
+        }
+
         int dbIndex = aopContext.getArgAs(3);
 
         // Set the connection context info to the target object, so when commands object are returned(see LettuceConnection#Command), the context info can be got
