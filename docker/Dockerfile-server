@@ -14,7 +14,7 @@
 #   limitations under the License.
 #
 
-ARG JDK_VERSION=21
+ARG JDK_VERSION=25
 
 FROM maven:3.9.11-eclipse-temurin-${JDK_VERSION} AS builder
 
@@ -48,7 +48,8 @@ RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
       -DskipTests \
     ; fi
 
-FROM eclipse-temurin:${JDK_VERSION}
+# Pin to jdk 21 for runtime
+FROM eclipse-temurin:21
 
 RUN apt-get -qq update \
     && apt-get -qq -y install unzip \
@@ -67,7 +68,7 @@ ENV INJECT_AGENT=true
 # by dynamically finding jemalloc library path based on architecture
 RUN JEMALLOC_PATH=$(find /usr/lib -name "libjemalloc.so*" | head -1) && \
     echo "export LD_PRELOAD=\"$JEMALLOC_PATH\"" >> /etc/environment && \
-    echo "JEMALLOC_PATH=$JEMALLOC_PATH" >> /etc/environment \
+    echo "JEMALLOC_PATH=$JEMALLOC_PATH" >> /etc/environment
 
 VOLUME /opt/shared/conf
 

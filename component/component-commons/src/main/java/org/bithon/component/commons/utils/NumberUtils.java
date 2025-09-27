@@ -77,6 +77,45 @@ public class NumberUtils {
         return defaultValue;
     }
 
+    /**
+     * Converts a long value to a 16-character hexadecimal string with leading zeros.
+     * The result is always exactly 16 characters long, with leading zeros padded as needed.
+     * 
+     * @param val the long value to convert
+     * @return a lower-case hex string in 16-character length. zero will be padded
+     * 
+     * <pre>
+     * toHexString(1L) returns "0000000000000001"
+     * toHexString(255L) returns "00000000000000ff"
+     * toHexString(0L) returns "0000000000000000"
+     * toHexString(-1L) returns "ffffffffffffffff"
+     * toHexString(Long.MAX_VALUE) returns "7fffffffffffffff"
+     * </pre>
+     */
+    public static String toHexString(long val) {
+        StringBuilder sb = new StringBuilder(16);
+        
+        // Process each nibble (4-bit group) from most significant to least significant
+        sb.append(HEX_CHARS[(int) ((val >>> 60) & 0xF)]); // bits 60-63
+        sb.append(HEX_CHARS[(int) ((val >>> 56) & 0xF)]); // bits 56-59
+        sb.append(HEX_CHARS[(int) ((val >>> 52) & 0xF)]); // bits 52-55
+        sb.append(HEX_CHARS[(int) ((val >>> 48) & 0xF)]); // bits 48-51
+        sb.append(HEX_CHARS[(int) ((val >>> 44) & 0xF)]); // bits 44-47
+        sb.append(HEX_CHARS[(int) ((val >>> 40) & 0xF)]); // bits 40-43
+        sb.append(HEX_CHARS[(int) ((val >>> 36) & 0xF)]); // bits 36-39
+        sb.append(HEX_CHARS[(int) ((val >>> 32) & 0xF)]); // bits 32-35
+        sb.append(HEX_CHARS[(int) ((val >>> 28) & 0xF)]); // bits 28-31
+        sb.append(HEX_CHARS[(int) ((val >>> 24) & 0xF)]); // bits 24-27
+        sb.append(HEX_CHARS[(int) ((val >>> 20) & 0xF)]); // bits 20-23
+        sb.append(HEX_CHARS[(int) ((val >>> 16) & 0xF)]); // bits 16-19
+        sb.append(HEX_CHARS[(int) ((val >>> 12) & 0xF)]); // bits 12-15
+        sb.append(HEX_CHARS[(int) ((val >>> 8) & 0xF)]);  // bits 8-11
+        sb.append(HEX_CHARS[(int) ((val >>> 4) & 0xF)]);  // bits 4-7
+        sb.append(HEX_CHARS[(int) (val & 0xF)]);          // bits 0-3
+        
+        return sb.toString();
+    }
+
     public static String toHexString(byte[] bytes) {
         StringBuilder sb = new StringBuilder(bytes.length * 2);
         for (byte v : bytes) {

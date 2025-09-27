@@ -22,6 +22,7 @@ import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 import org.bithon.agent.plugin.bithon.sdk.tracing.TraceScopeImpl;
 import org.bithon.agent.sdk.expt.SdkException;
@@ -40,8 +41,11 @@ public class TraceScopeBuilder$Attach extends ReplaceInterceptor {
     @Override
     public Object execute(Object thisObject, Object[] args, Object returning) {
         ITraceContext currentContext = TraceContextHolder.current();
-        if (currentContext != null) {
-            throw new SdkException("There's already a trace context(traceId=%s) attached to the current thread.", currentContext.traceId());
+        if (currentContext != null && TraceMode.TRACING.equals(currentContext.traceMode())) {
+            ITraceSpan span = currentContext.currentSpan();
+            throw new SdkException("There's already a trace context(traceId=%s) attached to the current thread, top span=%s",
+                                   currentContext.traceId(),
+                                   span == null ? "" : span.toString());
         }
 
         TraceScopeBuilder builder = (TraceScopeBuilder) thisObject;

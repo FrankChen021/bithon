@@ -354,4 +354,12 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
             return false;
         }
     }
+
+    @Override
+    public String executeDiagnosticCommand(String command, String[] arguments) throws Exception {
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        ObjectName dcName = new ObjectName("com.sun.management:type=DiagnosticCommand");
+
+        return (String) mbs.invoke(dcName, command, new Object[]{arguments}, new String[]{String[].class.getName()});
+    }
 }

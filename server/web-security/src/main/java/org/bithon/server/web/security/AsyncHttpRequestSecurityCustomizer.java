@@ -16,21 +16,12 @@
 
 package org.bithon.server.web.security;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.lang.NonNull;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
 import java.util.stream.Stream;
 
 /**
@@ -64,49 +55,8 @@ public class AsyncHttpRequestSecurityCustomizer {
                                                    authorize.requestMatchers(sseEndpoints).permitAll()
             );
 
-            // Configure security context to be saved between requests
-            httpSecurity.securityContext(context ->
-                                             context.requireExplicitSave(false)
-            );
+            // Note: Security context saving is handled by the main security configuration
+            // For stateless JWT authentication, we don't need explicit save configuration
         };
-    }
-
-    /**
-     * Filter that stores the security context for SSE endpoints in request attributes
-     * to make it available for async processing
-     */
-    private static class SseSecurityContextPropagationFilter extends OncePerRequestFilter {
-        private final String[] sseEndpoints;
-
-        public SseSecurityContextPropagationFilter(String[] sseEndpoints) {
-            this.sseEndpoints = sseEndpoints;
-        }
-
-        @Override
-        protected void doFilterInternal(@NonNull HttpServletRequest request,
-                                        @NonNull HttpServletResponse response,
-                                        @NonNull FilterChain filterChain) throws ServletException, IOException {
-
-            String requestURI = request.getRequestURI();
-            boolean isSseEndpoint = false;
-
-            for (String endpoint : sseEndpoints) {
-                if (requestURI.equals(endpoint)) {
-                    isSseEndpoint = true;
-                    break;
-                }
-            }
-
-            if (isSseEndpoint) {
-                // For SSE endpoints, store the current security context in a request attribute
-                SecurityContext securityContext = SecurityContextHolder.getContext();
-                if (securityContext != null && securityContext.getAuthentication() != null) {
-                    log.debug("Storing security context for SSE endpoint: {}", requestURI);
-                    request.setAttribute("SPRING_SECURITY_CONTEXT", securityContext);
-                }
-            }
-
-            filterChain.doFilter(request, response);
-        }
     }
 }

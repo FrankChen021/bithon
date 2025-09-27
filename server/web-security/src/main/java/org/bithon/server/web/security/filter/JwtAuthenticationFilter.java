@@ -39,7 +39,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 /**
- * A filter before {@link org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter}.
+ * A JWT authentication filter that runs before other authentication filters.
  * <p>
  * If successfully authenticated,
  * the {@link SecurityContextHolder} is updated to hold authentication for current request.

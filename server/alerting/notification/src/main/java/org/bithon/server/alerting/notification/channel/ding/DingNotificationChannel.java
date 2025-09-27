@@ -113,7 +113,7 @@ public class DingNotificationChannel implements INotificationChannel {
             */
         }
         if (config.getRecordLinkTemplate() != null) {
-            section.add(new TextLine(StringUtils.format("[View Detail](" + config.getRecordLinkTemplate() + ")", message.getAlertRecordId())));
+            section.add(new TextLine(StringUtils.format("[View Detail](%s)", config.getRecordLinkTemplate())));
         }
 
         String content = FreeMarkerUtil.applyTemplate("/templates/alarm-notification.ftl", notificationContent);

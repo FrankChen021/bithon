@@ -178,4 +178,12 @@ public interface IJvmCommand {
      * @return value in JSON format
      */
     String getBeanAttribute(String beanName, String attributeName);
+
+    /**
+     * Execute a diagnostic command using DiagnosticCommandMBean
+     * @param command the diagnostic command name (e.g., "gcClassHistogram", "dynlibs", "classloader_stats", "native_memory")
+     * @param arguments the command arguments
+     * @return Raw string output from the MBean
+     */
+    String executeDiagnosticCommand(String command, String[] arguments) throws Exception;
 }

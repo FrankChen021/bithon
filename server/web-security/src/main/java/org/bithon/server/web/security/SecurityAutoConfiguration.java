@@ -28,8 +28,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.util.Map;
 import java.util.stream.Stream;
@@ -67,6 +68,9 @@ public class SecurityAutoConfiguration {
         // For simplicity, we just disable the frame option in global.
         httpSecurity.headers((c) -> c.frameOptions((HeadersConfigurer.FrameOptionsConfig::disable)));
 
+        // Disable CSRF for API endpoints since we're using JWT tokens
+        httpSecurity.csrf((c) -> c.ignoringRequestMatchers("/api/**"));
+
         //
         // Since the Spring Security has been introduced,
         // We have to configure the security to PERMIT all if the security is disabled by configuration
@@ -82,14 +86,21 @@ public class SecurityAutoConfiguration {
         }
 
         log.info("Configuring JWT Security");
+
+        // Configure stateless session management for JWT-based authentication
+        httpSecurity.sessionManagement((c) -> c.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
         httpSecurity.addFilterBefore(new JwtAuthenticationFilter(new JwtTokenComponent(applicationContext.getBean(JwtConfig.class))),
-                                     OAuth2AuthorizationRequestRedirectFilter.class);
+                                     UsernamePasswordAuthenticationFilter.class);
 
         // Get all beans that implement IHttpSecurityCustomizer and call their customize method
         Map<String, IHttpSecurityCustomizer> customizers = applicationContext.getBeansOfType(IHttpSecurityCustomizer.class);
         for (IHttpSecurityCustomizer customizer : customizers.values()) {
             customizer.customize(httpSecurity);
         }
+
+        // Allow authenticated users to access API endpoints (after customizers to avoid being overridden)
+        httpSecurity.authorizeHttpRequests((c) -> c.requestMatchers("/api/**").authenticated());
 
         return httpSecurity.build();
     }
