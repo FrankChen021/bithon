@@ -1,0 +1,122 @@
+/*
+ *    Copyright 2020 bithon.org
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+package org.bithon.agent.plugin.httpclient.javanethttp.interceptor;
+
+import org.bithon.agent.configuration.ConfigurationManager;
+import org.bithon.agent.instrumentation.aop.IBithonObject;
+import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
+import org.bithon.agent.observability.metric.domain.httpclient.HttpOutgoingMetricsRegistry;
+import org.bithon.agent.observability.tracing.config.TraceConfig;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
+import org.bithon.agent.plugin.httpclient.javanethttp.utils.HttpClientUtils;
+import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.tracing.Tags;
+
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.Optional;
+
+/**
+ * {@link jdk.internal.net.http.HttpClientImpl#send(HttpRequest, HttpResponse.BodyHandler)}
+ *
+ * @author frank.chen021@outlook.com
+ * @date 2024/12/19
+ */
+public class HttpClientImpl$Send extends AroundInterceptor {
+
+    private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
+    private final TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
+
+    @Override
+    public InterceptionDecision before(AopContext aopContext) {
+        HttpRequest request = aopContext.getArgAs(0);
+
+        // Create context for metrics collection
+        IBithonObject bithonObject = aopContext.getTargetAs();
+        if (bithonObject.getInjectedObject() == null) {
+            bithonObject.setInjectedObject(new HttpClientContext());
+        }
+
+        HttpClientContext context = (HttpClientContext) bithonObject.getInjectedObject();
+        context.setUrl(request.uri().toString());
+        context.setMethod(request.method());
+        context.setRequestStartTime(System.nanoTime());
+
+        // Start tracing span
+        ITraceSpan span = TraceContextFactory.newSpan("http-client");
+        if (span != null) {
+            span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                .kind(SpanKind.CLIENT)
+                .tag(Tags.Http.CLIENT, "java.net.http")
+                .tag(Tags.Http.URL, context.getUrl())
+                .tag(Tags.Http.METHOD, context.getMethod());
+
+            // Add configured request headers to trace
+            if (!traceConfig.getHeaders().getRequest().isEmpty()) {
+                for (String headerName : traceConfig.getHeaders().getRequest()) {
+                    Optional<String> headerValue = request.headers().firstValue(headerName);
+                    headerValue.ifPresent(s -> span.tag(Tags.Http.REQUEST_HEADER_PREFIX + headerName, s));
+                }
+            }
+
+            aopContext.setUserContext(span.start());
+        }
+
+        return InterceptionDecision.CONTINUE;
+    }
+
+    @Override
+    public void after(AopContext aopContext) {
+        // Get the context from current HttpClient object
+        IBithonObject bithonObject = aopContext.getTargetAs();
+        HttpClientContext context = (HttpClientContext) bithonObject.getInjectedObject();
+
+        HttpRequest httpRequest = aopContext.getArgAs(0);
+        HttpResponse<?> httpResponse = aopContext.getReturningAs();  // The response can be null if exception happens
+
+        // Collect metrics
+        long duration = System.nanoTime() - context.getRequestStartTime();
+        if (aopContext.hasException()) {
+            metricRegistry.addExceptionRequest(context.getUrl(), context.getMethod(), duration)
+                          .updateIOMetrics(HttpClientUtils.getRequestSize(httpRequest), 0);
+        } else {
+            metricRegistry.addRequest(context.getUrl(), context.getMethod(), httpResponse.statusCode(), duration)
+                          .updateIOMetrics(HttpClientUtils.getRequestSize(httpRequest), HttpClientUtils.getResponseSize(httpResponse));
+        }
+
+        ITraceSpan span = aopContext.getUserContext();
+        if (span != null) {
+            // Add configured response headers to trace
+            if (!traceConfig.getHeaders().getResponse().isEmpty()) {
+                for (String headerName : traceConfig.getHeaders().getResponse()) {
+                    Optional<String> headerValue = httpResponse.headers().firstValue(headerName);
+                    headerValue.ifPresent(s -> span.tag(Tags.Http.RESPONSE_HEADER_PREFIX + headerName, s));
+                }
+            }
+
+            if (httpResponse != null) {
+                span.tag(Tags.Http.STATUS, Integer.toString(httpResponse.statusCode()));
+            }
+
+            span.tag(aopContext.getException())
+                .finish();
+        }
+    }
+}

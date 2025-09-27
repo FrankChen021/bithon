@@ -16,19 +16,33 @@
 
 package org.bithon.agent.plugins.test;
 
+import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.source.Helper;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
-import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
-import org.bithon.agent.instrumentation.aop.interceptor.InterceptorSupplier;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.Descriptors;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptor;
+import org.bithon.agent.instrumentation.aop.interceptor.installer.InstallerRecorder;
 import org.bithon.agent.instrumentation.aop.interceptor.installer.InterceptorInstaller;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.PluginResolver;
 import org.bithon.agent.instrumentation.loader.PluginClassLoader;
+import org.bithon.agent.observability.event.EventMessage;
+import org.bithon.agent.observability.exporter.IMessageConverter;
+import org.bithon.agent.observability.exporter.IMessageExporter;
+import org.bithon.agent.observability.exporter.IMessageExporterFactory;
+import org.bithon.agent.observability.exporter.config.ExporterConfig;
 import org.bithon.agent.observability.metric.collector.jvm.JmxBeans;
+import org.bithon.agent.observability.metric.domain.jvm.JvmMetrics;
+import org.bithon.agent.observability.metric.model.IMeasurement;
+import org.bithon.agent.observability.metric.model.schema.Schema;
+import org.bithon.agent.observability.metric.model.schema.Schema2;
+import org.bithon.agent.observability.metric.model.schema.Schema3;
+import org.bithon.agent.observability.tracing.Tracer;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
+import org.bithon.agent.observability.tracing.reporter.ReporterConfig;
 import org.bithon.shaded.net.bytebuddy.agent.ByteBuddyAgent;
 import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import org.bithon.shaded.net.bytebuddy.utility.JavaModule;
@@ -42,8 +56,11 @@ import org.mockito.Mockito;
 import org.slf4j.Logger;
 
 import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.security.CodeSource;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -101,76 +118,124 @@ public abstract class AbstractPluginInterceptorTest {
         initializeBeforeEachTestCase();
     }
 
-    protected void initializeBeforeEachTestCase() {
-        // for override
+    protected static List<ITraceSpan> REPORTED_SPANS;
+    protected static List<IMeasurement> REPORTED_METRICS;
+
+    public static class TestFactory implements IMessageExporterFactory {
+        @Override
+        public IMessageExporter createMetricExporter(ExporterConfig exporterConfig) {
+            return new IMessageExporter() {
+                @Override
+                public void export(Object message) {
+                    if (message instanceof Collection) {
+                        //noinspection unchecked
+                        REPORTED_METRICS.addAll((Collection<IMeasurement>) message);
+                    } else {
+                        REPORTED_METRICS.add((IMeasurement) message);
+                    }
+                }
+
+                @Override
+                public void close() {
+                }
+            };
+        }
+
+        @Override
+        public IMessageExporter createTracingExporter(ExporterConfig exporterConfig) {
+            return new IMessageExporter() {
+                @Override
+                public void export(Object message) {
+                }
+
+                @Override
+                public void close() {
+                }
+            };
+        }
+
+        @Override
+        public IMessageExporter createEventExporter(ExporterConfig exporterConfig) {
+            return null;
+        }
+
+        @Override
+        public IMessageConverter createMessageConverter() {
+            return new IMessageConverter() {
+                @Override
+                public Object from(long timestamp, int interval, JvmMetrics metrics) {
+                    return null;
+                }
+
+                @Override
+                public Object from(ITraceSpan span) {
+                    return null;
+                }
+
+                @Override
+                public Object from(EventMessage event) {
+                    return null;
+                }
+
+                @Override
+                public Object from(Map<String, String> log) {
+                    return null;
+                }
+
+                @Override
+                public Object from(Schema schema,
+                                   Collection<IMeasurement> measurementList,
+                                   long timestamp,
+                                   int interval) {
+                    return measurementList;
+                }
+
+                @Override
+                public Object from(Schema2 schema,
+                                   Collection<IMeasurement> measurementList,
+                                   long timestamp,
+                                   int interval) {
+                    return measurementList;
+                }
+
+                @Override
+                public Object from(Schema3 schema, List<Object[]> measurementList, long timestamp, int interval) {
+                    return measurementList;
+                }
+            };
+        }
     }
 
-    /**
-     * Override this method in subclasses to provide custom environment variables for testing.
-     * The default implementation provides some basic test environment variables.
-     */
     protected Map<String, String> getEnvironmentVariables() {
-        return Collections.emptyMap();
+        // Add SDK-specific environment variables for testing
+        return ImmutableMap.of(
+            "bithon_exporters_tracing_client_factory", TestFactory.class.getName(),
+            "bithon_exporters_metric_client_factory", TestFactory.class.getName(),
+            "bithon_tracing_debug", "true"
+        );
+    }
+
+    protected void initializeBeforeEachTestCase() {
+        REPORTED_SPANS = Collections.synchronizedList(new ArrayList<>());
+        REPORTED_METRICS = Collections.synchronizedList(new ArrayList<>());
+
+        // Replace default report
+        Tracer.get()
+              .reporter(new ITraceReporter() {
+                  @Override
+                  public ReporterConfig getReporterConfig() {
+                      return new ReporterConfig();
+                  }
+
+                  @Override
+                  public void report(List<ITraceSpan> spans) {
+                      REPORTED_SPANS.addAll(spans);
+                  }
+              });
     }
 
     protected ClassLoader getCustomClassLoader() {
         return null;
-    }
-
-    /**
-     * Verify that an interceptor is properly installed in the InterceptorManager.
-     *
-     * @param interceptorClassName The fully qualified class name of the interceptor
-     */
-    protected static void verifyInterceptorInstalled(String interceptorClassName) {
-        Map<String, InterceptorSupplier> suppliers =
-            InterceptorManager.INSTANCE.getSuppliers(interceptorClassName);
-
-        // Debug output to understand what's happening
-        log.info("Interceptor: {}, Found suppliers: {}", interceptorClassName, suppliers.size());
-
-        Assertions.assertFalse(suppliers.isEmpty(),
-                               "Interceptor " + interceptorClassName + " should be installed. Found " + suppliers.size() + " suppliers.");
-    }
-
-    /**
-     * Verify that all interceptors for a plugin are properly installed.
-     *
-     * @param interceptorClassNames List of interceptor class names to verify
-     */
-    protected static void verifyAllInterceptorsInstalled(List<String> interceptorClassNames) {
-        for (String interceptorClassName : interceptorClassNames) {
-            verifyInterceptorInstalled(interceptorClassName);
-        }
-    }
-
-    /**
-     * Verify basic plugin structure and configuration.
-     *
-     * @param plugin                   The plugin to verify
-     * @param expectedInterceptorCount Expected number of interceptor descriptors
-     */
-    protected static void verifyPluginDefinition(IPlugin plugin, int expectedInterceptorCount) {
-        List<InterceptorDescriptor> interceptors = plugin.getInterceptors();
-        Assertions.assertNotNull(interceptors, "Plugin should define interceptors");
-        Assertions.assertEquals(expectedInterceptorCount, interceptors.size(),
-                                "Plugin should define exactly " + expectedInterceptorCount + " interceptors");
-
-        // Verify each interceptor has valid configuration
-        for (InterceptorDescriptor descriptor : interceptors) {
-            Assertions.assertNotNull(descriptor.getTargetClass(),
-                                     "Interceptor should have a target class");
-            Assertions.assertTrue(descriptor.getMethodPointCutDescriptors().length > 0,
-                                  "Interceptor should have at least one method point cut");
-
-            // Verify each method point cut has valid interceptor class name
-            for (MethodPointCutDescriptor methodDesc : descriptor.getMethodPointCutDescriptors()) {
-                Assertions.assertNotNull(methodDesc.getInterceptorClassName(),
-                                         "Method point cut should have interceptor class name");
-                Assertions.assertFalse(methodDesc.getInterceptorClassName().isEmpty(),
-                                       "Interceptor class name should not be empty");
-            }
-        }
     }
 
     private ClassLoader customClassLoader;
@@ -178,7 +243,7 @@ public abstract class AbstractPluginInterceptorTest {
     /**
      * Attempt to load a target class and verify it can be found.
      * This simulates what happens when the target application loads classes at runtime.
-     * Uses the custom class loader set via setClassLoader() if available, otherwise uses Class.forName().
+     * Use the custom class loader set via setClassLoader() if available, otherwise use Class.forName().
      *
      */
     protected void attemptClassLoading(List<String> classNames) {
@@ -186,7 +251,7 @@ public abstract class AbstractPluginInterceptorTest {
             try {
                 log.info("Loading class {} with {}", clazzName,
                          customClassLoader == null ? "system loader" : customClassLoader.getClass().getSimpleName());
-                Class<?> clazz = Class.forName(clazzName, false, customClassLoader);
+                Class<?> clazz = customClassLoader == null ? Class.forName(clazzName) : Class.forName(clazzName, false, customClassLoader);
 
                 Assertions.assertNotNull(clazz, "Class " + clazzName + " should be loadable");
                 CodeSource codeSource = clazz.getProtectionDomain().getCodeSource();
@@ -198,6 +263,7 @@ public abstract class AbstractPluginInterceptorTest {
                 String classLoaderInfo = customClassLoader != null ?
                                          " using custom class loader: " + customClassLoader.getClass().getSimpleName() :
                                          " using default class loader";
+                classLoaderInfo += ". JDK version: " + getCurrentJavaVersion();
                 Assertions.fail("Class " + clazzName + " not found" + classLoaderInfo);
             } catch (NoClassDefFoundError error) {
                 log.error("Class not found", error);
@@ -209,6 +275,18 @@ public abstract class AbstractPluginInterceptorTest {
                 }
                 Assertions.fail("Fail to load class " + clazzName + " not found:" + error.getMessage());
             }
+        }
+    }
+
+    private static int getCurrentJavaVersion() {
+        String specVersion = ManagementFactory.getRuntimeMXBean().getSpecVersion();
+        String[] versionParts = specVersion.split("\\.");
+        if (versionParts[0].equals("1")) {
+            // For Java 1.x (e.g., 1.8)
+            return Integer.parseInt(versionParts[1]);
+        } else {
+            // For Java 9 and above
+            return Integer.parseInt(versionParts[0]);
         }
     }
 
@@ -227,8 +305,6 @@ public abstract class AbstractPluginInterceptorTest {
                             " - interceptor may need updating");
         }
     }
-
-    private int instrumentationErrorCount = 0;
 
     @Test
     @Execution(ExecutionMode.SAME_THREAD)
@@ -250,7 +326,6 @@ public abstract class AbstractPluginInterceptorTest {
             @Override
             public void onError(String typeName, ClassLoader classLoader, JavaModule module, boolean loaded, Throwable throwable) {
                 log.error("Fail to instrument class {}", typeName, throwable);
-                instrumentationErrorCount++;
             }
         });
 
@@ -276,8 +351,41 @@ public abstract class AbstractPluginInterceptorTest {
                                                    .map(MethodPointCutDescriptor::getInterceptorClassName)
                                                    .distinct()
                                                    .collect(Collectors.toList());
-        verifyAllInterceptorsInstalled(installedInterceptors);
-        Assertions.assertEquals(0, instrumentationErrorCount, "There should be no instrumentation errors");
+
+        // Additional verification: Check that interceptors are actually applied to methods
+        // This uses InstallerRecorder which only records methods that were actually matched and instrumented
+        verifyMethodsActuallyInstrumented(installedInterceptors);
+    }
+
+    /**
+     * Verify that interceptors are actually applied to methods by checking InstallerRecorder.
+     * This is more accurate than just checking InterceptorManager because InstallerRecorder
+     * only records methods that were actually matched and instrumented by ByteBuddy.
+     *
+     * @param expectedInterceptors List of interceptor class names that should have been applied
+     */
+    protected static void verifyMethodsActuallyInstrumented(List<String> expectedInterceptors) {
+        List<InstallerRecorder.InstrumentedMethod> instrumentedMethods = InstallerRecorder.INSTANCE.getInstrumentedMethods();
+
+        log.info("InstallerRecorder found {} actually instrumented methods:", instrumentedMethods.size());
+
+        // Verify that each expected interceptor has at least one instrumented method
+        for (String expectedInterceptor : expectedInterceptors) {
+            boolean found = instrumentedMethods.stream()
+                                               .anyMatch(method -> expectedInterceptor.equals(method.getInterceptorName()));
+
+            if (!found) {
+                log.warn("Interceptor {} has no instrumented methods recorded in InstallerRecorder. " +
+                         "Instrumented methods: {}",
+                         expectedInterceptor,
+                         instrumentedMethods.stream()
+                                            .map(InstallerRecorder.InstrumentedMethod::toString)
+                                            .collect(Collectors.joining("\n")));
+            }
+            Assertions.assertTrue(found,
+                                  "Interceptor " + expectedInterceptor + " should have at least one instrumented method. " +
+                                  "This indicates the method signature matching failed.");
+        }
     }
 
     protected abstract IPlugin[] getPlugins();

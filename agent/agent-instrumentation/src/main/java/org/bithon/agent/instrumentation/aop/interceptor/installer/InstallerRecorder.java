@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Predicate;
 
 /**
@@ -90,6 +91,18 @@ public class InstallerRecorder {
                 parameters.append(str);
             }
             return parameters.toString();
+        }
+
+        @Override
+        public String toString() {
+            return String.format(Locale.ENGLISH,
+                                 "%s#%s(%s):%s [interceptorIndex=%d, interceptor=%s]",
+                                 getType(),
+                                 getMethodName(),
+                                 getParameters(),
+                                 getReturnType(),
+                                 getInterceptorIndex(),
+                                 getInterceptorName());
         }
     }
 

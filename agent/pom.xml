@@ -23,6 +23,8 @@
         <java.version>8</java.version>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
+
+        <byte-buddy.version>1.0-SNAPSHOT</byte-buddy.version>
     </properties>
 
     <modules>
@@ -47,6 +49,17 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+              <groupId>org.bithon.shaded</groupId>
+              <artifactId>shaded-bytebuddy</artifactId>
+              <version>${byte-buddy.version}</version>
+            </dependency>
+            <dependency>
+              <groupId>org.bithon.shaded</groupId>
+              <artifactId>shaded-jackson</artifactId>
+              <version>1.0-SNAPSHOT</version>
+            </dependency>
+
             <!-- Main -->
             <dependency>
                 <groupId>org.bithon.agent</groupId>
@@ -155,7 +168,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>3.3.0</version>
+                    <version>3.7.1</version>
                 </plugin>
             </plugins>
         </pluginManagement>

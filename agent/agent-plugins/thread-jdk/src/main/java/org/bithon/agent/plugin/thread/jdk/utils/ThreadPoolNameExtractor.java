@@ -58,6 +58,9 @@ public class ThreadPoolNameExtractor {
         nameFormatFields.put("com.zaxxer.hikari.util.UtilityElf$DefaultThreadFactory", "threadName");
         nameFormatFields.put("com.alibaba.druid.util", "nameStart");
 
+        // Since jdk 11
+        nameFormatFields.put("jdk.internal.net.http.HttpClientImpl$DefaultThreadFactory", "namePrefix");
+
         // Special cases to search name on a list of formats
         nameFormatFields.put("1", "name");
         nameFormatFields.put("2", "nameFormat");

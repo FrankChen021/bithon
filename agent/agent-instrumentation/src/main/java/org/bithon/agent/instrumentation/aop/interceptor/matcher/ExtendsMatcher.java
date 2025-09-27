@@ -22,14 +22,13 @@ import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2025/7/19 13:18
  */
-public class IsMethodOverriddenFrom<T extends MethodDescription> extends ElementMatcher.Junction.AbstractBase<T> {
+class ExtendsMatcher<T extends MethodDescription> extends ElementMatcher.Junction.AbstractBase<T> {
 
     private final Set<String> baseType;
 
@@ -38,55 +37,43 @@ public class IsMethodOverriddenFrom<T extends MethodDescription> extends Element
      */
     private Set<String> declaredMethods;
 
-    public IsMethodOverriddenFrom(String... baseType) {
+    ExtendsMatcher(String... baseType) {
         this.baseType = new HashSet<>(Arrays.asList(baseType));
     }
 
     /**
      * Get the declared methods in given base type
      */
-    private Set<String> getDeclaredMethods(T target) {
+    private Set<String> getDeclaredMethods(T targetMethod) {
         if (declaredMethods != null) {
             return declaredMethods;
         }
 
         declaredMethods = new HashSet<>();
         {
-            Set<String> processedInterfaces = new HashSet<>();
-            for (TypeDefinition declaringType : target.getDeclaringType()) {
-                List<? extends TypeDefinition> declaringInterfaces = declaringType.getInterfaces();
-                for (TypeDefinition declaringInterface : declaringInterfaces) {
-                    if (baseType.contains(declaringInterface.asErasure().getName())) {
-                        collectDeclaredMethods(declaringInterface, processedInterfaces, declaredMethods);
-                        if (baseType.size() == 1) {
-                            // If only one base type is specified, we can stop here
-                            return declaredMethods;
+            Set<String> processedTypes = new HashSet<>();
+
+            // Find all interfaces/parent classes that are the 'baseType' type
+            for (TypeDefinition declaringType : targetMethod.getDeclaringType()) {
+                // Search super class
+                TypeDefinition superType = declaringType.getSuperClass();
+                while (superType != null) {
+                    if (baseType.contains(superType.asErasure().getName())) {
+                        if (processedTypes.add(declaringType.asErasure().getName())) {
+                            for (MethodDescription method : superType.getDeclaredMethods()) {
+                                if (method.isVirtual()) {
+                                    declaredMethods.add(method.asSignatureToken().toString());
+                                }
+                            }
                         }
+                        // Continue to search the super class if the overridden method is declared in the grandparent class
                     }
+                    superType = superType.getSuperClass();
                 }
             }
         }
 
         return declaredMethods;
-    }
-
-    private void collectDeclaredMethods(TypeDefinition declaringInterface,
-                                        Set<String> processedType,
-                                        Set<String> declaredMethods) {
-        if (!processedType.add(declaringInterface.asErasure().getName())) {
-            return;
-        }
-
-        for (MethodDescription method : declaringInterface.getDeclaredMethods()) {
-            if (method.isVirtual()) {
-                declaredMethods.add(method.asSignatureToken().toString());
-            }
-        }
-
-        // Recursively collect methods from super interfaces
-        for (TypeDefinition superInterface : declaringInterface.getInterfaces()) {
-            collectDeclaredMethods(superInterface.asErasure(), processedType, declaredMethods);
-        }
     }
 
     /**

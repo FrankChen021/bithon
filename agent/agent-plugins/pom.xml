@@ -50,6 +50,7 @@
     <module>httpclient/okhttp-3.2</module>
     <module>httpclient/apache-httpcomponents4</module>
     <module>httpclient/apache-httpcomponents5</module>
+    <module>httpclient/java-net-http</module>
     <module>httpclient/jdk</module>
     <module>httpclient/jetty</module>
     <module>httpclient/netty3</module>

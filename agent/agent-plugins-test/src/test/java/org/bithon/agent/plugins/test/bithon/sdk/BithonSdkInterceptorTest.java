@@ -17,16 +17,8 @@
 package org.bithon.agent.plugins.test.bithon.sdk;
 
 
-import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.observability.exporter.IMessageConverter;
-import org.bithon.agent.observability.exporter.IMessageExporter;
-import org.bithon.agent.observability.exporter.IMessageExporterFactory;
-import org.bithon.agent.observability.exporter.config.ExporterConfig;
-import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
-import org.bithon.agent.observability.tracing.reporter.ReporterConfig;
 import org.bithon.agent.plugin.bithon.sdk.BithonSdkPlugin;
 import org.bithon.agent.plugins.test.AbstractPluginInterceptorTest;
 import org.bithon.agent.plugins.test.MavenArtifact;
@@ -45,8 +37,6 @@ import org.junit.jupiter.api.TestMethodOrder;
 
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,39 +45,6 @@ import java.util.Map;
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
-
-    private final List<ITraceSpan> reportedSpans = new ArrayList<>();
-
-    public static class TestFactory implements IMessageExporterFactory {
-        @Override
-        public IMessageExporter createMetricExporter(ExporterConfig exporterConfig) {
-            return null;
-        }
-
-        @Override
-        public IMessageExporter createTracingExporter(ExporterConfig exporterConfig) {
-            return new IMessageExporter() {
-                @Override
-                public void export(Object message) {
-                }
-
-                @Override
-                public void close() {
-                }
-            };
-        }
-
-        @Override
-        public IMessageExporter createEventExporter(ExporterConfig exporterConfig) {
-            return null;
-        }
-
-        @Override
-        public IMessageConverter createMessageConverter() {
-            return null;
-        }
-    }
-
     @Override
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
@@ -97,37 +54,10 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
     }
 
     @Override
-    protected Map<String, String> getEnvironmentVariables() {
-        // Add SDK-specific environment variables for testing
-        return ImmutableMap.of(
-            "bithon_exporters_tracing_client_factory", TestFactory.class.getName()
-        );
-    }
-
-    @Override
     protected IPlugin[] getPlugins() {
         return new IPlugin[]{
             new BithonSdkPlugin()
         };
-    }
-
-    @Override
-    protected void initializeBeforeEachTestCase() {
-        reportedSpans.clear();
-
-        // Replace default report
-        Tracer.get()
-              .reporter(new ITraceReporter() {
-                  @Override
-                  public ReporterConfig getReporterConfig() {
-                      return new ReporterConfig();
-                  }
-
-                  @Override
-                  public void report(List<ITraceSpan> spans) {
-                      reportedSpans.addAll(spans);
-                  }
-              });
     }
 
     /**
@@ -151,10 +81,10 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
             Assertions.assertEquals(TracingMode.TRACING, traceScope.tracingMode());
         }
 
-        Assertions.assertEquals(1, reportedSpans.size());
-        Assertions.assertEquals("root", reportedSpans.get(0).name());
-        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.INTERNAL, reportedSpans.get(0).kind());
-        Assertions.assertEquals("value1", reportedSpans.get(0).tags().get("key1"));
+        Assertions.assertEquals(1, REPORTED_SPANS.size());
+        Assertions.assertEquals("root", REPORTED_SPANS.get(0).name());
+        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.INTERNAL, REPORTED_SPANS.get(0).kind());
+        Assertions.assertEquals("value1", REPORTED_SPANS.get(0).tags().get("key1"));
     }
 
     @Test
@@ -170,9 +100,9 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
             }
         }
 
-        Assertions.assertEquals(1, reportedSpans.size());
-        Assertions.assertEquals("root", reportedSpans.get(0).name());
-        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.INTERNAL, reportedSpans.get(0).kind());
+        Assertions.assertEquals(1, REPORTED_SPANS.size());
+        Assertions.assertEquals("root", REPORTED_SPANS.get(0).name());
+        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.INTERNAL, REPORTED_SPANS.get(0).kind());
     }
 
     @Test
@@ -252,17 +182,17 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
         }
 
         // Verify spans were reported
-        Assertions.assertEquals(3, reportedSpans.size()); // root + 2 child spans
+        Assertions.assertEquals(3, REPORTED_SPANS.size()); // root + 2 child spans
 
         // Verify span names
-        Assertions.assertEquals("child-operation", reportedSpans.get(0).name());
-        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.INTERNAL, reportedSpans.get(0).kind());
+        Assertions.assertEquals("child-operation", REPORTED_SPANS.get(0).name());
+        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.INTERNAL, REPORTED_SPANS.get(0).kind());
 
-        Assertions.assertEquals("client-operation", reportedSpans.get(1).name());
-        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.CLIENT, reportedSpans.get(1).kind());
+        Assertions.assertEquals("client-operation", REPORTED_SPANS.get(1).name());
+        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.CLIENT, REPORTED_SPANS.get(1).kind());
 
-        Assertions.assertEquals("root-operation", reportedSpans.get(2).name());
-        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.INTERNAL, reportedSpans.get(2).kind());
+        Assertions.assertEquals("root-operation", REPORTED_SPANS.get(2).name());
+        Assertions.assertEquals(org.bithon.component.commons.tracing.SpanKind.INTERNAL, REPORTED_SPANS.get(2).kind());
     }
 
     @Test
@@ -322,8 +252,8 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
         }
 
         // Verify tags were set correctly
-        Assertions.assertEquals(1, reportedSpans.size());
-        Map<String, String> tags = reportedSpans.get(0).tags();
+        Assertions.assertEquals(1, REPORTED_SPANS.size());
+        Map<String, String> tags = REPORTED_SPANS.get(0).tags();
 
         Assertions.assertEquals("string-value", tags.get("string-tag"));
         Assertions.assertEquals("42", tags.get("int-tag"));
@@ -440,11 +370,11 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
         }
 
         // Verify all spans were reported (root + 3 nested scoped spans)
-        Assertions.assertEquals(4, reportedSpans.size());
+        Assertions.assertEquals(4, REPORTED_SPANS.size());
 
         // Verify all spans have the same trace ID
-        String expectedTraceId = reportedSpans.get(0).traceId();
-        for (ITraceSpan span : reportedSpans) {
+        String expectedTraceId = REPORTED_SPANS.get(0).traceId();
+        for (ITraceSpan span : REPORTED_SPANS) {
             Assertions.assertEquals(expectedTraceId, span.traceId());
         }
     }

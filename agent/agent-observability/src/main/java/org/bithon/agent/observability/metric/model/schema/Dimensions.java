@@ -66,6 +66,11 @@ public final class Dimensions {
         return this.hash == that.hash && Arrays.equals(this.values, that.values);
     }
 
+    @Override
+    public String toString() {
+        return Arrays.toString(values);
+    }
+
     public static Dimensions of(String... values) {
         return new Dimensions(values);
     }

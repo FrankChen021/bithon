@@ -21,6 +21,7 @@ import org.bithon.agent.instrumentation.expt.AgentException;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -30,6 +31,14 @@ import java.util.Map;
 public class Java8Adaptor implements IJavaAdaptor {
 
     public Java8Adaptor(Instrumentation inst) {
+    }
+
+    @Override
+    public void openPackages(Instrumentation inst,
+                             Class<?> classFromSourceModule,
+                             String packageToOpen,
+                             Collection<ClassLoader> targetClassLoader) {
+        // Do nothing for JDK 8
     }
 
     @Override
