@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.httpclient.javanethttp;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import java.util.Arrays;
 import java.util.List;
@@ -40,20 +41,20 @@ public class JavaNetHttpClientPlugin implements IPlugin {
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
-
             // Intercept synchronous HTTP requests
             forClass("jdk.internal.net.http.HttpClientImpl")
+                .onMethod(ElementMatchers.named("create")
+                                         .and(ElementMatchers.isStatic()))
+                .interceptedBy("org.bithon.agent.plugin.httpclient.javanethttp.interceptor.HttpClientImpl$Create")
+
                 .onMethod("send")
                 .andRawArgs("java.net.http.HttpRequest", "java.net.http.HttpResponse$BodyHandler")
-                .interceptedBy("org.bithon.agent.plugin.httpclient.javanethttp.interceptor.HttpClient$Send")
-                .build(),
+                .interceptedBy("org.bithon.agent.plugin.httpclient.javanethttp.interceptor.HttpClientImpl$Send")
 
-            // Intercept asynchronous HTTP requests
-            forClass("jdk.internal.net.http.HttpClientImpl")
                 .onMethod("sendAsync")
                 .andArgsSize(4)
                 .andVisibility(Visibility.PRIVATE)
-                .interceptedBy("org.bithon.agent.plugin.httpclient.javanethttp.interceptor.HttpClient$SendAsync")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.javanethttp.interceptor.HttpClientImpl$SendAsync")
                 .build(),
 
             // Intercept HttpRequest.headers() to propagate tracing headers
