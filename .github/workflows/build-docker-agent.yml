@@ -1,0 +1,43 @@
+name: Build/Push Agent Image
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v2
+
+      - name: Check for docker or workflow changes (PR only)
+        if: github.event_name == 'pull_request'
+        id: docker-changes
+        run: |
+          if git diff --name-only ${{ github.event.pull_request.base.sha }} HEAD | grep -q "^docker/\|^\.github/workflows/build-docker-agent.yml"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup JDK8
+        if: github.event_name == 'push' || (github.event_name == 'pull_request' && steps.docker-changes.outputs.changed == 'true')
+        uses: actions/setup-java@v2
+        with:
+          java-version: "8"
+          distribution: "adopt"
+
+      - name: Build image
+        if: github.event_name == 'push' || (github.event_name == 'pull_request' && steps.docker-changes.outputs.changed == 'true')
+        run: DOCKER_BUILDKIT=1 docker build -t bithon/agent -f docker/Dockerfile-agent .
+
+      - name: Log into registry
+        if: github.event_name == 'push'
+        run: echo "${{ secrets.DOCKER_ACCESS_CODE }}" | docker login -u bithon --password-stdin
+
+      - name: Push image
+        if: github.event_name == 'push'
+        run: docker push bithon/agent:latest
