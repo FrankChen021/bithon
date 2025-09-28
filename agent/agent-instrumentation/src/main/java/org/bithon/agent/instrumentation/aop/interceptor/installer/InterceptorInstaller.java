@@ -59,7 +59,7 @@ import java.util.Set;
  */
 public class InterceptorInstaller {
 
-    private final static ILogger LOG = LoggerFactory.getLogger(InterceptorInstaller.class);
+    private static final ILogger LOG = LoggerFactory.getLogger(InterceptorInstaller.class);
     private final Descriptors descriptors;
 
     public InterceptorInstaller(Descriptors descriptors) {
