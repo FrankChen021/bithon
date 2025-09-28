@@ -57,10 +57,10 @@ jobs:
         run: mvn clean install -T 1C -ntp --activate-profiles shaded -Dmaven.javadoc.skip=true -DskipTests
 
       - name: Compilation
-        run: mvn clean install -T 1C -ntp --activate-profiles agent,component -Dmaven.javadoc.skip=true -Dmaven.surefire.skip=true
+        run: mvn clean install -T 1C -ntp --activate-profiles agent,component -Dmaven.javadoc.skip=true -DskipTests
 
       - name: Process test resources
-        run: mvn test-compile -T 1C -ntp --activate-profiles agent,component -Dmaven.surefire.skip=true
+        run: mvn test-compile -T 1C -ntp --activate-profiles agent,component -DskipTests
 
       - name: Verify test resources are built
         run: |
@@ -266,7 +266,7 @@ jobs:
           
           if [ "$MISSING_RESOURCES" = true ]; then
             echo "=== Rebuilding test resources ==="
-            mvn test-compile -T 1C -ntp --activate-profiles agent,component -Dmaven.surefire.skip=true
+            mvn test-compile -T 1C -ntp --activate-profiles agent,component -DskipTests
             
             echo "=== Verifying resources after rebuild ==="
             find agent/ -path "*/target/test-classes/*" -name "init-mysql*.sql" -type f
