@@ -42,4 +42,13 @@ public class ConnectionContext {
     public String getDbType() {
         return dbType;
     }
+
+    @Override
+    public String toString() {
+        return "ConnectionContext{" +
+               "userName='" + userName + '\'' +
+               ", connectionString='" + connectionString + '\'' +
+               ", dbType='" + dbType + '\'' +
+               '}';
+    }
 }
