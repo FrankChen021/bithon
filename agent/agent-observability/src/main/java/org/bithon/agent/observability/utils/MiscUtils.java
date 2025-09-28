@@ -29,6 +29,21 @@ public class MiscUtils {
      * because the rules are a little bit complex which would cause more frequent upgrading of agent
      */
     public static String cleanupConnectionString(String connectionString) {
-        return connectionString.split("\\?")[0].split(";")[0];
+        if (connectionString == null || connectionString.isEmpty()) {
+            return connectionString;
+        }
+        
+        // Single pass to find the first occurrence of '?' or ';'
+        // Some databases use '?' to start parameters (e.g., MySQL, PostgreSQL)
+        // Some databases use ';' to start parameters (e.g., SQL Server, H2)
+        for (int i = 0, len = connectionString.length(); i < len; i++) {
+            char c = connectionString.charAt(i);
+            if (c == '?' || c == ';') {
+                return connectionString.substring(0, i);
+            }
+        }
+        
+        // If neither character is found, return the original string
+        return connectionString;
     }
 }

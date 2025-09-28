@@ -64,7 +64,12 @@ bithon:
         type: mysql
 
         # Make sure the database has been created
-        url: jdbc:mysql://localhost:3306/bithon?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+        # 'serverTimezone' is not configured here so that the client detects it automatically
+        # You can also set it explicitly if you want, e.g., serverTimezone=UTC if the MySQL server is configured in UTC timezone
+        # To check the timezone of your MySQL server, you can run the following command in MySQL CLI:
+        #   SELECT @@global.time_zone, @@session.time_zone;
+        # or SELECT NOW(), UTC_TIMESTAMP(); which shows the current time in both the configured timezone and UTC timezone
+        url: jdbc:mysql://localhost:3306/bithon?useSSL=false&allowPublicKeyRetrieval=true
         # com.mysql.cj.jdbc.Driver is the driver class name for MySQL 5
         driverClassName: com.mysql.cj.jdbc.Driver
         username: root

@@ -14,32 +14,35 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jdbc.alibaba.druid.interceptor;
+package org.bithon.agent.plugin.jdbc.mysql8;
 
-import com.alibaba.druid.pool.DruidDataSource;
+
+import com.mysql.cj.conf.HostInfo;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
-import org.bithon.agent.observability.utils.MiscUtils;
 import org.bithon.agent.plugin.jdbc.common.ConnectionContext;
 
 /**
- * the username is injected to this object so that it can be used in PreparedStatement or Statement interceptors
+ * {@link com.mysql.cj.jdbc.ConnectionImpl#ConnectionImpl(HostInfo)}
  * <p>
- * {@link com.alibaba.druid.pool.DruidDataSource#getConnectionInternal(long)}
+ * Get the cleanup connection string once the connection is set up to improve performance
  *
  * @author frank.chen021@outlook.com
- * @date 2024/12/29 21:38
+ * @date 28/9/25 11:53 am
  */
-public class DruidDataSource$GetConnectionInternal extends AfterInterceptor {
+public class ConnectionImpl$Ctor extends AfterInterceptor {
+
     @Override
     public void after(AopContext aopContext) {
-        DruidDataSource dataSource = aopContext.getTargetAs();
-        IBithonObject connection = aopContext.getReturningAs();
-        if (connection != null) {
-            connection.setInjectedObject(new ConnectionContext(MiscUtils.cleanupConnectionString(dataSource.getRawJdbcUrl()),
-                                                               dataSource.getUsername(),
-                                                               "alibaba-druid"));
-        }
+        HostInfo hostInfo = aopContext.getArgAs(0);
+
+        IBithonObject bithonObject = aopContext.getTargetAs();
+        bithonObject.setInjectedObject(
+            new ConnectionContext(
+                "jdbc:mysql://" + hostInfo.getHost() + ":" + hostInfo.getPort() + "/" + hostInfo.getDatabase(),
+                hostInfo.getUser(),
+                "mysql"
+            ));
     }
 }

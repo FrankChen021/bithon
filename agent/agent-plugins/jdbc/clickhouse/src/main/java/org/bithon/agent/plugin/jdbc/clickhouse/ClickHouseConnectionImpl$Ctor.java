@@ -21,6 +21,7 @@ import com.clickhouse.jdbc.internal.ClickHouseJdbcUrlParser;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.agent.observability.utils.MiscUtils;
 import org.bithon.agent.plugin.jdbc.common.ConnectionContext;
 
 /**
@@ -44,7 +45,7 @@ public class ClickHouseConnectionImpl$Ctor extends AfterInterceptor {
         // This is because user code might define their own connection class
         // which implements ClickHouseConnectionImpl and loaded in different class loader
         ClickHouseConnectionImpl connection = aopContext.getTargetAs();
-        ((IBithonObject) connection).setInjectedObject(new ConnectionContext(connection.getMetaData().getURL(),
+        ((IBithonObject) connection).setInjectedObject(new ConnectionContext(MiscUtils.cleanupConnectionString(connection.getMetaData().getURL()),
                                                                              connection.getMetaData().getUserName(),
                                                                              "clickhouse"));
     }

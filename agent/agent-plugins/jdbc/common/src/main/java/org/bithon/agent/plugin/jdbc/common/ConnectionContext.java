@@ -16,8 +16,6 @@
 
 package org.bithon.agent.plugin.jdbc.common;
 
-import org.bithon.agent.observability.utils.MiscUtils;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2024/12/30 09:53
@@ -29,7 +27,7 @@ public class ConnectionContext {
 
     public ConnectionContext(String connectionString, String userName, String dbType) {
         this.userName = userName;
-        this.connectionString = MiscUtils.cleanupConnectionString(connectionString);
+        this.connectionString = connectionString;
         this.dbType = dbType;
     }
 
