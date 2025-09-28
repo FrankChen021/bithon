@@ -72,7 +72,7 @@ public class MySql6InterceptorTest {
             .withDatabaseName("testdb")
             .withUsername("test")
             .withPassword("test")
-            .withInitScript("init-mysql8.sql");
+            .withInitScript("init-mysql6.sql");
 
         logger.info("Starting MySQL container...");
         mysqlServerContainer.start();

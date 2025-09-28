@@ -77,7 +77,7 @@ public class MySql5InterceptorTest {
             .withDatabaseName("testdb")
             .withUsername("test")
             .withPassword("test")
-            .withInitScript("init-mysql8.sql");
+            .withInitScript("init-mysql5.sql");
 
         logger.info("Starting MySQL container...");
         mysqlServerContainer.start();
