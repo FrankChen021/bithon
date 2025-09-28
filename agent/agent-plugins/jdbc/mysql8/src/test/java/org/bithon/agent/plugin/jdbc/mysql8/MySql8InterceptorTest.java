@@ -1,0 +1,642 @@
+/*
+ *    Copyright 2020 bithon.org
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+package org.bithon.agent.plugin.jdbc.mysql8;
+
+import com.mysql.cj.jdbc.ConnectionImpl;
+import org.bithon.agent.configuration.ConfigurationManager;
+import org.bithon.agent.configuration.source.Helper;
+import org.bithon.agent.instrumentation.aop.IBithonObject;
+import org.bithon.agent.instrumentation.aop.interceptor.installer.InterceptorInstaller;
+import org.bithon.agent.observability.event.EventMessage;
+import org.bithon.agent.observability.exporter.IMessageConverter;
+import org.bithon.agent.observability.exporter.InMemoryMessageExporterFactory;
+import org.bithon.agent.observability.metric.domain.jvm.JvmMetrics;
+import org.bithon.agent.observability.metric.domain.sql.SQLMetricStorage;
+import org.bithon.agent.observability.metric.domain.sql.SQLMetrics;
+import org.bithon.agent.observability.metric.model.AbstractMetricStorage;
+import org.bithon.agent.observability.metric.model.IMeasurement;
+import org.bithon.agent.observability.metric.model.schema.Dimensions;
+import org.bithon.agent.observability.metric.model.schema.Schema;
+import org.bithon.agent.observability.metric.model.schema.Schema2;
+import org.bithon.agent.observability.metric.model.schema.Schema3;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.plugin.jdbc.common.ConnectionContext;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
+
+import java.io.File;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+public class MySql8InterceptorTest {
+
+    private static final Logger logger = LoggerFactory.getLogger(MySql8InterceptorTest.class);
+
+    private static MySQLContainer<?> mysqlServerContainer;
+
+    protected static IMessageConverter MESSAGE_CONVERTER = new IMessageConverter() {
+        @Override
+        public Object from(long timestamp, int interval, JvmMetrics metrics) {
+            return null;
+        }
+
+        @Override
+        public Object from(ITraceSpan span) {
+            return null;
+        }
+
+        @Override
+        public Object from(EventMessage event) {
+            return null;
+        }
+
+        @Override
+        public Object from(Map<String, String> log) {
+            return null;
+        }
+
+        @Override
+        public Object from(Schema schema, Collection<IMeasurement> measurementList, long timestamp, int interval) {
+            return null;
+        }
+
+        @Override
+        public Object from(Schema2 schema, Collection<IMeasurement> measurementList, long timestamp, int interval) {
+            return measurementList;
+        }
+
+        @Override
+        public Object from(Schema3 schema, List<Object[]> measurementList, long timestamp, int interval) {
+            return null;
+        }
+    };
+
+    @BeforeAll
+    static void setUpDatabase() {
+        //
+        // Initialize agent to install interceptors first
+        //
+        try (MockedStatic<Helper> configurationMock = Mockito.mockStatic(Helper.class)) {
+            configurationMock.when(Helper::getCommandLineInputArgs)
+                             .thenReturn(Arrays.asList("-Dbithon.application.name=test",
+                                                       "-Dbithon.application.env=local",
+                                                       "-Dbithon.application.port=9897"
+                             ));
+
+            configurationMock.when(Helper::getEnvironmentVariables)
+                             .thenReturn(ImmutableMap.of(
+                                 "bithon_exporters_tracing_client_factory", InMemoryMessageExporterFactory.class.getName(),
+                                 "bithon_exporters_metric_client_factory", InMemoryMessageExporterFactory.class.getName(),
+                                 "bithon_tracing_debug", "true"
+                             ));
+
+            ConfigurationManager.createForTesting(new File("not-exists"));
+        }
+
+        //
+        // Install interceptors
+        //
+        InterceptorInstaller.install(new MySql8Plugin(), MySql8InterceptorTest.class.getClassLoader());
+
+        //
+        // Create and start MySQL container
+        //
+        //noinspection resource
+        mysqlServerContainer = new MySQLContainer<>("mysql:8.0")
+            .withDatabaseName("testdb")
+            .withUsername("test")
+            .withPassword("test")
+            .withInitScript("init-mysql8.sql");
+
+        logger.info("Starting MySQL container...");
+        mysqlServerContainer.start();
+    }
+
+    @AfterAll
+    static void tearDown() {
+        if (mysqlServerContainer != null) {
+            mysqlServerContainer.stop();
+        }
+    }
+
+    @BeforeEach
+    void beforeEach() throws SQLException {
+        // Reset database state for test isolation
+        try (Connection connection = DriverManager.getConnection(
+            mysqlServerContainer.getJdbcUrl(),
+            mysqlServerContainer.getUsername(),
+            mysqlServerContainer.getPassword()
+        )) {
+            // Reset users table to initial state
+            try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM users")) {
+                stmt.executeUpdate();
+            }
+
+            try (PreparedStatement stmt = connection.prepareStatement(
+                "INSERT INTO users (username, email) VALUES (?, ?), (?, ?)")) {
+                stmt.setString(1, "testuser1");
+                stmt.setString(2, "test1@example.com");
+                stmt.setString(3, "testuser2");
+                stmt.setString(4, "test2@example.com");
+                stmt.executeUpdate();
+            }
+        }
+
+        // Collect previous metrics to clean up
+        SQLMetricStorage.getInstance().collect(MESSAGE_CONVERTER, 0, 0);
+
+        InMemoryMessageExporterFactory.InMemoryTracingExporter.clear();
+    }
+
+    @Test
+    public void testMySql8Connection() throws SQLException {
+        try (Connection connection = DriverManager.getConnection(
+            mysqlServerContainer.getJdbcUrl(),
+            mysqlServerContainer.getUsername(),
+            mysqlServerContainer.getPassword()
+        )) {
+            Assertions.assertInstanceOf(ConnectionImpl.class, connection);
+
+            // The connection class has been instrumented
+            Assertions.assertInstanceOf(IBithonObject.class, connection);
+            Object connectionContext = ((IBithonObject) connection).getInjectedObject();
+
+            ConnectionContext ctx = new ConnectionContext(mysqlServerContainer.getJdbcUrl(),
+                                                          mysqlServerContainer.getUsername(),
+                                                          "mysql");
+            // Since the 'connectionContext' is loaded in InterceptorClassLoader, but the ctx is loaded in system classloader,
+            // so we cannot use 'equals' to compare them.
+            Assertions.assertEquals(ctx.toString(), connectionContext.toString());
+        }
+    }
+
+    @Test
+    public void testSelectQuery() throws SQLException {
+        try (Connection connection = DriverManager.getConnection(
+            mysqlServerContainer.getJdbcUrl(),
+            mysqlServerContainer.getUsername(),
+            mysqlServerContainer.getPassword()
+        )) {
+            try (PreparedStatement stmt = connection.prepareStatement(
+                "select * FROM users WHERE username = ?")) {
+                stmt.setString(1, "testuser1");
+                try (ResultSet rs = stmt.executeQuery()) {
+                    assertTrue(rs.next());
+                    assertEquals("testuser1", rs.getString("username"));
+                    assertEquals("test1@example.com", rs.getString("email"));
+                }
+            }
+
+            //noinspection unchecked
+            Collection<IMeasurement> measurements = (Collection<IMeasurement>) SQLMetricStorage.getInstance()
+                                                                                               .collect(MESSAGE_CONVERTER, 0, 0);
+
+            logger.info("Reported metrics: {}", measurements);
+            Assertions.assertEquals(1, measurements.size());
+
+            AbstractMetricStorage.Measurement measurement = (AbstractMetricStorage.Measurement) measurements.stream().findFirst().get();
+            Assertions.assertEquals(Dimensions.of(mysqlServerContainer.getJdbcUrl(),
+                                                  "SELECT",
+                                                  "", // traceId
+                                                  "" // statement
+                                    ),
+                                    measurement.getDimensions());
+            SQLMetrics sqlMetrics = (SQLMetrics) measurement.getMetricAccessor();
+            Assertions.assertEquals(1, sqlMetrics.callCount);
+            Assertions.assertEquals(0, sqlMetrics.errorCount);
+        }
+    }
+
+    @Test
+    public void testInsertQuery() throws SQLException {
+        try (Connection connection = DriverManager.getConnection(
+            mysqlServerContainer.getJdbcUrl(),
+            mysqlServerContainer.getUsername(),
+            mysqlServerContainer.getPassword()
+        )) {
+            try (PreparedStatement stmt = connection.prepareStatement(
+                "INSERT INTO users (username, email) VALUES (?, ?)")) {
+                stmt.setString(1, "newuser8");
+                stmt.setString(2, "newuser8@example.com");
+                int rowsAffected = stmt.executeUpdate();
+                Assertions.assertEquals(1, rowsAffected);
+            }
+
+            //noinspection unchecked
+            Collection<IMeasurement> measurements = (Collection<IMeasurement>) SQLMetricStorage.getInstance()
+                                                                                               .collect(MESSAGE_CONVERTER, 0, 0);
+
+            logger.info("Reported metrics for INSERT: {}", measurements);
+            Assertions.assertEquals(1, measurements.size());
+
+            AbstractMetricStorage.Measurement measurement = (AbstractMetricStorage.Measurement) measurements.stream().findFirst().get();
+            Assertions.assertEquals(Dimensions.of(mysqlServerContainer.getJdbcUrl(),
+                                                  "INSERT",
+                                                  "", // traceId
+                                                  "" // statement
+                                    ),
+                                    measurement.getDimensions());
+            SQLMetrics sqlMetrics = (SQLMetrics) measurement.getMetricAccessor();
+            Assertions.assertEquals(1, sqlMetrics.callCount);
+            Assertions.assertEquals(0, sqlMetrics.errorCount);
+        }
+    }
+
+    @Test
+    public void testUpdateQuery() throws SQLException {
+        try (Connection connection = DriverManager.getConnection(
+            mysqlServerContainer.getJdbcUrl(),
+            mysqlServerContainer.getUsername(),
+            mysqlServerContainer.getPassword()
+        )) {
+            try (PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE users SET email = ? WHERE username = ?")) {
+                stmt.setString(1, "updated@example.com");
+                stmt.setString(2, "testuser1");
+                int rowsAffected = stmt.executeUpdate();
+                Assertions.assertEquals(1, rowsAffected);
+            }
+
+            //noinspection unchecked
+            Collection<IMeasurement> measurements = (Collection<IMeasurement>) SQLMetricStorage.getInstance()
+                                                                                               .collect(MESSAGE_CONVERTER, 0, 0);
+
+            logger.info("Reported metrics for UPDATE: {}", measurements);
+            Assertions.assertEquals(1, measurements.size());
+
+            AbstractMetricStorage.Measurement measurement = (AbstractMetricStorage.Measurement) measurements.stream().findFirst().get();
+            Assertions.assertEquals(Dimensions.of(mysqlServerContainer.getJdbcUrl(),
+                                                  "UPDATE",
+                                                  "", // traceId
+                                                  "" // statement
+                                    ),
+                                    measurement.getDimensions());
+            SQLMetrics sqlMetrics = (SQLMetrics) measurement.getMetricAccessor();
+            Assertions.assertEquals(1, sqlMetrics.callCount);
+            Assertions.assertEquals(0, sqlMetrics.errorCount);
+        }
+    }
+
+    @Test
+    public void testDeleteQuery() throws SQLException {
+        try (Connection connection = DriverManager.getConnection(
+            mysqlServerContainer.getJdbcUrl(),
+            mysqlServerContainer.getUsername(),
+            mysqlServerContainer.getPassword()
+        )) {
+            try (PreparedStatement stmt = connection.prepareStatement(
+                "-- this is comment\nDELETE FROM users WHERE username = ?")) {
+                stmt.setString(1, "testuser2");
+                int rowsAffected = stmt.executeUpdate();
+                Assertions.assertEquals(1, rowsAffected);
+            }
+
+            //noinspection unchecked
+            Collection<IMeasurement> measurements = (Collection<IMeasurement>) SQLMetricStorage.getInstance()
+                                                                                               .collect(MESSAGE_CONVERTER, 0, 0);
+
+            logger.info("Reported metrics for DELETE: {}", measurements);
+            Assertions.assertEquals(1, measurements.size());
+
+            AbstractMetricStorage.Measurement measurement = (AbstractMetricStorage.Measurement) measurements.stream().findFirst().get();
+            Assertions.assertEquals(Dimensions.of(mysqlServerContainer.getJdbcUrl(),
+                                                  "DELETE",
+                                                  "", // traceId
+                                                  "" // statement
+                                    ),
+                                    measurement.getDimensions());
+            SQLMetrics sqlMetrics = (SQLMetrics) measurement.getMetricAccessor();
+            Assertions.assertEquals(1, sqlMetrics.callCount);
+            Assertions.assertEquals(0, sqlMetrics.errorCount);
+        }
+    }
+
+    @Test
+    public void testBatchInsert() throws SQLException {
+        try (Connection connection = DriverManager.getConnection(
+            mysqlServerContainer.getJdbcUrl(),
+            mysqlServerContainer.getUsername(),
+            mysqlServerContainer.getPassword()
+        )) {
+            try (PreparedStatement stmt = connection.prepareStatement(
+                "INSERT INTO users (username, email) VALUES (?, ?)")) {
+                // Add multiple statements to batch
+                stmt.setString(1, "batchuser1");
+                stmt.setString(2, "batchuser1@example.com");
+                stmt.addBatch();
+
+                stmt.setString(1, "batchuser2");
+                stmt.setString(2, "batchuser2@example.com");
+                stmt.addBatch();
+
+                stmt.setString(1, "batchuser3");
+                stmt.setString(2, "batchuser3@example.com");
+                stmt.addBatch();
+
+                // Execute batch
+                int[] results = stmt.executeBatch();
+                Assertions.assertEquals(3, results.length);
+                Assertions.assertEquals(1, results[0]);
+                Assertions.assertEquals(1, results[1]);
+                Assertions.assertEquals(1, results[2]);
+            }
+
+            //noinspection unchecked
+            Collection<IMeasurement> measurements = (Collection<IMeasurement>) SQLMetricStorage.getInstance()
+                                                                                               .collect(MESSAGE_CONVERTER, 0, 0);
+
+            logger.info("Reported metrics for BATCH INSERT: {}", measurements);
+            Assertions.assertEquals(1, measurements.size());
+
+            AbstractMetricStorage.Measurement measurement = (AbstractMetricStorage.Measurement) measurements.stream().findFirst().get();
+            Assertions.assertEquals(Dimensions.of(mysqlServerContainer.getJdbcUrl(),
+                                                  "INSERT",
+                                                  "", // traceId
+                                                  "" // statement
+                                    ),
+                                    measurement.getDimensions());
+            SQLMetrics sqlMetrics = (SQLMetrics) measurement.getMetricAccessor();
+            Assertions.assertEquals(1, sqlMetrics.callCount);
+            Assertions.assertEquals(0, sqlMetrics.errorCount);
+        }
+    }
+
+    @Test
+    public void testBatchUpdate() throws SQLException {
+        try (Connection connection = DriverManager.getConnection(
+            mysqlServerContainer.getJdbcUrl(),
+            mysqlServerContainer.getUsername(),
+            mysqlServerContainer.getPassword()
+        )) {
+            try (PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE users SET email = ? WHERE username = ?")) {
+                // Add multiple statements to batch
+                stmt.setString(1, "updated1@example.com");
+                stmt.setString(2, "testuser1");
+                stmt.addBatch();
+
+                stmt.setString(1, "updated2@example.com");
+                stmt.setString(2, "testuser2");
+                stmt.addBatch();
+
+                // Execute batch
+                int[] results = stmt.executeBatch();
+                Assertions.assertEquals(2, results.length);
+                Assertions.assertEquals(1, results[0]);
+                Assertions.assertEquals(1, results[1]);
+            }
+
+            //noinspection unchecked
+            Collection<IMeasurement> measurements = (Collection<IMeasurement>) SQLMetricStorage.getInstance()
+                                                                                               .collect(MESSAGE_CONVERTER, 0, 0);
+
+            logger.info("Reported metrics for BATCH UPDATE: {}", measurements);
+            Assertions.assertEquals(1, measurements.size());
+
+            AbstractMetricStorage.Measurement measurement = (AbstractMetricStorage.Measurement) measurements.stream().findFirst().get();
+            Assertions.assertEquals(Dimensions.of(mysqlServerContainer.getJdbcUrl(),
+                                                  "UPDATE",
+                                                  "", // traceId
+                                                  "" // statement
+                                    ),
+                                    measurement.getDimensions());
+            SQLMetrics sqlMetrics = (SQLMetrics) measurement.getMetricAccessor();
+            Assertions.assertEquals(1, sqlMetrics.callCount);
+            Assertions.assertEquals(0, sqlMetrics.errorCount);
+        }
+    }
+
+    @Test
+    public void testBatchDelete() throws SQLException {
+        try (Connection connection = DriverManager.getConnection(
+            mysqlServerContainer.getJdbcUrl(),
+            mysqlServerContainer.getUsername(),
+            mysqlServerContainer.getPassword()
+        )) {
+            // First insert some test data for deletion
+            try (PreparedStatement stmt = connection.prepareStatement(
+                "INSERT INTO users (username, email) VALUES (?, ?)")) {
+                stmt.setString(1, "deleteuser1");
+                stmt.setString(2, "deleteuser1@example.com");
+                stmt.executeUpdate();
+
+                stmt.setString(1, "deleteuser2");
+                stmt.setString(2, "deleteuser2@example.com");
+                stmt.executeUpdate();
+            }
+
+            // Clear metrics from insert operations
+            SQLMetricStorage.getInstance().collect(MESSAGE_CONVERTER, 0, 0);
+
+            // Now test batch delete
+            try (PreparedStatement stmt = connection.prepareStatement(
+                "DELETE FROM users WHERE username = ?")) {
+                // Add multiple statements to batch
+                stmt.setString(1, "deleteuser1");
+                stmt.addBatch();
+
+                stmt.setString(1, "deleteuser2");
+                stmt.addBatch();
+
+                // Execute batch
+                int[] results = stmt.executeBatch();
+                Assertions.assertEquals(2, results.length);
+                Assertions.assertEquals(1, results[0]);
+                Assertions.assertEquals(1, results[1]);
+            }
+
+            //noinspection unchecked
+            Collection<IMeasurement> measurements = (Collection<IMeasurement>) SQLMetricStorage.getInstance()
+                                                                                               .collect(MESSAGE_CONVERTER, 0, 0);
+
+            logger.info("Reported metrics for BATCH DELETE: {}", measurements);
+            Assertions.assertEquals(1, measurements.size());
+
+            AbstractMetricStorage.Measurement measurement = (AbstractMetricStorage.Measurement) measurements.stream().findFirst().get();
+            Assertions.assertEquals(Dimensions.of(mysqlServerContainer.getJdbcUrl(),
+                                                  "DELETE",
+                                                  "", // traceId
+                                                  "" // statement
+                                    ),
+                                    measurement.getDimensions());
+            SQLMetrics sqlMetrics = (SQLMetrics) measurement.getMetricAccessor();
+            Assertions.assertEquals(1, sqlMetrics.callCount);
+            Assertions.assertEquals(0, sqlMetrics.errorCount);
+        }
+    }
+
+    @Test
+    public void testMultipleOperationsAggregation() throws SQLException {
+        try (Connection connection = DriverManager.getConnection(
+            mysqlServerContainer.getJdbcUrl(),
+            mysqlServerContainer.getUsername(),
+            mysqlServerContainer.getPassword()
+        )) {
+            // Clear any existing metrics
+            SQLMetricStorage.getInstance().collect(MESSAGE_CONVERTER, 0, 0);
+
+            // Insert 2 times
+            try (PreparedStatement stmt = connection.prepareStatement(
+                "INSERT INTO users (username, email) VALUES (?, ?)")) {
+                stmt.setString(1, "agguser1");
+                stmt.setString(2, "agguser1@example.com");
+                stmt.executeUpdate();
+
+                stmt.setString(1, "agguser2");
+                stmt.setString(2, "agguser2@example.com");
+                stmt.executeUpdate();
+            }
+
+            // Select 3 times
+            try (PreparedStatement stmt = connection.prepareStatement(
+                "SELECT * FROM users WHERE username = ?")) {
+                stmt.setString(1, "testuser1");
+                try (ResultSet rs = stmt.executeQuery()) {
+                    // Process result
+                }
+
+                stmt.setString(1, "testuser2");
+                try (ResultSet rs = stmt.executeQuery()) {
+                    // Process result
+                }
+
+                stmt.setString(1, "agguser1");
+                try (ResultSet rs = stmt.executeQuery()) {
+                    // Process result
+                }
+            }
+
+            // Update 4 times
+            try (PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE users SET email = ? WHERE username = ?")) {
+                stmt.setString(1, "updated1@example.com");
+                stmt.setString(2, "testuser1");
+                stmt.executeUpdate();
+
+                stmt.setString(1, "updated2@example.com");
+                stmt.setString(2, "testuser2");
+                stmt.executeUpdate();
+
+                stmt.setString(1, "updated3@example.com");
+                stmt.setString(2, "agguser1");
+                stmt.executeUpdate();
+
+                stmt.setString(1, "updated4@example.com");
+                stmt.setString(2, "agguser2");
+                stmt.executeUpdate();
+            }
+
+            // Delete 2 times
+            try (PreparedStatement stmt = connection.prepareStatement(
+                "DELETE FROM users WHERE username = ?")) {
+                stmt.setString(1, "agguser1");
+                stmt.executeUpdate();
+
+                stmt.setString(1, "agguser2");
+                stmt.executeUpdate();
+            }
+
+            // Collect metrics after all operations
+            //noinspection unchecked
+            Collection<IMeasurement> measurements = (Collection<IMeasurement>) SQLMetricStorage.getInstance()
+                                                                                               .collect(MESSAGE_CONVERTER, 0, 0);
+
+            logger.info("Reported metrics for multiple operations: {}", measurements);
+
+            // Should have 4 aggregated measurements: INSERT, SELECT, UPDATE, DELETE
+            Assertions.assertEquals(4, measurements.size());
+
+            // Convert to map(key is the statement type) for easier assertions
+            Map<String, IMeasurement> measurementMap = measurements.stream()
+                                                                   .collect(java.util.stream.Collectors.toMap(
+                                                                       m -> m.getDimensions().getValue(1), // Operation type is at index 1
+                                                                       m -> m
+                                                                   ));
+
+            // Check INSERT measurement
+            Assertions.assertTrue(measurementMap.containsKey("INSERT"));
+            AbstractMetricStorage.Measurement insertMeasurement = (AbstractMetricStorage.Measurement) measurementMap.get("INSERT");
+            Assertions.assertEquals(Dimensions.of(mysqlServerContainer.getJdbcUrl(),
+                                                  "INSERT",
+                                                  "", // traceId
+                                                  "" // statement
+                                    ),
+                                    insertMeasurement.getDimensions());
+            SQLMetrics insertMetrics = (SQLMetrics) insertMeasurement.getMetricAccessor();
+            Assertions.assertEquals(2, insertMetrics.callCount); // 2 INSERT operations
+            Assertions.assertEquals(0, insertMetrics.errorCount);
+
+            // Check SELECT measurement
+            Assertions.assertTrue(measurementMap.containsKey("SELECT"));
+            AbstractMetricStorage.Measurement selectMeasurement = (AbstractMetricStorage.Measurement) measurementMap.get("SELECT");
+            Assertions.assertEquals(Dimensions.of(mysqlServerContainer.getJdbcUrl(),
+                                                  "SELECT",
+                                                  "", // traceId
+                                                  "" // statement
+                                    ),
+                                    selectMeasurement.getDimensions());
+            SQLMetrics selectMetrics = (SQLMetrics) selectMeasurement.getMetricAccessor();
+            Assertions.assertEquals(3, selectMetrics.callCount); // 3 SELECT operations
+            Assertions.assertEquals(0, selectMetrics.errorCount);
+
+            // Check UPDATE measurement
+            Assertions.assertTrue(measurementMap.containsKey("UPDATE"));
+            AbstractMetricStorage.Measurement updateMeasurement = (AbstractMetricStorage.Measurement) measurementMap.get("UPDATE");
+            Assertions.assertEquals(Dimensions.of(mysqlServerContainer.getJdbcUrl(),
+                                                  "UPDATE",
+                                                  "", // traceId
+                                                  "" // statement
+                                    ),
+                                    updateMeasurement.getDimensions());
+            SQLMetrics updateMetrics = (SQLMetrics) updateMeasurement.getMetricAccessor();
+            Assertions.assertEquals(4, updateMetrics.callCount); // 4 UPDATE operations
+            Assertions.assertEquals(0, updateMetrics.errorCount);
+
+            // Check DELETE measurement
+            Assertions.assertTrue(measurementMap.containsKey("DELETE"));
+            AbstractMetricStorage.Measurement deleteMeasurement = (AbstractMetricStorage.Measurement) measurementMap.get("DELETE");
+            Assertions.assertEquals(Dimensions.of(mysqlServerContainer.getJdbcUrl(),
+                                                  "DELETE",
+                                                  "", // traceId
+                                                  "" // statement
+                                    ),
+                                    deleteMeasurement.getDimensions());
+            SQLMetrics deleteMetrics = (SQLMetrics) deleteMeasurement.getMetricAccessor();
+            Assertions.assertEquals(2, deleteMetrics.callCount); // 2 DELETE operations
+            Assertions.assertEquals(0, deleteMetrics.errorCount);
+        }
+    }
+}
