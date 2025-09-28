@@ -1,4 +1,6 @@
 name: Build/Push Agent Image
+permissions:
+  contents: read
 
 on:
   push:
