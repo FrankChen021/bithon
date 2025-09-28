@@ -57,7 +57,31 @@ jobs:
         run: mvn clean install -T 1C -ntp --activate-profiles shaded -Dmaven.javadoc.skip=true -DskipTests
 
       - name: Compilation
-        run: mvn clean install -T 1C -ntp --activate-profiles agent,component -Dmaven.javadoc.skip=true -DskipTests
+        run: mvn clean install -T 1C -ntp --activate-profiles agent,component -Dmaven.javadoc.skip=true -Dmaven.surefire.skip=true
+
+      - name: Process test resources
+        run: mvn test-compile -T 1C -ntp --activate-profiles agent,component -Dmaven.surefire.skip=true
+
+      - name: Verify test resources are built
+        run: |
+          echo "=== Verifying test resources are built and included in artifacts ==="
+          # Check for MySQL test resources in target directories
+          find agent/ -path "*/target/test-classes/*" -name "init-mysql*.sql" -type f
+          find agent/ -path "*/target/test-classes/*" -name "logback-test.xml" -type f
+          
+          # List all test-classes directories that will be included in artifacts
+          echo "=== Test-classes directories to be included in artifacts ==="
+          find agent/ -name "test-classes" -type d | while read test_dir; do
+            echo "Test-classes directory: $test_dir"
+            if [ -d "$test_dir" ]; then
+              echo "Contents:"
+              ls -la "$test_dir" || echo "Cannot list contents"
+              if [ -d "$test_dir/resources" ]; then
+                echo "Resources:"
+                find "$test_dir/resources" -type f
+              fi
+            fi
+          done
 
       - name: Code Check
         run: mvn --ntp -T 1C -P-server com.github.spotbugs:spotbugs-maven-plugin:check dependency:analyze-only
@@ -191,6 +215,66 @@ jobs:
           ls -la agent/agent-core/target/ || echo "Still no target directory"
           find agent/ -name "*Test.class" -type f | head -5
 
+      - name: Verify test resources are available
+        run: |
+          echo "=== Checking for TestContainers SQL init scripts ==="
+          # Check for MySQL test resources
+          find agent/ -name "init-mysql*.sql" -type f | head -10
+          find agent/ -name "logback-test.xml" -type f | head -10
+          
+          # Check test-classes directories
+          echo "=== Checking test-classes directories ==="
+          find agent/ -name "test-classes" -type d | while read test_classes_dir; do
+            echo "Contents of $test_classes_dir:"
+            ls -la "$test_classes_dir" || echo "Directory not accessible"
+            # Check for resources subdirectory
+            if [ -d "$test_classes_dir/resources" ]; then
+              echo "Resources in $test_classes_dir/resources:"
+              find "$test_classes_dir/resources" -type f | head -10
+            fi
+          done
+          
+          # Verify specific MySQL test resources
+          echo "=== Verifying MySQL test resources ==="
+          for mysql_version in mysql5 mysql6 mysql8; do
+            echo "Checking $mysql_version resources:"
+            find agent/ -path "*/$mysql_version/*/test-classes" -type d | while read test_dir; do
+              if [ -d "$test_dir" ]; then
+                echo "Found test-classes for $mysql_version: $test_dir"
+                ls -la "$test_dir" || echo "Cannot list contents"
+                if [ -d "$test_dir/resources" ]; then
+                  echo "Resources in $test_dir/resources:"
+                  find "$test_dir/resources" -type f
+                fi
+              fi
+            done
+          done
+
+      - name: Rebuild test resources if missing
+        run: |
+          echo "=== Rebuilding test resources if they are missing ==="
+          # Check if any MySQL test resources are missing
+          MISSING_RESOURCES=false
+          for mysql_version in mysql5 mysql6 mysql8; do
+            for resource in "init-mysql${mysql_version#mysql}.sql" "logback-test.xml"; do
+              if ! find agent/ -path "*/$mysql_version/*/test-classes/*" -name "$resource" -type f | grep -q .; then
+                echo "❌ Missing resource: $resource for $mysql_version"
+                MISSING_RESOURCES=true
+              fi
+            done
+          done
+          
+          if [ "$MISSING_RESOURCES" = true ]; then
+            echo "=== Rebuilding test resources ==="
+            mvn test-compile -T 1C -ntp --activate-profiles agent,component -Dmaven.surefire.skip=true
+            
+            echo "=== Verifying resources after rebuild ==="
+            find agent/ -path "*/target/test-classes/*" -name "init-mysql*.sql" -type f
+            find agent/ -path "*/target/test-classes/*" -name "logback-test.xml" -type f
+          else
+            echo "✅ All test resources are available"
+          fi
+
       - name: Set up TestContainers environment
         run: |
           echo "=== Setting up TestContainers environment ==="
@@ -224,13 +308,18 @@ jobs:
 
       # Execute UT with the current JDK version - skip compilation, just run tests
       - name: Run tests with JDK ${{ matrix.java-version }}
-        run: mvn surefire:test --activate-profiles agent -P-server -ntp
+        run: |
+          echo "=== Running tests with TestContainers support ==="
+          # Ensure test resources are in classpath by running from project root
+          mvn surefire:test --activate-profiles agent -P-server -ntp -Dtest.working.directory=$PWD
         env:
           # Ensure TestContainers environment variables are available
           TESTCONTAINERS_RYUK_DISABLED: true
           TESTCONTAINERS_HOST_OVERRIDE: localhost
           TESTCONTAINERS_DEBUG: true
           DOCKER_HOST: unix:///var/run/docker.sock
+          # Ensure Maven can find test resources
+          MAVEN_OPTS: "-Djava.class.path=$PWD"
 
   release:
     needs: [build, test]
