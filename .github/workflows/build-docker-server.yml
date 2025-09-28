@@ -1,4 +1,6 @@
 name: Build/Push Server Image
+permissions:
+  contents: read
 
 on:
   push:
