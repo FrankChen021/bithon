@@ -191,9 +191,46 @@ jobs:
           ls -la agent/agent-core/target/ || echo "Still no target directory"
           find agent/ -name "*Test.class" -type f | head -5
 
+      - name: Set up TestContainers environment
+        run: |
+          echo "=== Setting up TestContainers environment ==="
+          # TestContainers requires Docker to be available
+          # GitHub Actions runners have Docker pre-installed
+          echo "Docker version:"
+          docker --version
+          
+          # TestContainers configuration
+          echo "TESTCONTAINERS_RYUK_DISABLED=true" >> $GITHUB_ENV
+          echo "TESTCONTAINERS_HOST_OVERRIDE=localhost" >> $GITHUB_ENV
+          
+          # Enable TestContainers debug logging for troubleshooting
+          echo "TESTCONTAINERS_DEBUG=true" >> $GITHUB_ENV
+          
+          # Set TestContainers to use the Docker daemon
+          echo "DOCKER_HOST=unix:///var/run/docker.sock" >> $GITHUB_ENV
+          
+          echo "✅ TestContainers environment configured"
+          echo "Environment variables set:"
+          echo "TESTCONTAINERS_RYUK_DISABLED=$TESTCONTAINERS_RYUK_DISABLED"
+          echo "TESTCONTAINERS_HOST_OVERRIDE=$TESTCONTAINERS_HOST_OVERRIDE"
+          echo "TESTCONTAINERS_DEBUG=$TESTCONTAINERS_DEBUG"
+          echo "DOCKER_HOST=$DOCKER_HOST"
+
+      - name: Verify Docker is running
+        run: |
+          echo "=== Verifying Docker is available for TestContainers ==="
+          docker info
+          echo "Docker daemon is running and accessible"
+
       # Execute UT with the current JDK version - skip compilation, just run tests
       - name: Run tests with JDK ${{ matrix.java-version }}
         run: mvn surefire:test --activate-profiles agent -P-server -ntp
+        env:
+          # Ensure TestContainers environment variables are available
+          TESTCONTAINERS_RYUK_DISABLED: true
+          TESTCONTAINERS_HOST_OVERRIDE: localhost
+          TESTCONTAINERS_DEBUG: true
+          DOCKER_HOST: unix:///var/run/docker.sock
 
   release:
     needs: [build, test]
