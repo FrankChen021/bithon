@@ -21,19 +21,13 @@ import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.source.Helper;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.interceptor.installer.InterceptorInstaller;
-import org.bithon.agent.observability.event.EventMessage;
 import org.bithon.agent.observability.exporter.IMessageConverter;
 import org.bithon.agent.observability.exporter.InMemoryMessageExporterFactory;
-import org.bithon.agent.observability.metric.domain.jvm.JvmMetrics;
 import org.bithon.agent.observability.metric.domain.sql.SQLMetricStorage;
 import org.bithon.agent.observability.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.observability.metric.model.AbstractMetricStorage;
 import org.bithon.agent.observability.metric.model.IMeasurement;
 import org.bithon.agent.observability.metric.model.schema.Dimensions;
-import org.bithon.agent.observability.metric.model.schema.Schema;
-import org.bithon.agent.observability.metric.model.schema.Schema2;
-import org.bithon.agent.observability.metric.model.schema.Schema3;
-import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.plugin.jdbc.common.ConnectionContext;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -55,7 +49,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -67,42 +60,7 @@ public class MySql8InterceptorTest {
 
     private static MySQLContainer<?> mysqlServerContainer;
 
-    protected static IMessageConverter MESSAGE_CONVERTER = new IMessageConverter() {
-        @Override
-        public Object from(long timestamp, int interval, JvmMetrics metrics) {
-            return null;
-        }
-
-        @Override
-        public Object from(ITraceSpan span) {
-            return null;
-        }
-
-        @Override
-        public Object from(EventMessage event) {
-            return null;
-        }
-
-        @Override
-        public Object from(Map<String, String> log) {
-            return null;
-        }
-
-        @Override
-        public Object from(Schema schema, Collection<IMeasurement> measurementList, long timestamp, int interval) {
-            return null;
-        }
-
-        @Override
-        public Object from(Schema2 schema, Collection<IMeasurement> measurementList, long timestamp, int interval) {
-            return measurementList;
-        }
-
-        @Override
-        public Object from(Schema3 schema, List<Object[]> measurementList, long timestamp, int interval) {
-            return null;
-        }
-    };
+    protected static IMessageConverter MESSAGE_CONVERTER = new InMemoryMessageExporterFactory.RawMessageConverter();
 
     @BeforeAll
     static void setUpDatabase() {
@@ -139,7 +97,12 @@ public class MySql8InterceptorTest {
             .withDatabaseName("testdb")
             .withUsername("test")
             .withPassword("test")
-            .withInitScript("init-mysql8.sql");
+            .withInitScript("init-mysql8.sql")
+            .withCommand("--default-authentication-plugin=mysql_native_password", "--sql_mode=TRADITIONAL")
+            .withEnv("MYSQL_ROOT_PASSWORD", "test")
+            .withEnv("MYSQL_DATABASE", "testdb")
+            .withEnv("MYSQL_USER", "test")
+            .withEnv("MYSQL_PASSWORD", "test");
 
         logger.info("Starting MySQL container...");
         mysqlServerContainer.start();
@@ -152,11 +115,15 @@ public class MySql8InterceptorTest {
         }
     }
 
+    private String getJdbcUrl() {
+        return mysqlServerContainer.getJdbcUrl() + "?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8";
+    }
+
     @BeforeEach
     void beforeEach() throws SQLException {
         // Reset database state for test isolation
         try (Connection connection = DriverManager.getConnection(
-            mysqlServerContainer.getJdbcUrl(),
+            getJdbcUrl(),
             mysqlServerContainer.getUsername(),
             mysqlServerContainer.getPassword()
         )) {
@@ -184,7 +151,7 @@ public class MySql8InterceptorTest {
     @Test
     public void testMySql8Connection() throws SQLException {
         try (Connection connection = DriverManager.getConnection(
-            mysqlServerContainer.getJdbcUrl(),
+            getJdbcUrl(),
             mysqlServerContainer.getUsername(),
             mysqlServerContainer.getPassword()
         )) {
@@ -206,7 +173,7 @@ public class MySql8InterceptorTest {
     @Test
     public void testSelectQuery() throws SQLException {
         try (Connection connection = DriverManager.getConnection(
-            mysqlServerContainer.getJdbcUrl(),
+            getJdbcUrl(),
             mysqlServerContainer.getUsername(),
             mysqlServerContainer.getPassword()
         )) {
@@ -243,7 +210,7 @@ public class MySql8InterceptorTest {
     @Test
     public void testInsertQuery() throws SQLException {
         try (Connection connection = DriverManager.getConnection(
-            mysqlServerContainer.getJdbcUrl(),
+            getJdbcUrl(),
             mysqlServerContainer.getUsername(),
             mysqlServerContainer.getPassword()
         )) {
@@ -278,7 +245,7 @@ public class MySql8InterceptorTest {
     @Test
     public void testUpdateQuery() throws SQLException {
         try (Connection connection = DriverManager.getConnection(
-            mysqlServerContainer.getJdbcUrl(),
+            getJdbcUrl(),
             mysqlServerContainer.getUsername(),
             mysqlServerContainer.getPassword()
         )) {
@@ -313,7 +280,7 @@ public class MySql8InterceptorTest {
     @Test
     public void testDeleteQuery() throws SQLException {
         try (Connection connection = DriverManager.getConnection(
-            mysqlServerContainer.getJdbcUrl(),
+            getJdbcUrl(),
             mysqlServerContainer.getUsername(),
             mysqlServerContainer.getPassword()
         )) {
@@ -347,7 +314,7 @@ public class MySql8InterceptorTest {
     @Test
     public void testBatchInsert() throws SQLException {
         try (Connection connection = DriverManager.getConnection(
-            mysqlServerContainer.getJdbcUrl(),
+            getJdbcUrl(),
             mysqlServerContainer.getUsername(),
             mysqlServerContainer.getPassword()
         )) {
@@ -397,7 +364,7 @@ public class MySql8InterceptorTest {
     @Test
     public void testBatchUpdate() throws SQLException {
         try (Connection connection = DriverManager.getConnection(
-            mysqlServerContainer.getJdbcUrl(),
+            getJdbcUrl(),
             mysqlServerContainer.getUsername(),
             mysqlServerContainer.getPassword()
         )) {
@@ -442,7 +409,7 @@ public class MySql8InterceptorTest {
     @Test
     public void testBatchDelete() throws SQLException {
         try (Connection connection = DriverManager.getConnection(
-            mysqlServerContainer.getJdbcUrl(),
+            getJdbcUrl(),
             mysqlServerContainer.getUsername(),
             mysqlServerContainer.getPassword()
         )) {
@@ -501,7 +468,7 @@ public class MySql8InterceptorTest {
     @Test
     public void testMultipleOperationsAggregation() throws SQLException {
         try (Connection connection = DriverManager.getConnection(
-            mysqlServerContainer.getJdbcUrl(),
+            getJdbcUrl(),
             mysqlServerContainer.getUsername(),
             mysqlServerContainer.getPassword()
         )) {

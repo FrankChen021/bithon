@@ -18,6 +18,7 @@ package org.bithon.agent.plugin.jdbc.mysql6;
 
 import com.mysql.cj.api.MysqlConnection;
 import com.mysql.cj.jdbc.PreparedStatement;
+import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.observability.utils.MiscUtils;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
@@ -34,7 +35,14 @@ import java.sql.SQLException;
  */
 public class PreparedStatement$Execute extends AbstractStatement$Execute {
 
+    @Override
     protected ConnectionContext getConnectionContext(Connection connection) throws SQLException {
+        if ((connection instanceof IBithonObject)) {
+            // Injected in ConnectionImpl$Ctor
+            return (ConnectionContext) ((IBithonObject) connection).getInjectedObject();
+        }
+
+        // Fallback for other connection instances
         return new ConnectionContext(
             MiscUtils.cleanupConnectionString(connection.getMetaData().getURL()),
             // DON'T call getUser on getMetaData which will issue a query to the server
