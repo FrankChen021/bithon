@@ -33,6 +33,7 @@ import java.util.List;
 public class InMemoryMessageExporterFactory implements IMessageExporterFactory {
     public static class InMemoryMetricExporter implements IMessageExporter {
         private static final List<Object> MESSAGES = Collections.synchronizedList(new ArrayList<>());
+
         public static void clear() {
             MESSAGES.clear();
         }
@@ -57,6 +58,7 @@ public class InMemoryMessageExporterFactory implements IMessageExporterFactory {
 
     public static class InMemoryTracingExporter implements IMessageExporter {
         private static final List<Object> MESSAGES = Collections.synchronizedList(new ArrayList<>());
+
         public static void clear() {
             MESSAGES.clear();
         }
