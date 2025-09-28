@@ -17,10 +17,15 @@
 package org.bithon.agent.plugin.jdbc.mysql8;
 
 import com.mysql.cj.MysqlConnection;
+import com.mysql.cj.PreparedQuery;
+import com.mysql.cj.Query;
+import com.mysql.cj.jdbc.JdbcStatement;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
+import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.observability.utils.MiscUtils;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatement$ExecuteBatch;
 import org.bithon.agent.plugin.jdbc.common.ConnectionContext;
+import org.bithon.agent.plugin.jdbc.common.StatementContext;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -48,5 +53,20 @@ public class StatementImpl$ExecuteBatch extends AbstractStatement$ExecuteBatch {
             ((MysqlConnection) connection).getUser(),
             "mysql"
         );
+    }
+
+    @Override
+    protected StatementContext getStatementContext(AopContext aopContext) {
+        Object statement = aopContext.getTarget();
+        if (statement instanceof JdbcStatement) {
+            Query query = ((JdbcStatement) aopContext.getTarget()).getQuery();
+            if (query instanceof PreparedQuery) {
+                String sql = ((PreparedQuery) query).getOriginalSql();
+                return new StatementContext(sql);
+            }
+        }
+
+        // Fallback to EMPTY
+        return super.getStatementContext(aopContext);
     }
 }

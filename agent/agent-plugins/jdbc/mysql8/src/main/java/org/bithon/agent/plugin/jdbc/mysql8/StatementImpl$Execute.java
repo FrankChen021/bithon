@@ -29,6 +29,11 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
+ * {@link com.mysql.cj.jdbc.StatementImpl#execute(String)}
+ * {@link com.mysql.cj.jdbc.StatementImpl#executeQuery(String)}
+ * {@link com.mysql.cj.jdbc.StatementImpl#executeUpdate(String)}
+ * {@link com.mysql.cj.jdbc.StatementImpl#executeLargeUpdate(String)}
+ *
  * @author frankchen
  */
 public class StatementImpl$Execute extends AbstractStatement$Execute {
