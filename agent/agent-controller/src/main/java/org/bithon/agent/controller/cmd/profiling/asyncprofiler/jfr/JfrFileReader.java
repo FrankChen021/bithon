@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
@@ -154,7 +155,7 @@ public class JfrFileReader implements Closeable {
         }
 
         one.jfr.StackTrace stackTrace = delegate.stackTraces.get(stackTraceId);
-        List<StackFrame> frames = new ArrayList<>();
+        List<StackFrame> frames = new ArrayList<>(stackTrace.methods.length);
         for (int i = 0; i < stackTrace.methods.length; i++) {
             frames.add(toStackFrame(stackTrace, i).build());
         }
@@ -201,8 +202,9 @@ public class JfrFileReader implements Closeable {
         // Use cached method signature parsing
         MethodSignature parsedSig = getMethodSignature(method.sig);
         if (parsedSig != null) {
-            for (String paramType : parsedSig.parameterTypes) {
-                stackFrame.addParameters(paramType);
+            // Batch add all parameters at once to avoid repeated list growth
+            if (parsedSig.parameterTypes.length > 0) {
+                stackFrame.addAllParameters(Arrays.asList(parsedSig.parameterTypes));
             }
             stackFrame.setReturnType(parsedSig.returnType);
         }
