@@ -42,6 +42,12 @@ public class MySql5Plugin implements IPlugin {
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
+            // ConnectionImpl
+            forClass("com.mysql.jdbc.ConnectionImpl")
+                .onConstructor()
+                .andArgsSize((size) -> size > 0)
+                .interceptedBy("org.bithon.agent.plugin.jdbc.mysql5.ConnectionImpl$Ctor")
+                .build(),
 
             // PreparedStatement
             forClass("com.mysql.jdbc.PreparedStatement")

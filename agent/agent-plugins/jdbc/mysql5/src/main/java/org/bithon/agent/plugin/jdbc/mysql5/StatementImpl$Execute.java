@@ -18,6 +18,7 @@ package org.bithon.agent.plugin.jdbc.mysql5;
 
 import com.mysql.jdbc.MySQLConnection;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.observability.utils.MiscUtils;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
 import org.bithon.agent.plugin.jdbc.common.ConnectionContext;
 import org.bithon.agent.plugin.jdbc.common.StatementContext;
@@ -33,10 +34,12 @@ import java.sql.SQLException;
 public class StatementImpl$Execute extends AbstractStatement$Execute {
 
     protected ConnectionContext getConnectionContext(Connection connection) throws SQLException {
-        return new ConnectionContext(connection.getMetaData().getURL(),
-                                     // DON'T call getUser on getMetaData which will issue a query to the server
-                                     ((MySQLConnection) connection).getUser(),
-                                     "mysql");
+        return new ConnectionContext(
+            MiscUtils.cleanupConnectionString(connection.getMetaData().getURL()),
+            // DON'T call getUser on getMetaData which will issue a query to the server
+            ((MySQLConnection) connection).getUser(),
+            "mysql"
+        );
     }
 
     @Override

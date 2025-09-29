@@ -40,6 +40,12 @@ public class MySql8Plugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
 
         return Arrays.asList(
+            // ConnectionImpl
+            forClass("com.mysql.cj.jdbc.ConnectionImpl")
+                .onConstructor()
+                .andArgs(0, "com.mysql.cj.conf.HostInfo")
+                .interceptedBy("org.bithon.agent.plugin.jdbc.mysql8.ConnectionImpl$Ctor")
+                .build(),
 
             // PreparedStatement
             forClass("com.mysql.cj.jdbc.ClientPreparedStatement")

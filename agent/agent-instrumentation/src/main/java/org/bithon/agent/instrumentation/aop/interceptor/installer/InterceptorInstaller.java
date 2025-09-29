@@ -29,8 +29,12 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.Descriptors;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodType;
+import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
+import org.bithon.agent.instrumentation.aop.interceptor.plugin.PluginResolver;
+import org.bithon.agent.instrumentation.loader.PluginClassLoader;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
+import org.bithon.shaded.net.bytebuddy.agent.ByteBuddyAgent;
 import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.asm.AsmVisitorWrapper;
@@ -45,6 +49,7 @@ import org.bithon.shaded.net.bytebuddy.utility.JavaModule;
 
 import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -54,7 +59,7 @@ import java.util.Set;
  */
 public class InterceptorInstaller {
 
-    private final ILogger log = LoggerFactory.getLogger(InterceptorInstaller.class);
+    private static final ILogger LOG = LoggerFactory.getLogger(InterceptorInstaller.class);
     private final Descriptors descriptors;
 
     public InterceptorInstaller(Descriptors descriptors) {
@@ -81,13 +86,13 @@ public class InterceptorInstaller {
                 Descriptors.Descriptor descriptor = descriptors.get(type);
                 if (descriptor == null) {
                     // this must be something wrong
-                    log.error("Error to transform [{}] because the descriptor is not found. Please report it to agent maintainers.", type);
+                    LOG.error("Error to transform [{}] because the descriptor is not found. Please report it to agent maintainers.", type);
                     return builder;
                 }
 
                 if (descriptor.getPrecondition() != null
                     && !descriptor.getPrecondition().matches(classLoader, typeDescription)) {
-                    log.info("Interceptor for class [{}] not installed because precondition [{}] not satisfied",
+                    LOG.info("Interceptor for class [{}] not installed because precondition [{}] not satisfied",
                              typeDescription.getName(),
                              descriptor.getPrecondition().toString());
                     return builder;
@@ -97,7 +102,7 @@ public class InterceptorInstaller {
                 // Transform target class to a type of IBithonObject
                 //
                 if (typeDescription.isInterface()) {
-                    log.warn("Attempt to install interceptors on interface [{}]. This is not supported.", typeDescription.getName());
+                    LOG.warn("Attempt to install interceptors on interface [{}]. This is not supported.", typeDescription.getName());
                     return builder;
                 } else if (!typeDescription.isAssignableTo(IBithonObject.class)) {
                     // define an object field on this class to hold objects across interceptors for state sharing
@@ -112,7 +117,7 @@ public class InterceptorInstaller {
                 for (Descriptors.MethodPointCuts mp : descriptor.getMethodPointCuts()) {
                     // Run checkers first to see if an interceptor can be installed
                     if (mp.getPrecondition() != null && !mp.getPrecondition().matches(classLoader, typeDescription)) {
-                        log.info("[{}] Interceptor for class [{}] not installed because precondition [{}] not satisfied",
+                        LOG.info("[{}] Interceptor for class [{}] not installed because precondition [{}] not satisfied",
                                  mp.getPlugin(),
                                  typeDescription.getName(),
                                  mp.getPrecondition().toString());
@@ -122,7 +127,7 @@ public class InterceptorInstaller {
                     builder = new Installer(builder,
                                             typeDescription,
                                             classLoader,
-                                            log).install(mp.getPlugin(), mp.getMethodInterceptors());
+                                            LOG).install(mp.getPlugin(), mp.getMethodInterceptors());
                 }
 
                 return builder;
@@ -241,5 +246,26 @@ public class InterceptorInstaller {
 
     public static AsmVisitorWrapper newInstaller(Advice advice, ElementMatcher<? super MethodDescription> matcher) {
         return advice.on(matcher);
+    }
+
+    /**
+     * For test case only
+     */
+    public static void install(IPlugin plugin, ClassLoader pluginClassLoader) {
+        PluginClassLoader.setClassLoader(pluginClassLoader);
+        Descriptors descriptors = new Descriptors();
+        descriptors.merge(plugin.getClass().getSimpleName(),
+                          plugin.getPreconditions(),
+                          plugin.getInterceptors());
+        PluginResolver.resolveInterceptorType(descriptors.getAllDescriptor(), Collections.emptyMap());
+
+        InstrumentationHelper.setInstance(ByteBuddyAgent.install());
+        InstrumentationHelper.setErrorHandler(new AgentBuilder.Listener.Adapter() {
+            @Override
+            public void onError(String typeName, ClassLoader classLoader, JavaModule module, boolean loaded, Throwable throwable) {
+                LOG.error("Fail to instrument class {}", typeName, throwable);
+            }
+        });
+        new InterceptorInstaller(descriptors).installOn(InstrumentationHelper.getInstance());
     }
 }

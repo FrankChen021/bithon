@@ -17,8 +17,12 @@
 package org.bithon.agent.plugin.jdbc.mysql6;
 
 import com.mysql.cj.api.MysqlConnection;
+import com.mysql.cj.jdbc.PreparedStatement;
+import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.observability.utils.MiscUtils;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatement$ExecuteBatch;
 import org.bithon.agent.plugin.jdbc.common.ConnectionContext;
+import org.bithon.agent.plugin.jdbc.common.StatementContext;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -29,10 +33,22 @@ import java.sql.SQLException;
 public class StatementImpl$ExecuteBatch extends AbstractStatement$ExecuteBatch {
     @Override
     protected ConnectionContext getConnectionContext(Connection connection) throws SQLException {
-        return new ConnectionContext(connection.getMetaData().getURL(),
-                                     // DON'T call getUser on getMetaData which will issue a query to the server,
-                                     // which result in recursive call to this method
-                                     ((MysqlConnection) connection).getUser(),
-                                     "mysql");
+        return new ConnectionContext(
+            MiscUtils.cleanupConnectionString(connection.getMetaData().getURL()),
+            // DON'T call getUser on getMetaData which will issue a query to the server,
+            // which result in recursive call to this method
+            ((MysqlConnection) connection).getUser(),
+            "mysql");
+    }
+
+    @Override
+    protected StatementContext getStatementContext(AopContext aopContext) {
+        Object statement = aopContext.getTarget();
+        if (statement instanceof PreparedStatement) {
+            return new StatementContext(((PreparedStatement) statement).getPreparedSql());
+        }
+
+        // Fallback to EMPTY
+        return super.getStatementContext(aopContext);
     }
 }

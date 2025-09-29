@@ -185,7 +185,10 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
         return this.aggregatedStorage.isEmpty() && this.rawStorage.isEmpty();
     }
 
-    static class Measurement implements IMeasurement {
+    /**
+     * expose as public for test case usage
+     */
+    public static class Measurement implements IMeasurement {
         private final long timestamp;
         private final Dimensions dimensions;
         private final IMetricAccessor metricAccessor;
@@ -219,6 +222,22 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
         @Override
         public long getMetricValue(String name) {
             return metricAccessor.getMetricValue(name);
+        }
+
+        /**
+         * Expose the metric accessor for test case usage
+         */
+        public IMetricAccessor getMetricAccessor() {
+            return metricAccessor;
+        }
+
+        @Override
+        public String toString() {
+            return "Measurement{" +
+                   "timestamp=" + timestamp +
+                   ", dimensions=" + dimensions +
+                   ", metricAccessor=" + metricAccessor +
+                   '}';
         }
     }
 

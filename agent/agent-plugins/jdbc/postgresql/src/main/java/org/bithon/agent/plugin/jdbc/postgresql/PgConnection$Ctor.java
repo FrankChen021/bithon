@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.jdbc.postgresql;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.agent.observability.utils.MiscUtils;
 import org.bithon.agent.plugin.jdbc.common.ConnectionContext;
 import org.bithon.component.commons.utils.StringUtils;
 import org.postgresql.core.QueryExecutor;
@@ -40,7 +41,7 @@ public class PgConnection$Ctor extends AfterInterceptor {
     public void after(AopContext aopContext) throws Exception {
         PgConnection connection = aopContext.getTargetAs();
 
-        String connectionString = connection.getURL();
+        String connectionString;
 
         // Get the established local endpoint because the configured connection string might be a list of endpoints
         QueryExecutor queryExecutor = connection.getQueryExecutor();
@@ -52,10 +53,15 @@ public class PgConnection$Ctor extends AfterInterceptor {
             if (StringUtils.isEmpty(queryExecutor.getDatabase())) {
                 connectionString += "/" + queryExecutor.getDatabase();
             }
+        } else {
+            // Fallback
+            connectionString = MiscUtils.cleanupConnectionString(connection.getURL());
         }
 
-        ((IBithonObject) connection).setInjectedObject(new ConnectionContext(connectionString,
-                                                                             connection.getUserName(),
-                                                                             "postgresql"));
+        ((IBithonObject) connection).setInjectedObject(
+            new ConnectionContext(connectionString,
+                                  connection.getUserName(),
+                                  "postgresql")
+        );
     }
 }
