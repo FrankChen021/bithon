@@ -48,9 +48,13 @@ public class SqlTypeParser {
                         i++;
                     } else if (c == '\'') {
                         state = State.STRING_LITERAL;
-                    } else if (Character.isLetter(c)) {
+                    } else if (isUpper(c)) {
                         state = State.READING_TYPE;
-                        sqlType.append(Character.toUpperCase(c));
+                        sqlType.append(c);
+                    } else if (isLower(c)) {
+                        state = State.READING_TYPE;
+                        // Convert to upper case
+                        sqlType.append((char) (c - 32));
                     }
                     break;
 
@@ -74,8 +78,15 @@ public class SqlTypeParser {
                     break;
 
                 case READING_TYPE:
-                    if (Character.isLetter(c) && sqlType.length() < 10) {
-                        sqlType.append(Character.toUpperCase(c));
+                    if (sqlType.length() < 10) {
+                        if (isLower(c)) {
+                            // Convert to upper case
+                            sqlType.append((char) (c - 32));
+                        } else if (isUpper(c)) {
+                            sqlType.append(c);
+                        } else {
+                            return sqlType.toString();
+                        }
                     } else {
                         return sqlType.toString();
                     }
@@ -84,5 +95,13 @@ public class SqlTypeParser {
         }
 
         return sqlType.toString();
+    }
+
+    private static boolean isLower(char c) {
+        return (c >= 'a' && c <= 'z');
+    }
+
+    private static boolean isUpper(char c) {
+        return (c >= 'A' && c <= 'Z');
     }
 }
