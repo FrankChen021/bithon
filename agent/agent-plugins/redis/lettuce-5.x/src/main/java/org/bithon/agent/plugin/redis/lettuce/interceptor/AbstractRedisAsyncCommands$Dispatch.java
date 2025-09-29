@@ -16,6 +16,7 @@
 
 package org.bithon.agent.plugin.redis.lettuce.interceptor;
 
+import io.lettuce.core.AbstractRedisAsyncCommands;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.protocol.AsyncCommand;
 import io.lettuce.core.protocol.RedisCommand;
@@ -24,7 +25,6 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.metric.model.schema.Dimensions;
 import org.bithon.agent.plugin.redis.lettuce.LettuceAsyncContext;
-import org.bithon.component.commons.utils.ReflectionUtils;
 
 /**
  * {@link io.lettuce.core.AbstractRedisAsyncCommands#dispatch(RedisCommand)}
@@ -35,8 +35,8 @@ public class AbstractRedisAsyncCommands$Dispatch extends AfterInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        StatefulConnection<?, ?> connection = ((StatefulConnection<?, ?>) ReflectionUtils.getFieldValue(aopContext.getTarget(),
-                                                                                                        "connection"));
+        AbstractRedisAsyncCommands<?, ?> redisAsyncCommands = aopContext.getTargetAs();
+        StatefulConnection<?, ?> connection = redisAsyncCommands.getConnection();
         if (!(connection instanceof IBithonObject)) {
             // In case the instrumentation is not successful
             return;
