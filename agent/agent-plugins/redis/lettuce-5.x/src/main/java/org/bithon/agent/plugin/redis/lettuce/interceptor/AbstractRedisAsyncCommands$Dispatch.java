@@ -41,11 +41,12 @@ public class AbstractRedisAsyncCommands$Dispatch extends AfterInterceptor {
             // In case the instrumentation is not successful
             return;
         }
+        // the endpoint is injected in RedisClient$Ctor
+        String endpoint = (String) ((IBithonObject) connection).getInjectedObject();
 
         AsyncCommand<?, ?, ?> asyncCommand = aopContext.getReturningAs();
 
         LettuceAsyncContext asyncContext = new LettuceAsyncContext();
-        String endpoint = (String) ((IBithonObject) connection).getInjectedObject();
         asyncContext.setDimensions(Dimensions.of(endpoint, asyncCommand.getType().name()));
         asyncContext.setStartTime(System.nanoTime());
 
