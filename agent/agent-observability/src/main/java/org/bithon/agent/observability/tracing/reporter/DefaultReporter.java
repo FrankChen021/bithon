@@ -19,13 +19,13 @@ package org.bithon.agent.observability.tracing.reporter;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.observability.exporter.Exporter;
 import org.bithon.agent.observability.exporter.Exporters;
+import org.bithon.agent.observability.exporter.IMessageConverter;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -49,10 +49,20 @@ public class DefaultReporter implements ITraceReporter {
 
     @Override
     public void report(List<ITraceSpan> spans) {
-        List<Object> traceMessages = spans.stream()
-                                          .map(span -> traceExporter.getMessageConverter().from(span))
-                                          .filter(Objects::nonNull)
-                                          .collect(Collectors.toList());
+        if (spans.isEmpty()) {
+            return;
+        }
+
+        List<Object> traceMessages = new ArrayList<>(spans.size());
+
+        IMessageConverter messageConverter = traceExporter.getMessageConverter();
+        for (ITraceSpan span : spans) {
+            Object message = messageConverter.from(span);
+            if (message != null) {
+                traceMessages.add(message);
+            }
+        }
+        
         try {
             traceExporter.export(traceMessages);
         } catch (Exception e) {

@@ -42,7 +42,7 @@
         "tracing": {
           "mappings": {
             "uri": "tags['net.peer']",
-            "command": "tags['db.operation']"
+            "command": "tags['db.operation.name']"
           },
           "filter": "kind = 'CLIENT' AND tags['db.system']='redis'"
         }
