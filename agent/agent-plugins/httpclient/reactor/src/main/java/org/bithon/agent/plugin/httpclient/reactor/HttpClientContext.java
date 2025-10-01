@@ -36,6 +36,17 @@ public class HttpClientContext {
      */
     private ITraceSpan span;
 
+    private String uri;
+    private String method;
+
+    public HttpClientContext() {
+    }
+
+    public HttpClientContext(String uri, String method) {
+        this.uri = uri;
+        this.method = method;
+    }
+
     public long getStartTimeNs() {
         return startTimeNs;
     }
@@ -50,5 +61,26 @@ public class HttpClientContext {
 
     public void setSpan(ITraceSpan span) {
         this.span = span;
+    }
+
+    public void setUri(String uriText) {
+    }
+    public void setMethod(String name) {
+    }
+
+    public HttpClientContext withUri(String uri) {
+        return new HttpClientContext(uri, this.method);
+    }
+
+    public HttpClientContext withMethod(String method) {
+        return new HttpClientContext(this.uri, method);
+    }
+
+    public String getMethod() {
+        return method;
+    }
+
+    public String getUri() {
+        return uri;
     }
 }

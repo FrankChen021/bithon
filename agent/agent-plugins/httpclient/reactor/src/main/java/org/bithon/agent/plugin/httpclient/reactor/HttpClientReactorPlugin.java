@@ -35,9 +35,20 @@ public class HttpClientReactorPlugin implements IPlugin {
 
         return Arrays.asList(
 
+            // HttpClient is the super class of the following HttpClientFinalizer
+            forClass("reactor.netty.http.client")
+                .onMethod("request")
+                .andArgs("io.netty.handler.codec.http.HttpMethod")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.reactor.interceptor.HttpClient$Request")
+                .build(),
+
             forClass("reactor.netty.http.client.HttpClientFinalizer")
                 .onMethod("_connect")
                 .interceptedBy("org.bithon.agent.plugin.httpclient.reactor.interceptor.HttpClientFinalizer$Connect")
+
+                .onMethod("uri")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.reactor.interceptor.HttpClientFinalizer$Uri")
+
                 .build(),
 
             forClass("reactor.netty.http.client.HttpClientFinalizer")

@@ -30,7 +30,7 @@ public class Flux$Timeout extends BeforeInterceptor {
 
     /**
      * replace the timeout callback so that we have the opportunity to do sth when timeout
-     *
+     * <p>
      * {@link HttpClientFinalizer$ResponseConnection#after(AopContext)} will inject a timeout callback
      */
     @Override
