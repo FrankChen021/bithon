@@ -189,54 +189,55 @@ And in theory, this matrix works both for Windows and Linux.
 
 # Supported Components
 
-| Component                                                    | Min Version | Max Version | Metrics                                        | Tracing |
-|--------------------------------------------------------------|-------------|-------------|------------------------------------------------|---------|
-| JVM                                                          | 1.8         |             | &check;                                        |         |
-| JDK - Thread Pool                                            | 1.8         |             | &check;                                        | &check; |
-| JDK - HTTP Client                                            | 1.8         |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
-| Apache Druid(1)                                              | 0.16        | 31.0        |                                                | &check; |
-| Apache Kafka(2)                                              | 0.10.0.0    | 4.0         | &check;                                        | &check; |
-| Apache OZone                                                 | 1.3.0       |             |                                                | &check; |
-| Apache ZooKeeper Client                                      | 3.5         | 3.9         | &check;                                        |         |
-| Eclipse Glassfish                                            | 2.34        |             |                                                | &check; |
-| GRPC                                                         | 1.57.0      |             | &check;                                        | &check; |
-| Google Guice                                                 | 4.1.0       |             |                                                | &check; |
-| HTTP Client - Apache                                         | 4.5.2       | 5.x         | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
-| HTTP Client - Jetty                                          | 9.4.6       |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
-| HTTP Client - Netty                                          | 3.10.6      | < 4.0       | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
-| HTTP Client - okhttp3                                        | 3.2         | 4.9         | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
-| HTTP Client - reactor-netty                                  | 1.0.11      |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
-| HTTP Client - JDK HttpURLConnection                          | 1.8         |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
-| HTTP Client - JDK 11+ HttpClient (java.net.http.HttpClient)  | 11          |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
-| Jersey                                                       | 1.19.4      |             |                                                | &check; |
-| JDBC - Alibaba Druid                                         | 1.0.28      |             | &check;                                        | &check; |
-| JDBC - Apache Derby                                          | 10.14.2     |             | &check;                                        | &check; |
-| JDBC - ClickHouse                                            | 0.3.1       |             | &check;                                        | &check; |
-| JDBC - H2                                                    | 2.2.224     |             | &check;                                        | &check; |
-| JDBC - MySQL                                                 | 5.x         | 8.x         | &check;                                        | &check; |
-| JDBC - PostgreSQL                                            | 42.4.3      |             | &check;                                        | &check; |
-| MongoDB                                                      | 3.4.2       |             | &check;                                        |         |
-| Open Feign                                                   | 10.8        |             |                                                | &check; |
-| Quartz                                                       | 2.x         |             | &check;                                        | &check; |
-| Redis - Jedis                                                | 2.9         | 5.x         | &check;                                        | &check; |
-| Redis - Lettuce(3)                                           | 5.1.2       | 6.x         | &check;                                        | &check; |
-| Redis - Redisson                                             | 3.19.0      |             | &check;                                        | &check; |
-| Spring Boot                                                  | 1.5         | 3.0+        |                                                | &check; |
-| [Spring Bean](doc/configuration/agent/plugin/spring-bean.md) | 4.3.12      |             |                                                | &check; |
-| Spring Open Feign                                            | 10.8        |             |                                                | &check; |
-| Spring Rest Template                                         | 4.3.12      |             |                                                | &check; |
-| Spring Scheduling                                            | 4.3.12      |             |                                                | &check; |
-| Spring Gateway                                               | 3.0.0       |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; | 
-| HTTP Server - Jetty                                          | 9.4.41      | 12.0.x      | &check;                                        | &check; |
-| HTTP Server - Netty                                          | 2.0.0       |             |                                                | &check; |
-| HTTP Server - Tomcat                                         | 8.5.20      |             | &check;                                        | &check; |
-| HTTP Server - Undertow                                       | 1.4.12      |             | &check;                                        | &check; |
-| xxl-job                                                      | 2.3.0       |             |                                                | &check; |
+| Component                                                    | Min Version    | Max Version | Metrics                                        | Tracing |
+|--------------------------------------------------------------|----------------|-------------|------------------------------------------------|---------|
+| JVM                                                          | 1.8            |             | &check;                                        |         |
+| JDK - Thread Pool                                            | 1.8            |             | &check;                                        | &check; |
+| JDK - HTTP Client                                            | 1.8            |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
+| Apache Druid(1)                                              | 0.16           | 31.0        |                                                | &check; |
+| Apache Kafka(2)                                              | 0.10.0.0       | 4.0         | &check;                                        | &check; |
+| Apache OZone                                                 | 1.3.0          |             |                                                | &check; |
+| Apache ZooKeeper Client                                      | 3.5            | 3.9         | &check;                                        |         |
+| Eclipse Glassfish                                            | 2.34           |             |                                                | &check; |
+| GRPC                                                         | 1.57.0         |             | &check;                                        | &check; |
+| Google Guice                                                 | 4.1.0          |             |                                                | &check; |
+| HTTP Client - Apache                                         | 4.5.2          | 5.x         | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
+| HTTP Client - Jetty                                          | 9.4.6          |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
+| HTTP Client - Netty                                          | 3.10.6         | < 4.0       | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
+| HTTP Client - okhttp3                                        | 3.2            | 4.9         | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
+| HTTP Client - reactor-netty(3)                               | 0.9.10.RELEASE |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
+| HTTP Client - JDK HttpURLConnection                          | 1.8            |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
+| HTTP Client - JDK 11+ HttpClient (java.net.http.HttpClient)  | 11             |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
+| Jersey                                                       | 1.19.4         |             |                                                | &check; |
+| JDBC - Alibaba Druid                                         | 1.0.28         |             | &check;                                        | &check; |
+| JDBC - Apache Derby                                          | 10.14.2        |             | &check;                                        | &check; |
+| JDBC - ClickHouse                                            | 0.3.1          |             | &check;                                        | &check; |
+| JDBC - H2                                                    | 2.2.224        |             | &check;                                        | &check; |
+| JDBC - MySQL                                                 | 5.x            | 8.x         | &check;                                        | &check; |
+| JDBC - PostgreSQL                                            | 42.4.3         |             | &check;                                        | &check; |
+| MongoDB                                                      | 3.4.2          |             | &check;                                        |         |
+| Open Feign                                                   | 10.8           |             |                                                | &check; |
+| Quartz                                                       | 2.x            |             | &check;                                        | &check; |
+| Redis - Jedis                                                | 2.9            | 5.x         | &check;                                        | &check; |
+| Redis - Lettuce(4)                                           | 5.1.2          | 6.x         | &check;                                        | &check; |
+| Redis - Redisson                                             | 3.19.0         |             | &check;                                        | &check; |
+| Spring Boot                                                  | 1.5            | 3.0+        |                                                | &check; |
+| [Spring Bean](doc/configuration/agent/plugin/spring-bean.md) | 4.3.12         |             |                                                | &check; |
+| Spring Open Feign                                            | 10.8           |             |                                                | &check; |
+| Spring Rest Template                                         | 4.3.12         |             |                                                | &check; |
+| Spring Scheduling                                            | 4.3.12         |             |                                                | &check; |
+| Spring Gateway                                               | 3.0.0          |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; | 
+| HTTP Server - Jetty                                          | 9.4.41         | 12.0.x      | &check;                                        | &check; |
+| HTTP Server - Netty                                          | 2.0.0          |             |                                                | &check; |
+| HTTP Server - Tomcat                                         | 8.5.20         |             | &check;                                        | &check; |
+| HTTP Server - Undertow                                       | 1.4.12         |             | &check;                                        | &check; |
+| xxl-job                                                      | 2.3.0          |             |                                                | &check; |
 
 ## Restrictions
 1. For Apache Druid, the Jersey plugin is required to be enabled to collect query information.
-2. From Apache Kafka clients 3.7, the consumer metrics only works when the `group.protocol` is configured as `classic` which is the default configuration of the consumer client. 
-3. For Lettuce, the tracing support is only available when it's used with Spring Data Redis API(org.springframework.data:spring-data-redis) from 2.3.4-RELEASE .
+2. From Apache Kafka clients 3.7, the consumer metrics only works when the `group.protocol` is configured as `classic` which is the default configuration of the consumer client.
+3. For reactor-netty HTTP client, it supports the version 0.9 in io.projectreactor.netty:reactor-netty as well as 1.0.0 above in io.projectreactor.netty:reactor-netty-http 
+4. For Lettuce, the tracing support is only available when it's used with Spring Data Redis API(org.springframework.data:spring-data-redis) from 2.3.4-RELEASE .
 
 
 
