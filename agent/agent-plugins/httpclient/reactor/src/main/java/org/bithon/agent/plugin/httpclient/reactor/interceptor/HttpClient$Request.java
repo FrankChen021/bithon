@@ -24,12 +24,14 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterce
 import org.bithon.agent.plugin.httpclient.reactor.HttpClientContext;
 
 /**
+ * {@link reactor.netty.http.client.HttpClient#request(HttpMethod)}
+ *
  * @author frank.chen021@outlook.com
  * @date 1/10/25 6:16 pm
  */
 public class HttpClient$Request extends AfterInterceptor {
     @Override
-    public void after(AopContext aopContext) throws Exception {
+    public void after(AopContext aopContext) {
         if (aopContext.hasException()) {
             return;
         }

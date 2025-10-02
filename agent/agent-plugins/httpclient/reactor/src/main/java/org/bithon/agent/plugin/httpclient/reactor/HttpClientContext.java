@@ -63,9 +63,11 @@ public class HttpClientContext {
         this.span = span;
     }
 
-    public void setUri(String uriText) {
+    public void setUri(String uri) {
+        this.uri = uri;
     }
-    public void setMethod(String name) {
+    public void setMethod(String method) {
+        this.method = method;
     }
 
     public HttpClientContext withUri(String uri) {
