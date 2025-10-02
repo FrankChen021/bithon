@@ -209,8 +209,8 @@
         "columns": ["targetHostPort", "method", "path", "statusCode", "requestCount"],
         "query": {
           "type": "groupBy",
-          "fields": ["statusCode", "requestCount"],
-          "groupBy": ["targetHostPort", "method", "path"],
+          "fields": ["requestCount"],
+          "groupBy": ["targetHostPort", "method", "path", "statusCode"],
           "filter": "statusCode >= '400'",
           "orderBy": {
             "name": "requestCount",
