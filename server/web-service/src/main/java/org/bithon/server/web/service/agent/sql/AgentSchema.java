@@ -21,6 +21,7 @@ import org.apache.calcite.schema.Table;
 import org.apache.calcite.schema.impl.AbstractSchema;
 import org.bithon.server.web.service.agent.sql.table.AgentServiceProxyFactory;
 import org.bithon.server.web.service.agent.sql.table.AssemblyTable;
+import org.bithon.server.web.service.agent.sql.table.ClassHierarchyTable;
 import org.bithon.server.web.service.agent.sql.table.ClassHistogramTable;
 import org.bithon.server.web.service.agent.sql.table.ClassTable;
 import org.bithon.server.web.service.agent.sql.table.ConfigurationTable;
@@ -49,6 +50,7 @@ public class AgentSchema extends AbstractSchema {
                                     .put("instrumented_method", new InstrumentedMethodTable(agentServiceProxyFactory))
                                     .put("loaded_class", new ClassTable(agentServiceProxyFactory))
                                     .put("class_histogram", new ClassHistogramTable(agentServiceProxyFactory))
+                                    .put("class_hierarchy", new ClassHierarchyTable(agentServiceProxyFactory))
                                     .put("logger", new LoggerTable(agentServiceProxyFactory))
                                     .put("thread", new ThreadTable(agentServiceProxyFactory))
                                     .put("vm_option", new JVMOptionTable(agentServiceProxyFactory))
