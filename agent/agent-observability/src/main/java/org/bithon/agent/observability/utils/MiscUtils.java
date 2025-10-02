@@ -32,16 +32,4 @@ public class MiscUtils {
         return connectionString.split("\\?")[0].split(";")[0];
     }
 
-    /**
-     * Extract path from URI by removing query parameters
-     * <p>
-     * For example: "/api/users?id=123&name=john" -> "/api/users"
-     *
-     * @param uri the URI string that may contain query parameters
-     * @return the path portion without query parameters
-     */
-    public static String dropQueryParameters(String uri) {
-        int queryIndex = uri.indexOf('?');
-        return queryIndex == -1 ? uri : uri.substring(0, queryIndex);
-    }
 }

@@ -25,8 +25,8 @@ import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.TraceMode;
+import org.bithon.agent.observability.utils.HttpUtils;
 import org.bithon.component.commons.tracing.Tags;
-import org.bithon.component.commons.utils.StringUtils;
 import sun.net.www.MessageHeader;
 import sun.net.www.protocol.http.HttpURLConnection;
 
@@ -51,7 +51,7 @@ public class HttpClient$ParseHTTP extends AfterInterceptor {
     public void after(AopContext aopContext) {
         MessageHeader responseHeader = (MessageHeader) aopContext.getArgs()[0];
         String statusLine = responseHeader.getValue(0);
-        int statusCode = parseStatusCode(statusLine);
+        String statusCode = HttpUtils.parseStatusLine(statusLine);
 
         IBithonObject bithonObject = aopContext.getTargetAs();
         HttpClientContext clientContext = (HttpClientContext) bithonObject.getInjectedObject();
@@ -86,26 +86,7 @@ public class HttpClient$ParseHTTP extends AfterInterceptor {
                                  }
                              }
                          })
-           .tag(Tags.Http.STATUS, Integer.toString(statusCode))
+           .tag(Tags.Http.STATUS, statusCode)
            .finish();
-    }
-
-    /**
-     * The input statusLine has a format of the following examples:
-     *  HTTP/1.0 200 OK
-     *  HTTP/1.0 401 Unauthorized
-     * It will return 200 and 401 respectively. Returns -1 if no code can be discerned
-     */
-    private int parseStatusCode(String statusLine) {
-        if (StringUtils.hasText(statusLine)) {
-            String[] results = statusLine.split(" ");
-            if (results.length >= 1) {
-                try {
-                    return Integer.parseInt(results[1]);
-                } catch (NumberFormatException ignored) {
-                }
-            }
-        }
-        return -1;
     }
 }
