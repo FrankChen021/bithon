@@ -27,7 +27,6 @@ import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.reactivestreams.Publisher;
 import reactor.netty.NettyOutbound;
-import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientRequest;
 
 import java.util.function.BiFunction;
@@ -42,7 +41,6 @@ public class HttpClientFinalizer$Send extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        HttpClient httpClient = aopContext.getTargetAs();
         IBithonObject bithonObject = aopContext.getTargetAs();
 
         // span will be finished in ResponseConnection interceptor,
