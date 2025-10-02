@@ -16,10 +16,12 @@
 
 package org.bithon.agent.observability.metric.domain.httpclient;
 
+import java.util.Arrays;
+
 import org.bithon.agent.observability.metric.collector.MetricRegistry;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
-
-import java.util.Arrays;
+import org.bithon.agent.observability.utils.HttpStatusCodeUtils;
+import org.bithon.agent.observability.utils.MiscUtils;
 
 /**
  * http client
@@ -45,7 +47,7 @@ public class HttpOutgoingMetricsRegistry extends MetricRegistry<HttpOutgoingMetr
     public HttpOutgoingMetrics addExceptionRequest(String uri,
                                                    String method,
                                                    long responseTime) {
-        String path = uri.split("\\?")[0];
+        String path = MiscUtils.dropQueryParameters(uri);
         return getOrCreateMetrics(path, method, "").addException(responseTime, 1);
     }
 
@@ -56,7 +58,7 @@ public class HttpOutgoingMetricsRegistry extends MetricRegistry<HttpOutgoingMetr
                                           String method,
                                           int statusCode,
                                           long responseTime) {
-        String path = uri.split("\\?")[0];
+        String path = MiscUtils.dropQueryParameters(uri);
 
         int count4xx = 0, count5xx = 0;
         if (statusCode >= 400) {
@@ -67,7 +69,7 @@ public class HttpOutgoingMetricsRegistry extends MetricRegistry<HttpOutgoingMetr
             }
         }
 
-        HttpOutgoingMetrics metrics = getOrCreateMetrics(path, method, String.valueOf(statusCode));
+        HttpOutgoingMetrics metrics = getOrCreateMetrics(path, method, HttpStatusCodeUtils.statusCodeToString(statusCode));
         metrics.add(responseTime, count4xx, count5xx);
         return metrics;
     }
@@ -76,7 +78,7 @@ public class HttpOutgoingMetricsRegistry extends MetricRegistry<HttpOutgoingMetr
                          String method,
                          long requestBytes,
                          long responseBytes) {
-        String path = uri.split("\\?")[0];
+        String path = MiscUtils.dropQueryParameters(uri);
         getOrCreateMetrics(path, method, "").updateIOMetrics(requestBytes, responseBytes);
     }
 }
