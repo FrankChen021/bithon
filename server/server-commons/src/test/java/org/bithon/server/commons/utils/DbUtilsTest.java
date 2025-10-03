@@ -97,4 +97,13 @@ public class DbUtilsTest {
         Assertions.assertEquals("", conn.getDatabase());
         Assertions.assertEquals("postgresql", conn.getDbType());
     }
+
+
+    @Test
+    public void test_PrestoSQLConnectionString_WithDatabase() {
+        DbUtils.ConnectionString conn = DbUtils.parseConnectionString("jdbc:presto://presto-gw.com:443/catalog-name/db?SSL=true");
+        Assertions.assertEquals("presto-gw.com:443", conn.getHostAndPort());
+        Assertions.assertEquals("catalog-name/db", conn.getDatabase());
+        Assertions.assertEquals("presto", conn.getDbType());
+    }
 }
