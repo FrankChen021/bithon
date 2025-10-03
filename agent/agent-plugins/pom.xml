@@ -43,6 +43,7 @@
     <module>jdbc/mysql5</module>
     <module>jdbc/mysql6</module>
     <module>jdbc/mysql8</module>
+    <module>jdbc/presto</module>
     <module>thread-jdk</module>
     <module>thread-jdk8</module>
     <module>thread-jdk9</module>
