@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.spring.webflux.interceptor;
 
 import org.bithon.agent.configuration.ConfigurationManager;
-import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
@@ -26,10 +25,7 @@ import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.plugin.spring.webflux.config.GatewayFilterConfigs;
-import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
-import org.springframework.http.server.reactive.AbstractServerHttpRequest;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
+import org.bithon.agent.plugin.spring.webflux.context.TracingContextAttributes;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -52,50 +48,24 @@ public class AroundGatewayFilter$Filter extends AroundInterceptor {
     @Override
     public InterceptionDecision before(AopContext aopContext) {
         ServerWebExchange exchange = aopContext.getArgAs(0);
-
-        ServerHttpRequest request = exchange.getRequest();
-        if (request instanceof ServerHttpRequestDecorator) {
-            request = ((ServerHttpRequestDecorator) request).getDelegate();
-        }
-
-        // ReactorHttpHandlerAdapter#apply creates an object of AbstractServerHttpRequest
-        if (!(request instanceof AbstractServerHttpRequest)) {
+        ITraceContext ctx = exchange.getAttribute(TracingContextAttributes.TRACE_CONTEXT);
+        if (ctx == null || ctx.traceMode() == TraceMode.LOGGING) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        // the request object on exchange is type of HttpServerOperation
-        // see ReactorHttpHandlerAdapter#apply
-        Object nativeRequest = ((AbstractServerHttpRequest) request).getNativeRequest();
-        if (!(nativeRequest instanceof IBithonObject)) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
+        // Ensure the trace context is attached to the current thread for this filter execution
+        TraceContextHolder.attach(ctx);
 
-        HttpServerContext ctx = (HttpServerContext) ((IBithonObject) nativeRequest).getInjectedObject();
-        ITraceContext traceContext = ctx.getTraceContext();
-        if (traceContext == null || !traceContext.traceMode().equals(TraceMode.TRACING)) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-
-        // Set the context for each filter
-        //
-        // Once upon time we did it in the ChannelOperations#onInboundComplete which is called by HttpServerOperations
-        // that's the entry point for the incoming HTTP requests which is schedule on the HTTP nio threads
-        // But for a repeated/retried request, it's scheduled on parallel scheduler threads, so any code that retrieves the context fails
-        TraceContextHolder.attach(traceContext);
-
-        aopContext.setSpan(traceContext.currentSpan()
-                                       .newChildSpan("filter")
-                                       .method(aopContext.getTargetClass(), aopContext.getMethod())
-                                       .start());
-
+        aopContext.setSpan(ctx.currentSpan()
+                              .newChildSpan("filter")
+                              .method(aopContext.getTargetClass(), aopContext.getMethod())
+                              .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        TraceContextHolder.detach();
-
         ITraceSpan span = aopContext.getSpan();
         if (span == null) {
             // in case of exception in the Enter interceptor
