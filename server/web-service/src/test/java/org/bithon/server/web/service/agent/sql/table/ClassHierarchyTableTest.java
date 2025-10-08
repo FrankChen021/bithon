@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test cases for ClassHierarchyTable.parseClassHierarchy method
  *
  * @author Frank Chen
- * @date 1/3/23 2:35 pm
+ * @date 29/9/25 2:35 pm
  */
 public class ClassHierarchyTableTest {
 
