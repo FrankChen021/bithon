@@ -37,12 +37,12 @@ import java.util.Set;
 @Slf4j
 public class TraceBatchWriter implements ITraceWriter {
     private final List<TraceSpan> traceSpans = new ArrayList<>();
+    private final List<TagIndex> tagIndexes = new ArrayList<>();
 
     /**
      * Use set to deduplication for different batches
      */
-    private final Set<TraceIdMapping> traceIdMappings = new HashSet<>();
-    private final List<TagIndex> tagIndexes = new ArrayList<>();
+    private Set<TraceIdMapping> traceIdMappings = new HashSet<>();
 
     private final ITraceWriter writer;
     private final FixedDelayExecutor executor;
@@ -81,15 +81,19 @@ public class TraceBatchWriter implements ITraceWriter {
             tagIndexes = new ArrayList<>(this.tagIndexes);
 
             this.traceSpans.clear();
-            this.traceIdMappings.clear();
             this.tagIndexes.clear();
+            // It would be much efficient to create a new set than clearing the existing one
+            this.traceIdMappings = new HashSet<>();
         }
 
         if (spans.isEmpty() && idMappings.isEmpty() && tagIndexes.isEmpty()) {
             return;
         }
         try {
-            log.debug("Flushing [{}] spans into storage...", spans.size());
+            if (log.isDebugEnabled()) {
+                // Apply this check as profiling see the debug method call is expensive
+                log.debug("Flushing [{}] spans into storage...", spans.size());
+            }
             this.writer.write(spans, idMappings, tagIndexes);
         } catch (Exception e) {
             log.error("Exception when flushing spans into storage", e);
