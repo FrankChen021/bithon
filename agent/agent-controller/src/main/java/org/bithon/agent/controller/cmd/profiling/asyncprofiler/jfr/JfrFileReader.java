@@ -155,17 +155,18 @@ public class JfrFileReader implements Closeable {
         }
 
         one.jfr.StackTrace stackTrace = delegate.stackTraces.get(stackTraceId);
+
+        StackFrame.Builder stackFrameBuilder = StackFrame.newBuilder();
         List<StackFrame> frames = new ArrayList<>(stackTrace.methods.length);
         for (int i = 0; i < stackTrace.methods.length; i++) {
-            frames.add(toStackFrame(stackTrace, i).build());
+            frames.add(toStackFrame(stackTrace, i, stackFrameBuilder));
+            stackFrameBuilder.clear();
         }
         return frames;
     }
 
-    private StackFrame.Builder toStackFrame(one.jfr.StackTrace stackTrace, int frameIndex) {
+    private StackFrame toStackFrame(one.jfr.StackTrace stackTrace, int frameIndex, StackFrame.Builder stackFrame) {
         long methodId = stackTrace.methods[frameIndex];
-
-        StackFrame.Builder stackFrame = StackFrame.newBuilder();
 
         int location;
         if ((location = stackTrace.locations[frameIndex] >>> 16) != 0) {
@@ -181,7 +182,7 @@ public class JfrFileReader implements Closeable {
         MethodRef method = this.delegate.methods.get(methodId);
         if (method == null) {
             stackFrame.setMethod("Unknown");
-            return stackFrame;
+            return stackFrame.build();
         }
 
         String className = getClassName(method.cls);
@@ -194,7 +195,7 @@ public class JfrFileReader implements Closeable {
         if (methodName == null || methodName.isEmpty()) {
             stackFrame.setTypeName(className);
             stackFrame.setMethod("Unknown");
-            return stackFrame;
+            return stackFrame.build();
         }
         stackFrame.setTypeName(className);
         stackFrame.setMethod(methodName);
@@ -208,7 +209,7 @@ public class JfrFileReader implements Closeable {
             }
             stackFrame.setReturnType(parsedSig.returnType);
         }
-        return stackFrame;
+        return stackFrame.build();
     }
 
     /**
