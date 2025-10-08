@@ -30,7 +30,6 @@ import org.bithon.component.commons.utils.ReflectionUtils;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.netty.Connection;
-import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
 
 import java.util.function.BiFunction;
@@ -49,14 +48,15 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
+        // The context should be injected in uri() or request()
+        Object context = ((IBithonObject) aopContext.getTargetAs()).getInjectedObject();
+        if (context == null) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
 
-        HttpClient httpClient = aopContext.getTargetAs();
-        String uri = httpClient.configuration().uri();
-        String method = httpClient.configuration().method().name();
-
-        // The following object is injected in the onMethodLeave of HttpClientFinalizer$Send
-        IBithonObject bithonObject = aopContext.getTargetAs();
-        HttpClientContext httpClientContext = (HttpClientContext) bithonObject.getInjectedObject();
+        HttpClientContext httpClientContext = (HttpClientContext) context;
+        String uri = httpClientContext.getUri();
+        String method = httpClientContext.getMethod();
 
         //noinspection unchecked,rawtypes
         BiFunction<? super HttpClientResponse, ? super Connection, ? extends Publisher> originalReceiver
@@ -105,14 +105,9 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        HttpClient httpClient = aopContext.getTargetAs();
-        String uri = httpClient.configuration().uri();
-        String method = httpClient.configuration().method().name();
-
-        IBithonObject bithonObject = aopContext.getTargetAs();
-
-        // The following object is injected in the onMethodLeave of HttpClientFinalizer$Send
-        HttpClientContext httpClientContext = (HttpClientContext) bithonObject.getInjectedObject();
+        HttpClientContext httpClientContext = (HttpClientContext) ((IBithonObject) aopContext.getTargetAs()).getInjectedObject();
+        String uri = httpClientContext.getUri();
+        String method = httpClientContext.getMethod();
 
         Flux<?> responseFlux = aopContext.getReturningAs();
 

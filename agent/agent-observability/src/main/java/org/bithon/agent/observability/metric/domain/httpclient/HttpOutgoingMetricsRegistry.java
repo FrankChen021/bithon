@@ -18,6 +18,7 @@ package org.bithon.agent.observability.metric.domain.httpclient;
 
 import org.bithon.agent.observability.metric.collector.MetricRegistry;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
+import org.bithon.agent.observability.utils.HttpUtils;
 
 import java.util.Arrays;
 
@@ -45,7 +46,7 @@ public class HttpOutgoingMetricsRegistry extends MetricRegistry<HttpOutgoingMetr
     public HttpOutgoingMetrics addExceptionRequest(String uri,
                                                    String method,
                                                    long responseTime) {
-        String path = uri.split("\\?")[0];
+        String path = HttpUtils.dropQueryParameters(uri);
         return getOrCreateMetrics(path, method, "").addException(responseTime, 1);
     }
 
@@ -56,18 +57,23 @@ public class HttpOutgoingMetricsRegistry extends MetricRegistry<HttpOutgoingMetr
                                           String method,
                                           int statusCode,
                                           long responseTime) {
-        String path = uri.split("\\?")[0];
+        return addRequest(uri, method, HttpUtils.statusCodeToString(statusCode), responseTime);
+    }
+
+    public HttpOutgoingMetrics addRequest(String uri,
+                                          String method,
+                                          String statusCode,
+                                          long responseTime) {
+        String path = HttpUtils.dropQueryParameters(uri);
 
         int count4xx = 0, count5xx = 0;
-        if (statusCode >= 400) {
-            if (statusCode >= 500) {
-                count5xx++;
-            } else {
-                count4xx++;
-            }
+        if (statusCode.charAt(0) == '4') {
+            count4xx++;
+        } else if (statusCode.charAt(0) == '5') {
+            count5xx++;
         }
 
-        HttpOutgoingMetrics metrics = getOrCreateMetrics(path, method, String.valueOf(statusCode));
+        HttpOutgoingMetrics metrics = getOrCreateMetrics(path, method, statusCode);
         metrics.add(responseTime, count4xx, count5xx);
         return metrics;
     }
@@ -76,7 +82,7 @@ public class HttpOutgoingMetricsRegistry extends MetricRegistry<HttpOutgoingMetr
                          String method,
                          long requestBytes,
                          long responseBytes) {
-        String path = uri.split("\\?")[0];
+        String path = HttpUtils.dropQueryParameters(uri);
         getOrCreateMetrics(path, method, "").updateIOMetrics(requestBytes, responseBytes);
     }
 }

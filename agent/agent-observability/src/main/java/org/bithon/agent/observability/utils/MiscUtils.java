@@ -46,4 +46,5 @@ public class MiscUtils {
         // If neither character is found, return the original string
         return connectionString;
     }
+
 }

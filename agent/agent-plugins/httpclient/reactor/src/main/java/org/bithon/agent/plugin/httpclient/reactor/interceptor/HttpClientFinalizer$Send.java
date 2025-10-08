@@ -27,7 +27,6 @@ import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.reactivestreams.Publisher;
 import reactor.netty.NettyOutbound;
-import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientRequest;
 
 import java.util.function.BiFunction;
@@ -42,13 +41,15 @@ public class HttpClientFinalizer$Send extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        HttpClient httpClient = aopContext.getTargetAs();
         IBithonObject bithonObject = aopContext.getTargetAs();
 
         // span will be finished in ResponseConnection interceptor,
-        // so we need an extra object to pass the context
-        HttpClientContext httpClientContext = new HttpClientContext();
-        bithonObject.setInjectedObject(httpClientContext);
+        // so we need an extra object to pass the context,
+        // which should be setup in the uri()/request()
+        HttpClientContext httpClientContext = (HttpClientContext) bithonObject.getInjectedObject();
+        if (httpClientContext == null) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
 
         ITraceSpan span = TraceContextFactory.newAsyncSpan("http-client");
         if (span != null) {
@@ -71,8 +72,8 @@ public class HttpClientFinalizer$Send extends AroundInterceptor {
             if (span != null) {
                 span.kind(SpanKind.CLIENT)
                     .method(aopContext.getTargetClass(), aopContext.getMethod())
-                    .tag(Tags.Http.URL, httpClient.configuration().uri())
-                    .tag(Tags.Http.METHOD, httpClient.configuration().method().name())
+                    .tag(Tags.Http.URL, httpClientContext.getUri())
+                    .tag(Tags.Http.METHOD, httpClientContext.getMethod())
                     .tag(Tags.Http.CLIENT, "reactor")
                     .context().propagate(httpClientRequest, (request, key, value) -> request.requestHeaders().set(key, value));
                 span.start();
@@ -89,8 +90,8 @@ public class HttpClientFinalizer$Send extends AroundInterceptor {
      */
     @Override
     public void after(AopContext aopContext) {
-        IBithonObject currObj = aopContext.getTargetAs();
-        IBithonObject newCopy = aopContext.getReturningAs();
-        newCopy.setInjectedObject(currObj.getInjectedObject());
+        IBithonObject currentHttpClient = aopContext.getTargetAs();
+        IBithonObject newHttpClient = aopContext.getReturningAs();
+        newHttpClient.setInjectedObject(currentHttpClient.getInjectedObject());
     }
 }

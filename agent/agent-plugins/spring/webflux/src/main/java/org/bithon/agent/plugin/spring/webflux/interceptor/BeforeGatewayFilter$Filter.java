@@ -17,19 +17,16 @@
 package org.bithon.agent.plugin.spring.webflux.interceptor;
 
 import org.bithon.agent.configuration.ConfigurationManager;
-import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.plugin.spring.webflux.config.GatewayFilterConfigs;
-import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
+import org.bithon.agent.plugin.spring.webflux.context.TracingContextAttributes;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
-import org.springframework.http.server.reactive.AbstractServerHttpRequest;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -47,29 +44,13 @@ public class BeforeGatewayFilter$Filter extends AroundInterceptor {
     @Override
     public InterceptionDecision before(AopContext aopContext) {
         ServerWebExchange exchange = aopContext.getArgAs(0);
-
-        ServerHttpRequest request = exchange.getRequest();
-        if (request instanceof ServerHttpRequestDecorator) {
-            request = ((ServerHttpRequestDecorator) request).getDelegate();
-        }
-
-        // ReactorHttpHandlerAdapter#apply creates an object of AbstractServerHttpRequest
-        if (!(request instanceof AbstractServerHttpRequest)) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-
-        // the request object on exchange is type of HttpServerOperation
-        // see ReactorHttpHandlerAdapter#apply
-        Object nativeRequest = ((AbstractServerHttpRequest) request).getNativeRequest();
-        if (!(nativeRequest instanceof IBithonObject)) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-
-        HttpServerContext ctx = (HttpServerContext) ((IBithonObject) nativeRequest).getInjectedObject();
-        ITraceContext traceContext = ctx.getTraceContext();
+        ITraceContext traceContext = exchange.getAttribute(TracingContextAttributes.TRACE_CONTEXT);
         if (traceContext == null || !traceContext.traceMode().equals(TraceMode.TRACING)) {
             return InterceptionDecision.SKIP_LEAVE;
         }
+
+        // Ensure the trace context is attached to the current thread for this filter execution
+        TraceContextHolder.attach(traceContext);
 
         ITraceSpan span = traceContext.currentSpan()
                                       .newChildSpan("filter")

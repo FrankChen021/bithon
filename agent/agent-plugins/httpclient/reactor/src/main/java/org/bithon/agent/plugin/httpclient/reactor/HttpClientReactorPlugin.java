@@ -35,12 +35,20 @@ public class HttpClientReactorPlugin implements IPlugin {
 
         return Arrays.asList(
 
-            forClass("reactor.netty.http.client.HttpClientFinalizer")
-                .onMethod("_connect")
-                .interceptedBy("org.bithon.agent.plugin.httpclient.reactor.interceptor.HttpClientFinalizer$Connect")
+            // HttpClient is the super class of the following HttpClientFinalizer
+            forClass("reactor.netty.http.client.HttpClient")
+                .onMethod("request")
+                .andArgs("io.netty.handler.codec.http.HttpMethod")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.reactor.interceptor.HttpClient$Request")
                 .build(),
 
             forClass("reactor.netty.http.client.HttpClientFinalizer")
+                .onMethod("_connect")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.reactor.interceptor.HttpClientFinalizer$Connect")
+
+                .onMethod("uri")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.reactor.interceptor.HttpClientFinalizer$Uri")
+
                 .onMethod("send")
                 .interceptedBy("org.bithon.agent.plugin.httpclient.reactor.interceptor.HttpClientFinalizer$Send")
 
