@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -35,21 +36,26 @@ import java.util.stream.Collectors;
  */
 public class ClassHierarchyTable extends AbstractBaseTable implements IPushdownPredicateProvider {
 
+    private static final Pattern LAMBDA_PATTERN = Pattern.compile(".*\\$+Lambda\\$\\d+(/.*)?$");
+    private static final Pattern HEX_PATTERN = Pattern.compile("0[xX][0-9a-fA-F]+|[0-9a-fA-F]+");
+
     public static class HierarchyEntry {
         public int id;
         public Integer parentId;
         public String className;
         public String tag;
+        public boolean isLambda;
 
-        public HierarchyEntry(int id, Integer parentId, String className, String tag) {
+        public HierarchyEntry(int id, Integer parentId, String className, String tag, boolean isLambda) {
             this.id = id;
             this.parentId = parentId;
             this.className = className;
             this.tag = tag;
+            this.isLambda = isLambda;
         }
 
         public Object[] toObjects() {
-            return new Object[]{id, parentId, className, tag};
+            return new Object[]{id, parentId, className, tag, isLambda};
         }
     }
 
@@ -96,11 +102,10 @@ public class ClassHierarchyTable extends AbstractBaseTable implements IPushdownP
         }
 
         String[] lines = text.split("\\R");
-        if (lines.length < 2) {
+        if (lines.length < 1) {
             return result;
         }
 
-        // Skip the first line which contains the PID
         int currentId = 1;
         List<Integer> parentStack = new ArrayList<>();
 
@@ -125,11 +130,15 @@ public class ClassHierarchyTable extends AbstractBaseTable implements IPushdownP
                         tag = "null";
                     }
 
+                    // Check if this is a lambda class
+                    boolean isLambda = isLambdaClass(className);
+
                     HierarchyEntry entry = new HierarchyEntry(
                         currentId,
                         null, // Root has no parent
                         className,
-                        tag
+                        tag,
+                        isLambda
                     );
 
                     result.add(entry);
@@ -140,49 +149,46 @@ public class ClassHierarchyTable extends AbstractBaseTable implements IPushdownP
                 continue;
             }
 
-            // Parse the hierarchy prefix manually
-            int depth = 0;
-            String className = line;
-            String hexNumber = null;
-            String tag = null;
-
-            // Count |-- sequences for old format or |  sequences for new format
-            if (line.startsWith("|  ")) {
-                // New format: |  |  |--className
-                while (className.startsWith("|  ")) {
-                    depth++;
-                    className = className.substring(3);
-                }
-                if (className.startsWith("|--")) {
-                    depth++;
-                    className = className.substring(3);
-                }
-            } else if (line.startsWith("|--")) {
-                // Old format: |--|--|--className
-                while (className.startsWith("|--")) {
-                    depth++;
-                    className = className.substring(3);
-                }
-            }
-
+            // Parse the hierarchy prefix to determine depth and extract class name
+            DepthAndIndex depthAndClassName = parseDepth(line);
+            int depth = depthAndClassName.depth;
+            String className = line.substring(depthAndClassName.index);
+            
             // Parse tag if present (in parentheses) - do this first
-            if (className.contains(" (")) {
-                int parenIndex = className.lastIndexOf(" (");
+            String tag = null;
+            int parenIndex = className.lastIndexOf(" (");
+            if (parenIndex >= 0) {
                 tag = className.substring(parenIndex + 2, className.length() - 1);
                 className = className.substring(0, parenIndex);
             }
 
-            // Parse hex number if present
-            if (className.contains("/")) {
-                int slashIndex = className.lastIndexOf("/");
-                String potentialHex = className.substring(slashIndex + 1);
-                // Check if it's a valid hex number (starts with 0x, 0X, or is all hex digits)
-                if (potentialHex.matches("0x[0-9a-fA-F]+|0X[0-9a-fA-F]+|[0-9a-fA-FxX]+")) {
-                    hexNumber = potentialHex;
-                    className = className.substring(0, slashIndex);
+            // Parse class name and extract suffix for tag
+            // For lambda classes: MyClass$$Lambda$123/0x... - the /0x... part stays in class name
+            // For regular classes: MyClass/0x... - the /0x... part is removed from class name
+            int firstSlashIndex = className.indexOf('/');
+            String suffix = null;
+            if (firstSlashIndex >= 0) {
+                String baseClassName = className.substring(0, firstSlashIndex);
+                suffix = className.substring(firstSlashIndex + 1);
+                
+                // For lambda classes, keep the first part of suffix in class name (unless it's "null")
+                if (LAMBDA_PATTERN.matcher(baseClassName).matches()) {
+                    int secondSlashIndex = suffix.indexOf('/');
+                    if (secondSlashIndex >= 0) {
+                        // Lambda with multiple parts: keep first part in class name
+                        className = baseClassName + "/" + suffix.substring(0, secondSlashIndex);
+                    } else if (!"null".equals(suffix)) {
+                        // Lambda with one part (not "null"): keep it in class name
+                        className = baseClassName + "/" + suffix;
+                    } else {
+                        // Lambda with "/null": don't keep it in class name
+                        className = baseClassName;
+                    }
+                } else {
+                    // Regular class: remove suffix from class name
+                    className = baseClassName;
                 }
             }
-
             className = className.trim();
 
             // Adjust parent stack to match current depth
@@ -198,9 +204,13 @@ public class ClassHierarchyTable extends AbstractBaseTable implements IPushdownP
 
             // Build tag information
             StringBuilder tagBuilder = new StringBuilder();
-            if (hexNumber != null) {
-                tagBuilder.append("hex:").append(hexNumber);
+            
+            // Add formatted suffix (if present)
+            if (suffix != null) {
+                tagBuilder.append(formatTag(suffix));
             }
+            
+            // Add type annotation (if present)
             if (tag != null) {
                 if (!tagBuilder.isEmpty()) {
                     tagBuilder.append(", ");
@@ -208,12 +218,16 @@ public class ClassHierarchyTable extends AbstractBaseTable implements IPushdownP
                 tagBuilder.append("type:").append(tag);
             }
 
+            // Check if this is a lambda class
+            boolean isLambda = isLambdaClass(className);
+
             // Create hierarchy entry
             HierarchyEntry entry = new HierarchyEntry(
                 currentId,
                 parentId,
                 className,
-                !tagBuilder.isEmpty() ? tagBuilder.toString() : null
+                !tagBuilder.isEmpty() ? tagBuilder.toString() : null,
+                isLambda
             );
 
             result.add(entry);
@@ -224,6 +238,88 @@ public class ClassHierarchyTable extends AbstractBaseTable implements IPushdownP
         }
 
         return result;
+    }
+
+    /**
+     * Parse depth and class name from a hierarchy line.
+     * Counts |-- or |  prefixes to determine depth, returns remaining part as class name.
+     */
+    private static class DepthAndIndex {
+        final int depth;
+        final int index;
+        
+        DepthAndIndex(int depth, int index) {
+            this.depth = depth;
+            this.index = index;
+        }
+    }
+    
+    private static DepthAndIndex parseDepth(String line) {
+        int depth = 0;
+        int index = 0;
+        int length = line.length();
+        
+        // Count depth by checking |-- or |  prefixes
+        while (index + 2 < length) {
+            char c0 = line.charAt(index);
+            char c1 = line.charAt(index + 1);
+            char c2 = line.charAt(index + 2);
+            
+            // Check for |-- or |  (pipe + two spaces)
+            if (c0 == '|' && ((c1 == '-' && c2 == '-') || (c1 == ' ' && c2 == ' '))) {
+                depth++;
+                index += 3;
+            } else {
+                break;
+            }
+        }
+        
+        return new DepthAndIndex(depth, index);
+    }
+
+    /**
+     * Format tag from suffix: split by '/', add "hex:" prefix to hex values, "null" for null values,
+     * and join with ", " in reverse order (rightmost first).
+     */
+    private static String formatTag(String suffix) {
+        if (suffix == null || suffix.isEmpty()) {
+            return null;
+        }
+        
+        // Split by '/' and process in reverse order
+        String[] parts = suffix.split("/");
+        StringBuilder result = new StringBuilder();
+        
+        for (int i = parts.length - 1; i >= 0; i--) {
+            String part = parts[i];
+            if (result.length() > 0) {
+                result.append(", ");
+            }
+            
+            if ("null".equals(part)) {
+                result.append("null");
+            } else if (HEX_PATTERN.matcher(part).matches()) {
+                result.append("hex:").append(part);
+            } else {
+                // Not a recognized format, just append as-is
+                result.append(part);
+            }
+        }
+        
+        return result.length() > 0 ? result.toString() : null;
+    }
+
+    /**
+     * Check if a class name represents a lambda class.
+     * Lambda classes have names that contain $Lambda$ or $$Lambda$ followed by NUMBER where NUMBER is a string of digits.
+     */
+    private static boolean isLambdaClass(String className) {
+        if (className == null) {
+            return false;
+        }
+        // Match pattern: $Lambda$<digits> or $$Lambda$<digits>, optionally followed by /suffix
+        // The (/.*)?$ part handles cases where the className still includes /hex or /null suffixes
+        return LAMBDA_PATTERN.matcher(className).matches();
     }
 
     /**
@@ -267,7 +363,8 @@ public class ClassHierarchyTable extends AbstractBaseTable implements IPushdownP
                 currentId,
                 null, // Will be set in second pass
                 classInfo.name,
-                !tagBuilder.isEmpty() ? tagBuilder.toString() : null
+                !tagBuilder.isEmpty() ? tagBuilder.toString() : null,
+                isLambdaClass(classInfo.name)
             );
 
             result.add(entry);

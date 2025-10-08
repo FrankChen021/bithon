@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -35,7 +36,6 @@ public class ClassHierarchyTableTest {
     @Test
     public void testBasicHierarchy() {
         String input = """
-                        74814:
                         java.lang.Object/null
                         |--org.bithon.component.brpc.message.serializer.ProtocolBufferSerializer$DoubleSerializer/0x0000600001cb8170
                         |--java.util.stream.ReduceOps$Box/null
@@ -52,24 +52,40 @@ public class ClassHierarchyTableTest {
         assertNull(result.get(0).parentId);
         assertEquals("java.lang.Object", result.get(0).className);
         assertEquals("null", result.get(0).tag);
+        assertFalse(result.get(0).isLambda);
 
         // First child
         assertEquals(2, result.get(1).id);
         assertEquals(Integer.valueOf(1), result.get(1).parentId);
-        assertEquals("java.lang.String", result.get(1).className);
-        assertNull(result.get(1).tag);
+        assertEquals("org.bithon.component.brpc.message.serializer.ProtocolBufferSerializer$DoubleSerializer", result.get(1).className);
+        assertEquals("hex:0x0000600001cb8170", result.get(1).tag);
+        assertFalse(result.get(1).isLambda);
 
         // Second child
         assertEquals(3, result.get(2).id);
         assertEquals(Integer.valueOf(1), result.get(2).parentId);
-        assertEquals("java.util.List", result.get(2).className);
-        assertNull(result.get(2).tag);
+        assertEquals("java.util.stream.ReduceOps$Box", result.get(2).className);
+        assertEquals("null", result.get(2).tag);
+        assertFalse(result.get(2).isLambda);
+
+        // Third child (nested under second)
+        assertEquals(4, result.get(3).id);
+        assertEquals(Integer.valueOf(3), result.get(3).parentId);
+        assertEquals("java.util.stream.ReduceOps$13ReducingSink", result.get(3).className);
+        assertEquals("null", result.get(3).tag);
+        assertFalse(result.get(3).isLambda);
+
+        // Fourth child (nested under second)
+        assertEquals(5, result.get(4).id);
+        assertEquals(Integer.valueOf(3), result.get(4).parentId);
+        assertEquals("java.util.stream.ReduceOps$1ReducingSink", result.get(4).className);
+        assertEquals("null", result.get(4).tag);
+        assertFalse(result.get(4).isLambda);
     }
 
     @Test
     public void testMultiLevelHierarchy() {
         String input = """
-            12345:
             java.lang.Object/null
             |--java.util.AbstractList
             |--|--java.util.ArrayList
@@ -84,35 +100,40 @@ public class ClassHierarchyTableTest {
         assertEquals(1, result.get(0).id);
         assertNull(result.get(0).parentId);
         assertEquals("java.lang.Object", result.get(0).className);
+        assertEquals("null", result.get(0).tag);
+        assertFalse(result.get(0).isLambda);
 
         // First level child
         assertEquals(2, result.get(1).id);
         assertEquals(Integer.valueOf(1), result.get(1).parentId);
         assertEquals("java.util.AbstractList", result.get(1).className);
+        assertFalse(result.get(1).isLambda);
 
         // Second level children
         assertEquals(3, result.get(2).id);
         assertEquals(Integer.valueOf(2), result.get(2).parentId);
         assertEquals("java.util.ArrayList", result.get(2).className);
+        assertFalse(result.get(2).isLambda);
 
         assertEquals(4, result.get(3).id);
         assertEquals(Integer.valueOf(2), result.get(3).parentId);
         assertEquals("java.util.Vector", result.get(3).className);
+        assertFalse(result.get(3).isLambda);
 
         // Another first level child
         assertEquals(5, result.get(4).id);
         assertEquals(Integer.valueOf(1), result.get(4).parentId);
         assertEquals("java.lang.String", result.get(4).className);
+        assertFalse(result.get(4).isLambda);
     }
 
     @Test
     public void testComplexHierarchyWithHexNumbers() {
         String input = """
-            59271:
             java.lang.Object/null
-            |--com.intellij.grazie.detection.LangDetector$$Lambda/0x0000007005063878/0x0000600005566d00
+            |--com.intellij.grazie.detection.LangDetector$$Lambda$123/0x0000007005063878/0x0000600005566d00
             |--git4idea.ui.branch.dashboard.RefInfo/0x0000600001222c60 (intf)
-            |--org.jetbrains.completion.full.line.python.PythonFullLineSupporter$$Lambda/0x0000007003ac9250/0x0000600009278c80""";
+            |--org.jetbrains.completion.full.line.python.PythonFullLineSupporter$$Lambda$456/0x0000007003ac9250/0x0000600009278c80""";
 
         List<ClassHierarchyTable.HierarchyEntry> result = ClassHierarchyTable.parseClassHierarchy(input);
 
@@ -123,30 +144,33 @@ public class ClassHierarchyTableTest {
         assertNull(result.get(0).parentId);
         assertEquals("java.lang.Object", result.get(0).className);
         assertEquals("null", result.get(0).tag);
+        assertFalse(result.get(0).isLambda);
 
-        // First child with hex number
+        // First child with TWO hex numbers - this is a lambda class
         assertEquals(2, result.get(1).id);
         assertEquals(Integer.valueOf(1), result.get(1).parentId);
-        assertEquals("com.intellij.grazie.detection.LangDetector$$Lambda/0x0000007005063878", result.get(1).className);
-        assertEquals("hex:0x0000600005566d00", result.get(1).tag);
+        assertEquals("com.intellij.grazie.detection.LangDetector$$Lambda$123/0x0000007005063878", result.get(1).className);
+        assertEquals("hex:0x0000600005566d00, hex:0x0000007005063878", result.get(1).tag);
+        assertTrue(result.get(1).isLambda);
 
         // Second child with hex number and type annotation
         assertEquals(3, result.get(2).id);
         assertEquals(Integer.valueOf(1), result.get(2).parentId);
         assertEquals("git4idea.ui.branch.dashboard.RefInfo", result.get(2).className);
         assertEquals("hex:0x0000600001222c60, type:intf", result.get(2).tag);
+        assertFalse(result.get(2).isLambda);
 
-        // Third child with hex number
+        // Third child with TWO hex numbers - this is a lambda class
         assertEquals(4, result.get(3).id);
         assertEquals(Integer.valueOf(1), result.get(3).parentId);
-        assertEquals("org.jetbrains.completion.full.line.python.PythonFullLineSupporter$$Lambda/0x0000007003ac9250", result.get(3).className);
-        assertEquals("hex:0x0000600009278c80", result.get(3).tag);
+        assertEquals("org.jetbrains.completion.full.line.python.PythonFullLineSupporter$$Lambda$456/0x0000007003ac9250", result.get(3).className);
+        assertEquals("hex:0x0000600009278c80, hex:0x0000007003ac9250", result.get(3).tag);
+        assertTrue(result.get(3).isLambda);
     }
 
     @Test
     public void testDeepHierarchy() {
         String input = """
-            12345:
             java.lang.Object/null
             |--java.util.AbstractCollection
             |--|--java.util.AbstractList
@@ -195,15 +219,14 @@ public class ClassHierarchyTableTest {
 
     @Test
     public void testOnlyPidLine() {
-        String input = "12345:";
+        String input = "";
         List<ClassHierarchyTable.HierarchyEntry> result = ClassHierarchyTable.parseClassHierarchy(input);
         assertTrue(result.isEmpty());
     }
 
     @Test
     public void testSingleRootClass() {
-        String input = "12345:\n" +
-                       "java.lang.Object/null";
+        String input = "java.lang.Object/null";
 
         List<ClassHierarchyTable.HierarchyEntry> result = ClassHierarchyTable.parseClassHierarchy(input);
 
@@ -212,12 +235,12 @@ public class ClassHierarchyTableTest {
         assertNull(result.get(0).parentId);
         assertEquals("java.lang.Object", result.get(0).className);
         assertEquals("null", result.get(0).tag);
+        assertFalse(result.get(0).isLambda);
     }
 
     @Test
     public void testRootClassWithoutNullSuffix() {
         String input = """
-            12345:
             java.lang.Object
             |--java.lang.String""";
 
@@ -228,12 +251,12 @@ public class ClassHierarchyTableTest {
         assertNull(result.get(0).parentId);
         assertEquals("java.lang.Object", result.get(0).className);
         assertNull(result.get(0).tag);
+        assertFalse(result.get(0).isLambda);
     }
 
     @Test
     public void testTypeAnnotations() {
         String input = """
-            12345:
             java.lang.Object/null
             |--java.util.List (interface)
             |--java.util.ArrayList (class)
@@ -250,7 +273,6 @@ public class ClassHierarchyTableTest {
     @Test
     public void testHexNumbersOnly() {
         String input = """
-            12345:
             java.lang.Object/null
             |--java.lang.String/0x0000007005063878
             |--java.util.List/0x0000600001222c60""";
@@ -265,7 +287,6 @@ public class ClassHierarchyTableTest {
     @Test
     public void testMixedHexAndTypeAnnotations() {
         String input = """
-            12345:
             java.lang.Object/null
             |--java.util.List/0x0000007005063878 (interface)
             |--java.util.ArrayList/0x0000600001222c60 (class)
@@ -282,7 +303,6 @@ public class ClassHierarchyTableTest {
     @Test
     public void testComplexClassNameWithSpecialCharacters() {
         String input = """
-            12345:
             java.lang.Object/null
             |--com.example.MyClass$$Lambda$123/0x0000007005063878/0x0000600005566d00
             |--com.example.AnotherClass$InnerClass/0x0000600001222c60 (intf)""";
@@ -291,15 +311,16 @@ public class ClassHierarchyTableTest {
 
         assertEquals(3, result.size());
         assertEquals("com.example.MyClass$$Lambda$123/0x0000007005063878", result.get(1).className);
-        assertEquals("hex:0x0000600005566d00", result.get(1).tag);
+        assertEquals("hex:0x0000600005566d00, hex:0x0000007005063878", result.get(1).tag);
+        assertTrue(result.get(1).isLambda);
         assertEquals("com.example.AnotherClass$InnerClass", result.get(2).className);
         assertEquals("hex:0x0000600001222c60, type:intf", result.get(2).tag);
+        assertFalse(result.get(2).isLambda);
     }
 
     @Test
     public void testEmptyLinesAndWhitespace() {
         String input = """
-            12345:
             
             java.lang.Object/null
              \s
@@ -318,7 +339,6 @@ public class ClassHierarchyTableTest {
     @Test
     public void testMalformedLines() {
         String input = """
-            12345:
             java.lang.Object/null
             |--java.lang.String
             invalid-line-without-prefix
@@ -337,7 +357,6 @@ public class ClassHierarchyTableTest {
     @Test
     public void testDifferentHexFormats() {
         String input = """
-            12345:
             java.lang.Object/null
             |--java.lang.String/0x1234567890abcdef
             |--java.util.List/0XABCDEF1234567890
@@ -354,7 +373,6 @@ public class ClassHierarchyTableTest {
     @Test
     public void testComplexTypeAnnotations() {
         String input = """
-            12345:
             java.lang.Object/null
             |--java.util.List (interface)
             |--java.util.ArrayList (class, serializable)
@@ -372,7 +390,6 @@ public class ClassHierarchyTableTest {
     public void testRealWorldExample() {
         // Test with a more realistic class hierarchy
         String input = """
-            12345:
             java.lang.Object/null
             |--java.util.AbstractCollection
             |--|--java.util.AbstractList
@@ -398,18 +415,17 @@ public class ClassHierarchyTableTest {
         assertEquals(Integer.valueOf(1), result.get(8).parentId); // String -> Object
 
         // Verify tags
-        assertEquals("hex:0x0000600005566d00", result.get(3).tag);
+        assertEquals("hex:0x0000600005566d00, hex:0x0000007005063878", result.get(3).tag);
         assertEquals("hex:0x0000600001222c60, type:synchronized", result.get(4).tag);
-        assertEquals("hex:0x0000600009278c80", result.get(6).tag);
+        assertEquals("hex:0x0000600009278c80, hex:0x0000007003ac9250", result.get(6).tag);
         assertEquals("hex:0x0000600001222c60, type:sorted", result.get(7).tag);
-        assertEquals("hex:0x0000600005566d00, type:final, immutable", result.get(8).tag);
+        assertEquals("hex:0x0000600005566d00, hex:0x0000007005063878, type:final, immutable", result.get(8).tag);
     }
 
     @Test
     public void testNewHierarchyFormat() {
         // Test with the new format using |  (pipe + two spaces) for deeper levels
         String input = """
-            59271:
             java.lang.Object/null
             |--com.intellij.configurationStore.ComponentStoreImpl/0x00006000012a95e0
             |  |--com.intellij.configurationStore.ModuleStoreImpl/0x00006000012a95e0
@@ -485,7 +501,6 @@ public class ClassHierarchyTableTest {
     public void testMixedHierarchyFormats() {
         // Test with both old and new formats mixed
         String input = """
-            12345:
             java.lang.Object/null
             |--java.util.AbstractCollection
             |  |--java.util.AbstractList
@@ -518,7 +533,6 @@ public class ClassHierarchyTableTest {
     public void testComplexNewFormatHierarchy() {
         // Test with complex hierarchy using the new format
         String input = """
-            12345:
             java.lang.Object/null
             |--com.example.BaseClass/0x0000007005063878
             |  |--com.example.ChildClass/0x0000600005566d00 (interface)
@@ -560,5 +574,211 @@ public class ClassHierarchyTableTest {
         assertEquals("hex:0x0000600001222c60, type:abstract", result.get(5).tag);
         assertEquals("hex:0x0000600001222c60, type:synchronized", result.get(6).tag);
         assertEquals("hex:0x0000007003ac9250", result.get(7).tag);
+    }
+
+    @Test
+    public void testLambdaClassDetection() {
+        // Test lambda class detection
+        String input = """
+            java.lang.Object/null
+            |--com.example.MyClass$$Lambda$123/0x0000007005063878
+            |--com.example.AnotherClass$$Lambda$456/null
+            |--com.example.RegularClass/0x0000600001222c60
+            |--com.example.InnerClass$Lambda$789/0x0000600005566d00""";
+
+        List<ClassHierarchyTable.HierarchyEntry> result = ClassHierarchyTable.parseClassHierarchy(input);
+
+        assertEquals(5, result.size());
+
+        // Root - not a lambda
+        assertFalse(result.get(0).isLambda);
+        assertEquals("java.lang.Object", result.get(0).className);
+
+        // First lambda class
+        assertTrue(result.get(1).isLambda);
+        assertEquals("com.example.MyClass$$Lambda$123/0x0000007005063878", result.get(1).className);
+        assertEquals("hex:0x0000007005063878", result.get(1).tag);
+
+        // Second lambda class with null
+        assertTrue(result.get(2).isLambda);
+        assertEquals("com.example.AnotherClass$$Lambda$456", result.get(2).className);
+        assertEquals("null", result.get(2).tag);
+
+        // Regular class - not a lambda
+        assertFalse(result.get(3).isLambda);
+        assertEquals("com.example.RegularClass", result.get(3).className);
+        assertEquals("hex:0x0000600001222c60", result.get(3).tag);
+
+        // Inner lambda class
+        assertTrue(result.get(4).isLambda);
+        assertEquals("com.example.InnerClass$Lambda$789/0x0000600005566d00", result.get(4).className);
+        assertEquals("hex:0x0000600005566d00", result.get(4).tag);
+    }
+
+    @Test
+    public void testClassNameWithTwoHexNumbers() {
+        // Test className/hex1/hex2 format
+        String input = """
+            java.lang.Object/null
+            |--com.example.MyClass$$Lambda$123/0x0000007005063878/0x0000600005566d00
+            |--com.example.AnotherClass/0x0000600001222c60/0x0000600009278c80 (interface)""";
+
+        List<ClassHierarchyTable.HierarchyEntry> result = ClassHierarchyTable.parseClassHierarchy(input);
+
+        assertEquals(3, result.size());
+
+        // Root
+        assertEquals("java.lang.Object", result.get(0).className);
+        assertEquals("null", result.get(0).tag);
+
+        // Lambda class with two hex numbers
+        assertEquals("com.example.MyClass$$Lambda$123/0x0000007005063878", result.get(1).className);
+        assertEquals("hex:0x0000600005566d00, hex:0x0000007005063878", result.get(1).tag);
+        assertTrue(result.get(1).isLambda);
+
+        // Regular class with two hex numbers and type annotation
+        assertEquals("com.example.AnotherClass", result.get(2).className);
+        assertEquals("hex:0x0000600009278c80, hex:0x0000600001222c60, type:interface", result.get(2).tag);
+        assertFalse(result.get(2).isLambda);
+    }
+
+    @Test
+    public void testClassNameWithOneHexNumber() {
+        // Test className/hex format
+        String input = """
+            java.lang.Object/null
+            |--com.example.MyClass/0x0000007005063878
+            |--com.example.AnotherClass/0x0000600001222c60 (final)""";
+
+        List<ClassHierarchyTable.HierarchyEntry> result = ClassHierarchyTable.parseClassHierarchy(input);
+
+        assertEquals(3, result.size());
+
+        // Root
+        assertEquals("java.lang.Object", result.get(0).className);
+        assertEquals("null", result.get(0).tag);
+
+        // Class with one hex number
+        assertEquals("com.example.MyClass", result.get(1).className);
+        assertEquals("hex:0x0000007005063878", result.get(1).tag);
+        assertFalse(result.get(1).isLambda);
+
+        // Class with one hex number and type annotation
+        assertEquals("com.example.AnotherClass", result.get(2).className);
+        assertEquals("hex:0x0000600001222c60, type:final", result.get(2).tag);
+        assertFalse(result.get(2).isLambda);
+    }
+
+    @Test
+    public void testClassNameWithNull() {
+        // Test className/null format
+        String input = """
+            java.lang.Object/null
+            |--com.example.MyClass/null
+            |--com.example.AnotherClass/null (interface)
+            |--com.example.ThirdClass""";
+
+        List<ClassHierarchyTable.HierarchyEntry> result = ClassHierarchyTable.parseClassHierarchy(input);
+
+        assertEquals(4, result.size());
+
+        // Root
+        assertEquals("java.lang.Object", result.get(0).className);
+        assertEquals("null", result.get(0).tag);
+
+        // Class with null
+        assertEquals("com.example.MyClass", result.get(1).className);
+        assertEquals("null", result.get(1).tag);
+        assertFalse(result.get(1).isLambda);
+
+        // Class with null and type annotation
+        assertEquals("com.example.AnotherClass", result.get(2).className);
+        assertEquals("null, type:interface", result.get(2).tag);
+        assertFalse(result.get(2).isLambda);
+
+        // Class without any suffix
+        assertEquals("com.example.ThirdClass", result.get(3).className);
+        assertNull(result.get(3).tag);
+        assertFalse(result.get(3).isLambda);
+    }
+
+    @Test
+    public void testMixedFormatsComprehensive() {
+        // Test all formats mixed together
+        String input = """
+            java.lang.Object/null
+            |--com.example.Lambda1$$Lambda$100/0x1111111111111111/0x2222222222222222
+            |--com.example.Lambda2$$Lambda$200/0x3333333333333333
+            |--com.example.Lambda3$$Lambda$300/null
+            |--com.example.RegularClass1/0x4444444444444444/0x5555555555555555 (interface)
+            |--com.example.RegularClass2/0x6666666666666666 (final)
+            |--com.example.RegularClass3/null (abstract)
+            |--com.example.RegularClass4""";
+
+        List<ClassHierarchyTable.HierarchyEntry> result = ClassHierarchyTable.parseClassHierarchy(input);
+
+        assertEquals(8, result.size());
+
+        // Root
+        assertEquals("java.lang.Object", result.get(0).className);
+        assertEquals("null", result.get(0).tag);
+        assertFalse(result.get(0).isLambda);
+
+        // Lambda with two hex numbers
+        assertEquals("com.example.Lambda1$$Lambda$100/0x1111111111111111", result.get(1).className);
+        assertEquals("hex:0x2222222222222222, hex:0x1111111111111111", result.get(1).tag);
+        assertTrue(result.get(1).isLambda);
+
+        // Lambda with one hex number
+        assertEquals("com.example.Lambda2$$Lambda$200/0x3333333333333333", result.get(2).className);
+        assertEquals("hex:0x3333333333333333", result.get(2).tag);
+        assertTrue(result.get(2).isLambda);
+
+        // Lambda with null
+        assertEquals("com.example.Lambda3$$Lambda$300", result.get(3).className);
+        assertEquals("null", result.get(3).tag);
+        assertTrue(result.get(3).isLambda);
+
+        // Regular class with two hex numbers and type
+        assertEquals("com.example.RegularClass1", result.get(4).className);
+        assertEquals("hex:0x5555555555555555, hex:0x4444444444444444, type:interface", result.get(4).tag);
+        assertFalse(result.get(4).isLambda);
+
+        // Regular class with one hex number and type
+        assertEquals("com.example.RegularClass2", result.get(5).className);
+        assertEquals("hex:0x6666666666666666, type:final", result.get(5).tag);
+        assertFalse(result.get(5).isLambda);
+
+        // Regular class with null and type
+        assertEquals("com.example.RegularClass3", result.get(6).className);
+        assertEquals("null, type:abstract", result.get(6).tag);
+        assertFalse(result.get(6).isLambda);
+
+        // Regular class with no suffix
+        assertEquals("com.example.RegularClass4", result.get(7).className);
+        assertNull(result.get(7).tag);
+        assertFalse(result.get(7).isLambda);
+    }
+
+    @Test
+    public void testAnonymousInnerClass() {
+        // Test with anonymous inner class like Class$3
+        String input = """
+                        java.lang.Object/null
+                        |--java.lang.Class$3/null
+            """;
+        List<ClassHierarchyTable.HierarchyEntry> result = ClassHierarchyTable.parseClassHierarchy(input);
+
+        assertEquals(2, result.size());
+        
+        // Root
+        assertEquals("java.lang.Object", result.get(0).className);
+        assertEquals("null", result.get(0).tag);
+        assertFalse(result.get(0).isLambda);
+        
+        // Anonymous inner class - not a lambda
+        assertEquals("java.lang.Class$3", result.get(1).className);
+        assertEquals("null", result.get(1).tag);
+        assertFalse(result.get(1).isLambda);
     }
 }
