@@ -36,6 +36,9 @@ public class SpringWebFluxPluginInterceptorTest extends AbstractPluginIntercepto
     @Override
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
+            MavenArtifact.of("org.springframework.cloud",
+                             "spring-cloud-gateway-server",
+                             "3.1.10"),
             MavenArtifact.of("org.springframework",
                              "spring-webflux",
                              "5.3.39"),
