@@ -63,7 +63,12 @@ public final class Dimensions {
             return false;
         }
         Dimensions that = (Dimensions) o;
-        return this.hash == that.hash && Arrays.equals(this.values, that.values);
+
+        // if hash of that object has not been calculated, don't compare hash but compare values directly
+        if (that.hash != 0 && this.hash != 0 && that.hash != this.hash) {
+            return false;
+        }
+        return Arrays.equals(this.values, that.values);
     }
 
     @Override

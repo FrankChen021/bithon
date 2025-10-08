@@ -303,7 +303,7 @@ public class ClassDisassembler {
             body.append(type);
             return;
         }
-        body.append("NOT SUPPORTED: ").append(type.getTypeName());
+        body.append('<').append(type.getClass().getSimpleName()).append('>').append(type.getTypeName());
     }
 
     public static void main(String[] args) {

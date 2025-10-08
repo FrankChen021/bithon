@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
@@ -153,63 +154,61 @@ public class JfrFileReader implements Closeable {
             return null;
         }
 
-        //
-        StackFrame.Builder stackFrameBuilder = StackFrame.newBuilder();
-
         one.jfr.StackTrace stackTrace = delegate.stackTraces.get(stackTraceId);
-        List<StackFrame> frames = new ArrayList<>();
+        List<StackFrame> frames = new ArrayList<>(stackTrace.methods.length);
         for (int i = 0; i < stackTrace.methods.length; i++) {
-            frames.add(buildStackFrame(stackTrace, i, stackFrameBuilder));
-            stackFrameBuilder.clear();
+            frames.add(toStackFrame(stackTrace, i).build());
         }
-
         return frames;
     }
 
-    private StackFrame buildStackFrame(one.jfr.StackTrace stackTrace, int frameIndex, StackFrame.Builder stackFrameBuilder) {
+    private StackFrame.Builder toStackFrame(one.jfr.StackTrace stackTrace, int frameIndex) {
         long methodId = stackTrace.methods[frameIndex];
+
+        StackFrame.Builder stackFrame = StackFrame.newBuilder();
 
         int location;
         if ((location = stackTrace.locations[frameIndex] >>> 16) != 0) {
-            stackFrameBuilder.setLocation(location);
+            stackFrame.setLocation(location);
         } else if ((location = stackTrace.locations[frameIndex] & 0xffff) != 0) {
-            stackFrameBuilder.setLocation(location);
+            stackFrame.setLocation(location);
         } else {
-            stackFrameBuilder.setLocation(location);
+            stackFrame.setLocation(location);
         }
 
-        stackFrameBuilder.setType(stackTrace.types[frameIndex]);
+        stackFrame.setType(stackTrace.types[frameIndex]);
 
         MethodRef method = this.delegate.methods.get(methodId);
         if (method == null) {
-            stackFrameBuilder.setMethod("Unknown");
-            return stackFrameBuilder.build();
+            stackFrame.setMethod("Unknown");
+            return stackFrame;
         }
 
         String className = getClassName(method.cls);
         if (!className.isEmpty()) {
-            stackFrameBuilder.setTypeName(className);
+            stackFrame.setTypeName(className);
         }
 
         // Use cached method name
         String methodName = getMethodName(method.name);
         if (methodName == null || methodName.isEmpty()) {
-            stackFrameBuilder.setTypeName(className);
-            stackFrameBuilder.setMethod("Unknown");
-            return stackFrameBuilder.build();
+            stackFrame.setTypeName(className);
+            stackFrame.setMethod("Unknown");
+            return stackFrame;
         }
-        stackFrameBuilder.setTypeName(className);
-        stackFrameBuilder.setMethod(methodName);
+        stackFrame.setTypeName(className);
+        stackFrame.setMethod(methodName);
 
         // Use cached method signature parsing
         MethodSignature parsedSig = getMethodSignature(method.sig);
         if (parsedSig != null) {
-            for (String paramType : parsedSig.parameterTypes) {
-                stackFrameBuilder.addParameters(paramType);
+            // Batch add all parameters at once to avoid repeated list growth
+            if (parsedSig.parameterTypes.length > 0) {
+                stackFrame.addAllParameters(Arrays.asList(parsedSig.parameterTypes));
             }
-            stackFrameBuilder.setReturnType(parsedSig.returnType);
+            stackFrame.setReturnType(parsedSig.returnType);
         }
-        return stackFrameBuilder.build();
+        return stackFrame;
     }
 
     /**

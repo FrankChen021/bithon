@@ -25,9 +25,101 @@
       <version>8.2.0</version>
       <scope>provided</scope>
     </dependency>
+    <!-- JUnit dependencies - needed at compile time -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-inline</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- TestContainers dependencies for MySQL 8 testing -->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <version>1.21.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>1.21.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>mysql</artifactId>
+      <version>1.21.3</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Logging dependencies -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.36</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <!--Don't upgrade which would break the logging in test cases-->
+      <version>1.2.13</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
     <finalName>${project.artifactId}</finalName>
+    
+    <plugins>
+      <!-- Maven Dependency Plugin to copy MySQL driver for tests -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-mysql-driver</id>
+            <phase>process-test-classes</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>com.mysql</groupId>
+                  <artifactId>mysql-connector-j</artifactId>
+                  <version>8.2.0</version>
+                  <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Maven Surefire Plugin with Logback configuration -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.2.5</version>
+        <configuration>
+          <argLine>
+            -Dlogback.configurationFile=src/test/resources/logback-test.xml
+            -Dorg.slf4j.simpleLogger.defaultLogLevel=INFO
+          </argLine>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 </project>

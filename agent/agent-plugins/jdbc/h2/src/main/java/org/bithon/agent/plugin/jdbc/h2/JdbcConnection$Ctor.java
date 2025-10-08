@@ -45,8 +45,12 @@ public class JdbcConnection$Ctor extends AfterInterceptor {
         }
 
         JdbcConnection connection = aopContext.getTargetAs();
-        ((IBithonObject) connection).setInjectedObject(new ConnectionContext(connection.getMetaData().getURL(),
-                                                                             connection.getMetaData().getUserName(),
-                                                                             "h2"));
+        ((IBithonObject) connection).setInjectedObject(
+            new ConnectionContext(
+                // The URL in H2 already strips parameter info
+                connection.getMetaData().getURL(),
+                connection.getMetaData().getUserName(),
+                "h2")
+        );
     }
 }

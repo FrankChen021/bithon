@@ -66,6 +66,13 @@ public class MySql6Plugin implements IPlugin {
                 .build(),
                 */
 
+            // ConnectionImpl
+            forClass("com.mysql.cj.jdbc.ConnectionImpl")
+                .onConstructor()
+                .andArgs(0, "com.mysql.cj.core.conf.url.HostInfo")
+                .interceptedBy("org.bithon.agent.plugin.jdbc.mysql6.ConnectionImpl$Ctor")
+                .build(),
+
             // PreparedStatement
             forClass("com.mysql.cj.jdbc.PreparedStatement")
                 .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate"))

@@ -45,13 +45,10 @@ public abstract class AsyncCommandComplete extends AfterInterceptor {
             asyncContext.getStartTime() != null) {
 
             AsyncCommand<?, ?, ?> asyncCommand = (AsyncCommand<?, ?, ?>) aopContext.getTarget();
-
-            boolean fail = "cancel".equals(aopContext.getMethod())
-                           || asyncCommand.getOutput().hasError()
-                           || "doCompleteExceptionally".equals(aopContext.getMethod());
+            boolean isFailure = isFailure() || asyncCommand.getOutput().hasError();
 
             this.metricRegistry.getOrCreateMetrics(asyncContext.getDimensions())
-                               .addRequest(System.nanoTime() - asyncContext.getStartTime(), fail ? 1 : 0)
+                               .addRequest(System.nanoTime() - asyncContext.getStartTime(), isFailure() ? 1 : 0)
                                .addRequestBytes(asyncContext.getRequestSize())
                                .addResponseBytes(asyncContext.getResponseSize());
 
