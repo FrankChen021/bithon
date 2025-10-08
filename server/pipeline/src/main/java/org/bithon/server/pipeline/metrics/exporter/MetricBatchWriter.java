@@ -102,7 +102,10 @@ public class MetricBatchWriter implements IMetricWriter {
             return;
         }
         try {
-            log.debug("Flushing [{}] metrics into storage [{}]...", flushMetricList.size(), this.name);
+            if (log.isDebugEnabled()) {
+                // Apply this check as profiling see the debug method call is expensive
+                log.debug("Flushing [{}] metrics into storage [{}]...", flushMetricList.size(), this.name);
+            }
             this.delegation.write(flushMetricList);
         } catch (Exception e) {
             log.error("Exception when flushing metrics into storage", e);
