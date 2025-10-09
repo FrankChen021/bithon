@@ -43,7 +43,7 @@ public class AgentControllerService implements IAgentService {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(AgentControllerService.class);
 
     private static IAgentController controller;
-    private AgentConfigurationSyncTask syncTask;
+    private ConfigurationSyncTask syncTask;
 
     @Override
     public void start() {
@@ -71,10 +71,10 @@ public class AgentControllerService implements IAgentService {
         // Start fetcher
         //
         AppConfig appConfig = ConfigurationManager.getInstance().getConfig(AppConfig.class);
-        syncTask = new AgentConfigurationSyncTask(appConfig.getName(),
-                                                  appConfig.getEnv(),
-                                                  controller,
-                                                  Duration.ofSeconds(ctrlConfig.getRefreshInterval()));
+        syncTask = new ConfigurationSyncTask(appConfig.getName(),
+                                             appConfig.getEnv(),
+                                             controller,
+                                             Duration.ofSeconds(ctrlConfig.getRefreshInterval()));
         syncTask.start();
     }
 

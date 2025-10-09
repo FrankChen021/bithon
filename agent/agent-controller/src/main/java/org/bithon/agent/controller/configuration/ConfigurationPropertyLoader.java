@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.controller.config;
+package org.bithon.agent.controller.configuration;
 
 import org.bithon.agent.configuration.metadata.PropertyMetadata;
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
@@ -36,14 +36,14 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 /**
- * Registry for loading and accessing configuration metadata at runtime.
+ * Loading and accessing configuration metadata at runtime.
  * Uses ClassLoader resource enumeration to discover metadata files from all modules.
  *
  * @author frank.chen021@outlook.com
  */
-public class ConfigurationPropertyRegistry {
+public class ConfigurationPropertyLoader {
 
-    private static final ILogAdaptor log = LoggerFactory.getLogger(ConfigurationPropertyRegistry.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(ConfigurationPropertyLoader.class);
 
     private static volatile List<PropertyMetadata> cachedProperties;
 
@@ -53,18 +53,18 @@ public class ConfigurationPropertyRegistry {
      *
      * @return List of all property metadata
      */
-    public static List<PropertyMetadata> getAllProperties() {
+    public static List<PropertyMetadata> loadAllProperties() {
         if (cachedProperties == null) {
-            synchronized (ConfigurationPropertyRegistry.class) {
+            synchronized (ConfigurationPropertyLoader.class) {
                 if (cachedProperties == null) {
-                    cachedProperties = loadAllProperties();
+                    cachedProperties = loadImpl();
                 }
             }
         }
         return cachedProperties;
     }
 
-    private static List<PropertyMetadata> loadAllProperties() {
+    private static List<PropertyMetadata> loadImpl() {
         List<PropertyMetadata> allProperties = new ArrayList<>();
 
         try {
