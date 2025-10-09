@@ -11,7 +11,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>agent-configuration-processor</artifactId>
+    <artifactId>agent-configuration</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
@@ -35,6 +35,7 @@
             <groupId>org.bithon.agent</groupId>
             <artifactId>agent-core</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Component commons for logging -->
@@ -57,14 +58,23 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <!-- Disable annotation processing for this module to avoid circular dependency -->
-                    <compilerArgument>-proc:none</compilerArgument>
-                    <!-- Override parent configuration to disable annotation processor paths -->
-                    <annotationProcessorPaths combine.self="override">
-                        <!-- Empty to disable annotation processing -->
-                    </annotationProcessorPaths>
-                </configuration>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Disable annotation processing for this module to avoid circular dependency -->
+                            <compilerArgument>-proc:none</compilerArgument>
+                            <!-- Override parent configuration to disable annotation processor paths -->
+                            <annotationProcessorPaths combine.self="override">
+                                <!-- Empty to disable annotation processing -->
+                            </annotationProcessorPaths>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
