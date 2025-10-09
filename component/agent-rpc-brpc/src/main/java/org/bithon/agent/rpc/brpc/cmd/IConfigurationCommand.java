@@ -45,6 +45,16 @@ public interface IConfigurationCommand {
          */
         private String defaultValue;
 
+        /**
+         * Current runtime value from property sources
+         */
+        private String value;
+
+        /**
+         * Whether the current value differs from the default value
+         */
+        private boolean changed;
+
         public String getPath() {
             return path;
         }
@@ -75,6 +85,22 @@ public interface IConfigurationCommand {
 
         public void setDefaultValue(String defaultValue) {
             this.defaultValue = defaultValue;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public void setValue(String value) {
+            this.value = value;
+        }
+
+        public boolean isChanged() {
+            return changed;
+        }
+
+        public void setChanged(boolean changed) {
+            this.changed = changed;
         }
     }
 
