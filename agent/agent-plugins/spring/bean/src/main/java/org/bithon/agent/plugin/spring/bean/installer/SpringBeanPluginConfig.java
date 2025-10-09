@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.spring.bean.installer;
 
-import org.bithon.agent.configuration.ConfigurationProperties;
+import org.bithon.agent.configuration.annotation.ConfigurationProperties;
 import org.bithon.agent.observability.aop.BeanMethodAopInstaller;
 
 /**

@@ -16,7 +16,7 @@
 
 package org.bithon.agent.observability.tracing.config;
 
-import org.bithon.agent.configuration.ConfigurationProperties;
+import org.bithon.agent.configuration.annotation.ConfigurationProperties;
 import org.bithon.agent.observability.tracing.id.ITraceIdGenerator;
 import org.bithon.agent.observability.tracing.id.impl.UUIDv7TracePlusNTraceIdGenerator;
 import org.bithon.component.commons.utils.StringUtils;

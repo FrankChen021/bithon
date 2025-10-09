@@ -17,8 +17,8 @@
 package org.bithon.agent.controller.config;
 
 import org.bithon.agent.configuration.ConfigurationManager;
-import org.bithon.agent.configuration.processor.ConfigurationMetadataRegistry;
-import org.bithon.agent.configuration.processor.PropertyMetadata;
+import org.bithon.agent.configuration.metadata.ConfigurationPropertyRegistry;
+import org.bithon.agent.configuration.metadata.PropertyMetadata;
 import org.bithon.agent.controller.cmd.IAgentCommand;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.agent.rpc.brpc.cmd.IConfigurationCommand;
@@ -47,7 +47,7 @@ public class ConfigurationCommandImpl implements IConfigurationCommand, IAgentCo
     public List<IConfigurationCommand.ConfigurationMetadata> getConfigurationMetadata() {
         try {
             // Use the new compile-time generated metadata
-            List<PropertyMetadata> properties = ConfigurationMetadataRegistry.getAllProperties();
+            List<PropertyMetadata> properties = ConfigurationPropertyRegistry.getAllProperties();
             List<IConfigurationCommand.ConfigurationMetadata> metadataList = new ArrayList<>();
             
             // Convert PropertyMetadata to ConfigurationMetadata (the interface format)

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.configuration.processor;
+package org.bithon.agent.configuration.metadata;
 
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
 import org.bithon.agent.instrumentation.loader.JarClassLoader;
@@ -41,9 +41,9 @@ import java.util.jar.JarFile;
  *
  * @author frank.chen021@outlook.com
  */
-public class ConfigurationMetadataRegistry {
+public class ConfigurationPropertyRegistry {
 
-    private static final ILogAdaptor log = LoggerFactory.getLogger(ConfigurationMetadataRegistry.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(ConfigurationPropertyRegistry.class);
 
     private static volatile List<PropertyMetadata> cachedProperties;
 
@@ -55,7 +55,7 @@ public class ConfigurationMetadataRegistry {
      */
     public static List<PropertyMetadata> getAllProperties() {
         if (cachedProperties == null) {
-            synchronized (ConfigurationMetadataRegistry.class) {
+            synchronized (ConfigurationPropertyRegistry.class) {
                 if (cachedProperties == null) {
                     cachedProperties = loadAllProperties();
                 }

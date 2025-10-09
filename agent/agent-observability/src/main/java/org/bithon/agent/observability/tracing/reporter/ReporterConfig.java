@@ -16,7 +16,7 @@
 
 package org.bithon.agent.observability.tracing.reporter;
 
-import org.bithon.agent.configuration.ConfigurationProperties;
+import org.bithon.agent.configuration.annotation.ConfigurationProperties;
 
 /**
  * @author frank.chen021@outlook.com

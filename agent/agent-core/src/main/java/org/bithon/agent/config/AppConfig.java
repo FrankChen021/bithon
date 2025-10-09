@@ -16,7 +16,7 @@
 
 package org.bithon.agent.config;
 
-import org.bithon.agent.configuration.ConfigurationProperties;
+import org.bithon.agent.configuration.annotation.ConfigurationProperties;
 import org.bithon.agent.configuration.validation.NotBlank;
 import org.bithon.agent.configuration.validation.RegExpr;
 

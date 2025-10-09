@@ -16,6 +16,7 @@
 
 package org.bithon.agent.configuration;
 
+import org.bithon.agent.configuration.annotation.ConfigurationProperties;
 import org.bithon.agent.configuration.source.CommandLineArgsSource;
 import org.bithon.agent.configuration.source.EnvironmentSource;
 import org.bithon.agent.configuration.source.ExternalSource;

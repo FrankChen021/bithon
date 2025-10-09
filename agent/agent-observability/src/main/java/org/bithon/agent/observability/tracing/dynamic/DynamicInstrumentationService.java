@@ -17,8 +17,8 @@
 package org.bithon.agent.observability.tracing.dynamic;
 
 import org.bithon.agent.configuration.ConfigurationManager;
-import org.bithon.agent.configuration.ConfigurationProperties;
 import org.bithon.agent.configuration.IConfigurationChangedListener;
+import org.bithon.agent.configuration.annotation.ConfigurationProperties;
 import org.bithon.agent.instrumentation.aop.interceptor.installer.DynamicInterceptorInstaller;
 import org.bithon.agent.instrumentation.aop.interceptor.installer.Uninstaller;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;

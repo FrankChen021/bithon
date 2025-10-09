@@ -14,7 +14,8 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.configuration;
+package org.bithon.agent.configuration.annotation;
+
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -22,28 +23,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotate a config class.
- * <p>
- * NOTE:
- * fields in the target class:
- * 1. should: be annotated with {@link shaded.com.fasterxml.jackson.annotation.JsonProperty}
- * 2. or related fields have getter/setter methods defined
- * 3. fields MUST be private
- *
  * @author frank.chen021@outlook.com
- * @date 2021/8/7 09:57
+ * @date 8/8/25 10:40 pm
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface ConfigurationProperties {
-    /**
-     * not null
-     */
-    String path();
-
-    /**
-     * If this configuration class can receive dynamic configuration changes.
-     * If true, a proxy class will be generated for the target configuration class.
-     */
-    boolean dynamic() default true;
+@Target(ElementType.FIELD)
+public @interface PropertyDescriptor {
+    String description() default "";
 }
