@@ -170,6 +170,12 @@ public class JdbcDataSourceReader implements IDataSourceReader {
 
     @Override
     public List<?> select(Query query) {
+        SelectStatement selectStatement = toSelectStatement(query);
+
+        return executeSql(selectStatement.toSQL(this.sqlDialect));
+    }
+
+    protected SelectStatement toSelectStatement(Query query) {
         IdentifierExpression timestampCol = IdentifierExpression.of(query.getSchema().getTimestampSpec().getColumnName());
 
         SelectStatement selectStatement = new SelectStatement();
@@ -182,8 +188,7 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter(), this.querySettings));
         selectStatement.setLimit(toLimitClause(query.getLimit()));
         selectStatement.setOrderBy(toOrderByClause(query.getOrderBy()));
-
-        return executeSql(selectStatement.toSQL(this.sqlDialect));
+        return selectStatement;
     }
 
     @Override

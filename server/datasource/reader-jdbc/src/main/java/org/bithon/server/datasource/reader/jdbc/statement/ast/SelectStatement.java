@@ -22,6 +22,9 @@ import org.bithon.server.datasource.query.ast.IASTNode;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.statement.serializer.SelectStatementSerializer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Take SQL as an example, this AST node represents a whole SELECT statement.
  * Since statement is a concept in SQL, here we don't use that concept but use 'expression',
@@ -38,12 +41,18 @@ public class SelectStatement implements IASTNode {
     private final FromClause from = new FromClause();
     private final WhereClause where = new WhereClause();
     private final GroupByClause groupBy = new GroupByClause();
-    private OrderByClause[] orderBy;
+    private List<OrderByClause> orderBy;
     private LimitClause limit;
     private HavingClause having;
 
-    public void setOrderBy(OrderByClause... orderBy) {
+    public void setOrderBy(List<OrderByClause> orderBy) {
         this.orderBy = orderBy;
+    }
+
+    public void setOrderBy(OrderByClause orderBy) {
+        // a modifiable list
+        this.orderBy = new ArrayList<>();
+        this.orderBy.add(orderBy);
     }
 
     public String toSQL(ISqlDialect sqlDialect) {

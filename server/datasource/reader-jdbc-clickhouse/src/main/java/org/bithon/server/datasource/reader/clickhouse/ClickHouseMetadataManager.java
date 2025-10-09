@@ -69,8 +69,34 @@ public class ClickHouseMetadataManager {
 
     /**
      * Get the ORDER BY expressions for a table.
+     * Accepts table name in format "database.table" or just "table".
+     * If the database is not provided, the query will not filter by database.
      *
-     * @param database  the database name
+     * @param tableReference table reference, either "database.table" or "table"
+     * @return list of ORDER BY expressions
+     * @throws RuntimeException if the table is not found or ORDER BY cannot be determined
+     */
+    public List<IExpression> getOrderByExpression(String tableReference) {
+        String database = null;
+        String tableName;
+
+        int dotIndex = tableReference.indexOf('.');
+        if (dotIndex > 0) {
+            // Format: "database.table"
+            database = tableReference.substring(0, dotIndex);
+            tableName = tableReference.substring(dotIndex + 1);
+        } else {
+            // Format: "table" (no database specified)
+            tableName = tableReference;
+        }
+
+        return getOrderByExpression(database, tableName);
+    }
+
+    /**
+     * Get the ORDER BY expressions for a table.
+     *
+     * @param database  the database name (can be null if not filtering by database)
      * @param tableName the table name
      * @return list of ORDER BY expressions
      * @throws RuntimeException if the table is not found or ORDER BY cannot be determined
@@ -79,48 +105,61 @@ public class ClickHouseMetadataManager {
         try {
             return orderByCache.get(new TableKey(database, tableName));
         } catch (ExecutionException e) {
-            throw new RuntimeException(StringUtils.format("Failed to get ORDER BY expression for table %s.%s", database, tableName), e.getCause());
+            String fullTableName = database != null ? database + "." + tableName : tableName;
+            throw new RuntimeException(StringUtils.format("Failed to get ORDER BY expression for table %s", fullTableName), e.getCause());
         }
     }
 
     /**
      * Fetches and parses the ORDER BY expression from ClickHouse system.tables.
+     *
+     * @param database  the database name (can be null to not filter by database)
+     * @param tableName the table name
      */
     private List<IExpression> fetchOrderByExpression(String database, String tableName) {
-        log.info("Fetching ORDER BY expression for table {}.{}", database, tableName);
+        String fullTableName = database != null ? database + "." + tableName : tableName;
+        log.info("Fetching ORDER BY expression for table {}", fullTableName);
 
-        String sql = StringUtils.format(
-            "SELECT engine_full FROM system.tables WHERE database = '%s' AND name = '%s'",
-            database,
-            tableName
-        );
+        String sql;
+        if (database != null) {
+            sql = StringUtils.format(
+                "SELECT engine_full FROM system.tables WHERE database = '%s' AND name = '%s'",
+                database,
+                tableName
+            );
+        } else {
+            sql = StringUtils.format(
+                "SELECT engine_full FROM system.tables WHERE name = '%s'",
+                tableName
+            );
+        }
 
         List<Record> records = dslContext.fetch(sql);
         if (records.isEmpty()) {
-            throw new RuntimeException(StringUtils.format("Table %s.%s not found", database, tableName));
+            throw new RuntimeException(StringUtils.format("Table %s not found", fullTableName));
         }
 
         String engineFull = records.get(0).get(0, String.class);
         if (StringUtils.isEmpty(engineFull)) {
-            throw new RuntimeException(StringUtils.format("engine_full is empty for table %s.%s", database, tableName));
+            throw new RuntimeException(StringUtils.format("engine_full is empty for table %s", fullTableName));
         }
 
-        log.debug("engine_full for {}.{}: {}", database, tableName, engineFull);
+        log.debug("engine_full for {}: {}", fullTableName, engineFull);
 
         // Check if this is a Distributed table
         Matcher distributedMatcher = DISTRIBUTED_TABLE_PATTERN.matcher(engineFull);
         if (distributedMatcher.find()) {
             String localDatabase = distributedMatcher.group(1);
             String localTable = distributedMatcher.group(2);
-            log.info("Table {}.{} is a Distributed table, fetching ORDER BY from local table {}.{}",
-                     database, tableName, localDatabase, localTable);
+            log.info("Table {} is a Distributed table, fetching ORDER BY from local table {}.{}",
+                     fullTableName, localDatabase, localTable);
             return fetchOrderByExpression(localDatabase, localTable);
         }
 
         // Extract ORDER BY clause
         Matcher orderByMatcher = ORDER_BY_PATTERN.matcher(engineFull);
         if (!orderByMatcher.find()) {
-            throw new RuntimeException(StringUtils.format("No ORDER BY clause found in engine_full for table %s.%s", database, tableName));
+            throw new RuntimeException(StringUtils.format("No ORDER BY clause found in engine_full for table %s", fullTableName));
         }
 
         String orderByClause = orderByMatcher.group(1)

@@ -77,7 +77,7 @@ public class SelectStatementBuilder {
     private List<String> groupBy = Collections.emptyList();
 
     @Nullable
-    private OrderByClause[] orderBys;
+    private List<OrderByClause> orderBys;
 
     @Nullable
     private org.bithon.server.datasource.query.Limit limit;
@@ -124,12 +124,14 @@ public class SelectStatementBuilder {
     }
 
     public SelectStatementBuilder orderBy(@Nullable org.bithon.server.datasource.query.OrderBy orderBy) {
-        this.orderBys = orderBy == null ? null : new OrderByClause[]{new OrderByClause(orderBy.getName(), orderBy.getOrder())};
+        this.orderBys = orderBy == null ? null : new ArrayList<>(Collections.singletonList(new OrderByClause(orderBy.getName(), orderBy.getOrder())));
         return this;
     }
 
     public SelectStatementBuilder orderBy(List<org.bithon.server.datasource.query.OrderBy> orderBys) {
-        this.orderBys = orderBys.stream().map((o) -> new OrderByClause(o.getName(), o.getOrder())).toArray(OrderByClause[]::new);
+        this.orderBys = orderBys.stream()
+                                .map((o) -> new OrderByClause(o.getName(), o.getOrder()))
+                                .toList();
         return this;
     }
 
@@ -259,15 +261,15 @@ public class SelectStatementBuilder {
      *  step 4: return Identifier expression so that we process it in next phase
      *
      * and when visiting the function expression 'last(queuedTaskCount)'
-     *  step 1: insert into step to the pipeline at first index if the first step is not a window expression
+     *  step 1: insert into step to the pipeline at first index if the first step is not a window expression,
      *  repeat step 2 - 4 above since 'last' is a window function
      *
      * and when visiting the function expression 'sum(totalTaskCount)'
      *  step 1: insert into identifier expression totalTaskCount to the first step in the pipeline since the first step is a window function
      *  step 2: insert into aggregation expression sum(totalTaskCount) to the 2nd step in the pipeline
-     *  step 3: return Identifier expression so that we process it in next phase
+     *  step 3: return Identifier expression so that we process it in the next phase
      *
-     *  last step: add filter to the first step of the pipeline(push down the pre filter)
+     *  last step: add filter to the first step of the pipeline(push down the pre-filter)
      * </pre>
      */
     public SelectStatement build() {
@@ -281,7 +283,7 @@ public class SelectStatementBuilder {
             // Apply dialect's transformation on general AST
             this.filter = sqlDialect.transform(this.schema, this.filter, this.querySettings);
 
-            // If filter contains expressions, these expressions should be added to the selector list
+            // If the filter contains expressions, these expressions should be added to the selector list
             this.filter.accept(new IExpressionInDepthVisitor() {
                 @Override
                 public boolean visit(IdentifierExpression expression) {
@@ -310,7 +312,7 @@ public class SelectStatementBuilder {
         }
 
         //
-        // Step 1, Determine if there's a post aggregation step
+        // Step 1, Determine if there's a post aggregation step,
         // For example: round(sum(a)/sum(b), 2) the `round` function will be put in the post aggregation step
         //
         for (Selector selector : this.selectors) {
@@ -370,7 +372,7 @@ public class SelectStatementBuilder {
                         } else {
                             if (functionCallExpression.getFunction() instanceof QueryStageFunctions.Cardinality) {
                                 // the default converted expression for  cardinality(a) is count(distinct a) as a,
-                                // where a usually is a string column which might cause the generated SQL confusion for debugging
+                                // where a usually is a string column which might cause the generated SQL confusion for debugging,
                                 // So we generate a new name for the output
                                 output = "cardinality" + var.next();
                                 dataType = IDataType.LONG;
@@ -550,7 +552,7 @@ public class SelectStatementBuilder {
         TimeSpan startWindow = interval.getStartTime().floor(interval.getStep());
         TimeSpan endWindow = interval.getEndTime();
 
-        // The inner query of thiw sliding window aggregation step already offset the timestamp,
+        // The inner query of the sliding window aggregation step already offset the timestamp,
         // So we need to add the offset to the start and end timestamp to make sure we're filtering the correct time range
         if (this.offset != null) {
             // The offset is negative, so we need to add the offset
@@ -698,6 +700,6 @@ public class SelectStatementBuilder {
         return new IExpression[]{
             new ComparisonExpression.GTE(timestampColumn, useTimestampText ? sqlDialect.toISO8601TimestampExpression(start) : LiteralExpression.of(start.getMilliseconds() / 1000)),
             new ComparisonExpression.LT(timestampColumn, useTimestampText ? sqlDialect.toISO8601TimestampExpression(end) : LiteralExpression.of(end.getMilliseconds() / 1000)),
-            };
+        };
     }
 }

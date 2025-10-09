@@ -18,6 +18,7 @@ package org.bithon.server.datasource.expression;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.bithon.component.commons.expression.ArithmeticExpression;
@@ -54,6 +55,7 @@ import org.bithon.server.datasource.ISchema;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -111,6 +113,20 @@ public class ExpressionASTBuilder {
         }
 
         return ast;
+    }
+
+    public IExpression build(String expression,
+                             Function<ExpressionParser, ParserRuleContext> expressionProvider) {
+        ExpressionLexer lexer = new ExpressionLexer(CharStreams.fromString(expression));
+        lexer.getErrorListeners().clear();
+        lexer.addErrorListener(SyntaxErrorListener.of(expression));
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        ExpressionParser parser = new ExpressionParser(tokens);
+        parser.getErrorListeners().clear();
+        parser.addErrorListener(SyntaxErrorListener.of(expression));
+
+        return expressionProvider.apply(parser)
+                                 .accept(new ParserImpl(functions, this.identifiers));
     }
 
     private static class ParserImpl extends ExpressionBaseVisitor<IExpression> {
@@ -196,10 +212,14 @@ public class ExpressionASTBuilder {
             TerminalNode op = (TerminalNode) ctx.getChild(1);
 
             return switch (op.getSymbol().getType()) {
-                case ExpressionLexer.ADD -> new ArithmeticExpression.ADD(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
-                case ExpressionLexer.SUB -> new ArithmeticExpression.SUB(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
-                case ExpressionLexer.MUL -> new ArithmeticExpression.MUL(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
-                case ExpressionLexer.DIV -> new ArithmeticExpression.DIV(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
+                case ExpressionLexer.ADD ->
+                    new ArithmeticExpression.ADD(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
+                case ExpressionLexer.SUB ->
+                    new ArithmeticExpression.SUB(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
+                case ExpressionLexer.MUL ->
+                    new ArithmeticExpression.MUL(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
+                case ExpressionLexer.DIV ->
+                    new ArithmeticExpression.DIV(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
                 default -> throw new InvalidExpressionException("Unsupported arithmetic operator");
             };
         }
@@ -296,9 +316,9 @@ public class ExpressionASTBuilder {
                 }
 
                 if (isNot) {
-                    return new ConditionalExpression.NotIn(leftOperand, (ExpressionList) rightOperand);
+                    return new ConditionalExpression.NotIn(leftOperand, expressionList);
                 } else {
-                    return new ConditionalExpression.In(leftOperand, (ExpressionList) rightOperand);
+                    return new ConditionalExpression.In(leftOperand, expressionList);
                 }
             }
 
@@ -392,12 +412,18 @@ public class ExpressionASTBuilder {
             TerminalNode literal = ctx.getChild(TerminalNode.class, 0);
 
             return switch (literal.getSymbol().getType()) {
-                case ExpressionLexer.INTEGER_LITERAL -> LiteralExpression.ofLong(Long.parseLong(literal.getText().replace("_", "")));
-                case ExpressionLexer.DECIMAL_LITERAL -> LiteralExpression.ofDouble(Double.parseDouble(literal.getText().replace("_", "")));
-                case ExpressionLexer.STRING_LITERAL -> LiteralExpression.ofString(StringUtils.unEscape(TokenUtils.getUnQuotedString(literal.getSymbol()), '\\', '\''));
-                case ExpressionLexer.BOOL_LITERAL -> LiteralExpression.ofBoolean("true".equals(literal.getText().toLowerCase(Locale.ENGLISH)));
-                case ExpressionLexer.READABLE_SIZE_LITERAL -> LiteralExpression.of(HumanReadableNumber.of(literal.getText()));
-                case ExpressionLexer.READABLE_PERCENTAGE_LITERAL -> LiteralExpression.of(HumanReadablePercentage.of(literal.getText()));
+                case ExpressionLexer.INTEGER_LITERAL ->
+                    LiteralExpression.ofLong(Long.parseLong(literal.getText().replace("_", "")));
+                case ExpressionLexer.DECIMAL_LITERAL ->
+                    LiteralExpression.ofDouble(Double.parseDouble(literal.getText().replace("_", "")));
+                case ExpressionLexer.STRING_LITERAL ->
+                    LiteralExpression.ofString(StringUtils.unEscape(TokenUtils.getUnQuotedString(literal.getSymbol()), '\\', '\''));
+                case ExpressionLexer.BOOL_LITERAL ->
+                    LiteralExpression.ofBoolean("true".equals(literal.getText().toLowerCase(Locale.ENGLISH)));
+                case ExpressionLexer.READABLE_SIZE_LITERAL ->
+                    LiteralExpression.of(HumanReadableNumber.of(literal.getText()));
+                case ExpressionLexer.READABLE_PERCENTAGE_LITERAL ->
+                    LiteralExpression.of(HumanReadablePercentage.of(literal.getText()));
 
                 default -> throw new InvalidExpressionException("unexpected right expression type");
             };
@@ -438,7 +464,7 @@ public class ExpressionASTBuilder {
                                                      .map((exprCtx -> exprCtx.accept(this)))
                                                      .collect(Collectors.toList());
 
-            return new FunctionExpression(function, argExpressionList);
+            return function == null ? new FunctionExpression(functionName, argExpressionList) : new FunctionExpression(function, argExpressionList);
         }
 
         @Override

@@ -35,23 +35,34 @@ public class ExternalClickHouseDataStoreSpec extends ExternalDataStoreSpec {
 
     private final SqlDialectManager sqlDialectManager;
     private final QuerySettings querySettings;
+    private final ClickHouseMetadataManager metadataManager;
 
     public ExternalClickHouseDataStoreSpec(@JsonProperty("properties") Map<String, Object> properties,
                                            @JsonProperty("store") String store,
                                            @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
+                                           @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseMetadataManager metadataManager,
                                            @JacksonInject(useInput = OptBoolean.FALSE) QuerySettings querySettings) {
         super(properties, store);
         this.sqlDialectManager = sqlDialectManager;
+        this.metadataManager = metadataManager;
         this.querySettings = querySettings;
     }
 
     @Override
     public IDataStoreSpec hideSensitiveInformation() {
-        return new ExternalClickHouseDataStoreSpec(this.getSensitiveHiddenProps(), this.store, this.sqlDialectManager, this.querySettings);
+        return new ExternalClickHouseDataStoreSpec(this.getSensitiveHiddenProps(),
+                                                   this.store,
+                                                   this.sqlDialectManager,
+                                                   this.metadataManager,
+                                                   this.querySettings);
     }
 
     @Override
     public IDataSourceReader createReader() {
-        return new ClickHouseDataSourceReader(store, this.properties, sqlDialectManager.getSqlDialect("clickhouse"), this.querySettings);
+        return new ClickHouseDataSourceReader(store,
+                                              this.properties,
+                                              sqlDialectManager.getSqlDialect("clickhouse"),
+                                              this.metadataManager,
+                                              this.querySettings);
     }
 }
