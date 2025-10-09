@@ -31,6 +31,7 @@
         <module>agent-sdk</module>
         <module>agent-instrumentation</module>
         <module>agent-plugin-processor</module>
+        <module>agent-configuration-processor</module>
         <module>agent-java-adaptor/agent-java-adaptor-java8</module>
         <module>agent-java-adaptor/agent-java-adaptor-java9</module>
         <module>agent-core</module>
@@ -122,6 +123,12 @@
                 <artifactId>agent-sdk</artifactId>
                 <version>1.2.3</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.bithon.agent</groupId>
+                <artifactId>agent-configuration-processor</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -173,6 +180,53 @@
             </plugins>
         </pluginManagement>
         <plugins>
+            <!-- Configure annotation processing for all agent modules -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <executions>
+                    <!-- Main compilation with annotation processing -->
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <annotationProcessorPaths>
+                                <path>
+                                    <groupId>org.bithon.agent</groupId>
+                                    <artifactId>agent-configuration-processor</artifactId>
+                                    <version>${project.version}</version>
+                                </path>
+                            </annotationProcessorPaths>
+                            <showWarnings>true</showWarnings>
+                            <!-- Run compiler in same JVM to preserve NOTE level messages -->
+                            <fork>false</fork>
+                            <!--Increase WARN/ERROR numbers in case there are too many NOTE messages-->
+                            <compilerArgs>
+                                <arg>-Xmaxwarns</arg>
+                                <arg>10000</arg>
+                                <arg>-Xmaxerrs</arg>
+                                <arg>10000</arg>
+                            </compilerArgs>
+                        </configuration>
+                    </execution>
+                    <!-- Test compilation without annotation processing -->
+                    <execution>
+                        <id>default-testCompile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Disable annotation processing for tests -->
+                            <compilerArgument>-proc:none</compilerArgument>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>de.thetaphi</groupId>
                 <artifactId>forbiddenapis</artifactId>

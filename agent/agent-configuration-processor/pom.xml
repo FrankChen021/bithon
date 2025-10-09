@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.bithon.agent</groupId>
+        <artifactId>agent-all</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>agent-configuration-processor</artifactId>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <!-- Annotation processing API -->
+        <dependency>
+            <groupId>com.google.auto.service</groupId>
+            <artifactId>auto-service</artifactId>
+            <version>1.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Jackson for JSON generation -->
+        <dependency>
+            <groupId>org.bithon.shaded</groupId>
+            <artifactId>shaded-jackson</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Agent core for accessing configuration annotations -->
+        <dependency>
+            <groupId>org.bithon.agent</groupId>
+            <artifactId>agent-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Component commons for logging -->
+        <dependency>
+            <groupId>org.bithon.component</groupId>
+            <artifactId>component-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!-- Disable annotation processing for this module to avoid circular dependency -->
+                    <compilerArgument>-proc:none</compilerArgument>
+                    <!-- Override parent configuration to disable annotation processor paths -->
+                    <annotationProcessorPaths combine.self="override">
+                        <!-- Empty to disable annotation processing -->
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -94,6 +94,11 @@
               <artifactId>agent-plugin-processor</artifactId>
               <version>${project.version}</version>
             </path>
+            <path>
+              <groupId>org.bithon.agent</groupId>
+              <artifactId>agent-configuration-processor</artifactId>
+              <version>${project.version}</version>
+            </path>
           </annotationProcessorPaths>
           <!-- Show annotation processor NOTE messages -->
           <showWarnings>true</showWarnings>
