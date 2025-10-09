@@ -48,6 +48,15 @@
     <sourceDirectory>src/main/java</sourceDirectory>
 
     <plugins>
+      <!-- Add annotation processor configuration specifically for this module -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <!-- Disable annotation processing to avoid circular dependency -->
+          <compilerArgument>-proc:none</compilerArgument>
+        </configuration>
+      </plugin>
 
       <!-- Inject build version -->
       <plugin>
