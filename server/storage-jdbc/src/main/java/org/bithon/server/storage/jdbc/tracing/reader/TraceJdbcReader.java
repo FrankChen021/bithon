@@ -178,12 +178,12 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public List<TraceSpan> getTraceList(IExpression filter,
-                                        List<IExpression> indexedTagFilter,
-                                        Timestamp start,
-                                        Timestamp end,
-                                        OrderBy orderBy,
-                                        Limit limit) {
+    public CloseableIterator<TraceSpan> getTraceList(IExpression filter,
+                                                     List<IExpression> indexedTagFilter,
+                                                     Timestamp start,
+                                                     Timestamp end,
+                                                     OrderBy orderBy,
+                                                     Limit limit) {
         boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
 
         Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
@@ -240,8 +240,11 @@ public class TraceJdbcReader implements ITraceReader {
         String sql = toSQL(orderedListQuery.offset(limit.getOffset())
                                            .limit(limit.getLimit()));
         log.info("Get trace list: {}", sql);
-        return dslContext.fetch(sql)
-                         .map(this::toTraceSpan);
+
+        Cursor<?> cursor = dslContext.fetchLazy(sql);
+        return CloseableIterator.transform(cursor.iterator(),
+                                           this::toTraceSpan,
+                                           cursor);
     }
 
     @Override
@@ -530,6 +533,11 @@ public class TraceJdbcReader implements ITraceReader {
                             query.getInterval().getEndTime().toTimestamp(),
                             query.getOrderBy(),
                             query.getLimit());
+    }
+
+    @Override
+    public CloseableIterator<Object[]> streamSelect(Query query) {
+        return null;
     }
 
     @Override

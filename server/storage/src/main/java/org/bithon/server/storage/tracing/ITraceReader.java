@@ -40,12 +40,12 @@ public interface ITraceReader extends IDataSourceReader {
                                                    TimeSpan start,
                                                    TimeSpan end);
 
-    List<TraceSpan> getTraceList(IExpression filter,
-                                 List<IExpression> indexedTagFilters,
-                                 Timestamp start,
-                                 Timestamp end,
-                                 OrderBy orderBy,
-                                 Limit limit);
+    CloseableIterator<TraceSpan> getTraceList(IExpression filter,
+                                              List<IExpression> indexedTagFilters,
+                                              Timestamp start,
+                                              Timestamp end,
+                                              OrderBy orderBy,
+                                              Limit limit);
 
     ColumnarTable getTraceDistribution(IExpression filter,
                                        List<IExpression> indexedTagFilters,
