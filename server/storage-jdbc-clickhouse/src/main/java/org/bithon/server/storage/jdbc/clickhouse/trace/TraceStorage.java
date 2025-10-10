@@ -248,41 +248,22 @@ public class TraceStorage extends TraceJdbcStorage {
                 }
 
                 StringBuilder sqlTextBuilder = new StringBuilder(dslContext.renderInlined(listQuery));
-
                 sqlTextBuilder.append(" ORDER BY ");
-                if (querySettings.isEnableReadInOrderOptimization()) {
-                    // Use getBean because ClickHouseMetadataManager is not constructed by this storage
-                    // Fundamentally, this is the dependency issue of current design
-                    List<IExpression> orderByExpressions = metadataManager.getOrderByExpression(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.getName() : Tables.BITHON_TRACE_SPAN.getName());
-                    for (IExpression orderByExpression : orderByExpressions) {
-                        if (!(orderByExpression instanceof FunctionExpression functionExpression)) {
-                            continue;
-                        }
-                        String timestampColumn = Tables.BITHON_TRACE_SPAN.TIMESTAMP.getName();
-                        boolean hasTimestampColumn = functionExpression.getArgs()
-                                                                       .stream()
-                                                                       .anyMatch(tsColumn::equals);
-                        if (hasTimestampColumn) {
-                            sqlTextBuilder.append(functionExpression.serializeToText(IdentifierQuotaStrategy.NONE));
-                            sqlTextBuilder.append(' ');
-                            sqlTextBuilder.append(orderBy.getOrder().name());
-                            sqlTextBuilder.append(',');
-                            sqlTextBuilder.append(' ');
-                            break;
-                        }
-                    }
-                }
 
                 Field<?> orderField;
                 if ("costTime".equals(orderBy.getName())) {
                     orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS : Tables.BITHON_TRACE_SPAN.COSTTIMEMS;
-                } else if ("startTime".equals(orderBy.getName())) {
+                } else if ("startTimeUs".equals(orderBy.getName())) {
                     orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.COSTTIMEMS;
                 } else {
                     orderField = Arrays.stream((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).fields())
                                        .filter((f) -> f.getName().equals(orderBy.getName()))
                                        .findFirst()
-                                       .orElse(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.COSTTIMEMS);
+                                       .orElse(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP);
+                }
+                if (orderField.getName().equals(tsColumn.getIdentifier()) || orderField.getName().equals(Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS.getName())) {
+                    // Apply read-in-order optimization only when the order by is on timestamp column
+                    applyReadInOrderOptimization(isOnSummaryTable, sqlTextBuilder, orderBy, tsColumn);
                 }
                 sqlTextBuilder.append(orderField.getName());
                 sqlTextBuilder.append(' ');
@@ -302,5 +283,32 @@ public class TraceStorage extends TraceJdbcStorage {
                 return sql + " SETTINGS distributed_product_mode = 'global'";
             }
         };
+    }
+
+    private void applyReadInOrderOptimization(boolean isOnSummaryTable, StringBuilder sqlTextBuilder, OrderBy orderBy, IdentifierExpression tsColumn) {
+        if (!querySettings.isEnableReadInOrderOptimization()) {
+            return;
+        }
+
+        // Use getBean because ClickHouseMetadataManager is not constructed by this storage
+        // Fundamentally, this is the dependency issue of current design
+        List<IExpression> orderByExpressions = metadataManager.getOrderByExpression(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.getName() : Tables.BITHON_TRACE_SPAN.getName());
+        for (IExpression orderByExpression : orderByExpressions) {
+            if (!(orderByExpression instanceof FunctionExpression functionExpression)) {
+                continue;
+            }
+            String timestampColumn = Tables.BITHON_TRACE_SPAN.TIMESTAMP.getName();
+            boolean hasTimestampColumn = functionExpression.getArgs()
+                                                           .stream()
+                                                           .anyMatch(tsColumn::equals);
+            if (hasTimestampColumn) {
+                sqlTextBuilder.append(functionExpression.serializeToText(IdentifierQuotaStrategy.NONE));
+                sqlTextBuilder.append(' ');
+                sqlTextBuilder.append(orderBy.getOrder().name());
+                sqlTextBuilder.append(',');
+                sqlTextBuilder.append(' ');
+                break;
+            }
+        }
     }
 }
