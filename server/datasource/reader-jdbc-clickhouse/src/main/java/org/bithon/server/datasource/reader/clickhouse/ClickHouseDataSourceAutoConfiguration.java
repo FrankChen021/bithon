@@ -20,8 +20,6 @@ package org.bithon.server.datasource.reader.clickhouse;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
-import org.jooq.DSLContext;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -31,12 +29,6 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class ClickHouseDataSourceAutoConfiguration {
-
-    @Bean
-    @ConditionalOnBean(DSLContext.class)
-    public ClickHouseMetadataManager clickHouseMetadataManager(DSLContext dslContext) {
-        return new ClickHouseMetadataManager(dslContext);
-    }
 
     @Bean
     public Module clickHouseDataSourceModule() {

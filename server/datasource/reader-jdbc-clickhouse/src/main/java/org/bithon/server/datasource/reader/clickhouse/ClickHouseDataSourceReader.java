@@ -101,7 +101,9 @@ public class ClickHouseDataSourceReader extends JdbcDataSourceReader {
         }
 
         // rewrite the order by clause to use the actual column name for speed up
-        List<IExpression> orderByExpressionList = this.metadataManager.getOrderByExpression(query.getSchema().getDataStoreSpec().getStore());
+        List<IExpression> orderByExpressionList = this.metadataManager.getOrderByExpression(query.getSchema()
+                                                                                                 .getDataStoreSpec()
+                                                                                                 .getStore());
         for (IExpression orderByExpression : orderByExpressionList) {
             if (!(orderByExpression instanceof FunctionExpression functionExpression)) {
                 continue;

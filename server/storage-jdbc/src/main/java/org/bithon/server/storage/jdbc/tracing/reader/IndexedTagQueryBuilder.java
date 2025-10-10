@@ -28,11 +28,11 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2023/5/7 15:42
  */
-class IndexedTagQueryBuilder extends NestQueryBuilder {
+public class IndexedTagQueryBuilder extends NestQueryBuilder {
 
     private final ISqlDialect sqlDialect;
 
-    IndexedTagQueryBuilder(ISqlDialect sqlDialect) {
+    public IndexedTagQueryBuilder(ISqlDialect sqlDialect) {
         this.sqlDialect = sqlDialect;
     }
 
