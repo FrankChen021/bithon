@@ -17,12 +17,17 @@
 package org.bithon.server.datasource.reader.clickhouse;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.expression.FunctionExpression;
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.JdbcDataSourceReader;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByClause;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
 import org.bithon.server.datasource.reader.jdbc.statement.serializer.Expression2Sql;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -38,18 +43,22 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class ClickHouseDataSourceReader extends JdbcDataSourceReader {
+    private final ClickHouseMetadataManager metadataManager;
 
     public ClickHouseDataSourceReader(String name,
                                       Map<String, Object> props,
                                       ISqlDialect sqlDialect,
+                                      ClickHouseMetadataManager metadataManager,
                                       QuerySettings querySettings) {
         super(name, props, sqlDialect, querySettings);
+        this.metadataManager = metadataManager;
     }
 
     public ClickHouseDataSourceReader(DSLContext dslContext,
                                       ISqlDialect sqlDialect,
                                       QuerySettings querySettings) {
         super(dslContext, sqlDialect, querySettings);
+        this.metadataManager = null;
     }
 
     /**
@@ -78,5 +87,42 @@ public class ClickHouseDataSourceReader extends JdbcDataSourceReader {
         return records.stream()
                       .map(record -> record.get(0).toString())
                       .collect(Collectors.toList());
+    }
+
+    @Override
+    protected SelectStatement toSelectStatement(Query query) {
+        SelectStatement selectStatement = super.toSelectStatement(query);
+        if (!querySettings.isEnableReadInOrderOptimization()) {
+            return selectStatement;
+        }
+
+        if (this.metadataManager == null) {
+            return selectStatement;
+        }
+
+        // rewrite the order by clause to use the actual column name for speed up
+        List<IExpression> orderByExpressionList = this.metadataManager.getOrderByExpression(query.getSchema()
+                                                                                                 .getDataStoreSpec()
+                                                                                                 .getStore());
+        for (IExpression orderByExpression : orderByExpressionList) {
+            if (!(orderByExpression instanceof FunctionExpression functionExpression)) {
+                continue;
+            }
+            List<IExpression> argsExpression = functionExpression.getArgs();
+            if (argsExpression.size() != 1) {
+                continue;
+            }
+            IExpression argExpression = argsExpression.get(0);
+            if (argExpression instanceof IdentifierExpression identifierExpression) {
+                String columnName = identifierExpression.getIdentifier();
+                if (columnName.equals(query.getOrderBy().getName())) {
+                    selectStatement.getOrderBy().add(
+                        new OrderByClause(orderByExpression.serializeToText(), query.getOrderBy().getOrder())
+                    );
+                    break;
+                }
+            }
+        }
+        return selectStatement;
     }
 }

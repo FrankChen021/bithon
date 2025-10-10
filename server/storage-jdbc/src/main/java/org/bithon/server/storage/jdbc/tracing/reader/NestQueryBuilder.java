@@ -28,7 +28,7 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2023/5/7 15:41
  */
-abstract class NestQueryBuilder {
+public abstract class NestQueryBuilder {
     protected DSLContext dslContext;
     protected LocalDateTime start;
     protected LocalDateTime end;

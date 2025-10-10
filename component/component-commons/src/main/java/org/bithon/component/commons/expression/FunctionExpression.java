@@ -50,6 +50,12 @@ public class FunctionExpression implements IExpression {
         this.args = args;
     }
 
+    public FunctionExpression(String function, List<IExpression> args) {
+        this.function = null;
+        this.name = function;
+        this.args = args;
+    }
+
     public FunctionExpression(IFunction function, IExpression... args) {
         this(function, new ArrayList<>(Arrays.asList(args)));
     }

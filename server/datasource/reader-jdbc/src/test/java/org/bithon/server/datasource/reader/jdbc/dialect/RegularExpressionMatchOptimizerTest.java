@@ -329,6 +329,100 @@ public class RegularExpressionMatchOptimizerTest {
     }
 
     @Test
+    public void testPatternWithStarInMiddle() {
+        // Test the exact pattern mentioned by the user: ^a.*c$
+        IExpression expr = createMatchExpression("^a.*c$");
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+
+        assertInstanceOf(LikeOperator.class, optimized);
+        assertEquals("column like 'a%c'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testPatternWithStarInMiddle_LongerPattern() {
+        IExpression expr = createMatchExpression("^prefix.*suffix$");
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+
+        assertInstanceOf(LikeOperator.class, optimized);
+        assertEquals("column like 'prefix%suffix'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testPatternWithMultipleStars() {
+        // Pattern with multiple .* CAN be optimized to LIKE with multiple %
+        IExpression expr = createMatchExpression("^a.*b.*c$");
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+
+        // Each .* becomes %, so ^a.*b.*c$ becomes LIKE 'a%b%c'
+        assertInstanceOf(LikeOperator.class, optimized);
+        assertEquals("column like 'a%b%c'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testPatternWithMultipleStars_ThreeParts() {
+        // Even more complex pattern with multiple .*
+        IExpression expr = createMatchExpression("^start.*middle.*end$");
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+
+        // Should be optimized to LIKE with multiple %
+        assertInstanceOf(LikeOperator.class, optimized);
+        assertEquals("column like 'start%middle%end'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testPatternWithPlusInSuffix() {
+        // Pattern where suffix contains other metacharacters
+        IExpression expr = createMatchExpression("^a.*b+$");
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+
+        // The suffix "b+" contains metacharacters, so it should remain as regex
+        assertInstanceOf(ConditionalExpression.RegularExpressionMatchExpression.class, optimized);
+        assertEquals("column =~ '^a.*b+$'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testPatternWithManyStars() {
+        // Pattern with many .* parts
+        IExpression expr = createMatchExpression("^a.*b.*c.*d.*e$");
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+
+        // Should be optimized to LIKE with multiple %
+        assertInstanceOf(LikeOperator.class, optimized);
+        assertEquals("column like 'a%b%c%d%e'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testPatternWithStarsAndMetacharsInMiddle() {
+        // Pattern where one of the parts between .* has metacharacters
+        IExpression expr = createMatchExpression("^a.*b+.*c$");
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+
+        // The middle part "b+" contains metacharacters, so it should remain as regex
+        assertInstanceOf(ConditionalExpression.RegularExpressionMatchExpression.class, optimized);
+        assertEquals("column =~ '^a.*b+.*c$'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testPatternWithStarInMiddle_EmptyPrefix() {
+        // ^.*suffix$ should be optimized to endsWith
+        IExpression expr = createMatchExpression("^.*suffix$");
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+
+        assertInstanceOf(ConditionalExpression.EndsWith.class, optimized);
+        assertEquals("column endsWith 'suffix'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testPatternWithStarInMiddle_EmptySuffix() {
+        // ^prefix.*$ should be optimized to startsWith
+        IExpression expr = createMatchExpression("^prefix.*$");
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+
+        assertInstanceOf(ConditionalExpression.StartsWith.class, optimized);
+        assertEquals("column startsWith 'prefix'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
     public void testNotMatch_Like() {
         IExpression expr = createNotMatchExpression("a.b");
         IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionNotMatchExpression) expr);

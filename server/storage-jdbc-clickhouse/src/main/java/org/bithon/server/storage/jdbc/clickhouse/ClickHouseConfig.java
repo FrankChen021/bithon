@@ -16,15 +16,19 @@
 
 package org.bithon.server.storage.jdbc.clickhouse;
 
+import com.clickhouse.client.ClickHouseNode;
+import com.clickhouse.jdbc.internal.ClickHouseJdbcUrlParser;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.clickhouse.lb.LoadBalancerStrategy;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.sql.SQLException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * @author frank.chen021@outlook.com
@@ -77,9 +81,8 @@ public class ClickHouseConfig {
     private String createTableSettings;
 
     /**
-     * runtime property
+     * If not given, the database is extracted from JDBC URL
      */
-    @JsonIgnore
     private String database;
 
     /**
@@ -93,7 +96,7 @@ public class ClickHouseConfig {
      */
     private LoadBalancerStrategy loadBalancingPolicy = LoadBalancerStrategy.LEAST_ROWS;
 
-    public void afterPropertiesSet() throws URISyntaxException {
+    public void afterPropertiesSet() {
         if (!StringUtils.hasText(engine)) {
             throw new RuntimeException("'engine' should not be null");
         }
@@ -111,11 +114,18 @@ public class ClickHouseConfig {
             throw new RuntimeException("ReplicatedMergeTree requires cluster to be given");
         }
 
-        if (!url.startsWith("jdbc:")) {
-            throw new RuntimeException("jdbc format is wrong.");
+        if (!StringUtils.hasText(database)) {
+            try {
+                ClickHouseJdbcUrlParser.ConnectionInfo connectionInfo = ClickHouseJdbcUrlParser.parse(url, new Properties());
+                List<ClickHouseNode> clickHouseNodes = connectionInfo.getNodes().getNodes();
+                if (CollectionUtils.isEmpty(clickHouseNodes)) {
+                    throw new RuntimeException("Invalid JDBC URL");
+                }
+                this.database = clickHouseNodes.get(0).getDatabase().orElseThrow(() -> new RuntimeException("Database is not specified in JDBC URL"));
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
-        URI uri = new URI(url.substring("jdbc:".length()));
-        this.database = uri.getPath().substring(1);
     }
 
     public String getLocalTableName(String tableName) {

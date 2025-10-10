@@ -47,11 +47,18 @@ public class ExternalClickHouseDataStoreSpec extends ExternalDataStoreSpec {
 
     @Override
     public IDataStoreSpec hideSensitiveInformation() {
-        return new ExternalClickHouseDataStoreSpec(this.getSensitiveHiddenProps(), this.store, this.sqlDialectManager, this.querySettings);
+        return new ExternalClickHouseDataStoreSpec(this.getSensitiveHiddenProps(),
+                                                   this.store,
+                                                   this.sqlDialectManager,
+                                                   this.querySettings);
     }
 
     @Override
     public IDataSourceReader createReader() {
-        return new ClickHouseDataSourceReader(store, this.properties, sqlDialectManager.getSqlDialect("clickhouse"), this.querySettings);
+        return new ClickHouseDataSourceReader(store,
+                                              this.properties,
+                                              sqlDialectManager.getSqlDialect("clickhouse"),
+                                              null,
+                                              this.querySettings);
     }
 }

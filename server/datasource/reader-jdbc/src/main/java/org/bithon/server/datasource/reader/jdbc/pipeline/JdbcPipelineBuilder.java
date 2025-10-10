@@ -113,8 +113,7 @@ public class JdbcPipelineBuilder {
         orderFields.add(orderBy.getIdentifier());
         subQuery.setOrderBy(orderFields.stream()
                                        .map((o) -> new OrderByClause(o, Order.asc))
-                                       .toList()
-                                       .toArray(new OrderByClause[0]));
+                                       .toList());
 
         IQueryStep readStep = new JdbcReadStep(dslContext,
                                                dialect,

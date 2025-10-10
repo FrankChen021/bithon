@@ -446,7 +446,7 @@ public class TraceJdbcReader implements ITraceReader {
                          .toList();
     }
 
-    private TraceSpan toTraceSpan(Record record) {
+    protected TraceSpan toTraceSpan(Record record) {
         TraceSpan span = new TraceSpan();
         span.appName = TraceSpanRecordAccessor.getAppName(record);
         span.instanceName = TraceSpanRecordAccessor.getInstanceName(record);
@@ -479,7 +479,7 @@ public class TraceJdbcReader implements ITraceReader {
      * If the filter on the 'kind'
      * column selects those rows extracted into the summary table, later we only query the summary table.
      */
-    private boolean isFilterOnRootSpanOnly(IExpression expression) {
+    protected boolean isFilterOnRootSpanOnly(IExpression expression) {
         if (expression == null) {
             return true;
         }

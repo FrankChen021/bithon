@@ -50,7 +50,12 @@ public class QuerySettings {
      * When false, these patterns will remain as regular expression matches.
      */
     private boolean enableRegularExpressionOptimizationToEndsWith = true;
-    
+
+    /**
+     * Only applicable to ClickHouse
+     */
+    private boolean enableReadInOrderOptimization = true;
+
     /**
      * Creates a new instance with the same settings as this one.
      * This allows creating a modified copy without affecting the original instance.

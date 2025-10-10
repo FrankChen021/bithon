@@ -76,7 +76,7 @@ public class SelectStatementSerializer {
                 this.generateHaving(selectStatement.getHaving());
             }
 
-            if (selectStatement.getOrderBy() != null && selectStatement.getOrderBy().length > 0) {
+            if (selectStatement.getOrderBy() != null && !selectStatement.getOrderBy().isEmpty()) {
                 this.generateOrderBy(selectStatement.getOrderBy());
             }
 
@@ -109,13 +109,13 @@ public class SelectStatementSerializer {
         }
     }
 
-    private void generateOrderBy(OrderByClause... orderBys) {
+    private void generateOrderBy(List<OrderByClause> orderBys) {
         sql.append('\n');
         sql.append(indent);
         sql.append("ORDER BY ");
 
-        for (int i = 0, orderBysLength = orderBys.length; i < orderBysLength; i++) {
-            OrderByClause orderBy = orderBys[i];
+        for (int i = 0, orderBysLength = orderBys.size(); i < orderBysLength; i++) {
+            OrderByClause orderBy = orderBys.get(i);
             if (i > 0) {
                 sql.append(", ");
             }
