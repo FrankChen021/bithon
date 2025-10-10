@@ -527,12 +527,13 @@ public class TraceJdbcReader implements ITraceReader {
         TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
         splitter.split(query.getFilter());
 
-        return getTraceList(splitter.getExpression(),
-                            splitter.getIndexedTagFilters(),
-                            query.getInterval().getStartTime().toTimestamp(),
-                            query.getInterval().getEndTime().toTimestamp(),
-                            query.getOrderBy(),
-                            query.getLimit());
+        CloseableIterator<TraceSpan> iterator = getTraceList(splitter.getExpression(),
+                                                             splitter.getIndexedTagFilters(),
+                                                             query.getInterval().getStartTime().toTimestamp(),
+                                                             query.getInterval().getEndTime().toTimestamp(),
+                                                             query.getOrderBy(),
+                                                             query.getLimit());
+        return iterator.toList();
     }
 
     @Override

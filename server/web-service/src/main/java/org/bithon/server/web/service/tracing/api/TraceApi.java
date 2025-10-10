@@ -20,12 +20,10 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.component.commons.utils.Watch;
-import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.datasource.query.Limit;
-import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
@@ -33,6 +31,7 @@ import org.bithon.server.web.service.tracing.service.TraceService;
 import org.bithon.server.web.service.tracing.service.TraceTopoBuilder;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -43,7 +42,6 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -244,17 +242,9 @@ public class TraceApi {
     @Deprecated
     @PostMapping("/api/trace/getTraceList")
     public GetTraceListResponse getTraceList(@Valid @RequestBody GetTraceListRequest request) {
-        Timestamp start = TimeSpan.fromISO8601(request.getStartTimeISO8601()).toTimestamp();
-        Timestamp end = TimeSpan.fromISO8601(request.getEndTimeISO8601()).toTimestamp();
-
-        return new GetTraceListResponse(
-            request.getPageNumber() == 0 ? traceService.getTraceListSize(request.getExpression(), start, end) : 0,
-            request.getPageNumber(),
-            traceService.getTraceList(request.getExpression(),
-                                      start,
-                                      end,
-                                      new OrderBy(request.getOrderBy(), request.getOrder()),
-                                      new Limit(request.getPageSize(), request.getPageNumber() * request.getPageSize()))
+        throw new HttpMappableException(
+            HttpStatus.BAD_REQUEST.value(),
+            "This API is deprecated, please use /api/datasource/list/v2 or /api/datasource/list/stream instead"
         );
     }
 

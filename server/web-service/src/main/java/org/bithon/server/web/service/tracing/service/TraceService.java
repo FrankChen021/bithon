@@ -172,22 +172,6 @@ public class TraceService {
                                             end);
     }
 
-    public List<TraceSpan> getTraceList(String filterExpression,
-                                        Timestamp start,
-                                        Timestamp end,
-                                        OrderBy orderBy,
-                                        Limit limit) {
-        TraceFilterSplitter splitter = new TraceFilterSplitter(this.summaryTableSchema, this.indexTableSchema);
-        splitter.split(QueryFilter.build(this.summaryTableSchema, filterExpression));
-
-        return traceReader.getTraceList(splitter.getExpression(),
-                                        splitter.getIndexedTagFilters(),
-                                        start,
-                                        end,
-                                        orderBy,
-                                        limit);
-    }
-
     public int getTraceSpanCount(String txId,
                                  String type,
                                  String filterExpression,

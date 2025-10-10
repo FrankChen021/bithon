@@ -19,7 +19,9 @@ package org.bithon.component.commons.utils;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
 
@@ -28,6 +30,18 @@ import java.util.function.Function;
  * @date 6/5/25 9:27 pm
  */
 public interface CloseableIterator<T> extends Iterator<T>, Closeable {
+
+    default List<T> toList() {
+        List<T> list = new ArrayList<>(16);
+        while(hasNext()) {
+            list.add((T) next());
+        }
+        try {
+            close();
+        } catch (IOException ignored) {
+        }
+        return list;
+    }
 
     default <R> CloseableIterator<R> map(Function<T, R> mapFunction) {
         final CloseableIterator<T> delegate = this;
