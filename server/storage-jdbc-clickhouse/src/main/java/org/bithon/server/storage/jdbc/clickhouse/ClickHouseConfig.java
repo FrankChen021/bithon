@@ -24,7 +24,6 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.clickhouse.lb.LoadBalancerStrategy;
 
-import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;

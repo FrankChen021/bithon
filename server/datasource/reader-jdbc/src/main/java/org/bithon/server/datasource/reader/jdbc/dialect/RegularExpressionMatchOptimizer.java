@@ -117,25 +117,25 @@ public class RegularExpressionMatchOptimizer {
             }
 
             // Remove anchors for analysis but remember them
-            boolean startsWithCaret = pattern.startsWith("^");
-            boolean endsWithDollar = pattern.endsWith("$");
+            boolean matchFromStart = pattern.startsWith("^");
+            boolean matchToEnd = pattern.endsWith("$");
             String unanchoredPattern = pattern;
-            if (startsWithCaret) {
+            if (matchFromStart) {
                 unanchoredPattern = unanchoredPattern.substring(1);
             }
-            if (endsWithDollar && !unanchoredPattern.isEmpty()) {
+            if (matchToEnd && !unanchoredPattern.isEmpty()) {
                 unanchoredPattern = unanchoredPattern.substring(0, unanchoredPattern.length() - 1);
             }
 
             // Check for unescaped metacharacters
-            if (!containsUnescapedMetachars(unanchoredPattern)) {
-                if (startsWithCaret && endsWithDollar) {
+            if (!hasReservedCharacters(unanchoredPattern)) {
+                if (matchFromStart && matchToEnd) {
                     // Exact match if anchored on both sides
                     return new ComparisonExpression.EQ(lhs, new LiteralExpression.StringLiteral(unanchoredPattern));
-                } else if (startsWithCaret) {
+                } else if (matchFromStart) {
                     return querySettings.isEnableRegularExpressionOptimizationToStartsWith() ? new ConditionalExpression.StartsWith(lhs, new LiteralExpression.StringLiteral(unanchoredPattern))
                                                                                              : expression;
-                } else if (endsWithDollar) {
+                } else if (matchToEnd) {
                     return querySettings.isEnableRegularExpressionOptimizationToEndsWith() ? new ConditionalExpression.EndsWith(lhs, new LiteralExpression.StringLiteral(unanchoredPattern))
                                                                                            : expression;
                 } else {
@@ -146,7 +146,7 @@ public class RegularExpressionMatchOptimizer {
             }
 
             // Check for number range patterns: ^[0-9]+$, ^\d+$
-            if (startsWithCaret && endsWithDollar &&
+            if (matchFromStart && matchToEnd &&
                 ("[0-9]+".equals(unanchoredPattern) || "\\d+".equals(unanchoredPattern) ||
                  "[0-9]*".equals(unanchoredPattern) || "\\d*".equals(unanchoredPattern))) {
                 // Can't do exact optimization but we can use > 0 or >= 0 based on + or *
@@ -158,11 +158,47 @@ public class RegularExpressionMatchOptimizer {
                 }
             }
 
+            // Handle patterns with .* : "^prefix.*suffix$" or "^a.*b.*c$"
+            // Replace all .* with % and check if all parts between .* are literal strings
+            if (matchFromStart && matchToEnd && unanchoredPattern.contains(".*")) {
+                // \Q and \E are regex delimiters that mean "quote literally"
+                // So \Q.*\E means: treat the literal string ".*" as the delimiter, not as a regex patternlit by .* 
+                // 1 ensures we keep all parts including trailing empty strings,
+                String[] parts = unanchoredPattern.split("\\Q.*\\E", -1);
+                boolean allPartsLiteral = true;
+                
+                // Check if all parts are literal strings (no metacharacters)
+                for (String part : parts) {
+                    if (hasReservedCharacters(part)) {
+                        allPartsLiteral = false;
+                        break;
+                    }
+                }
+                
+                if (allPartsLiteral) {
+                    // Special case: if first or last part is empty, delegate to startsWith/endsWith
+                    if (parts[0].isEmpty() && parts[parts.length - 1].isEmpty()) {
+                        // Pattern is ^.*something.*$ - this is just contains
+                        // Will be handled by the contains check below
+                    } else if (parts[0].isEmpty()) {
+                        // Pattern is ^.*suffix$ - delegate to endsWith
+                        // Will be handled by the endsWith check below
+                    } else if (parts[parts.length - 1].isEmpty()) {
+                        // Pattern is ^prefix.*$ - delegate to startsWith
+                        // Will be handled by the startsWith check below
+                    } else {
+                        // All parts are non-empty literals, convert to LIKE with %
+                        String likePattern = String.join("%", parts);
+                        return new LikeOperator(lhs, new LiteralExpression.StringLiteral(likePattern));
+                    }
+                }
+            }
+
             // startsWith: "^prefix.*" or "^prefix"
-            if (startsWithCaret && unanchoredPattern.endsWith(".*")) {
+            if (matchFromStart && unanchoredPattern.endsWith(".*")) {
                 if (querySettings.isEnableRegularExpressionOptimizationToStartsWith()) {
                     String prefix = unanchoredPattern.substring(0, unanchoredPattern.length() - 2);
-                    if (!containsUnescapedMetachars(prefix)) {
+                    if (!hasReservedCharacters(prefix)) {
                         return new ConditionalExpression.StartsWith(lhs, new LiteralExpression.StringLiteral(prefix));
                     }
                 } else {
@@ -171,10 +207,10 @@ public class RegularExpressionMatchOptimizer {
             }
 
             // endsWith: ".*suffix$" or "suffix$"
-            if (endsWithDollar && unanchoredPattern.startsWith(".*")) {
+            if (matchToEnd && unanchoredPattern.startsWith(".*")) {
                 if (querySettings.isEnableRegularExpressionOptimizationToEndsWith()) {
                     String suffix = unanchoredPattern.substring(2);
-                    if (!containsUnescapedMetachars(suffix)) {
+                    if (!hasReservedCharacters(suffix)) {
                         return new ConditionalExpression.EndsWith(lhs, new LiteralExpression.StringLiteral(suffix));
                     }
                 } else {
@@ -185,13 +221,13 @@ public class RegularExpressionMatchOptimizer {
             // contains: ".*sub.*"
             if (unanchoredPattern.startsWith(".*") && unanchoredPattern.endsWith(".*")) {
                 String sub = unanchoredPattern.substring(2, unanchoredPattern.length() - 2);
-                if (!containsUnescapedMetachars(sub)) {
+                if (!hasReservedCharacters(sub)) {
                     return new ConditionalExpression.Contains(lhs, new LiteralExpression.StringLiteral(sub));
                 }
             }
 
             // in: "^(a|b|c)$" or "(a|b|c)" - but only if it's a simple alternation
-            if ((startsWithCaret && endsWithDollar && unanchoredPattern.startsWith("(") && unanchoredPattern.endsWith(")")) ||
+            if ((matchFromStart && matchToEnd && unanchoredPattern.startsWith("(") && unanchoredPattern.endsWith(")")) ||
                 (unanchoredPattern.startsWith("(") && unanchoredPattern.endsWith(")"))) {
 
                 String content = unanchoredPattern.substring(1, unanchoredPattern.length() - 1);
@@ -203,7 +239,7 @@ public class RegularExpressionMatchOptimizer {
 
                     // Split on unescaped |
                     List<String> alternatives = splitUnescaped(content, '|');
-                    if (!alternatives.isEmpty() && alternatives.stream().noneMatch(RegularExpressionMatchOptimizer::containsUnescapedMetachars)) {
+                    if (!alternatives.isEmpty() && alternatives.stream().noneMatch(RegularExpressionMatchOptimizer::hasReservedCharacters)) {
                         List<IExpression> items = alternatives.stream()
                                                               .map(LiteralExpression.StringLiteral::new)
                                                               .collect(Collectors.toList());
@@ -244,18 +280,18 @@ public class RegularExpressionMatchOptimizer {
                 // Put back the escaped dots
                 likePattern = likePattern.replace("\u0000", ".");
 
-                if (startsWithCaret) {
+                if (matchFromStart) {
                     likePattern = likePattern.substring(1);
                 }
-                if (endsWithDollar && likePattern.length() > 0) {
+                if (matchToEnd && likePattern.length() > 0) {
                     likePattern = likePattern.substring(0, likePattern.length() - 1);
                 }
 
                 // Add % wildcards based on anchors
-                if (!startsWithCaret) {
+                if (!matchFromStart) {
                     likePattern = "%" + likePattern;
                 }
-                if (!endsWithDollar) {
+                if (!matchToEnd) {
                     likePattern = likePattern + "%";
                 }
 
@@ -269,7 +305,7 @@ public class RegularExpressionMatchOptimizer {
             // Handle common character classes: \d, \w, \s
             if (pattern.contains("\\d") || pattern.contains("\\w") || pattern.contains("\\s")) {
                 // Only optimize simple patterns like "^\d+$" or "^\w+$"
-                if (startsWithCaret && endsWithDollar) {
+                if (matchFromStart && matchToEnd) {
                     if ("\\d+".equals(unanchoredPattern)) {
                         // Pattern is exactly "^\d+$" - digits only
                         return new LikeOperator(lhs, new LiteralExpression.StringLiteral("[0-9]%"));
@@ -336,7 +372,10 @@ public class RegularExpressionMatchOptimizer {
         return sb.toString();
     }
 
-    private static boolean containsUnescapedMetachars(String pattern) {
+    /**
+     * Check if the pattern contains any regular expression reserved characters
+     */
+    private static boolean hasReservedCharacters(String pattern) {
         boolean escaped = false;
         for (int i = 0; i < pattern.length(); i++) {
             char c = pattern.charAt(i);
