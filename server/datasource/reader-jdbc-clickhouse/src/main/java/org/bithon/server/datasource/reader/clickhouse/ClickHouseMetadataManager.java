@@ -32,6 +32,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,7 +50,7 @@ public class ClickHouseMetadataManager {
     private static final Duration CACHE_EXPIRATION_DURATION = Duration.ofMinutes(30);
     // Match ORDER BY followed by anything (handles both "ORDER BY x, y" and "ORDER BY (x, y)")
     // Captures everything until PARTITION/SETTINGS keyword or end of string
-    private static final Pattern ORDER_BY_PATTERN = Pattern.compile("ORDER\\s+BY\\s+(.+?)(?:\\s+(?:PARTITION|SETTINGS)|$)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern ORDER_BY_PATTERN = Pattern.compile("ORDER\\s+BY\\s+(.+?)(?:\\s+(?:TTL|PARTITION|SETTINGS)|$)", Pattern.CASE_INSENSITIVE);
     private static final Pattern DISTRIBUTED_TABLE_PATTERN = Pattern.compile("Distributed\\([^,]+,\\s*'?([^',]+)'?,\\s*'?([^',]+)'?", Pattern.CASE_INSENSITIVE);
 
     private final DSLContext dslContext;
@@ -167,14 +168,9 @@ public class ClickHouseMetadataManager {
                                              .trim();
 
         // Remove outer parentheses if present
-        if (orderByClause.startsWith("(") && orderByClause.endsWith(")")) {
-            IExpression expr = ExpressionASTBuilder.builder()
-                                                   .build(orderByClause, ExpressionParser::expressionListDecl);
-            return expr instanceof ExpressionList ? ((ExpressionList) expr).getExpressions() : Collections.singletonList(expr);
-        } else {
-            return Collections.singletonList(ExpressionASTBuilder.builder()
-                                                                 .build(orderByClause, ExpressionParser::expression));
-        }
+        IExpression expr = ExpressionASTBuilder.builder()
+                                               .build(orderByClause, ExpressionParser::expression);
+        return expr instanceof ExpressionList ? ((ExpressionList) expr).getExpressions() : Collections.singletonList(expr);
     }
 
     /**
@@ -279,10 +275,9 @@ public class ClickHouseMetadataManager {
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            TableKey tableKey = (TableKey) o;
-            return database.equals(tableKey.database) && tableName.equals(tableKey.tableName);
+            TableKey that = (TableKey) o;
+            return Objects.equals(this.database, that.database) && Objects.equals(this.tableName, that.tableName);
         }
-
     }
 }
 

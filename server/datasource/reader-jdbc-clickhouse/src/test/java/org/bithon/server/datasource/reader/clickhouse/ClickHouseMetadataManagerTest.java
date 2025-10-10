@@ -279,5 +279,26 @@ public class ClickHouseMetadataManagerTest {
         verify(dslContext, times(1)).fetch(ArgumentMatchers.anyString());
         Assertions.assertEquals(expressions1.size(), expressions2.size());
     }
+
+    @Test
+    public void testGetOrderByExpression_WithTTL() {
+        // Mock the database response
+        Record record = mock(Record.class);
+        when(record.get(0, String.class)).thenReturn("MergeTree() ORDER BY (timestamp) TTL timestamp + INTERVAL 1 MONTH");
+
+        Result<Record> result = mock(Result.class);
+        when(result.isEmpty()).thenReturn(false);
+        when(result.get(0)).thenReturn(record);
+
+        when(dslContext.fetch(ArgumentMatchers.anyString())).thenReturn(result);
+
+        // Test - call twice with same parameters
+        List<IExpression> expressions1 = metadataManager.getOrderByExpression("test_db", "test_table");
+        List<IExpression> expressions2 = metadataManager.getOrderByExpression("test_db", "test_table");
+
+        // Verify - should only query database once due to caching
+        verify(dslContext, times(1)).fetch(ArgumentMatchers.anyString());
+        Assertions.assertEquals(expressions1.size(), expressions2.size());
+    }
 }
 
