@@ -54,7 +54,7 @@ public class Query {
     private final ResultFormat resultFormat;
 
     /**
-     * Was used, but not used now. May be used in future.
+     * Was used, but not used now. May be used in the future.
      */
     public enum ResultFormat {
         /**

@@ -28,6 +28,7 @@ import java.util.function.Function;
  * @date 6/5/25 9:27 pm
  */
 public interface CloseableIterator<T> extends Iterator<T>, Closeable {
+
     default <R> CloseableIterator<R> map(Function<T, R> mapFunction) {
         final CloseableIterator<T> delegate = this;
 
