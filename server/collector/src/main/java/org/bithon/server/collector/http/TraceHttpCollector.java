@@ -279,7 +279,8 @@ public class TraceHttpCollector {
                         Object end = ReflectionUtils.getFieldValue(parser, "_inputEnd");
                         if (buffer != null && end != null) {
                             try {
-                                log.error("Failed to parse JSON. Input content is:\n{}", new String((byte[]) buffer, 0, (int) end, StandardCharsets.UTF_8));
+                                log.error("Failed to parse JSON", e);
+                                log.error("Input content is:\n{}", new String((byte[]) buffer, 0, (int) end, StandardCharsets.UTF_8));
                             } catch (RuntimeException ignored) {
                             }
                         }
