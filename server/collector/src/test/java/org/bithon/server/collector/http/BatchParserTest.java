@@ -20,8 +20,10 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.bithon.server.collector.http.TraceHttpCollector.BatchParser;
 import org.bithon.server.storage.tracing.TraceSpan;
+import org.bithon.server.storage.tracing.TraceSpanDeserializer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,6 +52,10 @@ public class BatchParserTest {
     @BeforeEach
     public void setUp() {
         ObjectMapper objectMapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer(TraceSpan.class, new TraceSpanDeserializer());
+        objectMapper.registerModule(module);
+
         this.objectReader = objectMapper.readerFor(TraceSpan.class);
     }
 
