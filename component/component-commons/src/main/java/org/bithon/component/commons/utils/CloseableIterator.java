@@ -33,7 +33,7 @@ public interface CloseableIterator<T> extends Iterator<T>, Closeable {
 
     default List<T> toList() {
         List<T> list = new ArrayList<>(16);
-        while(hasNext()) {
+        while (hasNext()) {
             list.add((T) next());
         }
         try {
