@@ -176,16 +176,18 @@ public class DashboardApi {
 
         JsonNode idNode = dashboard.remove("id");
         if (idNode == null || StringUtils.isBlank(idNode.asText())) {
-            response.getWriter().println("name is missing.");
+            response.getWriter().println("id is missing.");
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             return;
         }
 
         JsonNode folderNode = dashboard.remove("folder");
+        JsonNode visibleNode = dashboard.remove("visible");
 
         this.dashboardManager.update(idNode.asText(),
                                      folderNode == null ? "" : folderNode.asText(),
                                      titleNode.asText(),
+                                     visibleNode == null || visibleNode.asBoolean(true),
                                      objectMapper.writeValueAsString(dashboard));
     }
 }

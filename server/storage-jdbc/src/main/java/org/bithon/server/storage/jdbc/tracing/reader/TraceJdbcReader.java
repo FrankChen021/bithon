@@ -17,6 +17,7 @@
 package org.bithon.server.storage.jdbc.tracing.reader;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.expression.ComparisonExpression;
@@ -75,6 +76,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * @author frank.chen021@outlook.com
@@ -82,6 +84,9 @@ import java.util.Map;
  */
 @Slf4j
 public class TraceJdbcReader implements ITraceReader {
+
+    private static final TypeReference<TreeMap<String, String>> TAG_TYPE = new TypeReference<>() {
+    };
 
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
@@ -465,7 +470,7 @@ public class TraceJdbcReader implements ITraceReader {
         if (StringUtils.hasText(TraceSpanRecordAccessor.getTags(record))) {
             // Compatible with old data
             try {
-                span.tags = objectMapper.readValue(TraceSpanRecordAccessor.getTags(record), TraceSpan.TagDeserializer.TYPE);
+                span.tags = objectMapper.readValue(TraceSpanRecordAccessor.getTags(record), TAG_TYPE);
             } catch (JsonProcessingException ignored) {
             }
         } else {
@@ -492,7 +497,7 @@ public class TraceJdbcReader implements ITraceReader {
 
     protected Map<String, String> toTagMap(Object attributes) {
         try {
-            return objectMapper.readValue((String) attributes, TraceSpan.TagDeserializer.TYPE);
+            return objectMapper.readValue((String) attributes, TAG_TYPE);
         } catch (JsonProcessingException ignored) {
             return Collections.emptyMap();
         }

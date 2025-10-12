@@ -44,6 +44,7 @@ import org.bithon.server.commons.serializer.HumanReadableSizeDeserializer;
 import org.bithon.server.commons.serializer.HumanReadableSizeSerializer;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.tracing.TraceSpan;
+import org.bithon.server.storage.tracing.TraceSpanDeserializer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -102,8 +103,7 @@ public class ObjectMapperConfigurer {
                                                                         BeanDescription beanDesc,
                                                                         JsonDeserializer<?> deserializer) {
                               if (TraceSpan.class.equals(beanDesc.getBeanClass())) {
-                                  //noinspection unchecked
-                                  return new TraceSpan.TraceSpanDeserializer((JsonDeserializer<TraceSpan>) deserializer);
+                                  return new TraceSpanDeserializer();
                               }
                               return deserializer;
                           }
