@@ -118,6 +118,7 @@ public class DashboardStorage extends DashboardJdbcStorage {
                   .set(Tables.BITHON_WEB_DASHBOARD.CREATEDAT, now.toLocalDateTime())
                   .set(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED, now.toLocalDateTime())
                   .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
+                  .set(Tables.BITHON_WEB_DASHBOARD.VISIBLE, 1)
                   .execute();
     }
 
