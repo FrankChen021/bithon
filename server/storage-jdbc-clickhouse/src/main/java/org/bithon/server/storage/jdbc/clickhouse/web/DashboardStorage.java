@@ -78,7 +78,7 @@ public class DashboardStorage extends DashboardJdbcStorage {
     }
 
     @Override
-    public String put(String id, String folder, String title, String payload) {
+    public String put(String id, String folder, String title, boolean visible, String payload) {
         String signature = HashUtils.sha256Hex(payload);
 
         Timestamp now = new Timestamp(System.currentTimeMillis());
@@ -92,6 +92,7 @@ public class DashboardStorage extends DashboardJdbcStorage {
                   .set(Tables.BITHON_WEB_DASHBOARD.CREATEDAT, now.toLocalDateTime())
                   .set(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED, now.toLocalDateTime())
                   .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
+                  .set(Tables.BITHON_WEB_DASHBOARD.VISIBLE, visible ? 1 : 0)
                   .execute();
 
         return signature;
