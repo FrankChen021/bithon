@@ -89,17 +89,17 @@ public class TraceSpanDeserializer extends StdDeserializer<TraceSpan> {
                     break;
                 case HASH_START_TIME:
                     if ("startTime".equals(fieldName)) {
-                        span.startTime = p.getLongValue();
+                        span.startTime = getLongValue(p);
                     }
                     break;
                 case HASH_END_TIME:
                     if ("endTime".equals(fieldName)) {
-                        span.endTime = p.getLongValue();
+                        span.endTime = getLongValue(p);
                     }
                     break;
                 case HASH_COST_TIME:
                     if ("costTime".equals(fieldName)) {
-                        span.costTime = p.getLongValue();
+                        span.costTime = getLongValue(p);
                     }
                     break;
                 case HASH_KIND:
@@ -164,12 +164,12 @@ public class TraceSpanDeserializer extends StdDeserializer<TraceSpan> {
                     break;
                 case HASH_COST_TIME_MS:
                     if ("costTimeMs".equals(fieldName)) {
-                        span.costTime = p.getLongValue();
+                        span.costTime = getLongValue(p);
                     }
                     break;
                 case HASH_START_TIME_US:
                     if ("startTimeUs".equals(fieldName)) {
-                        span.startTime = p.getLongValue();
+                        span.startTime = getLongValue(p);
                     }
                     break;
                 default:
@@ -202,6 +202,26 @@ public class TraceSpanDeserializer extends StdDeserializer<TraceSpan> {
                 String value = p.getText();
                 tags.put(key, value);
             }
+        }
+    }
+
+    /**
+     * Helper method to read a long value from JSON, handling both numeric and string types.
+     */
+    private long getLongValue(JsonParser p) throws IOException {
+        JsonToken token = p.currentToken();
+        if (token == JsonToken.VALUE_NUMBER_INT) {
+            return p.getLongValue();
+        } else if (token == JsonToken.VALUE_STRING) {
+            String text = p.getText();
+            try {
+                return Long.parseLong(text);
+            } catch (NumberFormatException e) {
+                throw new IOException("Cannot parse long value from string: " + text, e);
+            }
+        } else {
+            // Let Jackson handle the error
+            return p.getLongValue();
         }
     }
 }
