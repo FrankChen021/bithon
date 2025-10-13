@@ -44,13 +44,18 @@ public class MapAccessExpressionTransformer {
         String key = mapAccessExpression.getKey();
         String value = ((LiteralExpression<?>) expression.getRhs()).getValue().toString();
 
-        if (!(expression instanceof ComparisonExpression.EQ)) {
-            // Since we store JSON formatted string in H2, it's hard to implement other operators except EQ
-            // And because these DBs now are only for test, we simplify disallow other operators
-            throw new UnsupportedOperationException(StringUtils.format("H2 does not support operators other than EQ on column [%s]", mapName));
+        if (expression instanceof ComparisonExpression.EQ) {
+            return new LikeOperator(new IdentifierExpression(mapName),
+                                    LiteralExpression.ofString("%\"" + key + "\":\"" + value + "\"%"));
         }
 
-        return new LikeOperator(new IdentifierExpression(mapName),
-                                LiteralExpression.ofString("%\"" + key + "\":\"" + value + "\"%"));
+        if (expression instanceof ConditionalExpression.Contains) {
+            return new LikeOperator(new IdentifierExpression(mapName),
+                                    LiteralExpression.ofString("%\"" + key + "\":\"%" + value + "%\"%"));
+        }
+
+        // Since we store JSON formatted string in H2, it's hard to implement other operators except EQ
+        // And because these DBs now are only for test, we simplify disallow other operators
+        throw new UnsupportedOperationException(StringUtils.format("H2 does not support operators other than EQ on column [%s]", mapName));
     }
 }

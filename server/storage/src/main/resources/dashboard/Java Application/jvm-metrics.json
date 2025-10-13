@@ -90,6 +90,10 @@
       "title": "CPU",
       "width": 2,
       "type": "line",
+      "legend": {
+        "placement": "bottom",
+        "values": ["min", "max", "avg"]
+      },
       "columns": [
         {
           "name": "processCpuLoad",
@@ -113,7 +117,11 @@
             "name": "processors",
             "expression": "last(processors)"
           }
-        ]
+        ],
+        "groupBy": ["instanceName"],
+        "precondition": {
+          "filters": ["appName"]
+        }
       }
     },
     {

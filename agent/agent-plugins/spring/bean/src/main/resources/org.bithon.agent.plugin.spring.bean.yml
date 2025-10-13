@@ -12,6 +12,13 @@ agent:
 #              - type: endwith
 #                suffix:
         excludedClasses:
+          - type: "in"
+            collection:
+              # Configured by Spring GsonAutoConfiguration
+              - com.google.gson.GsonBuilder
+              - com.google.gson.Gson
+              # Configured by Spring JacksonAutoConfiguration
+              - com.fasterxml.jackson.databind.ObjectMapper
           - type: startwith
             prefix: org.hibernate.validator.
           - type: startwith
@@ -40,7 +47,9 @@ agent:
           - type: endwith
             suffix: AntPathMatcher
           - type: endwith
-            suffix: ObjectMapper
+            suffix: Builder
+          - type: endwith
+            suffix: Customizer
           - type: startwith
             prefix: com.fasterxml.
           - type: startwith

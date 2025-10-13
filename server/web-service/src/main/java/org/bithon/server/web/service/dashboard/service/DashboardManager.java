@@ -80,8 +80,8 @@ public class DashboardManager implements SmartLifecycle {
         initializeCalciteConnection();
     }
 
-    public void update(String id, String folder, String title, String payload) {
-        String sig = this.storage.put(id, folder, title, payload);
+    public void update(String id, String folder, String title, boolean visible, String payload) {
+        String sig = this.storage.put(id, folder, title, visible, payload);
 
         this.dashboards.put(id, Dashboard.builder()
                                          .id(id)
@@ -89,6 +89,7 @@ public class DashboardManager implements SmartLifecycle {
                                          .title(title)
                                          .payload(payload)
                                          .signature(sig)
+                                         .visible(visible)
                                          .build());
     }
 

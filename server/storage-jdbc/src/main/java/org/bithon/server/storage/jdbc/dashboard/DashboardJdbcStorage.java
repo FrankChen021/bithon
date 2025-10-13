@@ -68,7 +68,7 @@ public class DashboardJdbcStorage implements IDashboardStorage {
     }
 
     @Override
-    public String put(String id, String folder, String title, String payload) {
+    public String put(String id, String folder, String title, boolean visible, String payload) {
         String signature = HashUtils.sha256Hex(payload);
 
         Timestamp now = new Timestamp(System.currentTimeMillis());
@@ -85,7 +85,7 @@ public class DashboardJdbcStorage implements IDashboardStorage {
                       .set(Tables.BITHON_WEB_DASHBOARD.CREATEDAT, now.toLocalDateTime())
                       .set(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED, now.toLocalDateTime())
                       .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
-                      .set(Tables.BITHON_WEB_DASHBOARD.VISIBLE, 1)
+                      .set(Tables.BITHON_WEB_DASHBOARD.VISIBLE, visible ? 1 : 0)
                       .execute();
         } catch (DuplicateKeyException ignored) {
             // try to update if duplicated
@@ -96,7 +96,7 @@ public class DashboardJdbcStorage implements IDashboardStorage {
                       .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
                       .set(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED, now.toLocalDateTime())
                       .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
-                      .set(Tables.BITHON_WEB_DASHBOARD.VISIBLE, 1)
+                      .set(Tables.BITHON_WEB_DASHBOARD.VISIBLE, visible ? 1 : 0)
                       .where(Tables.BITHON_WEB_DASHBOARD.ID.eq(id))
                       .execute();
         }

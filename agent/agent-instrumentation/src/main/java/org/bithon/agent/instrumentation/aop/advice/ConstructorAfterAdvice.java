@@ -25,8 +25,6 @@ import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 
-import java.util.Locale;
-
 
 /**
  * @author frankchen
@@ -51,13 +49,7 @@ public class ConstructorAfterAdvice {
         try {
             ((AfterInterceptor) interceptor).after(new AopContextImpl(clazz, method, target, args));
         } catch (Throwable e) {
-            LOG.warn(String.format(Locale.ENGLISH,
-                                    "Exception occurs when executing onConstruct on interceptor [%s]: %s",
-                                    name,
-                                    e.getMessage()),
-                      e);
-
-            interceptor.exception(e);
+            interceptor.onAfterException(e);
         }
     }
 }
