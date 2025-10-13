@@ -173,7 +173,7 @@ public class TraceFilterSplitter {
 
         @Override
         public Boolean visit(LogicalExpression expression) {
-            if (!(expression instanceof LogicalExpression.AND)) {
+            if (!(expression instanceof LogicalExpression.AND) && !(expression instanceof LogicalExpression.NOT)) {
                 throw new RuntimeException("Only AND operator is supported to search tracing.");
             }
 
