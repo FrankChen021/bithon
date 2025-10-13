@@ -75,6 +75,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * @author frank.chen021@outlook.com
@@ -184,6 +185,16 @@ public class TraceJdbcReader implements ITraceReader {
                                                      Timestamp end,
                                                      OrderBy orderBy,
                                                      Limit limit) {
+        return getTraceList(filter, indexedTagFilter, start, end, orderBy, limit, this::toTraceSpan);
+    }
+
+    private <T> CloseableIterator<T> getTraceList(IExpression filter,
+                                                  List<IExpression> indexedTagFilter,
+                                                  Timestamp start,
+                                                  Timestamp end,
+                                                  OrderBy orderBy,
+                                                  Limit limit,
+                                                  Function<Record, T> mapper) {
         boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
 
         Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
@@ -241,9 +252,9 @@ public class TraceJdbcReader implements ITraceReader {
                                            .limit(limit.getLimit()));
         log.info("Get trace list: {}", sql);
 
-        Cursor<?> cursor = dslContext.fetchLazy(sql);
+        Cursor<Record> cursor = dslContext.fetchLazy(sql);
         return CloseableIterator.transform(cursor.iterator(),
-                                           this::toTraceSpan,
+                                           mapper,
                                            cursor);
     }
 
@@ -538,7 +549,23 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public CloseableIterator<Object[]> streamSelect(Query query) {
-        return null;
+        TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
+        splitter.split(query.getFilter());
+
+        return getTraceList(splitter.getExpression(),
+                            splitter.getIndexedTagFilters(),
+                            query.getInterval().getStartTime().toTimestamp(),
+                            query.getInterval().getEndTime().toTimestamp(),
+                            query.getOrderBy(),
+                            query.getLimit(),
+                            (record) -> {
+                                int colSize = record.size();
+                                Object[] row = new Object[colSize];
+                                for (int i = 0; i < colSize; i++) {
+                                    row[i] = record.get(i);
+                                }
+                                return row;
+                            });
     }
 
     @Override

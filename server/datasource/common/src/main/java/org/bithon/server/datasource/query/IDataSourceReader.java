@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 
-import java.util.Iterator;
 import java.util.List;
 
 /**
