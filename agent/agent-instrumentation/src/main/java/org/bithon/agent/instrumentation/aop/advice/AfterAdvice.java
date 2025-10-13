@@ -20,12 +20,8 @@ import org.bithon.agent.instrumentation.aop.context.AopContextImpl;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AbstractInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
-import org.bithon.agent.instrumentation.logging.ILogger;
-import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
-
-import java.util.Locale;
 
 
 /**
@@ -33,8 +29,6 @@ import java.util.Locale;
  * @date 2021-02-18 20:20
  */
 public class AfterAdvice {
-    public static final ILogger LOG = LoggerFactory.getLogger(AfterAdvice.class);
-
     /**
      * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class.
      */
@@ -75,13 +69,7 @@ public class AfterAdvice {
             interceptor.hit();
             ((AfterInterceptor) interceptor).after(aopContext);
         } catch (Throwable e) {
-            LOG.warn(String.format(Locale.ENGLISH, "Exception occurred when executing onExit of [%s] for [%s]: %s",
-                                    name,
-                                    aopContext.getTargetClass().getSimpleName(),
-                                    e.getMessage()),
-                      e);
-
-            interceptor.exception(e);
+            interceptor.onAfterException(e);
         }
 
         returning = aopContext.getReturning();

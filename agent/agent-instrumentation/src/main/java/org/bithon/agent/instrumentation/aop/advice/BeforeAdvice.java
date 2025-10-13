@@ -25,8 +25,6 @@ import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
-import java.util.Locale;
-
 
 /**
  * @author frankchen
@@ -56,13 +54,7 @@ public class BeforeAdvice {
         try {
             ((BeforeInterceptor) interceptor).before(aopContext);
         } catch (Throwable e) {
-            LOG.warn(String.format(Locale.ENGLISH, "Exception occurred when executing onEnter of [%s] for [%s]: %s",
-                                    name,
-                                    clazz,
-                                    e.getMessage()),
-                      e);
-
-            interceptor.exception(e);
+            interceptor.onBeforeException(e);
 
             // continue to execute
         }
