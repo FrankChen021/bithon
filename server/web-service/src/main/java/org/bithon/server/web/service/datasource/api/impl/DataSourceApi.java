@@ -167,7 +167,7 @@ public class DataSourceApi implements IDataSourceApi {
                                     .limit(query.getLimit())
                                     .data(list.get())
                                     .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
-                                    .startTimestamp(query.getInterval().getEndTime().getMilliseconds())
+                                    .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
                                     .build();
             } catch (ExecutionException e) {
                 String message = "Failed to execute the query: " + e.getCause().getMessage();
@@ -191,7 +191,7 @@ public class DataSourceApi implements IDataSourceApi {
             return QueryResponse.builder()
                                 .total(reader.count(query))
                                 .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
-                                .startTimestamp(query.getInterval().getEndTime().getMilliseconds())
+                                .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
                                 .build();
         }
     }
