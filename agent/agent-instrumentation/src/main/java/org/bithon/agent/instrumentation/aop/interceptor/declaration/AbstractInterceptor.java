@@ -16,6 +16,12 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor.declaration;
 
+import org.bithon.agent.instrumentation.logging.ILogger;
+import org.bithon.agent.instrumentation.logging.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.atomic.LongAdder;
 
 /**
@@ -23,14 +29,18 @@ import java.util.concurrent.atomic.LongAdder;
  * @date 2023/3/18 23:29
  */
 public abstract class AbstractInterceptor {
-    private final LongAdder hitCount = new LongAdder();
+    private static final ILogger LOG = LoggerFactory.getLogger(AbstractInterceptor.class);
 
+    private final LongAdder hitCount = new LongAdder();
     private long lastHitTime;
 
     // Statistics for exceptions thrown from the interceptor
     private long exceptionCount;
     private long lastExceptionTime;
     private Throwable lastException;
+
+    // For exception logging control
+    private final Map<String, Long> lastExceptionInfo = new HashMap<>();
 
     public long getHitCount() {
         return hitCount.sum();
@@ -57,9 +67,60 @@ public abstract class AbstractInterceptor {
         lastHitTime = System.currentTimeMillis();
     }
 
-    public synchronized void exception(Throwable throwable) {
-        exceptionCount++;
-        lastExceptionTime = System.currentTimeMillis();
-        lastException = throwable;
+    /**
+     * Called when an exception occurs during the execution of the interceptor.
+     * This method handles exception counting, logging, and rate limiting to avoid log flooding.
+     *
+     * @param throwable the exception that occurred, can be nullable
+     * @param phase     the phase during which the exception occurred (e.g., "before", "after")
+     */
+    public void onException(Throwable throwable, String phase) {
+        if (throwable == null) {
+            return;
+        }
+
+        synchronized (this) {
+            long currentTime = System.currentTimeMillis();
+
+            this.lastExceptionTime = currentTime;
+            this.lastException = throwable;
+            this.exceptionCount++;
+
+            // Rate limiting: avoid flooding logs with the same exception type
+            String exceptionType = throwable.getClass().getName();
+            Long lastLogTime = lastExceptionInfo.get(exceptionType);
+            if (lastLogTime != null && (currentTime - lastLogTime) < 30_000) {
+                // Same exception type logged within 30 seconds, skip logging
+                return;
+            } else {
+                lastExceptionInfo.put(exceptionType, currentTime);
+            }
+        }
+
+        // Log the exception outside synchronized block to avoid holding lock during I/O
+        LOG.warn(String.format(Locale.ENGLISH,
+                               "Exception occurred when executing %s of interceptor [%s]: %s",
+                               phase,
+                               this.getClass().getSimpleName(),
+                               throwable.getMessage()),
+                 throwable);
+    }
+
+    /**
+     * Convenience method called when an exception occurs during the "before" phase of interception.
+     *
+     * @param throwable the exception that occurred
+     */
+    public void onBeforeException(Throwable throwable) {
+        onException(throwable, "before");
+    }
+
+    /**
+     * Convenience method called when an exception occurs during the "after" phase of interception.
+     *
+     * @param throwable the exception that occurred
+     */
+    public void onAfterException(Throwable throwable) {
+        onException(throwable, "after");
     }
 }

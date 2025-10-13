@@ -25,8 +25,6 @@ import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
-import java.util.Locale;
-
 
 /**
  * @author frankchen
@@ -59,13 +57,7 @@ public class AroundConstructorAdvice {
         try {
             skipAfterMethod = interceptor.before(aopContext) == InterceptionDecision.SKIP_LEAVE;
         } catch (Throwable e) {
-            LOG.warn(String.format(Locale.ENGLISH, "Exception occurred when executing onEnter of [%s] for [%s]: %s",
-                                    name,
-                                    clazz.getSimpleName(),
-                                    e.getMessage()),
-                      e);
-
-            interceptor.exception(e);
+            interceptor.onBeforeException(e);
 
             // continue to execute
         }
@@ -109,13 +101,7 @@ public class AroundConstructorAdvice {
         try {
             interceptor.after(aopContext);
         } catch (Throwable e) {
-            LOG.warn(String.format(Locale.ENGLISH, "Exception occurred when executing onExit of [%s] for [%s]: %s",
-                                    name,
-                                    aopContext.getTargetClass().getSimpleName(),
-                                    e.getMessage()),
-                      e);
-
-            interceptor.exception(e);
+            interceptor.onAfterException(e);
         }
     }
 }
