@@ -40,7 +40,12 @@ public abstract class AbstractInterceptor {
     private Throwable lastException;
 
     // For exception logging control
-    private final Map<String, Long> lastExceptionInfo = new HashMap<>();
+    static class LoggingInfo {
+        long lastLogTime;
+        long suppressedCount;
+    }
+
+    private final Map<String, LoggingInfo> lastLoggingInfo = new HashMap<>();
 
     public long getHitCount() {
         return hitCount.sum();
@@ -79,6 +84,7 @@ public abstract class AbstractInterceptor {
             return;
         }
 
+        long suppressedCountSinceLastLog;
         synchronized (this) {
             long currentTime = System.currentTimeMillis();
 
@@ -88,21 +94,26 @@ public abstract class AbstractInterceptor {
 
             // Rate limiting: avoid flooding logs with the same exception type
             String exceptionType = throwable.getClass().getName();
-            Long lastLogTime = lastExceptionInfo.get(exceptionType);
-            if (lastLogTime != null && (currentTime - lastLogTime) < 30_000) {
+            LoggingInfo loggingInfo = lastLoggingInfo.computeIfAbsent(exceptionType, (k) -> new LoggingInfo());
+            if ((currentTime - loggingInfo.lastLogTime) < 5_000) {
                 // Same exception type logged within 30 seconds, skip logging
+                loggingInfo.suppressedCount++;
+
+                // Exit logging
                 return;
             } else {
-                lastExceptionInfo.put(exceptionType, currentTime);
+                suppressedCountSinceLastLog = loggingInfo.suppressedCount;
+                loggingInfo.lastLogTime = currentTime;
+                loggingInfo.suppressedCount = 0;
             }
         }
 
         // Log the exception outside synchronized block to avoid holding lock during I/O
         LOG.warn(String.format(Locale.ENGLISH,
-                               "Exception occurred when executing %s of interceptor [%s]: %s",
+                               "%sexception occurred when executing [%s] of interceptor [%s]",
+                               (suppressedCountSinceLastLog > 0 ? "(" + (suppressedCountSinceLastLog) + " logs suppressed since last logging) " : ""),
                                phase,
-                               this.getClass().getSimpleName(),
-                               throwable.getMessage()),
+                               this.getClass().getName()),
                  throwable);
     }
 
