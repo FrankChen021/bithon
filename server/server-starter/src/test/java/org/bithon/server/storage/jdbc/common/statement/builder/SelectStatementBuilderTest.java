@@ -661,14 +661,15 @@ public class SelectStatementBuilderTest {
             int granularity = granularities[i];
             String function = functions[i];
 
+            TimeSpan start = TimeSpan.fromISO8601("2024-07-26T21:22:03.000+0800");
+            TimeSpan end = TimeSpan.fromISO8601("2024-07-26T21:32:04.000+0800");
             SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                     .sqlDialect(clickHouseDialect)
                                                                     .fields(List.of(
                                                                         new Selector(new ExpressionNode(schema, "first(activeThreads)"), new Alias("a")),
                                                                         new Selector(new ExpressionNode(schema, "last(activeThreads)"), new Alias("b")))
                                                                     )
-                                                                    .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                          TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                    .interval(Interval.of(start, end))
                                                                     .groupBy(List.of("appName", "instanceName"))
                                                                     .schema(schema)
                                                                     // Set the time filter granularity to 60 seconds
@@ -683,11 +684,14 @@ public class SelectStatementBuilderTest {
                                                                   argMin("activeThreads", "timestamp") AS "a",
                                                                   argMax("activeThreads", "timestamp") AS "b"
                                                            FROM "bithon_http_incoming_metrics"
-                                                           WHERE (%s("timestamp") >= fromUnixTimestamp(1722000120)) AND (%s("timestamp") < fromUnixTimestamp(1722000720))
+                                                           WHERE (%s("timestamp") >= fromUnixTimestamp(%d)) AND (%s("timestamp") < fromUnixTimestamp(%d))
                                                            GROUP BY "appName", "instanceName"
                                                            """.trim(),
                                                        function,
-                                                       function),
+                                                       start.floor(Duration.ofSeconds(granularity)).getSeconds(),
+                                                       function,
+                                                       end.floor(Duration.ofSeconds(granularity)).getSeconds()
+                                    ),
                                     selectStatement.toSQL(clickHouseDialect));
         }
     }

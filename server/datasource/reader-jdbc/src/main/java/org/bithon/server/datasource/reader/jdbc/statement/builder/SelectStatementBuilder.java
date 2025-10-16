@@ -56,6 +56,7 @@ import org.bithon.server.datasource.reader.jdbc.statement.ast.WindowFunctionExpr
 import org.bithon.server.datasource.reader.jdbc.statement.ast.WindowFunctionFrame;
 import org.bithon.server.datasource.reader.jdbc.statement.serializer.Expression2Sql;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -700,6 +701,9 @@ public class SelectStatementBuilder {
         int granularity = this.querySettings.getFloorTimestampFilterGranularity();
         if (granularity > 0) {
             timestampColumn = sqlDialect.timeFloor(timestampColumn, granularity);
+
+            start = start.floor(Duration.ofSeconds(granularity));
+            end = end.floor(Duration.ofSeconds(granularity));
         }
 
         return new IExpression[]{
