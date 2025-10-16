@@ -23,7 +23,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.jar.JarFile;
 
 /**
  * @author frank.chen021@outlook.com
@@ -33,12 +32,12 @@ public class JarResolver {
     /**
      * resolve all jars under searchLocations
      */
-    public static List<JarFile> resolve(File... directories) {
+    public static List<Jar> resolve(File... directories) {
         return resolve(null, directories);
     }
 
-    public static List<JarFile> resolve(FilenameFilter predicate, File... directories) {
-        List<JarFile> jarFiles = new ArrayList<>();
+    public static List<Jar> resolve(FilenameFilter predicate, File... directories) {
+        List<Jar> jars = new ArrayList<>();
         for (File dir : directories) {
             if (!dir.exists() || !dir.isDirectory()) {
                 continue;
@@ -56,13 +55,12 @@ public class JarResolver {
 
             for (String fileName : jarFileNames) {
                 try {
-                    File jar = new File(dir, fileName);
-                    jarFiles.add(new JarFile(jar));
+                    jars.add(new Jar(new File(dir, fileName)));
                 } catch (IOException e) {
                     throw new AgentException(e, "Exception when processing jar [%s]", fileName);
                 }
             }
         }
-        return jarFiles;
+        return jars;
     }
 }
