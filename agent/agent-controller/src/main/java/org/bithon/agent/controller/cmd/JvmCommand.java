@@ -18,6 +18,7 @@ package org.bithon.agent.controller.cmd;
 
 import com.sun.management.HotSpotDiagnosticMXBean;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
+import org.bithon.agent.instrumentation.utils.BootstrapClassLocationFinder;
 import org.bithon.agent.java.adaptor.JavaAdaptorFactory;
 import org.bithon.agent.rpc.brpc.cmd.ClassDisassembler;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
@@ -105,18 +106,26 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
                          classInfo.isArray = (clazz.isArray());
                          classInfo.module = JavaAdaptorFactory.getAdaptor().getModuleName(clazz);
 
+                         // Try to get CodeSource normally first
+                         URL location = null;
                          CodeSource codeSource = clazz.getProtectionDomain().getCodeSource();
                          if (codeSource != null) {
-                             URL location = codeSource.getLocation();
-                             if (location != null) {
-                                 if ("file".equals(location.getProtocol())) {
-                                     String path = location.getFile();
-                                     int idx = path.lastIndexOf('/');
-                                     classInfo.jarName = idx == -1 ? path : path.substring(idx + 1);
-                                     classInfo.jarDirectory = idx == -1 ? null : path.substring(0, idx);
-                                 } else {
-                                     classInfo.jarName = location.getFile();
-                                 }
+                             location = codeSource.getLocation();
+                         }
+
+                         if (location == null) {
+                             // Try to find for bootstrap classes (loaded via Boot-Class-Path)
+                             location = BootstrapClassLocationFinder.findLocation(clazz);
+                         }
+
+                         if (location != null) {
+                             if ("file".equals(location.getProtocol())) {
+                                 String path = location.getFile();
+                                 int idx = path.lastIndexOf('/');
+                                 classInfo.jarName = idx == -1 ? path : path.substring(idx + 1);
+                                 classInfo.jarDirectory = idx == -1 ? null : path.substring(0, idx);
+                             } else {
+                                 classInfo.jarName = location.getFile();
                              }
                          }
 
@@ -198,7 +207,6 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
                              jmxBeanAttribute.writable = attr.isWritable();
                              jmxBeanAttribute.readable = attr.isReadable();
                              jmxBeanAttribute.descriptor = toDescriptor(attr.getDescriptor());
-
 
                              if (attr.isReadable()) {
                                  AttributeValue value = getAttributeValue(mbs, objectName, attr.getName());

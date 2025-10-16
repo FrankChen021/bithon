@@ -69,7 +69,7 @@ public class AgentStarter {
         AgentClassLoader.getClassLoader()
                         .getJars()
                         .stream()
-                        .map(jar -> new File(jar.getName()).getName())
+                        .map(jar -> new File(jar.getJarFile().getName()).getName())
                         .sorted()
                         .forEach(name -> LOG.info("Found lib {}", name));
 
