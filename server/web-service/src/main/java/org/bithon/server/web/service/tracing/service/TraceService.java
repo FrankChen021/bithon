@@ -28,8 +28,6 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.column.IColumn;
 import org.bithon.server.datasource.expression.ExpressionASTBuilder;
-import org.bithon.server.datasource.query.Limit;
-import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceStorage;
@@ -170,22 +168,6 @@ public class TraceService {
                                             splitter.getIndexedTagFilters(),
                                             start,
                                             end);
-    }
-
-    public List<TraceSpan> getTraceList(String filterExpression,
-                                        Timestamp start,
-                                        Timestamp end,
-                                        OrderBy orderBy,
-                                        Limit limit) {
-        TraceFilterSplitter splitter = new TraceFilterSplitter(this.summaryTableSchema, this.indexTableSchema);
-        splitter.split(QueryFilter.build(this.summaryTableSchema, filterExpression));
-
-        return traceReader.getTraceList(splitter.getExpression(),
-                                        splitter.getIndexedTagFilters(),
-                                        start,
-                                        end,
-                                        orderBy,
-                                        limit);
     }
 
     public int getTraceSpanCount(String txId,

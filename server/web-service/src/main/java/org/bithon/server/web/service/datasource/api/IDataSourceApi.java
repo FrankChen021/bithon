@@ -25,6 +25,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.IOException;
@@ -52,6 +53,19 @@ public interface IDataSourceApi {
 
     @PostMapping("/api/datasource/list/v2")
     QueryResponse list(@Validated @RequestBody QueryRequest request) throws IOException;
+
+    /**
+     * Return list only without count
+     */
+    @PostMapping("/api/datasource/list/stream")
+    ResponseEntity<StreamingResponseBody> streamList(@RequestHeader(value = "Accept-Encoding", required = false) String acceptEncoding,
+                                                     @Validated @RequestBody QueryRequest request) throws IOException;
+
+    /**
+     * Return count only
+     */
+    @PostMapping("/api/datasource/count")
+    QueryResponse count(@Validated @RequestBody QueryRequest request) throws IOException;
 
     @PostMapping("/api/datasource/schemas")
     Map<String, ISchema> getSchemas();

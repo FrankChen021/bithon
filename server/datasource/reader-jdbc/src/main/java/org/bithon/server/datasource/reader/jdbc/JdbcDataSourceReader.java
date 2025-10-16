@@ -22,6 +22,7 @@ import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.query.IDataSourceReader;
@@ -42,6 +43,7 @@ import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.TableIdentifier;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.TextNode;
 import org.bithon.server.datasource.reader.jdbc.statement.builder.SelectStatementBuilder;
+import org.jooq.Cursor;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -189,6 +191,37 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         selectStatement.setLimit(toLimitClause(query.getLimit()));
         selectStatement.setOrderBy(toOrderByClause(query.getOrderBy()));
         return selectStatement;
+    }
+
+    @Override
+    public CloseableIterator<Object[]> streamSelect(Query query) {
+        IdentifierExpression timestampCol = IdentifierExpression.of(query.getSchema().getTimestampSpec().getColumnName());
+
+        SelectStatement selectStatement = new SelectStatement();
+        selectStatement.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
+        for (Selector selector : query.getSelectors()) {
+            selectStatement.getSelectorList().add(selector.getSelectExpression(), selector.getOutput(), selector.getDataType());
+        }
+        selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getStartTime())));
+        selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getEndTime())));
+        selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter(), this.querySettings));
+        selectStatement.setLimit(toLimitClause(query.getLimit()));
+        selectStatement.setOrderBy(toOrderByClause(query.getOrderBy()));
+
+        String sql = selectStatement.toSQL(this.sqlDialect);
+        log.info("Executing {}", sql);
+
+        Cursor<Record> cursor = dslContext.fetchLazy(sql);
+        return CloseableIterator.transform(cursor.iterator(),
+                                           (record) -> {
+                                               int colSize = record.size();
+                                               Object[] row = new Object[colSize];
+                                               for (int i = 0; i < colSize; i++) {
+                                                   row[i] = record.get(i);
+                                               }
+                                               return row;
+                                           },
+                                           cursor);
     }
 
     @Override

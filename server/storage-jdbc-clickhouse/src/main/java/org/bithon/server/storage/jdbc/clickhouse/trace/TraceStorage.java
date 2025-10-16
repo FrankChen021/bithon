@@ -30,6 +30,7 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
 import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.query.Limit;
@@ -55,6 +56,7 @@ import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.bithon.server.storage.tracing.TraceTableSchema;
+import org.jooq.Cursor;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Record1;
@@ -206,12 +208,12 @@ public class TraceStorage extends TraceJdbcStorage {
              * Override to apply read in order optimization
              */
             @Override
-            public List<TraceSpan> getTraceList(IExpression filter,
-                                                List<IExpression> indexedTagFilter,
-                                                Timestamp start,
-                                                Timestamp end,
-                                                OrderBy orderBy,
-                                                Limit limit) {
+            public CloseableIterator<TraceSpan> getTraceList(IExpression filter,
+                                                             List<IExpression> indexedTagFilter,
+                                                             Timestamp start,
+                                                             Timestamp end,
+                                                             OrderBy orderBy,
+                                                             Limit limit) {
                 boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
 
                 Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
@@ -273,9 +275,13 @@ public class TraceStorage extends TraceJdbcStorage {
                 sqlTextBuilder.append(" OFFSET ").append(limit.getOffset());
 
                 String sql = decorateSQL(sqlTextBuilder.toString());
+
                 log.info("Get trace list: {}", sql);
-                return dslContext.fetch(sql)
-                                 .map(this::toTraceSpan);
+
+                Cursor<?> cursor = dslContext.fetchLazy(sql);
+                return CloseableIterator.transform(cursor.iterator(),
+                                                   this::toTraceSpan,
+                                                   cursor);
             }
 
             @Override

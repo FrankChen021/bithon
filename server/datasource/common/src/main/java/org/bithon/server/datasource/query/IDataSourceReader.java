@@ -17,6 +17,7 @@
 package org.bithon.server.datasource.query;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 
 import java.util.List;
@@ -37,6 +38,8 @@ public interface IDataSourceReader extends AutoCloseable {
     List<?> groupBy(Query query);
 
     List<?> select(Query query);
+
+    CloseableIterator<Object[]> streamSelect(Query query);
 
     int count(Query query);
 

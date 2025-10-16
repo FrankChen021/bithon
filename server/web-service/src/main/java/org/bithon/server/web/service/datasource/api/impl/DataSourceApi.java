@@ -16,11 +16,14 @@
 
 package org.bithon.server.web.service.datasource.api.impl;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.SchemaException;
@@ -47,7 +50,9 @@ import org.bithon.server.web.service.datasource.api.QueryResponse;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.datasource.api.UpdateTTLRequest;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -56,6 +61,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -69,6 +75,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * @author frank.chen021@outlook.com
@@ -84,11 +91,13 @@ public class DataSourceApi implements IDataSourceApi {
     private final DataSourceService dataSourceService;
     private final Executor asyncExecutor;
     private final DiscoveredServiceInvoker discoveredServiceInvoker;
+    private final ObjectMapper objectMapper;
 
     public DataSourceApi(MetricStorageConfig storageConfig,
                          SchemaManager schemaManager,
                          DataSourceService dataSourceService,
-                         DiscoveredServiceInvoker discoveredServiceInvoker) {
+                         DiscoveredServiceInvoker discoveredServiceInvoker,
+                         ObjectMapper objectMapper) {
         this.storageConfig = storageConfig;
         this.schemaManager = schemaManager;
         this.dataSourceService = dataSourceService;
@@ -99,6 +108,7 @@ public class DataSourceApi implements IDataSourceApi {
                                                     new SynchronousQueue<>(),
                                                     NamedThreadFactory.nonDaemonThreadFactory("datasource-async"));
         this.discoveredServiceInvoker = discoveredServiceInvoker;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -157,7 +167,7 @@ public class DataSourceApi implements IDataSourceApi {
                                     .limit(query.getLimit())
                                     .data(list.get())
                                     .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
-                                    .startTimestamp(query.getInterval().getEndTime().getMilliseconds())
+                                    .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
                                     .build();
             } catch (ExecutionException e) {
                 String message = "Failed to execute the query: " + e.getCause().getMessage();
@@ -169,6 +179,78 @@ public class DataSourceApi implements IDataSourceApi {
                 throw new HttpMappableException(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
             }
         }
+    }
+
+    @Override
+    public QueryResponse count(QueryRequest request) throws IOException {
+        ISchema schema = schemaManager.getSchema(request.getDataSource());
+
+        Query query = QueryConverter.toSelectQuery(schema, request);
+
+        try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
+            return QueryResponse.builder()
+                                .total(reader.count(query))
+                                .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
+                                .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
+                                .build();
+        }
+    }
+
+    @Override
+    public ResponseEntity<StreamingResponseBody> streamList(String acceptEncoding, QueryRequest request) {
+        ISchema schema = schemaManager.getSchema(request.getDataSource());
+        Query query = QueryConverter.toSelectQuery(schema, request);
+
+        // Check if client accepts gzip encoding
+        boolean useGzip = acceptEncoding != null && acceptEncoding.contains("gzip");
+        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok()
+                                                                   .contentType(MediaType.parseMediaType("application/x-ndjson"));
+        if (useGzip) {
+            responseBuilder.header(HttpHeaders.CONTENT_ENCODING, "gzip");
+        }
+
+        StreamingResponseBody responseBodyStream = os -> {
+            // Create the appropriate output stream based on Accept-Encoding
+            try (OutputStream outputStream = useGzip ? new GZIPOutputStream(os) : os;
+                 JsonGenerator jsonGenerator = objectMapper.getFactory()
+                                                           .createGenerator(outputStream)
+                                                           .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
+            ) {
+                try (IDataSourceReader reader = schema.getDataStoreSpec().createReader();
+                     CloseableIterator<Object[]> streamData = reader.streamSelect(query)) {
+
+                    // Write header
+                    jsonGenerator.writeStartArray();
+                    for (int i = 0; i < query.getSelectors().size(); i++) {
+                        IColumn column = schema.getColumnByName(query.getSelectors().get(i).getOutputName());
+                        Preconditions.checkNotNull(column, "Field [%s] given in the SELECT expression does not exist in the schema.", query.getSelectors().get(i).getOutputName());
+                        jsonGenerator.writeStartObject();
+                        jsonGenerator.writeStringField("name", column.getName());
+                        jsonGenerator.writeStringField("type", column.getDataType().name());
+                        jsonGenerator.writeEndObject();
+                    }
+                    jsonGenerator.writeEndArray();
+                    jsonGenerator.writeRaw('\n'); // Using writeRaw for newline
+                    jsonGenerator.flush();
+
+                    // Write data and flush every N items
+                    int batchSize = 0;
+                    while (streamData.hasNext()) {
+                        Object[] row = streamData.next();
+
+                        objectMapper.writeValue(jsonGenerator, row);
+                        jsonGenerator.writeRaw('\n'); // Using writeRaw for newline
+
+                        if (++batchSize % 10 == 0) {
+                            jsonGenerator.flush();
+                        }
+                    }
+                    jsonGenerator.flush();
+                }
+            }
+        };
+
+        return responseBuilder.body(responseBodyStream);
     }
 
     @Override

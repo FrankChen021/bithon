@@ -77,6 +77,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.Function;
 
 /**
  * @author frank.chen021@outlook.com
@@ -183,12 +184,22 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public List<TraceSpan> getTraceList(IExpression filter,
-                                        List<IExpression> indexedTagFilter,
-                                        Timestamp start,
-                                        Timestamp end,
-                                        OrderBy orderBy,
-                                        Limit limit) {
+    public CloseableIterator<TraceSpan> getTraceList(IExpression filter,
+                                                     List<IExpression> indexedTagFilter,
+                                                     Timestamp start,
+                                                     Timestamp end,
+                                                     OrderBy orderBy,
+                                                     Limit limit) {
+        return getTraceList(filter, indexedTagFilter, start, end, orderBy, limit, this::toTraceSpan);
+    }
+
+    private <T> CloseableIterator<T> getTraceList(IExpression filter,
+                                                  List<IExpression> indexedTagFilter,
+                                                  Timestamp start,
+                                                  Timestamp end,
+                                                  OrderBy orderBy,
+                                                  Limit limit,
+                                                  Function<Record, T> mapper) {
         boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
 
         Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
@@ -245,8 +256,11 @@ public class TraceJdbcReader implements ITraceReader {
         String sql = toSQL(orderedListQuery.offset(limit.getOffset())
                                            .limit(limit.getLimit()));
         log.info("Get trace list: {}", sql);
-        return dslContext.fetch(sql)
-                         .map(this::toTraceSpan);
+
+        Cursor<Record> cursor = dslContext.fetchLazy(sql);
+        return CloseableIterator.transform(cursor.iterator(),
+                                           mapper,
+                                           cursor);
     }
 
     @Override
@@ -529,12 +543,34 @@ public class TraceJdbcReader implements ITraceReader {
         TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
         splitter.split(query.getFilter());
 
+        CloseableIterator<TraceSpan> iterator = getTraceList(splitter.getExpression(),
+                                                             splitter.getIndexedTagFilters(),
+                                                             query.getInterval().getStartTime().toTimestamp(),
+                                                             query.getInterval().getEndTime().toTimestamp(),
+                                                             query.getOrderBy(),
+                                                             query.getLimit());
+        return iterator.toList();
+    }
+
+    @Override
+    public CloseableIterator<Object[]> streamSelect(Query query) {
+        TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
+        splitter.split(query.getFilter());
+
         return getTraceList(splitter.getExpression(),
                             splitter.getIndexedTagFilters(),
                             query.getInterval().getStartTime().toTimestamp(),
                             query.getInterval().getEndTime().toTimestamp(),
                             query.getOrderBy(),
-                            query.getLimit());
+                            query.getLimit(),
+                            (record) -> {
+                                int colSize = record.size();
+                                Object[] row = new Object[colSize];
+                                for (int i = 0; i < colSize; i++) {
+                                    row[i] = record.get(i);
+                                }
+                                return row;
+                            });
     }
 
     @Override

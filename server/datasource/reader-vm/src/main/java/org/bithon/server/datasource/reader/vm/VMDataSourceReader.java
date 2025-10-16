@@ -26,6 +26,7 @@ import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.datasource.TimestampSpec;
 import org.bithon.server.datasource.query.IDataSourceReader;
@@ -149,6 +150,25 @@ public class VMDataSourceReader implements IDataSourceReader {
     @Override
     public List<?> select(Query query) {
         return List.of();
+    }
+
+    @Override
+    public CloseableIterator<Object[]> streamSelect(Query query) {
+        return new CloseableIterator<>() {
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+
+            @Override
+            public Object[] next() {
+                return null;
+            }
+
+            @Override
+            public void close() {
+            }
+        };
     }
 
     @Override
