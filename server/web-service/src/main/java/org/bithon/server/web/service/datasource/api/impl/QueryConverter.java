@@ -137,6 +137,7 @@ public class QueryConverter {
                       .orderBy(query.getOrderBy())
                       .limit(query.getLimit())
                       .offset(query.getOffset())
+                      .settings(query.getSettings())
                       .resultFormat(query.getResultFormat() == null ? Query.ResultFormat.Object : query.getResultFormat())
                       .build();
     }
@@ -220,6 +221,7 @@ public class QueryConverter {
                       .interval(Interval.of(start, end, null, new IdentifierExpression(timestampColumn)))
                       .orderBy(query.getOrderBy())
                       .limit(query.getLimit())
+                      .settings(query.getSettings())
                       .resultFormat(query.getResultFormat() == null ? Query.ResultFormat.Object : query.getResultFormat())
                       .build();
     }

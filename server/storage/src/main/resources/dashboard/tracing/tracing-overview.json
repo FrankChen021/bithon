@@ -1,0 +1,289 @@
+{
+  "id": "tracing-overview",
+  "folder": "tracing",
+  "title": "Trace Span Overview",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "trace_span_summary",
+        "fields": [
+          {
+            "name": "appName",
+            "width": 200,
+            "filterType": "",
+            "sourceType": "",
+            "source": "",
+            "alias": "appName",
+            "displayText": "",
+            "defaultValue": "",
+            "filterExpression": "",
+            "allowClear": false,
+            "allowEdit": false
+          }
+        ]
+      }
+    ]
+  },
+  "charts": [
+    {
+      "title": "Applications",
+      "width": 1,
+      "type": "stat",
+      "query": {
+        "dataSource": "trace_span_summary",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "count",
+            "expression": "cardinality(appName)"
+          }
+        ],
+        "settings": {
+          "floorTimestampFilterGranularity": 60
+        }
+      }
+    },
+    {
+      "title": "Instances",
+      "width": 1,
+      "type": "stat",
+      "query": {
+        "dataSource": "trace_span_summary",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "count",
+            "expression": "cardinality(instanceName)"
+          }
+        ],
+        "settings": {
+          "floorTimestampFilterGranularity": 60
+        }
+      }
+    },
+    {
+      "title": "Root Spans",
+      "width": 1,
+      "type": "stat",
+      "offset": "-1d",
+      "query": {
+        "dataSource": "trace_span_summary",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "count",
+            "expression": "count(traceId)"
+          }
+        ]
+      }
+    },
+    {
+      "title": "All Spans",
+      "width": 1,
+      "type": "stat",
+      "query": {
+        "dataSource": "trace_span",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "count",
+            "expression": "count(traceId)"
+          }
+        ],
+        "settings": {
+          "floorTimestampFilterGranularity": 60
+        }
+      }
+    },
+    {
+      "title": "Top 10 Root Span Overview",
+      "width": 2,
+      "type": "table",
+      "showColumns": true,
+      "columns": [
+        {
+          "name": "appName",
+          "width": 150,
+          "sortable": true,
+          "format": "template",
+          "template": "<a target=\"_blank\" href=\"/tracing/root?appName={appName}\">{appName}</a>"
+        },
+        {
+          "name": "count",
+          "format": "short_number",
+          "sortable": true
+        }
+      ],
+      "query": {
+        "dataSource": "trace_span_summary",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "count",
+            "expression": "count(traceId)"
+          }
+        ],
+        "groupBy": [
+          "appName"
+        ],
+        "orderBy": {
+          "name": "count",
+          "order": "desc"
+        },
+        "limit": 10,
+        "settings": {
+          "floorTimestampFilterGranularity": 60
+        }
+      }
+    },
+    {
+      "title": "Top 10 Traces with most spans",
+      "width": 2,
+      "type": "table",
+      "showColumns": true,
+      "columns": [
+        {
+          "name": "traceId",
+          "width": 200,
+          "sortable": true,
+          "format": "template",
+          "template": "<a target=\"_blank\" href=\"/tracing/detail?id={traceId}&_sidebar=collapsed\">{traceId}</a>"
+        },
+        {
+          "name": "appName",
+          "width": 200,
+          "sortable": true
+        },
+        {
+          "name": "count",
+          "width": 80,
+          "format": "short_number",
+          "sortable": true
+        }
+      ],
+      "query": {
+        "dataSource": "trace_span",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "count",
+            "expression": "count(traceId)"
+          }
+        ],
+        "groupBy": [
+          "traceId",
+          "appName"
+        ],
+        "orderBy": {
+          "name": "count",
+          "order": "desc"
+        },
+        "limit": 10,
+        "settings": {
+          "floorTimestampFilterGranularity": 60
+        }
+      }
+    },
+    {
+      "title": "Top 10 Slowest Methods",
+      "width": 4,
+      "type": "table",
+      "showColumns": true,
+      "isCollapsed": true,
+      "columns": [
+        {
+          "name": "appName",
+          "width": 200,
+          "sortable": true
+        },
+        {
+          "name": "name",
+          "width": 150,
+          "sortable": true
+        },
+        {
+          "name": "clazz",
+          "width": 300,
+          "sortable": true
+        },
+        {
+          "name": "method",
+          "width": 300,
+          "sortable": true
+        },
+        {
+          "name": "minCostTime",
+          "width": 300,
+          "sortable": true,
+          "format": "microsecond"
+        },
+        {
+          "name": "avgCostTime",
+          "width": 300,
+          "sortable": true,
+          "format": "microsecond"
+        },
+        {
+          "name": "maxCostTime",
+          "width": 300,
+          "sortable": true,
+          "format": "microsecond"
+        },
+        {
+          "name": "count",
+          "width": 300,
+          "sortable": true
+        },
+        {
+          "name": "mrt-row-actions",
+          "title": "Actions",
+          "format": "template",
+          "template": "<a target='_blank' href=\"/v2/tracing/search?_filter=appName%20%3D%20'{appName}'%20AND%20name%20%3D%20'{name}'%20AND%20clazz%3D'{clazz}'%20AND%20method%3D'{method}'\">Search</a>",
+          "align": "center"
+        }
+      ],
+      "query": {
+        "dataSource": "trace_span",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "minCostTime",
+            "expression": "min(costTimeMs)"
+          },
+          {
+            "name": "avgCostTime",
+            "expression": "avg(costTimeMs)"
+          },
+          {
+            "name": "maxCostTime",
+            "expression": "max(costTimeMs)"
+          },
+          {
+            "name": "count",
+            "expression": "count()"
+          }
+        ],
+        "groupBy": [
+          "appName",
+          "name",
+          "clazz",
+          "method"
+        ],
+        "orderBy": {
+          "name": "avgCostTime",
+          "order": "desc"
+        },
+        "limit": 10,
+        "settings": {
+          "floorTimestampFilterGranularity": 60
+        },
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    }
+  ]
+}

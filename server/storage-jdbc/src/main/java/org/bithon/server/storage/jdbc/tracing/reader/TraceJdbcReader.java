@@ -273,7 +273,7 @@ public class TraceJdbcReader implements ITraceReader {
 
         IdentifierExpression timestampCol = new IdentifierExpression(Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP.getName());
 
-        String timeBucket = sqlDialect.timeFloorExpression(timestampCol, interval);
+        String timeBucket = sqlDialect.toUnixTimestamp(timestampCol, interval);
         StringBuilder sqlBuilder = new StringBuilder(StringUtils.format("SELECT %s AS %s, count(1) AS %s, min(%s) AS %s, avg(%s) AS %s, max(%s) AS %s FROM %s",
                                                                         timeBucket,
                                                                         sqlDialect.quoteIdentifier("_timestamp"),

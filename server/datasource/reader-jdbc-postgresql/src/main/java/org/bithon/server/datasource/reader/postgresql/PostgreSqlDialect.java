@@ -45,9 +45,15 @@ public class PostgreSqlDialect implements ISqlDialect {
     }
 
     @Override
-    public String timeFloorExpression(IExpression timestampExpression, long intervalSeconds) {
+    public String toUnixTimestamp(IExpression timestampExpression, long intervalSeconds) {
         //TODO: Fix the hardcode UTC-8
         return StringUtils.format(" FLOOR(EXTRACT(EPOCH FROM %s AT TIME ZONE 'UTC-8') / %d) * %d", timestampExpression.serializeToText(), intervalSeconds, intervalSeconds);
+    }
+
+    @Override
+    public IExpression timeFloor(IExpression timestampExpression, long intervalSeconds) {
+        // Don't Support
+        return timestampExpression;
     }
 
     @Override

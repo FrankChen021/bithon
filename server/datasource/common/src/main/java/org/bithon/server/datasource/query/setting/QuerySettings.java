@@ -38,13 +38,13 @@ public class QuerySettings {
     public static final QuerySettings DEFAULT = new QuerySettings();
 
     private boolean enableRegularExpressionOptimization = true;
-    
+
     /**
      * When true, allows optimization of regex patterns like "^prefix.*" to startsWith expressions.
      * When false, these patterns will remain as regular expression matches.
      */
     private boolean enableRegularExpressionOptimizationToStartsWith = true;
-    
+
     /**
      * When true, allows optimization of regex patterns like ".*suffix$" to endsWith expressions.
      * When false, these patterns will remain as regular expression matches.
@@ -57,6 +57,12 @@ public class QuerySettings {
     private boolean enableReadInOrderOptimization = true;
 
     /**
+     * apply time floor expression on the timestamp filter condition to given granularity in seconds.
+     * Mainly for ClickHouse which improves the performance if the underlying storage has project over timestamp
+     */
+    private int floorTimestampFilterGranularity = 0;
+
+    /**
      * Creates a new instance with the same settings as this one.
      * This allows creating a modified copy without affecting the original instance.
      *
@@ -64,9 +70,10 @@ public class QuerySettings {
      */
     public QuerySettings copy() {
         return QuerySettings.builder()
-                .enableRegularExpressionOptimization(this.enableRegularExpressionOptimization)
-                .enableRegularExpressionOptimizationToStartsWith(this.enableRegularExpressionOptimizationToStartsWith)
-                .enableRegularExpressionOptimizationToEndsWith(this.enableRegularExpressionOptimizationToEndsWith)
-                .build();
+                            .enableRegularExpressionOptimization(this.enableRegularExpressionOptimization)
+                            .enableRegularExpressionOptimizationToStartsWith(this.enableRegularExpressionOptimizationToStartsWith)
+                            .enableRegularExpressionOptimizationToEndsWith(this.enableRegularExpressionOptimizationToEndsWith)
+                            .floorTimestampFilterGranularity(this.floorTimestampFilterGranularity)
+                            .build();
     }
 }
