@@ -634,7 +634,7 @@ public class SelectStatementBuilderTest {
                                     WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720))
                                     GROUP BY "appName", "instanceName"
                                     """.trim(),
-                                selectStatement.toSQL(h2Dialect));
+                                selectStatement.toSQL(clickHouseDialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(4, selectStatement.getSelectorList().size());
@@ -688,7 +688,7 @@ public class SelectStatementBuilderTest {
                                                            """.trim(),
                                                        function,
                                                        function),
-                                    selectStatement.toSQL(h2Dialect));
+                                    selectStatement.toSQL(clickHouseDialect));
         }
     }
 
