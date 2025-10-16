@@ -24,6 +24,7 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.query.ast.Selector;
+import org.bithon.server.datasource.query.setting.QuerySettings;
 
 import java.util.List;
 
@@ -51,10 +52,11 @@ public class Query {
 
     private final HumanReadableDuration offset;
 
+    private final QuerySettings settings;
     private final ResultFormat resultFormat;
 
     /**
-     * Was used, but not used now. May be used in future.
+     * Was used, but not used now. May be used in the future.
      */
     public enum ResultFormat {
         /**
@@ -72,6 +74,7 @@ public class Query {
                  @Nullable OrderBy orderBy,
                  @Nullable Limit limit,
                  @Nullable HumanReadableDuration offset,
+                 @Nullable QuerySettings settings,
                  @Nullable ResultFormat resultFormat) {
         this.schema = schema;
         this.selectors = selectors;
@@ -81,6 +84,7 @@ public class Query {
         this.orderBy = orderBy;
         this.offset = offset;
         this.limit = limit;
+        this.settings = settings == null ? QuerySettings.DEFAULT : settings;
         this.resultFormat = resultFormat == null ? ResultFormat.Object : resultFormat;
     }
 
@@ -97,6 +101,7 @@ public class Query {
                          this.orderBy,
                          this.limit,
                          this.offset,
+                         this.settings,
                          this.resultFormat);
     }
 }

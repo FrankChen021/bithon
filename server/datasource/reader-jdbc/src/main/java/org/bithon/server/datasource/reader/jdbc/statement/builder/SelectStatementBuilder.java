@@ -655,7 +655,7 @@ public class SelectStatementBuilder {
         // We need to group the values in a time bucket
         // See the test: testWindowFunction_TimeSeries to know more
         if (this.interval.getStep() != null) {
-            String timestamp = this.sqlDialect.timeFloorExpression(this.interval.getTimestampColumn(), this.interval.getStep().getSeconds());
+            String timestamp = this.sqlDialect.toUnixTimestamp(this.interval.getTimestampColumn(), this.interval.getStep().getSeconds());
             if (this.offset != null) {
                 // When offset is provided, the timestamp in result set is still produced as if no offset
                 timestamp = StringUtils.format("%s + %d", timestamp,
@@ -697,9 +697,14 @@ public class SelectStatementBuilder {
             end = end.before(-this.offset.getDuration().getSeconds(), TimeUnit.SECONDS);
         }
 
+        int granularity = this.querySettings.getFloorTimestampFilterGranularity();
+        if (granularity > 0) {
+            timestampColumn = sqlDialect.timeFloor(timestampColumn, granularity);
+        }
+
         return new IExpression[]{
             new ComparisonExpression.GTE(timestampColumn, useTimestampText ? sqlDialect.toISO8601TimestampExpression(start) : LiteralExpression.of(start.getMilliseconds() / 1000)),
             new ComparisonExpression.LT(timestampColumn, useTimestampText ? sqlDialect.toISO8601TimestampExpression(end) : LiteralExpression.of(end.getMilliseconds() / 1000)),
-        };
+            };
     }
 }

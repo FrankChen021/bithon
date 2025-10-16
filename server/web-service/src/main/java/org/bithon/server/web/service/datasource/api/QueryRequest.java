@@ -29,6 +29,7 @@ import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.datasource.query.Limit;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
+import org.bithon.server.datasource.query.setting.QuerySettings;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -73,6 +74,9 @@ public class QueryRequest {
 
     @Nullable
     private HumanReadableDuration offset;
+
+    @Nullable
+    private QuerySettings settings;
 
     private Query.ResultFormat resultFormat;
 }

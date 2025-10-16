@@ -48,7 +48,9 @@ public interface ISqlDialect {
      * @param intervalSeconds in seconds
      * @return an expression that returns the timestamp in seconds
      */
-    String timeFloorExpression(IExpression timestampExpression, long intervalSeconds);
+    String toUnixTimestamp(IExpression timestampExpression, long intervalSeconds);
+
+    IExpression timeFloor(IExpression timestampExpression, long intervalSeconds);
 
     boolean isAliasAllowedInWhereClause();
 

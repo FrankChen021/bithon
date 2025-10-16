@@ -39,7 +39,7 @@ public class ClickHouseSqlDialect implements ISqlDialect {
     }
 
     @Override
-    public String timeFloorExpression(IExpression timestampExpression, long intervalSeconds) {
+    public String toUnixTimestamp(IExpression timestampExpression, long intervalSeconds) {
         if (intervalSeconds == 60L) {
             if (timestampExpression instanceof FunctionExpression) {
                 if ("toStartOfMinute".equals(((FunctionExpression) timestampExpression).getName())) {
@@ -51,7 +51,7 @@ public class ClickHouseSqlDialect implements ISqlDialect {
             return StringUtils.format("toUnixTimestamp(toStartOfMinute(%s))", timestampExpression.serializeToText(this::quoteIdentifier));
         }
         if (intervalSeconds == 60 * 5) {
-            return StringUtils.format("toUnixTimestamp(toStartOfFiveMinute(%s))", timestampExpression.serializeToText(this::quoteIdentifier));
+            return StringUtils.format("toUnixTimestamp(toStartOfFiveMinutes(%s))", timestampExpression.serializeToText(this::quoteIdentifier));
         }
         if (intervalSeconds == 60 * 15) {
             return StringUtils.format("toUnixTimestamp(toStartOfFifteenMinutes(%s))", timestampExpression.serializeToText(this::quoteIdentifier));
@@ -67,6 +67,32 @@ public class ClickHouseSqlDialect implements ISqlDialect {
         } else {
             return StringUtils.format("toUnixTimestamp(toStartOfInterval(%s, INTERVAL %d SECOND))", timestampExpression.serializeToText(this::quoteIdentifier), intervalSeconds);
         }
+    }
+
+    @Override
+    public IExpression timeFloor(IExpression timestampExpression, long intervalSeconds) {
+        String functionName;
+        if (intervalSeconds == 60L) {
+            if (timestampExpression instanceof FunctionExpression) {
+                if ("toStartOfMinute".equals(((FunctionExpression) timestampExpression).getName())) {
+                    // If the user already specifies the toStartOfMinute function call,
+                    // there's no need to apply the function once more
+                    return timestampExpression;
+                }
+            }
+            functionName = "toStartOfMinute";
+        } else if (intervalSeconds == 60 * 5) {
+            functionName = "toStartOfFiveMinutes";
+        } else if (intervalSeconds == 60 * 15) {
+            functionName = "toStartOfFifteenMinutes";
+        } else if (intervalSeconds == 3600) {
+            functionName = "toStartOfHour";
+        } else if (intervalSeconds == 86400) {
+            functionName = "toStartOfDay";
+        } else {
+            throw new IllegalArgumentException("Unsupported intervalSeconds: " + intervalSeconds);
+        }
+        return new FunctionExpression(functionName, timestampExpression);
     }
 
     @Override

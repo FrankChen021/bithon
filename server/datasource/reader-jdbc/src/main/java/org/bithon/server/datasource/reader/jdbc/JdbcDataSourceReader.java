@@ -126,7 +126,8 @@ public class JdbcDataSourceReader implements IDataSourceReader {
                                                                         .offset(query.getOffset())
                                                                         .sqlDialect(this.sqlDialect);
 
-        SelectStatement selectStatement = statementBuilder.build();
+        SelectStatement selectStatement = statementBuilder.querySettings(query.getSettings())
+                                                          .build();
 
         Interval interval = query.getInterval();
 
@@ -161,6 +162,7 @@ public class JdbcDataSourceReader implements IDataSourceReader {
                                                                 .orderBy(query.getOrderBy())
                                                                 .limit(query.getLimit())
                                                                 .offset(query.getOffset())
+                                                                .querySettings(query.getSettings())
                                                                 .sqlDialect(this.sqlDialect)
                                                                 .build();
 

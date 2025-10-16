@@ -42,6 +42,7 @@ import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.ast.Alias;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
+import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.clickhouse.AggregateFunctionColumn;
 import org.bithon.server.datasource.reader.clickhouse.ClickHouseSqlDialect;
 import org.bithon.server.datasource.reader.h2.H2SqlDialect;
@@ -649,6 +650,46 @@ public class SelectStatementBuilderTest {
 
         Assertions.assertEquals("b", selectStatement.getSelectorList().get(3).getOutputName());
         Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(3).getDataType());
+    }
+
+    @Test
+    public void testWindowFunction_GroupBy_NoUseWindowAggregator_UseTimeFilterGranularity_CK() {
+        int[] granularities = new int[]{60, 60 * 5, 60 * 15, 3600, 86400};
+        String[] functions = new String[]{"toStartOfMinute", "toStartOfFiveMinutes", "toStartOfFifteenMinutes", "toStartOfHour", "toStartOfDay"};
+
+        for (int i = 0; i < granularities.length; i++) {
+            int granularity = granularities[i];
+            String function = functions[i];
+
+            SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                    .sqlDialect(clickHouseDialect)
+                                                                    .fields(List.of(
+                                                                        new Selector(new ExpressionNode(schema, "first(activeThreads)"), new Alias("a")),
+                                                                        new Selector(new ExpressionNode(schema, "last(activeThreads)"), new Alias("b")))
+                                                                    )
+                                                                    .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                          TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                    .groupBy(List.of("appName", "instanceName"))
+                                                                    .schema(schema)
+                                                                    // Set the time filter granularity to 60 seconds
+                                                                    .querySettings(QuerySettings.builder()
+                                                                                                .floorTimestampFilterGranularity(granularity)
+                                                                                                .build())
+                                                                    .build();
+
+            Assertions.assertEquals(StringUtils.format("""
+                                                           SELECT "appName",
+                                                                  "instanceName",
+                                                                  argMin("activeThreads", "timestamp") AS "a",
+                                                                  argMax("activeThreads", "timestamp") AS "b"
+                                                           FROM "bithon_http_incoming_metrics"
+                                                           WHERE (%s("timestamp") >= fromUnixTimestamp(1722000120)) AND (%s("timestamp") < fromUnixTimestamp(1722000720))
+                                                           GROUP BY "appName", "instanceName"
+                                                           """.trim(),
+                                                       function,
+                                                       function),
+                                    selectStatement.toSQL(h2Dialect));
+        }
     }
 
     @Test
