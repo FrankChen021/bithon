@@ -28,8 +28,6 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.column.IColumn;
 import org.bithon.server.datasource.expression.ExpressionASTBuilder;
-import org.bithon.server.datasource.query.Limit;
-import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceStorage;
