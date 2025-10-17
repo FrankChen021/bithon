@@ -27,11 +27,13 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.protocol.RequestAcceptEncoding;
+import org.apache.http.client.protocol.ResponseContentEncoding;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.bithon.component.brpc.StreamCancellation;
 import org.bithon.component.brpc.channel.IBrpcChannel;
@@ -415,6 +417,10 @@ public class AgentServiceProxyFactory {
                                                                                   .encoder(applicationContext.getBean(Encoder.class))
                                                                                   .decoder(applicationContext.getBean(Decoder.class))
                                                                                   .errorDecoder(new ErrorResponseDecoder(objectMapper))
+                                                                                  .requestInterceptor(template -> {
+                                                                                      // Enable compression support
+                                                                                      template.header("Accept-Encoding", "gzip, deflate");
+                                                                                  })
                                                                                   .target(IAgentControllerApi.class, controller.getURL());
 
                                               try {
@@ -507,7 +513,11 @@ public class AgentServiceProxyFactory {
             }
 
             CompletableFuture.runAsync(() -> {
-                                 try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+                                 // Enable compression support for streaming
+                                 try (CloseableHttpClient httpClient = HttpClientBuilder.create()
+                                         .addInterceptorFirst(new RequestAcceptEncoding())
+                                         .addInterceptorFirst(new ResponseContentEncoding())
+                                         .build()) {
                                      URI uri = new URIBuilder(controller.getURL() + "/api/agent/service/proxy/streaming")
                                          .addParameter("appName", targetApplication)
                                          .addParameter("instance", targetInstance)

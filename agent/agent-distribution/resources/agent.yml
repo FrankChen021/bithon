@@ -9,8 +9,8 @@ controller:
     factory: org.bithon.agent.controller.impl.brpc.BrpcAgentControllerFactory
     connectionLifeTime: 2000
     connectionTimeout: 2000
-    lowWaterMark: 256KiB
-    highWaterMark: 512KiB
+    lowWaterMark: 2MiB
+    highWaterMark: 4MiB
 
 exporters:
   metric:
@@ -19,8 +19,8 @@ exporters:
       # in milliseconds
       connectionLifeTime: 300000
       connectionTimeout: 2000
-      lowWaterMark: 256KiB
-      highWaterMark: 512KiB
+      lowWaterMark: 1MiB
+      highWaterMark: 2MiB
     servers: 127.0.0.1:9898
     # No need to configure the metric client in batch because it's already batched. If doing so, there will be exceptions
     flushTime: 1000
