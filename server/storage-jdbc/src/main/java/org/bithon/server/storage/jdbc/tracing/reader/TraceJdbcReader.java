@@ -47,7 +47,6 @@ import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
-import org.bithon.server.datasource.query.pipeline.Column;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
 import org.bithon.server.datasource.query.setting.QuerySettings;
