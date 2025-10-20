@@ -46,6 +46,7 @@ import org.bithon.server.datasource.query.Limit;
 import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
+import org.bithon.server.datasource.query.ReadResponse;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
@@ -536,7 +537,7 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public List<?> groupBy(Query query) {
+    public ReadResponse groupBy(Query query) {
         return getDataSourceReader().groupBy(query);
     }
 

@@ -48,14 +48,30 @@ public interface IDataSourceApi {
     @PostMapping("/api/internal/datasource/timeseries")
     ColumnarTable timeseriesV5(@Validated @RequestBody QueryRequest request) throws IOException;
 
+    /**
+     * use groupBy/stream instead
+     */
+    @Deprecated
     @PostMapping("/api/datasource/groupBy/v3")
     QueryResponse groupByV3(@Validated @RequestBody QueryRequest request) throws IOException;
+
+    /**
+     * Stream group by results in NDJSON format.
+     * The first row is the header that contains the metadata of columns. Each element has two properties, name and type.
+     * The rest rows are data rows in JSON array format to reduce the payload size.
+     */
+    @PostMapping("/api/datasource/groupBy/stream")
+    ResponseEntity<StreamingResponseBody> groupBy(@RequestHeader(value = "Accept-Encoding", required = false) String acceptEncoding,
+                                                  @Validated @RequestBody QueryRequest request) throws IOException;
 
     @PostMapping("/api/datasource/list/v2")
     QueryResponse list(@Validated @RequestBody QueryRequest request) throws IOException;
 
     /**
-     * Return list only without count
+     * Return list only without count.
+     * The response is streamed in NDJSON row format.
+     * The first row is the header that contains the metadata of columns. Each element has two properties, name and type.
+     * The rest rows are data rows in JSON array format to reduce the payload size.
      */
     @PostMapping("/api/datasource/list/stream")
     ResponseEntity<StreamingResponseBody> streamList(@RequestHeader(value = "Accept-Encoding", required = false) String acceptEncoding,

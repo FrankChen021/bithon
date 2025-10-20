@@ -14,47 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.datasource.api;
+package org.bithon.server.datasource.query;
+
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.bithon.server.datasource.query.ColumnMetadata;
-import org.bithon.server.datasource.query.Limit;
-
-import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/11/7 13:08
+ * @date 20/10/25 11:06 pm
  */
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class QueryResponse<T> {
-
-    /**
-     * The number of total records that satisfies the request conditions.
-     * Only available when the request is performed on page 0
-     */
-    private Integer total;
-
-    private Limit limit;
-    private long startTimestamp;
-
-    /**
-     * Input end timestamp
-     */
-    private long endTimestamp;
-
-    /**
-     * in milliseconds
-     */
-    private long interval;
-    private T data;
-
-    // The column metadata info in the result set
-    private List<ColumnMetadata> meta;
+public class ColumnMetadata {
+    private String name;
+    private String dataType;
 }

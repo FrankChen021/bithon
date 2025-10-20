@@ -95,11 +95,14 @@ public class TopoApi {
                                                                                                LiteralExpression.ofString(EndPointType.APPLICATION.name()))))
                                  .interval(Interval.of(start, end))
                                  .groupBy(Arrays.asList("dstEndpoint", "dstEndpointType"))
+                                 .resultFormat(Query.ResultFormat.Object)
                                  .build();
 
         try (IDataSourceReader dataSourceReader = topoSchema.getDataStoreSpec().createReader()) {
-            //noinspection unchecked,SpellCheckingInspection
-            List<Map<String, Object>> callees = (List<Map<String, Object>>) dataSourceReader.groupBy(calleeQuery);
+            // noinspection unchecked
+            List<Map<String, Object>> callees = (List<Map<String, Object>>) dataSourceReader.groupBy(calleeQuery)
+                                                                                            .getData()
+                                                                                            .toList();
 
             Topo topo = new Topo();
             EndpointBo thisApplication = new EndpointBo("application", request.getApplication());
@@ -144,10 +147,13 @@ public class TopoApi {
                                                                        new ComparisonExpression.EQ(new IdentifierExpression("dstEndpointType"),
                                                                                                    LiteralExpression.ofString(EndPointType.APPLICATION.name()))))
                                      .interval(Interval.of(start, end))
+                                     .resultFormat(Query.ResultFormat.Object)
                                      .groupBy(Arrays.asList("srcEndpoint", "srcEndpointType")).build();
 
             //noinspection unchecked
-            List<Map<String, Object>> callers = (List<Map<String, Object>>) dataSourceReader.groupBy(callerQuery);
+            List<Map<String, Object>> callers = (List<Map<String, Object>>) dataSourceReader.groupBy(callerQuery)
+                                                                                            .getData()
+                                                                                            .toList();
 
             for (Map<String, Object> caller : callers) {
                 IInputRow inputRow = new InputRow(caller);

@@ -25,12 +25,14 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.datasource.query.ColumnMetadata;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Limit;
 import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
+import org.bithon.server.datasource.query.ReadResponse;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
@@ -54,11 +56,13 @@ import org.springframework.boot.autoconfigure.jooq.ExceptionTranslatorExecuteLis
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqProperties;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -154,7 +158,7 @@ public class JdbcDataSourceReader implements IDataSourceReader {
     }
 
     @Override
-    public List<?> groupBy(Query query) {
+    public ReadResponse groupBy(Query query) {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .schema(query.getSchema())
                                                                 .fields(query.getSelectors())
@@ -168,8 +172,42 @@ public class JdbcDataSourceReader implements IDataSourceReader {
                                                                 .sqlDialect(this.sqlDialect)
                                                                 .build();
 
-        return fetch(selectStatement.toSQL(this.sqlDialect),
-                     query.getResultFormat());
+        // Build column metadata
+        List<ColumnMetadata> columns = selectStatement.getSelectorList()
+                                                      .getSelectors()
+                                                      .stream()
+                                                      .map((selector) -> new ColumnMetadata(selector.getOutputName(), selector.getDataType().name()))
+                                                      .toList();
+
+        String sql = selectStatement.toSQL(this.sqlDialect);
+        log.info("Executing {}", sql);
+
+        Function<Record, ?> resultMapper;
+        if (query.getResultFormat() == Query.ResultFormat.ValueArray) {
+            resultMapper = (record) -> {
+                int colSize = record.size();
+                Object[] rowObject = new Object[colSize];
+                for (int i = 0; i < colSize; i++) {
+                    rowObject[i] = record.get(i);
+                }
+                return rowObject;
+            };
+        } else { // If not given or Object, default to Object
+            resultMapper = (record) -> {
+                Map<String, Object> rowObject = new LinkedHashMap<>(record.size());
+                for (Field<?> field : record.fields()) {
+                    rowObject.put(field.getName(), record.get(field));
+                }
+                return rowObject;
+            };
+        }
+
+        Cursor<Record> cursor = dslContext.fetchLazy(sql);
+
+        return new ReadResponse(CloseableIterator.transform(cursor.iterator(),
+                                                            resultMapper,
+                                                            cursor),
+                                columns);
     }
 
     @Override

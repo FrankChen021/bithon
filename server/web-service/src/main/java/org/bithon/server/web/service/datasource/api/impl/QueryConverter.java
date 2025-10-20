@@ -38,6 +38,7 @@ import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
+import org.bithon.server.web.service.datasource.api.QueryResponse;
 import org.springframework.http.HttpStatus;
 
 import java.time.Duration;
@@ -66,6 +67,10 @@ public class QueryConverter {
         Query.QueryBuilder builder = Query.builder();
 
         Set<String> groupBy = CollectionUtils.emptyOrOriginal(query.getGroupBy());
+        for (String groupByField : groupBy) {
+            IColumn column = schema.getColumnByName(groupByField);
+            Preconditions.checkNotNull(column, "Field [%s] given in the GROUP-BY expression does not exist in the schema.", groupBy);
+        }
 
         // Turn into internal objects (post aggregators...)
         List<Selector> selectorList = new ArrayList<>(query.getFields().size());
