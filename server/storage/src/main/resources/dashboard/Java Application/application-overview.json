@@ -1,4 +1,7 @@
 {
+  "id": "application-overview",
+  "title": "Application Overview",
+  "folder": "Java Application",
   "filter": {
     "selectors": [
       {
@@ -398,7 +401,5 @@
         }
       }
     }
-  ],
-  "title": "Application Overview",
-  "folder": "Java Application"
+  ]
 }
