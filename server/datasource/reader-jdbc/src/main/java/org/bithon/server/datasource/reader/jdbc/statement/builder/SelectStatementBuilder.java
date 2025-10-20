@@ -703,7 +703,9 @@ public class SelectStatementBuilder {
             timestampColumn = sqlDialect.timeFloor(timestampColumn, granularity);
 
             start = start.floor(Duration.ofSeconds(granularity));
-            end = end.floor(Duration.ofSeconds(granularity));
+
+            // Use ceil for end time to include records greater than the floored end time
+            end = end.ceil(Duration.ofSeconds(granularity));
         }
 
         return new IExpression[]{
