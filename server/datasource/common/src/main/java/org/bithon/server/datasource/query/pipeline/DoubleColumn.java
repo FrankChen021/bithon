@@ -17,6 +17,8 @@
 package org.bithon.server.datasource.query.pipeline;
 
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.bithon.component.commons.expression.IDataType;
 
 import java.util.BitSet;
@@ -25,6 +27,8 @@ import java.util.BitSet;
  * @author frank.chen021@outlook.com
  * @date 6/5/25 10:28 am
  */
+@JsonSerialize(using = DoubleColumnSerializer.class)
+@JsonDeserialize(using = DoubleColumnDeserializer.class)
 public class DoubleColumn implements Column {
     private double[] data;
     private int size;

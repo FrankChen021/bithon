@@ -17,6 +17,8 @@
 package org.bithon.server.datasource.query.pipeline;
 
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.bithon.component.commons.expression.IDataType;
 
 import java.util.BitSet;
@@ -25,6 +27,8 @@ import java.util.BitSet;
  * @author frank.chen021@outlook.com
  * @date 6/5/25 10:29 am
  */
+@JsonSerialize(using = StringColumnSerializer.class)
+@JsonDeserialize(using = StringColumnDeserializer.class)
 public class StringColumn implements Column {
     private String[] data;
     private int size;
