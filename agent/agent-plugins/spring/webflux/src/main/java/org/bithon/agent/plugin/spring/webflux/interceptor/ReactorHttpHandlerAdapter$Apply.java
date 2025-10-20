@@ -156,6 +156,18 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
             return;
         }
 
+        if (!(request instanceof IBithonObject)) {
+            return;
+        }
+        Object injected = ((IBithonObject) request).getInjectedObject();
+        if (!(injected instanceof HttpServerContext)) {
+            return;
+        }
+        ITraceContext traceContext = ((HttpServerContext) injected).getTraceContext();
+        if (traceContext == null) {
+            return;
+        }
+
         final long start = aopContext.getStartNanoTime();
         BiConsumer<Void, Throwable> onSuccessOrError = (t, throwable) -> {
             try {
@@ -169,8 +181,16 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
         };
 
         // replace the returned Mono so that we can do sth when this request completes
-        aopContext.setReturning(mono.doOnSuccess((v) -> onSuccessOrError.accept(null, null))
-                                    .doOnError((error) -> onSuccessOrError.accept(null, error)));
+        aopContext.setReturning(mono.doOnSubscribe((v) -> {
+                                        TraceContextHolder.attach(traceContext);
+                                    })
+                                    .doOnNext((v) -> {
+                                        TraceContextHolder.attach(traceContext);
+                                    })
+                                    .doOnSuccess((v) -> onSuccessOrError.accept(null, null))
+                                    .doOnError((error) -> onSuccessOrError.accept(null, error))
+                                    .doFinally((v) -> TraceContextHolder.detach())
+        );
     }
 
     private void update(HttpServerRequest request, HttpServerResponse response, long responseTime) {

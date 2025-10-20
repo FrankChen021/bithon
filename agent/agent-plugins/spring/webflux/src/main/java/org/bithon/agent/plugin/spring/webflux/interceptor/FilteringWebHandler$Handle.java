@@ -22,7 +22,6 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
-import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.bithon.agent.plugin.spring.webflux.context.TracingContextAttributes;
@@ -71,7 +70,7 @@ public class FilteringWebHandler$Handle extends AroundInterceptor {
         exchange.getAttributes().put(TracingContextAttributes.TRACE_CONTEXT, traceContext);
 
         // Set the context for the current thread
-        TraceContextHolder.attach(traceContext);
+        //TraceContextHolder.attach(traceContext);
         return InterceptionDecision.CONTINUE;
     }
 
@@ -79,6 +78,6 @@ public class FilteringWebHandler$Handle extends AroundInterceptor {
     public void after(AopContext aopContext) {
         // Detach from current thread since the filter chain will execute on different threads
         // Each filter will attach/detach the context as needed
-        TraceContextHolder.detach();
+        //TraceContextHolder.detach();
     }
 }
