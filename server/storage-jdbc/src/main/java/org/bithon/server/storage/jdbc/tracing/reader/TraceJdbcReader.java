@@ -459,9 +459,6 @@ public class TraceJdbcReader implements ITraceReader {
         TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
         splitter.split(query.getFilter());
 
-        IExpression filter = splitter.getExpression();
-        List<IExpression> indexedTagFilter = splitter.getIndexedTagFilters();
-
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .schema(query.getSchema())
                                                                 .fields(query.getSelectors())
@@ -475,6 +472,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                                 .build();
 
         // Build the indexed tag sub query
+        List<IExpression> indexedTagFilter = splitter.getIndexedTagFilters();
         if (CollectionUtils.isNotEmpty(indexedTagFilter)) {
             SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.sqlDialect).dslContext(this.dslContext)
                                                                                                               .start(query.getInterval().getStartTime().toTimestamp().toLocalDateTime())
