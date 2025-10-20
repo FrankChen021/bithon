@@ -172,49 +172,14 @@ public class JdbcDataSourceReader implements IDataSourceReader {
                                                                 .sqlDialect(this.sqlDialect)
                                                                 .build();
 
-        // Build column metadata
-        List<ColumnMetadata> columns = selectStatement.getSelectorList()
-                                                      .getSelectors()
-                                                      .stream()
-                                                      .map((selector) -> new ColumnMetadata(selector.getOutputName(), selector.getDataType().name()))
-                                                      .toList();
-
-        String sql = selectStatement.toSQL(this.sqlDialect);
-        log.info("Executing {}", sql);
-
-        Function<Record, ?> resultMapper;
-        if (query.getResultFormat() == Query.ResultFormat.ValueArray) {
-            resultMapper = (record) -> {
-                int colSize = record.size();
-                Object[] rowObject = new Object[colSize];
-                for (int i = 0; i < colSize; i++) {
-                    rowObject[i] = record.get(i);
-                }
-                return rowObject;
-            };
-        } else { // If not given or Object, default to Object
-            resultMapper = (record) -> {
-                Map<String, Object> rowObject = new LinkedHashMap<>(record.size());
-                for (Field<?> field : record.fields()) {
-                    rowObject.put(field.getName(), record.get(field));
-                }
-                return rowObject;
-            };
-        }
-
-        Cursor<Record> cursor = dslContext.fetchLazy(sql);
-
-        return new ReadResponse(CloseableIterator.transform(cursor.iterator(),
-                                                            resultMapper,
-                                                            cursor),
-                                columns);
+        return execute(selectStatement, query.getResultFormat());
     }
 
     @Override
-    public List<?> select(Query query) {
+    public ReadResponse select(Query query) {
         SelectStatement selectStatement = toSelectStatement(query);
 
-        return executeSql(selectStatement.toSQL(this.sqlDialect));
+        return execute(selectStatement, query.getResultFormat());
     }
 
     protected SelectStatement toSelectStatement(Query query) {
@@ -234,37 +199,6 @@ public class JdbcDataSourceReader implements IDataSourceReader {
     }
 
     @Override
-    public CloseableIterator<Object[]> streamSelect(Query query) {
-        IdentifierExpression timestampCol = IdentifierExpression.of(query.getSchema().getTimestampSpec().getColumnName());
-
-        SelectStatement selectStatement = new SelectStatement();
-        selectStatement.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
-        for (Selector selector : query.getSelectors()) {
-            selectStatement.getSelectorList().add(selector.getSelectExpression(), selector.getOutput(), selector.getDataType());
-        }
-        selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getStartTime())));
-        selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getEndTime())));
-        selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter(), this.querySettings));
-        selectStatement.setLimit(toLimitClause(query.getLimit()));
-        selectStatement.setOrderBy(toOrderByClause(query.getOrderBy()));
-
-        String sql = selectStatement.toSQL(this.sqlDialect);
-        log.info("Executing {}", sql);
-
-        Cursor<Record> cursor = dslContext.fetchLazy(sql);
-        return CloseableIterator.transform(cursor.iterator(),
-                                           (record) -> {
-                                               int colSize = record.size();
-                                               Object[] row = new Object[colSize];
-                                               for (int i = 0; i < colSize; i++) {
-                                                   row[i] = record.get(i);
-                                               }
-                                               return row;
-                                           },
-                                           cursor);
-    }
-
-    @Override
     public int count(Query query) {
         IdentifierExpression timestampCol = IdentifierExpression.of(query.getSchema().getTimestampSpec().getColumnName());
 
@@ -280,24 +214,6 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         log.info("Executing {}", sql);
         Record record = dslContext.fetchOne(sql);
         return ((Number) record.get(0)).intValue();
-    }
-
-    private List<?> fetch(String sql, Query.ResultFormat resultFormat) {
-        log.info("Executing {}", sql);
-
-        List<Record> records = dslContext.fetch(sql);
-
-        if (resultFormat == Query.ResultFormat.Object) {
-            return records.stream().map(record -> {
-                Map<String, Object> mapObject = new LinkedHashMap<>(record.fields().length);
-                for (Field<?> field : record.fields()) {
-                    mapObject.put(field.getName(), record.get(field));
-                }
-                return mapObject;
-            }).collect(Collectors.toList());
-        } else {
-            return records.stream().map(Record::intoArray).collect(Collectors.toList());
-        }
     }
 
     @Override
@@ -343,20 +259,41 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         return limit == null ? null : new LimitClause(limit.getLimit(), limit.getOffset());
     }
 
-    private List<Map<String, Object>> executeSql(String sql) {
+    private ReadResponse execute(SelectStatement selectStatement, Query.ResultFormat resultFormat) {
+        List<ColumnMetadata> columns = selectStatement.getSelectorList()
+                                                      .getSelectors()
+                                                      .stream()
+                                                      .map((selector) -> new ColumnMetadata(selector.getOutputName(), selector.getDataType().name()))
+                                                      .toList();
+
+        String sql = selectStatement.toSQL(this.sqlDialect);
         log.info("Executing {}", sql);
+        Cursor<Record> cursor = dslContext.fetchLazy(sql);
 
-        List<Record> records = dslContext.fetch(sql);
+        return new ReadResponse(CloseableIterator.transform(cursor.iterator(),
+                                                            createRecordMapper(resultFormat),
+                                                            cursor),
+                                columns);
+    }
 
-        // PAY ATTENTION:
-        //  although the explicit cast seems unnecessary, it must be kept so that compilation can pass
-        //  this might be a bug of JDK
-        return (List<Map<String, Object>>) records.stream().map(record -> {
-            Map<String, Object> mapObject = new HashMap<>(record.fields().length);
-            for (Field<?> field : record.fields()) {
-                mapObject.put(field.getName(), record.get(field));
-            }
-            return mapObject;
-        }).collect(Collectors.toList());
+    private Function<Record, ?> createRecordMapper(Query.ResultFormat format) {
+        if (format == Query.ResultFormat.ValueArray) {
+            return (record) -> {
+                int colSize = record.size();
+                Object[] rowObject = new Object[colSize];
+                for (int i = 0; i < colSize; i++) {
+                    rowObject[i] = record.get(i);
+                }
+                return rowObject;
+            };
+        } else { // If not given or Object, default to Object
+            return (record) -> {
+                Map<String, Object> rowObject = new LinkedHashMap<>(record.size());
+                for (Field<?> field : record.fields()) {
+                    rowObject.put(field.getName(), record.get(field));
+                }
+                return rowObject;
+            };
+        }
     }
 }

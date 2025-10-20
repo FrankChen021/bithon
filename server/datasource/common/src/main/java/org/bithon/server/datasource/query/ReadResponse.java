@@ -18,6 +18,7 @@ package org.bithon.server.datasource.query;
 
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import org.bithon.component.commons.utils.CloseableIterator;
 
@@ -28,6 +29,7 @@ import java.util.List;
  * @date 20/10/25 11:06 pm
  */
 @Data
+@Builder
 @AllArgsConstructor
 public class ReadResponse {
     /**

@@ -74,8 +74,8 @@ public interface IDataSourceApi {
      * The rest rows are data rows in JSON array format to reduce the payload size.
      */
     @PostMapping("/api/datasource/list/stream")
-    ResponseEntity<StreamingResponseBody> streamList(@RequestHeader(value = "Accept-Encoding", required = false) String acceptEncoding,
-                                                     @Validated @RequestBody QueryRequest request) throws IOException;
+    ResponseEntity<StreamingResponseBody> list(@RequestHeader(value = "Accept-Encoding", required = false) String acceptEncoding,
+                                               @Validated @RequestBody QueryRequest request) throws IOException;
 
     /**
      * Return count only

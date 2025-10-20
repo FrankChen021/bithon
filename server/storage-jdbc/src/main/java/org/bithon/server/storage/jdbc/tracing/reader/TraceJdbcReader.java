@@ -48,6 +48,7 @@ import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ReadResponse;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
+import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
 import org.bithon.server.datasource.query.setting.QuerySettings;
@@ -542,7 +543,7 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public List<?> select(Query query) {
+    public ReadResponse select(Query query) {
         TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
         splitter.split(query.getFilter());
 
@@ -552,28 +553,13 @@ public class TraceJdbcReader implements ITraceReader {
                                                              query.getInterval().getEndTime().toTimestamp(),
                                                              query.getOrderBy(),
                                                              query.getLimit());
-        return iterator.toList();
-    }
-
-    @Override
-    public CloseableIterator<Object[]> streamSelect(Query query) {
-        TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
-        splitter.split(query.getFilter());
-
-        return getTraceList(splitter.getExpression(),
-                            splitter.getIndexedTagFilters(),
-                            query.getInterval().getStartTime().toTimestamp(),
-                            query.getInterval().getEndTime().toTimestamp(),
-                            query.getOrderBy(),
-                            query.getLimit(),
-                            (record) -> {
-                                int colSize = record.size();
-                                Object[] row = new Object[colSize];
-                                for (int i = 0; i < colSize; i++) {
-                                    row[i] = record.get(i);
-                                }
-                                return row;
-                            });
+        return ReadResponse.builder()
+                           .columns(query.getSelectors()
+                                         .stream()
+                                         .map(Selector::toColumnMetadata)
+                                         .toList())
+                           .data(iterator)
+                           .build();
     }
 
     @Override

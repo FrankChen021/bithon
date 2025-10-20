@@ -64,7 +64,6 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -155,7 +154,7 @@ public class DataSourceApi implements IDataSourceApi {
                 return request.getLimit().getOffset() == 0 ? reader.count(query) : 0;
             }, asyncExecutor);
 
-            CompletableFuture<List<?>> list = CompletableFuture.supplyAsync(() -> {
+            CompletableFuture<ReadResponse> list = CompletableFuture.supplyAsync(() -> {
                 // The query is executed in an async task, and the filter AST might be optimized in further processing
                 // To make sure the optimization is thread safe, we create a new AST
                 IExpression filter = QueryFilter.build(schema, request.getFilterExpression());
@@ -164,13 +163,10 @@ public class DataSourceApi implements IDataSourceApi {
 
             try {
                 return QueryResponse.builder()
-                                    .meta(query.getSelectors()
-                                               .stream()
-                                               .map((selector) -> new ColumnMetadata(selector.getOutputName(), selector.getDataType().name()))
-                                               .toList())
+                                    .meta(list.get().getColumns())
                                     .total(total.get())
                                     .limit(query.getLimit())
-                                    .data(list.get())
+                                    .data(list.get().getData().toList())
                                     .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
                                     .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
                                     .build();
@@ -187,22 +183,7 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public QueryResponse count(QueryRequest request) throws IOException {
-        ISchema schema = schemaManager.getSchema(request.getDataSource());
-
-        Query query = QueryConverter.toSelectQuery(schema, request);
-
-        try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
-            return QueryResponse.builder()
-                                .total(reader.count(query))
-                                .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
-                                .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
-                                .build();
-        }
-    }
-
-    @Override
-    public ResponseEntity<StreamingResponseBody> streamList(String acceptEncoding, QueryRequest request) {
+    public ResponseEntity<StreamingResponseBody> list(String acceptEncoding, QueryRequest request) {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
         Query query = QueryConverter.toSelectQuery(schema, request);
 
@@ -219,43 +200,60 @@ public class DataSourceApi implements IDataSourceApi {
             try (OutputStream outputStream = useGzip ? new GZIPOutputStream(os) : os;
                  JsonGenerator jsonGenerator = objectMapper.getFactory()
                                                            .createGenerator(outputStream)
-                                                           .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
-            ) {
-                try (IDataSourceReader reader = schema.getDataStoreSpec().createReader();
-                     CloseableIterator<Object[]> streamData = reader.streamSelect(query)) {
+                                                           .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET)) {
+                try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
+                    ReadResponse readResponse = reader.select(query);
 
-                    // Write header
-                    jsonGenerator.writeStartArray();
-                    for (int i = 0; i < query.getSelectors().size(); i++) {
-                        IColumn column = schema.getColumnByName(query.getSelectors().get(i).getOutputName());
-                        Preconditions.checkNotNull(column, "Field [%s] given in the SELECT expression does not exist in the schema.", query.getSelectors().get(i).getOutputName());
-                        jsonGenerator.writeStartObject();
-                        jsonGenerator.writeStringField("name", column.getName());
-                        jsonGenerator.writeStringField("type", column.getDataType().name());
-                        jsonGenerator.writeEndObject();
-                    }
-                    jsonGenerator.writeEndArray();
-                    jsonGenerator.writeRaw('\n'); // Using writeRaw for newline
-                    jsonGenerator.flush();
+                    try (CloseableIterator<?> streamData = readResponse.getData()) {
 
-                    // Write data and flush every N items
-                    int batchSize = 0;
-                    while (streamData.hasNext()) {
-                        Object[] row = streamData.next();
-
-                        objectMapper.writeValue(jsonGenerator, row);
-                        jsonGenerator.writeRaw('\n'); // Using writeRaw for newline
-
-                        if (++batchSize % 10 == 0) {
-                            jsonGenerator.flush();
+                        // Write header
+                        jsonGenerator.writeStartArray();
+                        for (int i = 0; i < query.getSelectors().size(); i++) {
+                            IColumn column = schema.getColumnByName(query.getSelectors().get(i).getOutputName());
+                            Preconditions.checkNotNull(column, "Field [%s] given in the SELECT expression does not exist in the schema.", query.getSelectors().get(i).getOutputName());
+                            jsonGenerator.writeStartObject();
+                            jsonGenerator.writeStringField("name", column.getName());
+                            jsonGenerator.writeStringField("type", column.getDataType().name());
+                            jsonGenerator.writeEndObject();
                         }
+                        jsonGenerator.writeEndArray();
+                        jsonGenerator.writeRaw('\n'); // Using writeRaw for newline
+                        jsonGenerator.flush();
+
+                        // Write data and flush every N items
+                        int batchSize = 0;
+                        while (streamData.hasNext()) {
+                            Object row = streamData.next();
+
+                            objectMapper.writeValue(jsonGenerator, row);
+                            jsonGenerator.writeRaw('\n'); // Using writeRaw for newline
+
+                            if (++batchSize % 10 == 0) {
+                                jsonGenerator.flush();
+                            }
+                        }
+                        jsonGenerator.flush();
                     }
-                    jsonGenerator.flush();
                 }
             }
         };
 
         return responseBuilder.body(responseBodyStream);
+    }
+
+    @Override
+    public QueryResponse count(QueryRequest request) throws IOException {
+        ISchema schema = schemaManager.getSchema(request.getDataSource());
+
+        Query query = QueryConverter.toSelectQuery(schema, request);
+
+        try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
+            return QueryResponse.builder()
+                                .total(reader.count(query))
+                                .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
+                                .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
+                                .build();
+        }
     }
 
     @Deprecated
@@ -296,8 +294,7 @@ public class DataSourceApi implements IDataSourceApi {
             try (OutputStream outputStream = useGzip ? new GZIPOutputStream(os) : os;
                  JsonGenerator jsonGenerator = objectMapper.getFactory()
                                                            .createGenerator(outputStream)
-                                                           .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
-            ) {
+                                                           .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET)) {
                 try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
                     ReadResponse response = reader.groupBy(query);
 
