@@ -27,6 +27,7 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
+import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.expression.optimzer.AbstractOptimizer;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.HumanReadableDuration;
@@ -483,6 +484,9 @@ public class SelectStatementBuilder {
         pipeline.chain(this.sqlDialect);
         pipeline.innermost.getFrom().setExpression(new TableIdentifier(schema.getDataStoreSpec().getStore()));
 
+        // rewrite cardinality(distinct count) to group by
+        rewriteCardinalityAsGroupBy(pipeline);
+
         // Build GroupBy first, because we might need to move some filters to the group-by as HAVING
         buildGroupBy(pipeline);
         buildWhere(pipeline);
@@ -712,5 +716,55 @@ public class SelectStatementBuilder {
             new ComparisonExpression.GTE(timestampColumn, useTimestampText ? sqlDialect.toISO8601TimestampExpression(start) : LiteralExpression.of(start.getMilliseconds() / 1000)),
             new ComparisonExpression.LT(timestampColumn, useTimestampText ? sqlDialect.toISO8601TimestampExpression(end) : LiteralExpression.of(end.getMilliseconds() / 1000)),
             };
+    }
+
+    /**
+     * Rewrite cardinality(column) to group by column
+     * <code>
+     *     SELECT cardinality(userId) AS userId FROM table
+     * </code>
+     * <code>
+     *     SELECT count() FROM (SELECT userId FROM table GROUP BY userId)
+     * </code>
+     */
+    private void rewriteCardinalityAsGroupBy(SelectStatementChain chain) {
+        if (!this.querySettings.isRewriteCardinalityToGroupBy()) {
+            return;
+        }
+
+        SelectStatement cardinalityQuery = chain.innermost;
+
+        List<Selector> selectors = cardinalityQuery.getSelectorList().getSelectors();
+        if (selectors.size() != 1) {
+            return;
+        }
+        Selector selector = selectors.get(0);
+        if (!(selector.getSelectExpression() instanceof ExpressionNode expressionNode)) {
+            return;
+        }
+
+        IExpression parsedExpression = expressionNode.getParsedExpression();
+        if (!(parsedExpression instanceof FunctionExpression functionExpression)) {
+            return;
+        }
+
+        if (!(functionExpression.getFunction() instanceof QueryStageFunctions.Cardinality)) {
+            return;
+        }
+        IExpression arg = functionExpression.getArgs().get(0);
+        if (!(arg instanceof IdentifierExpression identifierExpression)) {
+            return;
+        }
+
+        SelectStatement groupByQuery = new SelectStatement();
+        groupByQuery.getSelectorList().add(new ExpressionNode(identifierExpression), identifierExpression.getIdentifier(), IDataType.STRING);
+        groupByQuery.getGroupBy().addField(identifierExpression.getIdentifier());
+        groupByQuery.getFrom().setExpression(cardinalityQuery.getFrom().getExpression());
+
+        cardinalityQuery.getSelectorList().getSelectors().clear();
+        cardinalityQuery.getSelectorList().add(new ExpressionNode(new FunctionExpression(AggregateFunction.Count.INSTANCE)), selector.getOutputName(), IDataType.LONG);
+        cardinalityQuery.getFrom().setExpression(groupByQuery);
+
+        chain.innermost = groupByQuery;
     }
 }

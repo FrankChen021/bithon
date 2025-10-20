@@ -63,6 +63,11 @@ public class QuerySettings {
     private int floorTimestampFilterGranularity = 0;
 
     /**
+     * If the underlying table/storage has optimization for GROUP BY queries, using GROUP BY to implement DISTINCT COUNT queries may be faster
+     */
+    private boolean rewriteCardinalityToGroupBy = false;
+
+    /**
      * Creates a new instance with the same settings as this one.
      * This allows creating a modified copy without affecting the original instance.
      *

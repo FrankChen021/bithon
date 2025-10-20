@@ -690,7 +690,7 @@ public class SelectStatementBuilderTest {
                                                        function,
                                                        start.floor(Duration.ofSeconds(granularity)).getSeconds(),
                                                        function,
-                                                       end.floor(Duration.ofSeconds(granularity)).getSeconds()
+                                                       end.ceil(Duration.ofSeconds(granularity)).getSeconds()
                                     ),
                                     selectStatement.toSQL(clickHouseDialect));
         }
@@ -1002,9 +1002,7 @@ public class SelectStatementBuilderTest {
     public void testCardinalityAggregation() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
-                                                                    schema,
-                                                                    "cardinality(instance)"), new Alias("instanceCount"))))
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "cardinality(instance)"), new Alias("instanceCount"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName"))
@@ -1033,6 +1031,69 @@ public class SelectStatementBuilderTest {
 
         Assertions.assertEquals("instanceCount", selectStatement.getSelectorList().get(1).getOutputName());
         Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(1).getDataType());
+    }
+
+    @Test
+    public void testCardinalityAggregation_RewriteToGroupBy_False() {
+        // the default behavior is NOT to rewrite distinct count to group by
+        QuerySettings settings = new QuerySettings();
+        settings.setRewriteCardinalityToGroupBy(false);
+
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .sqlDialect(h2Dialect)
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "cardinality(instance)"), new Alias("instanceCount"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                .querySettings(settings)
+                                                                .schema(schema)
+                                                                .build();
+
+        Assertions.assertEquals("""
+                                    SELECT count(distinct "instance") AS "instanceCount"
+                                    FROM "bithon_http_incoming_metrics"
+                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
+                                    """.trim(),
+                                selectStatement.toSQL(h2Dialect));
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(1, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("instanceCount", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(0).getDataType());
+    }
+
+    @Test
+    public void testCardinalityAggregation_RewriteToGroupBy_True() {
+        // the default behavior is NOT to rewrite distinct count to group by
+        QuerySettings settings = new QuerySettings();
+        settings.setRewriteCardinalityToGroupBy(true);
+
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .sqlDialect(h2Dialect)
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "cardinality(instance)"), new Alias("instanceCount"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                .querySettings(settings)
+                                                                .schema(schema)
+                                                                .build();
+
+        Assertions.assertEquals("""
+                                    SELECT count(1) AS "instanceCount"
+                                    FROM
+                                    (
+                                      SELECT "instance" AS "instance"
+                                      FROM "bithon_http_incoming_metrics"
+                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
+                                      GROUP BY "instance"
+                                    )
+                                    """.trim(),
+                                selectStatement.toSQL(h2Dialect));
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(1, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("instanceCount", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(0).getDataType());
     }
 
     @Test
