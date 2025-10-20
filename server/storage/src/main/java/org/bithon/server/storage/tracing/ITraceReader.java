@@ -22,7 +22,6 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Limit;
 import org.bithon.server.datasource.query.OrderBy;
-import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 
 import java.sql.Timestamp;
@@ -46,12 +45,6 @@ public interface ITraceReader extends IDataSourceReader {
                                               Timestamp end,
                                               OrderBy orderBy,
                                               Limit limit);
-
-    ColumnarTable getTraceDistribution(IExpression filter,
-                                       List<IExpression> indexedTagFilters,
-                                       Timestamp start,
-                                       Timestamp end,
-                                       long interval);
 
     int getTraceListSize(IExpression filter,
                          List<IExpression> indexedTagFilters,
