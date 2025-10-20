@@ -47,12 +47,6 @@ public interface ITraceReader extends IDataSourceReader {
                                               OrderBy orderBy,
                                               Limit limit);
 
-    ColumnarTable getTraceDistribution(IExpression filter,
-                                       List<IExpression> indexedTagFilters,
-                                       Timestamp start,
-                                       Timestamp end,
-                                       long interval);
-
     int getTraceListSize(IExpression filter,
                          List<IExpression> indexedTagFilters,
                          Timestamp start,
