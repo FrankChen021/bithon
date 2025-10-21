@@ -20,10 +20,11 @@ import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
 import org.bithon.agent.instrumentation.aop.advice.AdviceAnnotation;
 import org.bithon.agent.instrumentation.aop.advice.AfterAdvice;
+import org.bithon.agent.instrumentation.aop.advice.AfterConstructorAdvice;
 import org.bithon.agent.instrumentation.aop.advice.AroundAdvice;
 import org.bithon.agent.instrumentation.aop.advice.AroundConstructorAdvice;
 import org.bithon.agent.instrumentation.aop.advice.BeforeAdvice;
-import org.bithon.agent.instrumentation.aop.advice.ConstructorAfterAdvice;
+import org.bithon.agent.instrumentation.aop.advice.BeforeConstructorAdvice;
 import org.bithon.agent.instrumentation.aop.advice.ReplacementAdvice;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.Descriptors;
@@ -188,24 +189,26 @@ public class InterceptorInstaller {
             AdviceAnnotation.InterceptorIndexResolver indexResolver = new AdviceAnnotation.InterceptorIndexResolver(supplierIndex);
 
             switch (descriptor.getInterceptorType()) {
-                case BEFORE:
+                case BEFORE: {
+                    Class<?> adviceClazz = descriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ? BeforeAdvice.class : BeforeConstructorAdvice.class;
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
                                                                .bind(AdviceAnnotation.InterceptorName.class, new AdviceAnnotation.InterceptorNameResolver(Advice.OffsetMapping.Sort.ENTER, supplierIndex, descriptor.getInterceptorClassName()))
                                                                .bind(AdviceAnnotation.InterceptorIndex.class, indexResolver)
-                                                               .to(BeforeAdvice.class),
+                                                               .to(adviceClazz),
                                                          descriptor.getMethodMatcher()));
+
                     break;
+                }
                 case AFTER: {
-                    Class<?> adviceClazz = descriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ? AfterAdvice.class : ConstructorAfterAdvice.class;
+                    Class<?> adviceClazz = descriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ? AfterAdvice.class : AfterConstructorAdvice.class;
 
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
                                                                .bind(AdviceAnnotation.InterceptorName.class, new AdviceAnnotation.InterceptorNameResolver(Advice.OffsetMapping.Sort.EXIT, supplierIndex, descriptor.getInterceptorClassName()))
                                                                .bind(AdviceAnnotation.InterceptorIndex.class, indexResolver)
                                                                .to(adviceClazz),
                                                          descriptor.getMethodMatcher()));
+                    break;
                 }
-                break;
-
                 case AROUND: {
                     Class<?> adviceClazz = descriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ? AroundAdvice.class : AroundConstructorAdvice.class;
 
@@ -214,8 +217,8 @@ public class InterceptorInstaller {
                                                                .bind(AdviceAnnotation.InterceptorIndex.class, indexResolver)
                                                                .to(adviceClazz),
                                                          descriptor.getMethodMatcher()));
+                    break;
                 }
-                break;
 
                 case REPLACEMENT:
                     if (classLoader == null) {

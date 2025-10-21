@@ -21,8 +21,6 @@ import org.bithon.agent.instrumentation.aop.context.AopContextImpl;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AbstractInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
-import org.bithon.agent.instrumentation.logging.ILogger;
-import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 
 
@@ -30,9 +28,7 @@ import org.bithon.shaded.net.bytebuddy.asm.Advice;
  * @author frankchen
  * @date 2021-02-18 18:03
  */
-public class ConstructorAfterAdvice {
-    public static final ILogger LOG = LoggerFactory.getLogger(ConstructorAfterAdvice.class);
-
+public class AfterConstructorAdvice {
     @Advice.OnMethodExit
     public static void onExit(@AdviceAnnotation.InterceptorName String name,
                               @AdviceAnnotation.InterceptorIndex int index,
