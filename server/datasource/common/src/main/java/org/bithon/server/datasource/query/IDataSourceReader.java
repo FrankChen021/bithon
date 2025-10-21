@@ -34,7 +34,7 @@ public interface IDataSourceReader extends AutoCloseable {
      * Aggregate metrics by their pre-defined aggregators in the given period.
      * Returns a DataSourceReadResponse that contains both the data iterator and column metadata.
      */
-    ReadResponse groupBy(Query query);
+    ReadResponse query(Query query);
 
     ReadResponse select(Query query);
 

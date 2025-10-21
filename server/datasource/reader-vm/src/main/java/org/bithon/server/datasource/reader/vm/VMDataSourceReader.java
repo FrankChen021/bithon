@@ -144,7 +144,7 @@ public class VMDataSourceReader implements IDataSourceReader {
     }
 
     @Override
-    public ReadResponse groupBy(Query query) {
+    public ReadResponse query(Query query) {
         CloseableIterator<?> emptyIterator = new CloseableIterator<>() {
             @Override
             public void close() {

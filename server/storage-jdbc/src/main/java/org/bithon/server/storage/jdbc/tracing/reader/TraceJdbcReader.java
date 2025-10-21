@@ -538,8 +538,8 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public ReadResponse groupBy(Query query) {
-        return getDataSourceReader().groupBy(query);
+    public ReadResponse query(Query query) {
+        return getDataSourceReader().query(query);
     }
 
     @Override

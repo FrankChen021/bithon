@@ -156,7 +156,7 @@ public class JdbcDataSourceReader implements IDataSourceReader {
     }
 
     @Override
-    public ReadResponse groupBy(Query query) {
+    public ReadResponse query(Query query) {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .schema(query.getSchema())
                                                                 .fields(query.getSelectors())

@@ -100,7 +100,7 @@ public class TopoApi {
 
         try (IDataSourceReader dataSourceReader = topoSchema.getDataStoreSpec().createReader()) {
             // noinspection unchecked
-            List<Map<String, Object>> callees = (List<Map<String, Object>>) dataSourceReader.groupBy(calleeQuery)
+            List<Map<String, Object>> callees = (List<Map<String, Object>>) dataSourceReader.query(calleeQuery)
                                                                                             .getData()
                                                                                             .toList();
 
@@ -151,7 +151,7 @@ public class TopoApi {
                                      .groupBy(Arrays.asList("srcEndpoint", "srcEndpointType")).build();
 
             //noinspection unchecked
-            List<Map<String, Object>> callers = (List<Map<String, Object>>) dataSourceReader.groupBy(callerQuery)
+            List<Map<String, Object>> callers = (List<Map<String, Object>>) dataSourceReader.query(callerQuery)
                                                                                             .getData()
                                                                                             .toList();
 

@@ -40,7 +40,7 @@ import java.util.Map;
 public interface IDataSourceApi {
 
     /**
-     * @deprecated use {@link #timeseries(String, QueryRequest)} instead
+     * @deprecated use {@link #query(String, QueryRequest)} instead
      */
     @Deprecated
     @PostMapping("/api/datasource/timeseries/v4")
@@ -51,13 +51,6 @@ public interface IDataSourceApi {
      */
     @PostMapping("/api/internal/datasource/timeseries")
     ColumnarTable timeseriesV5(@Validated @RequestBody QueryRequest request) throws IOException;
-
-    /**
-     * Internal API that returns column based records for internal API use
-     */
-    @PostMapping("/api/datasource/timeseries/stream")
-    ResponseEntity<StreamingResponseBody> timeseries(@RequestHeader(value = "Accept-Encoding", required = false) String acceptEncoding,
-                                                     @Validated @RequestBody QueryRequest request) throws IOException;
 
     /**
      * use groupBy/stream instead
@@ -71,9 +64,9 @@ public interface IDataSourceApi {
      * The first row is the header that contains the metadata of columns. Each element has two properties, name and type.
      * The rest rows are data rows in JSON array format to reduce the payload size.
      */
-    @PostMapping("/api/datasource/groupBy/stream")
-    ResponseEntity<StreamingResponseBody> groupBy(@RequestHeader(value = "Accept-Encoding", required = false) String acceptEncoding,
-                                                  @Validated @RequestBody QueryRequest request) throws IOException;
+    @PostMapping("/api/datasource/query/stream")
+    ResponseEntity<StreamingResponseBody> query(@RequestHeader(value = "Accept-Encoding", required = false) String acceptEncoding,
+                                                @Validated @RequestBody QueryRequest request) throws IOException;
 
     @PostMapping("/api/datasource/list/v2")
     QueryResponse list(@Validated @RequestBody QueryRequest request) throws IOException;

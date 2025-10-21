@@ -73,7 +73,13 @@ public class IntervalRequest {
     @Nullable
     private HumanReadableDuration window;
 
+    private boolean bucketByTimestamp = true;
+
     public Duration calculateStep() {
+        if (!bucketByTimestamp) {
+            return null;
+        }
+
         if (this.step != null) {
             // Use given step
             return Duration.ofSeconds(this.step);

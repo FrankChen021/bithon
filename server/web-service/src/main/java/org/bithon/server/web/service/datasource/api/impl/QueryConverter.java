@@ -38,7 +38,6 @@ import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
-import org.bithon.server.web.service.datasource.api.QueryResponse;
 import org.springframework.http.HttpStatus;
 
 import java.time.Duration;
@@ -54,7 +53,7 @@ import java.util.stream.Collectors;
 public class QueryConverter {
     public static Query toQuery(ISchema schema,
                                 QueryRequest query,
-                                boolean groupByTimestamp) {
+                                Duration step) {
         IntervalRequest interval = query.getInterval();
         if (interval.getWindow() != null && interval.getStep() != null) {
             Preconditions.checkIfTrue(interval.getWindow().getDuration().getSeconds() >= interval.getStep(),
@@ -125,8 +124,6 @@ public class QueryConverter {
 
         TimeSpan start = interval.getStartISO8601();
         TimeSpan end = interval.getEndISO8601();
-
-        Duration step = groupByTimestamp ? interval.calculateStep() : null;
 
         String timestampColumn = schema.getTimestampSpec().getColumnName();
         if (StringUtils.hasText(interval.getTimestampColumn())) {
