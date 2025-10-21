@@ -140,6 +140,66 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
+    public ResponseEntity<StreamingResponseBody> timeseries(String acceptEncoding, QueryRequest request) {
+        ISchema schema = schemaManager.getSchema(request.getDataSource());
+        Query query = QueryConverter.toQuery(schema, request, true);
+
+        // Check if client accepts gzip encoding
+        boolean useGzip = acceptEncoding != null && acceptEncoding.contains("gzip");
+        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok()
+                                                                   .contentType(MediaType.parseMediaType("application/x-ndjson"));
+        if (useGzip) {
+            responseBuilder.header(HttpHeaders.CONTENT_ENCODING, "gzip");
+        }
+
+        StreamingResponseBody responseBodyStream = os -> {
+            // Create the appropriate output stream based on Accept-Encoding
+            try (OutputStream outputStream = useGzip ? new GZIPOutputStream(os) : os;
+                 JsonGenerator jsonGenerator = objectMapper.getFactory()
+                                                           .createGenerator(outputStream)
+                                                           .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET)) {
+                try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
+                    ColumnarTable table = reader.timeseries(query);
+
+                    try (CloseableIterator<?> streamData = table.toIterator(query.getResultFormat())) {
+
+                        // Write header
+                        jsonGenerator.writeStartArray();
+                        {
+                            List<ColumnMetadata> metadata = table.getMetadata();
+                            for (ColumnMetadata metadatum : metadata) {
+                                jsonGenerator.writeStartObject();
+                                jsonGenerator.writeStringField("name", metadatum.getName());
+                                jsonGenerator.writeStringField("type", metadatum.getDataType());
+                                jsonGenerator.writeEndObject();
+                            }
+                        }
+                        jsonGenerator.writeEndArray();
+                        jsonGenerator.writeRaw('\n'); // Using writeRaw for newline
+                        jsonGenerator.flush();
+
+                        // Write data and flush every N items
+                        int batchSize = 0;
+                        while (streamData.hasNext()) {
+                            Object row = streamData.next();
+
+                            objectMapper.writeValue(jsonGenerator, row);
+                            jsonGenerator.writeRaw('\n'); // Using writeRaw for newline
+
+                            if (++batchSize % 10 == 0) {
+                                jsonGenerator.flush();
+                            }
+                        }
+                        jsonGenerator.flush();
+                    }
+                }
+            }
+        };
+
+        return responseBuilder.body(responseBodyStream);
+    }
+
+    @Override
     public QueryResponse list(QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
@@ -208,13 +268,14 @@ public class DataSourceApi implements IDataSourceApi {
 
                         // Write header
                         jsonGenerator.writeStartArray();
-                        for (int i = 0; i < query.getSelectors().size(); i++) {
-                            IColumn column = schema.getColumnByName(query.getSelectors().get(i).getOutputName());
-                            Preconditions.checkNotNull(column, "Field [%s] given in the SELECT expression does not exist in the schema.", query.getSelectors().get(i).getOutputName());
-                            jsonGenerator.writeStartObject();
-                            jsonGenerator.writeStringField("name", column.getName());
-                            jsonGenerator.writeStringField("type", column.getDataType().name());
-                            jsonGenerator.writeEndObject();
+                        {
+                            List<ColumnMetadata> metadata = readResponse.getColumns();
+                            for (ColumnMetadata medataum : metadata) {
+                                jsonGenerator.writeStartObject();
+                                jsonGenerator.writeStringField("name", medataum.getName());
+                                jsonGenerator.writeStringField("type", medataum.getDataType());
+                                jsonGenerator.writeEndObject();
+                            }
                         }
                         jsonGenerator.writeEndArray();
                         jsonGenerator.writeRaw('\n'); // Using writeRaw for newline
@@ -301,14 +362,14 @@ public class DataSourceApi implements IDataSourceApi {
                     try (CloseableIterator<?> streamData = response.getData()) {
                         // Write header with column metadata from response
                         jsonGenerator.writeStartArray();
-
-                        for (ColumnMetadata column : response.getColumns()) {
-                            jsonGenerator.writeStartObject();
-                            jsonGenerator.writeStringField("name", column.getName());
-                            jsonGenerator.writeStringField("type", column.getDataType());
-                            jsonGenerator.writeEndObject();
+                        {
+                            for (ColumnMetadata column : response.getColumns()) {
+                                jsonGenerator.writeStartObject();
+                                jsonGenerator.writeStringField("name", column.getName());
+                                jsonGenerator.writeStringField("type", column.getDataType());
+                                jsonGenerator.writeEndObject();
+                            }
                         }
-
                         jsonGenerator.writeEndArray();
                         jsonGenerator.writeRaw('\n'); // Using writeRaw for newline
                         jsonGenerator.flush();

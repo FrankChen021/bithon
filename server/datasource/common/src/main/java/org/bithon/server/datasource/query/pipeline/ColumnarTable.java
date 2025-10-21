@@ -17,6 +17,10 @@
 package org.bithon.server.datasource.query.pipeline;
 
 
+import org.bithon.component.commons.utils.CloseableIterator;
+import org.bithon.server.datasource.query.ColumnMetadata;
+import org.bithon.server.datasource.query.Query;
+
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
@@ -24,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 /**
  * @author frank.chen021@outlook.com
@@ -117,6 +122,58 @@ public class ColumnarTable {
             }
         }
         return rows;
+    }
+
+    public CloseableIterator<?> toIterator(Query.ResultFormat format) {
+        BiFunction<ColumnarTable, Integer, Object> rowMapper;
+        if (format == Query.ResultFormat.ValueArray) {
+            rowMapper = (ColumnarTable table, Integer rowIndex) -> {
+                int colSize = table.getColumns().size();
+                Object[] rowObject = new Object[colSize];
+                for (int colIndex = 0; colIndex < colSize; colIndex++) {
+                    rowObject[colIndex] = table.getColumns().get(colIndex).getObject(rowIndex);
+                }
+                return rowObject;
+            };
+        } else { // If not given or Object, default to Object
+            rowMapper = (ColumnarTable table, Integer rowIndex) -> {
+                int colSize = table.getColumns().size();
+
+                Map<String, Object> rowObject = new LinkedHashMap<>(colSize);
+                for (int colIndex = 0; colIndex < colSize; colIndex++) {
+                    Column col = table.getColumns().get(colIndex);
+                    rowObject.put(col.getName(), col.getObject(rowIndex));
+                }
+                return rowObject;
+            };
+        }
+
+        final ColumnarTable table = this;
+        return new CloseableIterator<>() {
+            private final int size = table.rowCount();
+            private int rowIndex = 0;
+
+            @Override
+            public boolean hasNext() {
+                return rowIndex < size;
+            }
+
+            @Override
+            public Object next() {
+                return rowMapper.apply(table, rowIndex++);
+            }
+
+            @Override
+            public void close() {
+            }
+        };
+    }
+
+    public List<ColumnMetadata> getMetadata() {
+        return this.getColumns()
+                   .stream()
+                   .map((col) -> new ColumnMetadata(col.getName(), col.getDataType().name()))
+                   .toList();
     }
 
     public ColumnarTable filter(BitSet mask) {

@@ -39,14 +39,25 @@ import java.util.Map;
  */
 public interface IDataSourceApi {
 
+    /**
+     * @deprecated use {@link #timeseries(String, QueryRequest)} instead
+     */
+    @Deprecated
     @PostMapping("/api/datasource/timeseries/v4")
     QueryResponse timeseriesV4(@Validated @RequestBody QueryRequest request) throws IOException;
 
     /**
-     * Internal API that returns row based records for internal API use
+     * Internal API that returns column based records for internal API use
      */
     @PostMapping("/api/internal/datasource/timeseries")
     ColumnarTable timeseriesV5(@Validated @RequestBody QueryRequest request) throws IOException;
+
+    /**
+     * Internal API that returns column based records for internal API use
+     */
+    @PostMapping("/api/datasource/timeseries/stream")
+    ResponseEntity<StreamingResponseBody> timeseries(@RequestHeader(value = "Accept-Encoding", required = false) String acceptEncoding,
+                                                     @Validated @RequestBody QueryRequest request) throws IOException;
 
     /**
      * use groupBy/stream instead
