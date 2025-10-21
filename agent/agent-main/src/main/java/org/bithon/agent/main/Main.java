@@ -18,10 +18,8 @@ package org.bithon.agent.main;
 
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
-import org.bithon.agent.instrumentation.utils.BootstrapClassLocationFinder;
 import org.bithon.agent.instrumentation.utils.JarLocator;
 
-import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
@@ -53,25 +51,6 @@ public class Main {
         // agent-main.jar is located under agent directory,
         // So its parent is the right directory of the agent
         AgentDirectory.setRoot(JarLocator.locate(Main.class.getName()).getParentFile());
-
-        //
-        // Register bootstrap JARs for location tracking
-        // The JARs specified in Boot-Class-Path manifest are already loaded by JVM,
-        // but we need to track their locations for introspection purposes
-        //
-        File agentRoot = AgentDirectory.getRoot();
-        File bootDir = new File(agentRoot, "boot");
-        
-        File agentInstrumentationJar = new File(bootDir, "agent-instrumentation.jar");
-        File shadedByteBuddyJar = new File(bootDir, "shaded-bytebuddy.jar");
-        
-        // Register these JARs with BootstrapClassLocationFinder so we can find their locations later
-        if (agentInstrumentationJar.exists()) {
-            BootstrapClassLocationFinder.registerBootstrapJar("agent-instrumentation.jar", agentInstrumentationJar);
-        }
-        if (shadedByteBuddyJar.exists()) {
-            BootstrapClassLocationFinder.registerBootstrapJar("shaded-bytebuddy.jar", shadedByteBuddyJar);
-        }
 
         Class<?> starterClass = AgentClassLoader.getClassLoader().loadClass("org.bithon.agent.starter.AgentStarter");
         Object starterObject = starterClass.getDeclaredConstructor().newInstance();
