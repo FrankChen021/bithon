@@ -181,15 +181,8 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
         };
 
         // replace the returned Mono so that we can do sth when this request completes
-        aopContext.setReturning(mono.doOnSubscribe((v) -> {
-                                        TraceContextHolder.attach(traceContext);
-                                    })
-                                    .doOnNext((v) -> {
-                                        TraceContextHolder.attach(traceContext);
-                                    })
-                                    .doOnSuccess((v) -> onSuccessOrError.accept(null, null))
+        aopContext.setReturning(mono.doOnSuccess((v) -> onSuccessOrError.accept(null, null))
                                     .doOnError((error) -> onSuccessOrError.accept(null, error))
-                                    .doFinally((v) -> TraceContextHolder.detach())
         );
     }
 
@@ -275,7 +268,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
 
                 // using join instead of using ObjectMapper
                 // because in other modules such as tomcat-plugin, we directly get the header value and record it in the log
-                // the value in that header is comma delimited
+                // the value in that header is comma-delimited
                 s.tag(xforwardTagName, String.join(",", xforwarded));
             }))
             .finish();

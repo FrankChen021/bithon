@@ -50,6 +50,12 @@ public class SpringWebFluxPlugin implements IPlugin {
                 .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.FilteringWebHandler$Handle")
                 .build(),
 
+            forClass("org.springframework.cloud.gateway.handler.FilteringWebHandler$DefaultGatewayFilterChain")
+                .onConstructor()
+                .andRawArgs("java.util.List")
+                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.DefaultGatewayFilterChain$Ctor")
+                .build(),
+
             forClass("reactor.netty.http.server.HttpServerConfig$HttpServerChannelInitializer")
                 .onMethod("onChannelInit")
                 .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpServerChannelInitializer$OnChannelInit")

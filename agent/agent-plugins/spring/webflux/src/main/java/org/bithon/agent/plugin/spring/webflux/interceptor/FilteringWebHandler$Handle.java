@@ -19,8 +19,7 @@ package org.bithon.agent.plugin.spring.webflux.interceptor;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
-import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
@@ -37,9 +36,9 @@ import org.springframework.web.server.ServerWebExchange;
  * @author frank.chen021@outlook.com
  * @date 7/10/25 4:23 pm
  */
-public class FilteringWebHandler$Handle extends AroundInterceptor {
+public class FilteringWebHandler$Handle extends BeforeInterceptor {
     @Override
-    public InterceptionDecision before(AopContext aopContext) {
+    public void before(AopContext aopContext) {
         ServerWebExchange exchange = aopContext.getArgAs(0);
 
         ServerHttpRequest request = exchange.getRequest();
@@ -49,35 +48,24 @@ public class FilteringWebHandler$Handle extends AroundInterceptor {
 
         // ReactorHttpHandlerAdapter#apply creates an object of AbstractServerHttpRequest
         if (!(request instanceof AbstractServerHttpRequest)) {
-            return InterceptionDecision.SKIP_LEAVE;
+            return;
         }
 
         // the request object on exchange is type of HttpServerOperation
         // see ReactorHttpHandlerAdapter#apply
         Object nativeRequest = ((AbstractServerHttpRequest) request).getNativeRequest();
         if (!(nativeRequest instanceof IBithonObject)) {
-            return InterceptionDecision.SKIP_LEAVE;
+            return;
         }
 
         HttpServerContext ctx = (HttpServerContext) ((IBithonObject) nativeRequest).getInjectedObject();
         ITraceContext traceContext = ctx.getTraceContext();
         if (traceContext == null || !traceContext.traceMode().equals(TraceMode.TRACING)) {
-            return InterceptionDecision.SKIP_LEAVE;
+            return;
         }
 
         // Store the trace context in the exchange so that each filter can retrieve it
         // This is necessary because filters may execute on different threads in the reactive pipeline
         exchange.getAttributes().put(TracingContextAttributes.TRACE_CONTEXT, traceContext);
-
-        // Set the context for the current thread
-        //TraceContextHolder.attach(traceContext);
-        return InterceptionDecision.CONTINUE;
-    }
-
-    @Override
-    public void after(AopContext aopContext) {
-        // Detach from current thread since the filter chain will execute on different threads
-        // Each filter will attach/detach the context as needed
-        //TraceContextHolder.detach();
     }
 }
