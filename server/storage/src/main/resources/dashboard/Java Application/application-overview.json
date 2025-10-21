@@ -1,7 +1,6 @@
 {
   "id": "application-overview",
   "title": "Application Overview",
-  "folder": "Java Application",
   "filter": {
     "selectors": [
       {
@@ -22,23 +21,13 @@
   },
   "charts": [
     {
-      "type": "stat",
+      "title": "Avg Cpu Usage",
       "width": 1,
-      "titleOption": {
-        "title": "Avg Cpu Usage",
-        "link": "/dashboard/jvm-metrics?appName={appName}&instanceName={instanceName}",
-        "align": "left"
-      },
-      "minimapOption": {
-        "type": "area"
-      },
-      "valueOption": {
-        "reducer": "avg",
-        "align": "center"
-      },
+      "type": "stat",
+      "link": "/dashboard/jvm-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "jvm-metrics",
-        "type": "timeseries",
+        "type": "groupBy",
         "fields": [
           {
             "name": "avgCpuUsage",
@@ -46,30 +35,18 @@
           }
         ],
         "precondition": {
-          "filters": [
-            "appName"
-          ]
+          "filters": ["appName"]
         }
       }
     },
     {
-      "type": "stat",
+      "title": "Instance",
       "width": 1,
-      "titleOption": {
-        "title": "Instances",
-        "link": "/dashboard/jvm-metrics?appName={appName}&instanceName={instanceName}",
-        "align": "left"
-      },
-      "minimapOption": {
-        "type": "area"
-      },
-      "valueOption": {
-        "reducer": "last",
-        "align": "center"
-      },
+      "type": "stat",
+      "link": "/dashboard/jvm-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "jvm-metrics",
-        "type": "timeseries",
+        "type": "groupBy",
         "fields": [
           {
             "name": "instanceCount",
@@ -77,32 +54,18 @@
           }
         ],
         "precondition": {
-          "filters": [
-          ]
+          "filters": ["appName"]
         }
       }
     },
     {
-      "type": "stat",
+      "title": "Incoming HTTP Requests",
       "width": 1,
-      "titleOption": {
-        "title": "Incoming HTTP Requests",
-        "link": "/dashboard/http-incoming-metrics?appName={appName}&instanceName={instanceName}",
-        "align": "left"
-      },
-      "minimapOption": {
-        "type": "area"
-      },
-      "valueOption": {
-        "reducer": "sum",
-        "align": "center"
-      },
-      "comparisonOption": {
-        "offset": "-1d"
-      },
+      "type": "stat",
+      "link": "/dashboard/http-incoming-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "http-incoming-metrics",
-        "type": "timeseries",
+        "type": "groupBy",
         "fields": [
           {
             "name": "totalCount",
@@ -110,32 +73,18 @@
           }
         ],
         "precondition": {
-          "filters": [
-          ]
+          "filters": ["appName"]
         }
       }
     },
     {
-      "type": "stat",
+      "title": "Outgoing HTTP Requests",
       "width": 1,
-      "titleOption": {
-        "title": "Outgoing HTTP Requests",
-        "link": "/dashboard/http-outgoing-metrics?appName={appName}&instanceName={instanceName}",
-        "align": "left"
-      },
-      "minimapOption": {
-        "type": "area"
-      },
-      "valueOption": {
-        "reducer": "sum",
-        "align": "center"
-      },
-      "comparisonOption": {
-        "offset": "-1d"
-      },
+      "type": "stat",
+      "link": "/dashboard/http-outgoing-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "http-outgoing-metrics",
-        "type": "timeseries",
+        "type": "groupBy",
         "fields": [
           {
             "name": "totalCount",
@@ -143,32 +92,18 @@
           }
         ],
         "precondition": {
-          "filters": [
-          ]
+          "filters": ["appName"]
         }
       }
     },
     {
-      "type": "stat",
+      "title": "Exceptions",
       "width": 1,
-      "titleOption": {
-        "title": "Exceptions",
-        "link": "/dashboard/exception-metrics?appName={appName}&instanceName={instanceName}",
-        "align": "left"
-      },
-      "minimapOption": {
-        "type": "area"
-      },
-      "valueOption": {
-        "reducer": "sum",
-        "align": "center"
-      },
-      "comparisonOption": {
-        "offset": "-1d"
-      },
+      "type": "stat",
+      "link": "/dashboard/exception-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "exception-metrics",
-        "type": "timeseries",
+        "type": "groupBy",
         "fields": [
           {
             "name": "totalCount",
@@ -176,32 +111,18 @@
           }
         ],
         "precondition": {
-          "filters": [
-          ]
+          "filters": ["appName"]
         }
       }
     },
     {
-      "type": "stat",
+      "title": "GRPC Client Requests",
       "width": 1,
-      "titleOption": {
-        "title": "GRPC Client Requests",
-        "link": "/dashboard/grpc-client-metrics?appName={appName}&instanceName={instanceName}",
-        "align": "left"
-      },
-      "minimapOption": {
-        "type": "area"
-      },
-      "valueOption": {
-        "reducer": "sum",
-        "align": "center"
-      },
-      "comparisonOption": {
-        "offset": "-1d"
-      },
+      "type": "stat",
+      "link": "/dashboard/grpc-client-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "grpc-client-metrics",
-        "type": "timeseries",
+        "type": "groupBy",
         "fields": [
           {
             "name": "callCount",
@@ -209,32 +130,18 @@
           }
         ],
         "precondition": {
-          "filters": [
-          ]
+          "filters": ["appName"]
         }
       }
     },
     {
-      "type": "stat",
+      "title": "Kafka Produced Records",
       "width": 1,
-      "titleOption": {
-        "title": "Kafka Produced Records",
-        "link": "/dashboard/kafka-producer-metrics?appName={appName}&instanceName={instanceName}",
-        "align": "left"
-      },
-      "minimapOption": {
-        "type": "area"
-      },
-      "valueOption": {
-        "reducer": "sum",
-        "align": "center"
-      },
-      "comparisonOption": {
-        "offset": "-1d"
-      },
+      "type": "stat",
+      "link": "/dashboard/kafka-producer-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "kafka-producer-metrics",
-        "type": "timeseries",
+        "type": "groupBy",
         "fields": [
           {
             "name": "records",
@@ -242,32 +149,18 @@
           }
         ],
         "precondition": {
-          "filters": [
-          ]
+          "filters": ["appName"]
         }
       }
     },
     {
-      "type": "stat",
+      "title": "Kafka Consumed Byte Rate (Bps)",
       "width": 1,
-      "titleOption": {
-        "title": "Kafka Consumed Records",
-        "link": "/dashboard/kafka-consumer-metrics?appName={appName}&instanceName={instanceName}",
-        "align": "left"
-      },
-      "minimapOption": {
-        "type": "area"
-      },
-      "valueOption": {
-        "reducer": "sum",
-        "align": "center"
-      },
-      "comparisonOption": {
-        "offset": "-1d"
-      },
+      "type": "stat",
+      "link": "/dashboard/kafka-consumer-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "kafka-consumer-metrics",
-        "type": "timeseries",
+        "type": "groupBy",
         "fields": [
           {
             "name": "consumedRecords",
@@ -275,32 +168,18 @@
           }
         ],
         "precondition": {
-          "filters": [
-          ]
+          "filters": ["appName"]
         }
       }
     },
     {
-      "type": "stat",
+      "title": "Redis Requests",
       "width": 1,
-      "titleOption": {
-        "title": "Redis Requests",
-        "link": "/dashboard/redis-metrics?appName={appName}&instanceName={instanceName}",
-        "align": "left"
-      },
-      "minimapOption": {
-        "type": "area"
-      },
-      "valueOption": {
-        "reducer": "sum",
-        "align": "center"
-      },
-      "comparisonOption": {
-        "offset": "-1d"
-      },
+      "type": "stat",
+      "link": "/dashboard/redis-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "redis-metrics",
-        "type": "timeseries",
+        "type": "groupBy",
         "fields": [
           {
             "name": "totalCount",
@@ -308,32 +187,18 @@
           }
         ],
         "precondition": {
-          "filters": [
-          ]
+          "filters": ["appName"]
         }
       }
     },
     {
-      "type": "stat",
+      "title": "MongoDb Requests",
       "width": 1,
-      "titleOption": {
-        "title": "MongoDb Requests",
-        "link": "/dashboard/mongodb-metrics?appName={appName}&instanceName={instanceName}",
-        "align": "left"
-      },
-      "minimapOption": {
-        "type": "area"
-      },
-      "valueOption": {
-        "reducer": "sum",
-        "align": "center"
-      },
-      "comparisonOption": {
-        "offset": "-1d"
-      },
+      "type": "stat",
+      "link": "/dashboard/mongodb-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "mongodb-metrics",
-        "type": "timeseries",
+        "type": "groupBy",
         "fields": [
           {
             "name": "totalCount",
@@ -341,32 +206,18 @@
           }
         ],
         "precondition": {
-          "filters": [
-          ]
+          "filters": ["appName"]
         }
       }
     },
     {
-      "type": "stat",
+      "title": "SQLs",
       "width": 1,
-      "titleOption": {
-        "title": "SQLs",
-        "link": "/dashboard/sql-metrics?appName={appName}&instanceName={instanceName}",
-        "align": "left"
-      },
-      "minimapOption": {
-        "type": "area"
-      },
-      "valueOption": {
-        "reducer": "sum",
-        "align": "center"
-      },
-      "comparisonOption": {
-        "offset": "-1d"
-      },
+      "type": "stat",
+      "link": "/dashboard/sql-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "sql-metrics",
-        "type": "timeseries",
+        "type": "groupBy",
         "fields": [
           {
             "name": "totalCount",
@@ -374,32 +225,18 @@
           }
         ],
         "precondition": {
-          "filters": [
-          ]
+          "filters": ["appName"]
         }
       }
     },
     {
-      "type": "stat",
+      "title": "ZooKeeper Client Requests",
       "width": 1,
-      "titleOption": {
-        "title": "ZooKeeper Client Requests",
-        "link": "/dashboard/zookeeper-client-metrics?appName={appName}&instanceName={instanceName}",
-        "align": "left"
-      },
-      "minimapOption": {
-        "type": "area"
-      },
-      "valueOption": {
-        "reducer": "sum",
-        "align": "center"
-      },
-      "comparisonOption": {
-        "offset": "-1d"
-      },
+      "type": "stat",
+      "link": "/dashboard/zookeeper-client-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "zookeeper-client-metrics",
-        "type": "timeseries",
+        "type": "groupBy",
         "fields": [
           {
             "name": "totalCount",
@@ -407,8 +244,7 @@
           }
         ],
         "precondition": {
-          "filters": [
-          ]
+          "filters": ["appName"]
         }
       }
     }
