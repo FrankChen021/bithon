@@ -25,7 +25,6 @@ import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.plugin.spring.webflux.config.GatewayFilterConfigs;
-import org.bithon.agent.plugin.spring.webflux.context.TracingContextAttributes;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -43,14 +42,10 @@ public class BeforeGatewayFilter$Filter extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ServerWebExchange exchange = aopContext.getArgAs(0);
-        ITraceContext traceContext = exchange.getAttribute(TracingContextAttributes.TRACE_CONTEXT);
+        ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext == null || !traceContext.traceMode().equals(TraceMode.TRACING)) {
             return InterceptionDecision.SKIP_LEAVE;
         }
-
-        // Ensure the trace context is attached to the current thread for this filter execution
-        TraceContextHolder.attach(traceContext);
 
         ITraceSpan span = traceContext.currentSpan()
                                       .newChildSpan("filter")

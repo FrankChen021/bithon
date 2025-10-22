@@ -27,7 +27,7 @@
     <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE"/>
   </Match>
   <Match>
-    <Class name="org.bithon.agent.instrumentation.aop.advice.ConstructorAfterAdvice"/>
+    <Class name="org.bithon.agent.instrumentation.aop.advice.AfterConstructorAdvice"/>
     <Bug pattern="UWF_UNWRITTEN_FIELD"/>
   </Match>
   <Match>
