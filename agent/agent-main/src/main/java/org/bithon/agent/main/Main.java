@@ -16,10 +16,12 @@
 
 package org.bithon.agent.main;
 
+import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
 import org.bithon.agent.instrumentation.utils.JarLocator;
 
+import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
@@ -51,6 +53,15 @@ public class Main {
         // agent-main.jar is located under agent directory,
         // So its parent is the right directory of the agent
         AgentDirectory.setRoot(JarLocator.locate(Main.class.getName()).getParentFile());
+
+        //
+        // agent-instrumentation.jar should be on the boot-class-path
+        // check if agent is deployed correctly
+        //
+        File bootstrapDirectory = AgentDirectory.getSubDirectory("boot");
+        if (!new File(bootstrapDirectory, "agent-instrumentation.jar").exists()) {
+            throw new AgentException("agent-instrumentation.jar is not on boot class path");
+        }
 
         Class<?> starterClass = AgentClassLoader.getClassLoader().loadClass("org.bithon.agent.starter.AgentStarter");
         Object starterObject = starterClass.getDeclaredConstructor().newInstance();
