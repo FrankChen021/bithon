@@ -163,10 +163,6 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
         if (!(injected instanceof HttpServerContext)) {
             return;
         }
-        ITraceContext traceContext = ((HttpServerContext) injected).getTraceContext();
-        if (traceContext == null) {
-            return;
-        }
 
         final long start = aopContext.getStartNanoTime();
         BiConsumer<Void, Throwable> onSuccessOrError = (t, throwable) -> {
