@@ -31,14 +31,32 @@
       "query": {
         "type": "timeseries",
         "dataSource": "zookeeper-client-metrics",
-        "fields": ["qps", "totalCount"]
+        "fields": [
+          {
+            "name": "qps",
+            "expression": "round(sum(totalCount)/{interval}, 2)"
+          },
+          {
+            "name": "totalCount",
+            "expression": "sum(totalCount)"
+          }
+        ]
       },
       "details": {
         "columns": ["operation", "status", "server", "totalCount", "qps"],
         "query": {
           "dataSource": "zookeeper-client-metrics",
           "type": "groupBy",
-          "fields": ["qps", "totalCount"],
+          "fields": [
+            {
+              "name": "qps",
+              "expression": "round(sum(totalCount)/{interval}, 2)"
+            },
+            {
+              "name": "totalCount",
+              "expression": "sum(totalCount)"
+            }
+          ],
           "groupBy": ["operation", "status", "server"],
           "orderBy": {
             "name": "totalCount",
@@ -61,7 +79,20 @@
       "query": {
         "dataSource": "zookeeper-client-metrics",
         "type": "timeseries",
-        "fields": ["minResponseTime", "avgResponseTime", "maxResponseTime"]
+        "fields": [
+          {
+            "name": "minResponseTime",
+            "expression": "min(minResponseTime)"
+          },
+          {
+            "name": "avgResponseTime",
+            "expression": "round(sum(responseTime) * 1.0 /sum(totalCount),2)"
+          },
+          {
+            "name": "maxResponseTime",
+            "expression": "max(maxResponseTime)"
+          }
+        ]
       },
       "details": {
         "columns": [
@@ -85,7 +116,24 @@
         "query": {
           "dataSource": "zookeeper-client-metrics",
           "type": "groupBy",
-          "fields": ["totalCount", "minResponseTime", "avgResponseTime", "maxResponseTime"],
+          "fields": [
+            {
+              "name": "totalCount",
+              "expression": "sum(totalCount)"
+            },
+            {
+              "name": "minResponseTime",
+              "expression": "min(minResponseTime)"
+            },
+            {
+              "name": "avgResponseTime",
+              "expression": "round(sum(responseTime) * 1.0 /sum(totalCount),2)"
+            },
+            {
+              "name": "maxResponseTime",
+              "expression": "max(maxResponseTime)"
+            }
+          ],
           "groupBy": ["operation", "status", "server"],
           "orderBy": {
             "name": "avgResponseTime",
@@ -108,14 +156,36 @@
       "query": {
         "type": "timeseries",
         "dataSource": "zookeeper-client-metrics",
-        "fields": ["bytesSent", "bytesReceived"]
+        "fields": [
+          {
+            "name": "bytesSent",
+            "expression": "sum(bytesSent)"
+          },
+          {
+            "name": "bytesReceived",
+            "expression": "sum(bytesReceived)"
+          }
+        ]
       },
       "details": {
         "columns": ["operation", "status", "server", "totalCount", "bytesSent", "bytesReceived"],
         "query": {
           "dataSource": "zookeeper-client-metrics",
           "type": "groupBy",
-          "fields": ["totalCount", "bytesSent", "bytesReceived"],
+          "fields": [
+            {
+              "name": "totalCount",
+              "expression": "sum(totalCount)"
+            },
+            {
+              "name": "bytesSent",
+              "expression": "sum(bytesSent)"
+            },
+            {
+              "name": "bytesReceived",
+              "expression": "sum(bytesReceived)"
+            }
+          ],
           "groupBy": ["operation", "status", "server"],
           "orderBy": {
             "name": "totalCount",

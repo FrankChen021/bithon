@@ -66,15 +66,30 @@
         "dataSource": "jvm-metrics",
         "type": "groupBy",
         "fields": [
-          "processors",
-          "instanceStartTime",
-          "instanceUpTime",
+          {
+            "name": "processors",
+            "expression": "last(processors)"
+          },
+          {
+            "name": "instanceStartTime",
+            "expression": "last(instanceStartTime)"
+          },
+          {
+            "name": "instanceUpTime",
+            "expression": "last(instanceUpTime)"
+          },
           {
             "name": "heapUsed",
-            "expression": "round(last(heapUsed) * 100.0/last(heapMax), 2)"
+            "expression": "round(last(heapUsed) * 100.0/max(heapMax), 2)"
           },
-          "heapMax",
-          "processCpuLoad"
+          {
+            "name": "heapMax",
+            "expression": "max(heapMax)"
+          },
+          {
+            "name": "processCpuLoad",
+            "expression": "avg(processCpuLoad)"
+          }
         ],
         "groupBy": ["appName", "instanceName"],
         "orderBy": {
@@ -91,7 +106,7 @@
       "width": 2,
       "type": "line",
       "legend": {
-        "placement": "bottom",
+        "placement": "inside",
         "values": ["min", "max", "avg"]
       },
       "columns": [
@@ -111,14 +126,13 @@
         "fields": [
           {
             "name": "processCpuLoad",
-            "aggregator": "last"
+            "expression": "avg(processCpuLoad)"
           },
           {
             "name": "processors",
             "expression": "last(processors)"
           }
         ],
-        "groupBy": ["instanceName"],
         "precondition": {
           "filters": ["appName"]
         }
@@ -141,11 +155,11 @@
         "fields": [
           {
             "name": "activeThreads",
-            "aggregator": "last"
+            "expression": "last(activeThreads)"
           },
           {
             "name": "totalThreads",
-            "aggregator": "last"
+            "expression": "last(totalThreads)"
           }
         ]
       }
@@ -182,15 +196,15 @@
         "fields": [
           {
             "name": "heapUsed",
-            "aggregator": "last"
+            "expression": "last(heapUsed)"
           },
           {
             "name": "heapMax",
-            "aggregator": "last"
+            "expression": "last(heapMax)"
           },
           {
             "name": "heapCommitted",
-            "aggregator": "last"
+            "expression": "last(heapCommitted)"
           }
         ]
       }
@@ -227,15 +241,15 @@
         "fields": [
           {
             "name": "nonHeapUsed",
-            "aggregator": "last"
+            "expression": "last(nonHeapUsed)"
           },
           {
             "name": "nonHeapMax",
-            "aggregator": "last"
+            "expression": "last(nonHeapMax)"
           },
           {
             "name": "nonHeapCommitted",
-            "aggregator": "last"
+            "expression": "last(nonHeapCommitted)"
           }
         ]
       }
@@ -272,15 +286,15 @@
         "fields": [
           {
             "name": "metaspaceUsed",
-            "aggregator": "last"
+            "expression": "last(metaspaceUsed)"
           },
           {
             "name": "metaspaceMax",
-            "aggregator": "last"
+            "expression": "last(metaspaceMax)"
           },
           {
             "name": "metaspaceCommitted",
-            "aggregator": "last"
+            "expression": "last(metaspaceCommitted)"
           }
         ]
       }
@@ -312,11 +326,11 @@
         "fields": [
           {
             "name": "directUsed",
-            "aggregator": "last"
+            "expression": "last(directUsed)"
           },
           {
             "name": "directMax",
-            "aggregator": "last"
+            "expression": "last(directMax)"
           }
         ]
       }
@@ -342,7 +356,16 @@
       "query": {
         "type": "timeseries",
         "dataSource": "jvm-gc-metrics",
-        "fields": ["gcCount", "avgGcTime"],
+        "fields": [
+          {
+            "name": "gcCount",
+            "expression": "sum(gcCount)"
+          },
+          {
+            "name": "avgGcTime",
+            "expression": "sum(gcTime)/sum(gcCount)"
+          }
+        ],
         "groupBy": ["gcName"],
         "filter": "generation in ('new', 'ZGC Cycles', 'ZGC Pauses', 'ZGC Minor Cycles', 'ZGC Minor Pauses')"
       }
@@ -371,7 +394,7 @@
         "fields": [
           {
             "name": "gcCount",
-            "aggregator": "sum"
+            "expression": "sum(gcCount)"
           },
           {
             "name": "avgGcTime",

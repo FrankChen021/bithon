@@ -34,7 +34,16 @@
       "query": {
         "type": "timeseries",
         "dataSource": "quartz-metrics",
-        "fields": ["successfulCount", "exceptionCount"]
+        "fields": [
+          {
+            "name": "successfulCount",
+            "expression": "sum(successfulCount)"
+          },
+          {
+            "name": "exceptionCount",
+            "expression": "sum(exceptionCount)"
+          }
+        ]
       },
 
       "details": {

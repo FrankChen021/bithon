@@ -6,7 +6,15 @@
       {
         "type": "datasource",
         "name": "exception-metrics",
-        "fields": [{ "name": "appName", "width": 200, "allowClear": false }, "instanceName", "exceptionClass"]
+        "fields": [
+          {
+            "name": "appName",
+            "width": 200,
+            "allowClear": false
+          },
+          "instanceName",
+          "exceptionClass"
+        ]
       }
     ],
     "showFilterInput": true
@@ -31,7 +39,12 @@
       "query": {
         "dataSource": "exception-metrics",
         "type": "timeseries",
-        "fields": ["eventCount"],
+        "fields": [
+          {
+            "name": "eventCount",
+            "expression": "sum(eventCount)"
+          }
+        ],
         "bucketCount": 30
       }
     },
@@ -39,12 +52,25 @@
       "title": "Top 5 instances",
       "width": 2,
       "type": "table",
-      "columns": ["instanceName", { "name": "eventCount", "title": "exceptionCount" }],
+      "columns": [
+        "instanceName",
+        {
+          "name": "eventCount",
+          "title": "exceptionCount"
+        }
+      ],
       "query": {
         "dataSource": "exception-metrics",
         "type": "groupBy",
-        "fields": ["eventCount"],
-        "groupBy": ["instanceName"],
+        "fields": [
+          {
+            "name": "eventCount",
+            "expression": "sum(eventCount)"
+          }
+        ],
+        "groupBy": [
+          "instanceName"
+        ],
         "limit": 5,
         "orderBy": {
           "name": "eventCount",
@@ -56,12 +82,25 @@
       "title": "Top 5 Exceptions",
       "width": 2,
       "type": "table",
-      "columns": ["exceptionClass", { "name": "eventCount", "title": "exceptionCount" }],
+      "columns": [
+        "exceptionClass",
+        {
+          "name": "eventCount",
+          "title": "exceptionCount"
+        }
+      ],
       "query": {
         "dataSource": "exception-metrics",
         "type": "groupBy",
-        "fields": ["eventCount"],
-        "groupBy": ["exceptionClass"],
+        "fields": [
+          {
+            "name": "eventCount",
+            "expression": "sum(eventCount)"
+          }
+        ],
+        "groupBy": [
+          "exceptionClass"
+        ],
         "limit": 5,
         "orderBy": {
           "name": "eventCount",
@@ -95,11 +134,23 @@
           "format": "detail"
         }
       ],
-      "pagination": [50, 100, 500],
+      "pagination": [
+        50,
+        100,
+        500
+      ],
       "query": {
         "dataSource": "exception-metrics",
         "type": "list",
-        "fields": ["timestamp", "instanceName", "thread", "traceId", "exceptionClass", "message", "stack"],
+        "fields": [
+          "timestamp",
+          "instanceName",
+          "thread",
+          "traceId",
+          "exceptionClass",
+          "message",
+          "stack"
+        ],
         "orderBy": {
           "name": "timestamp",
           "order": "asc"

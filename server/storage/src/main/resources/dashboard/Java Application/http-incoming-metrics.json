@@ -61,15 +61,27 @@
       "query": {
         "dataSource": "http-incoming-metrics",
         "type": "groupBy",
-        "fields": ["qps", "totalCount", "errorCount", "minResponseTime", "avgResponseTime", "maxResponseTime"],
+        "fields": [
+          {"name": "qps",             "expression": "round(sum(totalCount)/{interval}, 2)"},
+          {"name": "totalCount",      "expression": "sum(totalCount)"},
+          {"name": "errorCount",      "expression": "sum(errorCount)"},
+          {"name": "minResponseTime", "expression": "min(minResponseTime)"},
+          {"name": "avgResponseTime", "expression": "round(sum(responseTime) * 1.0 /sum(totalCount),2)"},
+          {"name": "maxResponseTime", "expression": "max(maxResponseTime)"}
+        ],
         "limit": 10,
-        "groupBy": ["appName", "uri"],
+        "groupBy": [
+          "appName",
+          "uri"
+        ],
         "orderBy": {
           "name": "totalCount",
           "order": "desc"
         },
         "precondition": {
-          "filters": ["appName"]
+          "filters": [
+            "appName"
+          ]
         }
       }
     },
@@ -88,26 +100,43 @@
       "query": {
         "type": "timeseries",
         "dataSource": "http-incoming-metrics",
-        "fields": ["qps", "okQPS", "totalCount"]
-      },
-      "details": {
-        "columns": ["method", "uri", "statusCode", "totalCount", "qps"],
-        "query": {
-          "dataSource": "http-incoming-metrics",
-          "fields": ["qps", "totalCount"],
-          "groupBy": ["method", "uri", "statusCode"],
-          "orderBy": {
-            "name": "totalCount",
-            "order": "desc"
+        "fields": [
+          {"name": "qps",         "expression": "round(sum(totalCount)/{interval}, 2)"},
+          {"name": "okQPS",       "expression": "round(sum(okCount)/{interval}, 2)"},
+          {"name": "totalCount",  "expression": "sum(totalCount)"}
+        ],
+        "details": {
+          "columns": [
+            "method",
+            "uri",
+            "statusCode",
+            "totalCount",
+            "qps"
+          ],
+          "query": {
+            "dataSource": "http-incoming-metrics",
+            "fields": [
+              {"name": "qps",         "expression": "round(sum(totalCount)/{interval}, 2)"},
+              {"name": "totalCount",  "expression": "sum(totalCount)"}
+            ],
+            "groupBy": [
+              "method",
+              "uri",
+              "statusCode"
+            ],
+            "orderBy": {
+              "name": "totalCount",
+              "order": "desc"
+            },
+            "limit": 15
           },
-          "limit": 15
-        },
-        "tracing": {
-          "mappings": {
-            "uri": "url",
-            "statusCode": "status"
-          },
-          "filter": "kind = 'SERVER'"
+          "tracing": {
+            "mappings": {
+              "uri": "url",
+              "statusCode": "status"
+            },
+            "filter": "kind = 'SERVER'"
+          }
         }
       }
     },
@@ -120,11 +149,19 @@
           "format": "nanosecond"
         }
       ],
-      "columns": ["minResponseTime", "avgResponseTime", "maxResponseTime"],
+      "columns": [
+        "minResponseTime",
+        "avgResponseTime",
+        "maxResponseTime"
+      ],
       "query": {
         "dataSource": "http-incoming-metrics",
         "type": "timeseries",
-        "fields": ["minResponseTime", "avgResponseTime", "maxResponseTime"]
+        "fields": [
+          {"name": "minResponseTime", "expression": "min(minResponseTime)"},
+          {"name": "avgResponseTime", "expression": "round(sum(responseTime) * 1.0 /sum(totalCount),2)"},
+          {"name": "maxResponseTime", "expression": "max(maxResponseTime)"}
+        ]
       },
       "details": {
         "columns": [
@@ -148,8 +185,17 @@
         "query": {
           "dataSource": "http-incoming-metrics",
           "type": "groupBy",
-          "fields": ["totalCount", "minResponseTime", "avgResponseTime", "maxResponseTime"],
-          "groupBy": ["method", "uri", "statusCode"],
+          "fields": [
+            {"name": "totalCount",      "expression": "sum(totalCount)"},
+            {"name": "minResponseTime", "expression": "min(minResponseTime)"},
+            {"name": "avgResponseTime", "expression": "round(sum(responseTime) * 1.0 /sum(totalCount),2)"},
+            {"name": "maxResponseTime", "expression": "max(maxResponseTime)"}
+          ],
+          "groupBy": [
+            "method",
+            "uri",
+            "statusCode"
+          ],
           "orderBy": {
             "name": "avgResponseTime",
             "order": "desc"
@@ -169,19 +215,40 @@
       "title": "Errors",
       "width": 4,
       "type": "line",
-      "columns": ["count4xx", "count5xx", "flowedCount", "degradedCount"],
+      "columns": [
+        "count4xx",
+        "count5xx",
+        "flowedCount",
+        "degradedCount"
+      ],
       "query": {
         "dataSource": "http-incoming-metrics",
         "type": "timeseries",
-        "fields": ["count4xx", "count5xx", "flowedCount", "degradedCount"]
+        "fields": [
+          {"name": "count4xx",     "expression": "sum(count4xx)"},
+          {"name": "count5xx",     "expression": "sum(count5xx)"},
+          {"name": "flowedCount",  "expression": "sum(flowedCount)"},
+          {"name": "degradedCount", "expression": "sum(degradedCount)"}
+        ]
       },
       "details": {
         "dataSource": "http-incoming-metrics",
-        "columns": ["method", "uri", "statusCode", "totalCount"],
+        "columns": [
+          "method",
+          "uri",
+          "statusCode",
+          "totalCount"
+        ],
         "query": {
           "type": "groupBy",
-          "fields": ["totalCount"],
-          "groupBy": ["method", "uri", "statusCode"],
+          "fields": [
+            {"name" : "totalCount", "expression": "sum(totalCount)"}
+          ],
+          "groupBy": [
+            "method",
+            "uri",
+            "statusCode"
+          ],
           "orderBy": {
             "name": "totalCount",
             "order": "desc"
@@ -225,7 +292,12 @@
       "query": {
         "dataSource": "http-incoming-metrics",
         "type": "timeseries",
-        "fields": ["requestByteRate", "responseByteRate", "requestBytes", "responseBytes"]
+        "fields": [
+          {"name": "requestByteRate",  "expression": "round(sum(requestBytes)/{interval}, 2)"},
+          {"name": "responseByteRate", "expression": "round(sum(responseBytes)/{interval}, 2)"},
+          {"name": "requestBytes",     "expression": "sum(requestBytes)"},
+          {"name": "responseBytes"  ,  "expression": "sum(responseBytes)"}
+        ]
       },
       "details": {
         "columns": [
@@ -244,8 +316,16 @@
         ],
         "query": {
           "type": "groupBy",
-          "fields": ["totalCount", "requestByteRate", "responseByteRate"],
-          "groupBy": ["method", "uri", "statusCode"],
+          "fields": [
+            {"name": "totalCount",       "expression": "sum(totalCount)"},
+            {"name": "requestByteRate",  "expression": "round(sum(requestBytes)/{interval}, 2)"},
+            {"name": "responseByteRate", "expression": "round(sum(responseBytes)/{interval}, 2)"}
+          ],
+          "groupBy": [
+            "method",
+            "uri",
+            "statusCode"
+          ],
           "orderBy": {
             "name": "requestByteRate",
             "order": "desc"

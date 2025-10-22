@@ -28,7 +28,12 @@
       "query": {
         "type": "timeseries",
         "dataSource": "thread-pool-metrics",
-        "fields": ["poolCount"]
+        "fields": [
+          {
+            "name": "poolCount",
+            "expression": "last(poolCount)"
+          }
+        ]
       }
     },
     {
@@ -39,7 +44,16 @@
       "query": {
         "type": "timeseries",
         "dataSource": "thread-pool-metrics",
-        "fields": ["activeThreads", "currentPoolSize"]
+        "fields": [
+          {
+            "name": "activeThreads",
+            "expression": "last(activeThreads)"
+          },
+          {
+            "name": "currentPoolSize",
+            "expression": "last(currentPoolSize)"
+          }
+        ]
       }
     },
     {
@@ -50,7 +64,24 @@
       "query": {
         "type": "timeseries",
         "dataSource": "thread-pool-metrics",
-        "fields": ["totalTaskCount", "successfulTaskCount", "queuedTaskCount", "exceptionTaskCount"]
+        "fields": [
+          {
+            "name": "totalTaskCount",
+            "expression": "sum(totalTaskCount)"
+          },
+          {
+            "name": "successfulTaskCount",
+            "expression": "sum(successfulTaskCount)"
+          },
+          {
+            "name": "queuedTaskCount",
+            "expression": "last(queuedTaskCount)"
+          },
+          {
+            "name": "exceptionTaskCount",
+            "expression": "sum(exceptionTaskCount)"
+          }
+        ]
       },
       "details": {
         "columns": [
@@ -64,7 +95,24 @@
         "query": {
           "type": "groupBy",
           "dataSource": "thread-pool-metrics",
-          "fields": ["totalTaskCount", "successfulTaskCount", "queuedTaskCount", "exceptionTaskCount"],
+          "fields": [
+            {
+              "name": "totalTaskCount",
+              "expression": "sum(totalTaskCount)"
+            },
+            {
+              "name": "successfulTaskCount",
+              "expression": "sum(successfulTaskCount)"
+            },
+            {
+              "name": "queuedTaskCount",
+              "expression": "last(queuedTaskCount)"
+            },
+            {
+              "name": "exceptionTaskCount",
+              "expression": "sum(exceptionTaskCount)"
+            }
+          ],
           "groupBy": ["executorClass", "poolName"],
           "orderBy": {
             "name": "totalTaskCount",
@@ -86,7 +134,20 @@
       "query": {
         "type": "timeseries",
         "dataSource": "thread-pool-metrics",
-        "fields": ["minDuration", "avgDuration", "maxDuration"],
+        "fields": [
+          {
+            "name": "minDuration",
+            "expression": "min(minDuration)"
+          },
+          {
+            "name": "avgDuration",
+            "expression": "round(sum(duration) * 1.0 /sum(totalTaskCount),2)"
+          },
+          {
+            "name": "maxDuration",
+            "expression": "max(maxDuration)"
+          }
+        ],
         "filter": "totalTaskCount > 0"
       },
       "details": {
@@ -110,7 +171,24 @@
         "query": {
           "type": "groupBy",
           "dataSource": "thread-pool-metrics",
-          "fields": ["totalTaskCount", "minDuration", "avgDuration", "maxDuration"],
+          "fields": [
+            {
+              "name": "totalTaskCount",
+              "expression": "sum(totalTaskCount)"
+            },
+            {
+              "name": "minDuration",
+              "expression": "min(minDuration)"
+            },
+            {
+              "name": "avgDuration",
+              "expression": "round(sum(duration) * 1.0 /sum(totalTaskCount),2)"
+            },
+            {
+              "name": "maxDuration",
+              "expression": "max(maxDuration)"
+            }
+          ],
           "groupBy": ["executorClass", "poolName"],
           "filter": "totalTaskCount > 0",
           "orderBy": {
@@ -139,12 +217,30 @@
         "type": "timeseries",
         "dataSource": "thread-pool-metrics",
         "fields": [
-          "totalRejectedCount",
-          "callerRunTaskCount",
-          "abortedTaskCount",
-          "discardedTaskCount",
-          "discardedOldestTaskCount",
-          "userRejectedPolicyCount"
+          {
+            "name": "totalRejectedCount",
+            "expression": "sum(totalRejectedCount)"
+          },
+          {
+            "name": "callerRunTaskCount",
+            "expression": "sum(callerRunTaskCount)"
+          },
+          {
+            "name": "abortedTaskCount",
+            "expression": "sum(abortedTaskCount)"
+          },
+          {
+            "name": "discardedTaskCount",
+            "expression": "sum(discardedTaskCount)"
+          },
+          {
+            "name": "discardedOldestTaskCount",
+            "expression": "sum(discardedOldestTaskCount)"
+          },
+          {
+            "name": "userRejectedPolicyCount",
+            "expression": "sum(userRejectedPolicyCount)"
+          }
         ]
       },
       "details": {
@@ -180,12 +276,30 @@
           "type": "groupBy",
           "dataSource": "thread-pool-metrics",
           "fields": [
-            "totalRejectedCount",
-            "callerRunTaskCount",
-            "abortedTaskCount",
-            "discardedTaskCount",
-            "discardedOldestTaskCount",
-            "userRejectedPolicyCount"
+            {
+              "name": "totalRejectedCount",
+              "expression": "sum(totalRejectedCount)"
+            },
+            {
+              "name": "callerRunTaskCount",
+              "expression": "sum(callerRunTaskCount)"
+            },
+            {
+              "name": "abortedTaskCount",
+              "expression": "sum(abortedTaskCount)"
+            },
+            {
+              "name": "discardedTaskCount",
+              "expression": "sum(discardedTaskCount)"
+            },
+            {
+              "name": "discardedOldestTaskCount",
+              "expression": "sum(discardedOldestTaskCount)"
+            },
+            {
+              "name": "userRejectedPolicyCount",
+              "expression": "sum(userRejectedPolicyCount)"
+            }
           ],
           "groupBy": ["executorClass", "poolName"],
           "filter": "totalRejectedCount > 0",

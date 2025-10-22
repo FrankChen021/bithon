@@ -38,13 +38,31 @@
       "query": {
         "type": "timeseries",
         "dataSource": "sql-metrics",
-        "fields": ["tps", "callCount"]
+        "fields": [
+          {
+            "name": "tps",
+            "expression": "round(sum(callCount)/{interval}, 2)"
+          },
+          {
+            "name": "callCount",
+            "expression": "sum(callCount)"
+          }
+        ]
       },
       "details": {
         "columns": ["database", "sqlType", "tps", "callCount"],
         "query": {
           "type": "groupBy",
-          "fields": ["tps", "callCount"],
+          "fields": [
+            {
+              "name": "tps",
+              "expression": "round(sum(callCount)/{interval}, 2)"
+            },
+            {
+              "name": "callCount",
+              "expression": "sum(callCount)"
+            }
+          ],
           "groupBy": ["database", "sqlType"],
           "orderBy": {
             "name": "callCount",
@@ -72,7 +90,20 @@
       "query": {
         "type": "timeseries",
         "dataSource": "sql-metrics",
-        "fields": ["minResponseTime", "avgResponseTime", "maxResponseTime"]
+        "fields": [
+          {
+            "name": "minResponseTime",
+            "expression": "min(minResponseTime)"
+          },
+          {
+            "name": "avgResponseTime",
+            "expression": "round(sum(responseTime) * 1.0 /sum(callCount),2)"
+          },
+          {
+            "name": "maxResponseTime",
+            "expression": "max(maxResponseTime)"
+          }
+        ]
       },
       "details": {
         "columns": [
@@ -94,7 +125,24 @@
         ],
         "query": {
           "type": "groupBy",
-          "fields": ["callCount", "minResponseTime", "avgResponseTime", "maxResponseTime"],
+          "fields": [
+            {
+              "name": "callCount",
+              "expression": "sum(callCount)"
+            },
+            {
+              "name": "minResponseTime",
+              "expression": "min(minResponseTime)"
+            },
+            {
+              "name": "avgResponseTime",
+              "expression": "round(sum(responseTime) * 1.0 /sum(callCount),2)"
+            },
+            {
+              "name": "maxResponseTime",
+              "expression": "max(maxResponseTime)"
+            }
+          ],
           "groupBy": ["database", "sqlType"],
           "orderBy": {
             "name": "avgResponseTime",
@@ -116,7 +164,12 @@
       "query": {
         "type": "timeseries",
         "dataSource": "sql-metrics",
-        "fields": ["bytesOut"]
+        "fields": [
+          {
+            "name": "bytesOut",
+            "expression": "sum(bytesOut)"
+          }
+        ]
       },
       "details": {
         "columns": [
@@ -129,7 +182,12 @@
         ],
         "query": {
           "type": "groupBy",
-          "fields": ["bytesOut"],
+          "fields": [
+            {
+              "name": "bytesOut",
+              "expression": "sum(bytesOut)"
+            }
+          ],
           "groupBy": ["database", "sqlType"],
           "orderBy": {
             "name": "bytesOut",

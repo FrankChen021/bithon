@@ -19,7 +19,16 @@
       "query": {
         "type": "timeseries",
         "dataSource": "web-server-metrics",
-        "fields": ["connectionCount", "maxConnections"]
+        "fields": [
+          {
+            "name": "connectionCount",
+            "expression": "last(connectionCount)"
+          },
+          {
+            "name": "maxConnections",
+            "expression": "last(maxConnections)"
+          }
+        ]
       }
     },
     {
@@ -30,7 +39,12 @@
       "query": {
         "type": "timeseries",
         "dataSource": "web-server-metrics",
-        "fields": ["queueSize"]
+        "fields": [
+          {
+            "name": "queueSize",
+            "expression": "last(queueSize)"
+          }
+        ]
       }
     },
     {
@@ -41,7 +55,20 @@
       "query": {
         "type": "timeseries",
         "dataSource": "web-server-metrics",
-        "fields": ["activeThreads", "pooledThreads", "maxThreads"]
+        "fields": [
+          {
+            "name": "activeThreads",
+            "expression": "last(activeThreads)"
+          },
+          {
+            "name": "pooledThreads",
+            "expression": "last(pooledThreads)"
+          },
+          {
+            "name": "maxThreads",
+            "expression": "last(maxThreads)"
+          }
+        ]
       }
     }
   ]

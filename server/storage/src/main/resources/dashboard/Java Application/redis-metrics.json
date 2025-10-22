@@ -26,13 +26,31 @@
       "query": {
         "type": "timeseries",
         "dataSource": "redis-metrics",
-        "fields": ["qps", "totalCount"]
+        "fields": [
+          {
+            "name": "qps",
+            "expression": "round(sum(totalCount)/{interval}, 2)"
+          },
+          {
+            "name": "totalCount",
+            "expression": "sum(totalCount)"
+          }
+        ]
       },
       "details": {
         "columns": ["uri", "command", "qps", "totalCount"],
         "query": {
           "type": "groupBy",
-          "fields": ["qps", "totalCount"],
+          "fields": [
+            {
+              "name": "qps",
+              "expression": "round(sum(totalCount)/{interval}, 2)"
+            },
+            {
+              "name": "totalCount",
+              "expression": "sum(totalCount)"
+            }
+          ],
           "groupBy": ["uri", "command"],
           "orderBy": {
             "name": "totalCount",
@@ -61,7 +79,20 @@
       "query": {
         "type": "timeseries",
         "dataSource": "redis-metrics",
-        "fields": ["minResponseTime", "avgResponseTime", "maxResponseTime"]
+        "fields": [
+          {
+            "name": "minResponseTime",
+            "expression": "min(minResponseTime)"
+          },
+          {
+            "name": "avgResponseTime",
+            "expression": "round(sum(responseTime) * 1.0 /sum(totalCount),2)"
+          },
+          {
+            "name": "maxResponseTime",
+            "expression": "max(maxResponseTime)"
+          }
+        ]
       }
     },
     {
@@ -101,7 +132,24 @@
       "query": {
         "type": "timeseries",
         "dataSource": "redis-metrics",
-        "fields": ["requestByteRate", "responseByteRate", "requestBytes", "responseBytes"]
+        "fields": [
+          {
+            "name": "requestByteRate",
+            "expression": "round(sum(requestBytes)/{interval}, 2)"
+          },
+          {
+            "name": "responseByteRate",
+            "expression": "round(sum(responseBytes)/{interval}, 2)"
+          },
+          {
+            "name": "requestBytes",
+            "expression": "sum(requestBytes)"
+          },
+          {
+            "name": "responseBytes",
+            "expression": "sum(responseBytes)"
+          }
+        ]
       }
     }
   ]

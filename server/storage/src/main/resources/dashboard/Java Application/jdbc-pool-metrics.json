@@ -20,11 +20,11 @@
         "type": "timeseries",
         "dataSource": "jdbc-pool-metrics",
         "fields": [
-          { "name": "activeCount", "aggregator": "last" },
-          { "name": "poolingCount", "aggregator": "sum" },
-          { "name": "createCount", "aggregator": "sum" },
-          { "name": "destroyCount", "aggregator": "sum" },
-          { "name": "waitThreadCount", "aggregator": "last" }
+          { "name": "activeCount", "expression": "last(activeCount)" },
+          { "name": "poolingCount", "expression": "last(poolingCount)" },
+          { "name": "createCount", "expression": "last(createCount)" },
+          { "name": "destroyCount", "expression": "last(destroyCount)" },
+          { "name": "waitThreadCount", "expression": "last(waitThreadCount)" }
         ]
       }
     },
@@ -36,7 +36,24 @@
       "query": {
         "type": "timeseries",
         "dataSource": "jdbc-pool-metrics",
-        "fields": ["executeCount", "startTransactionCount", "commitCount", "rollbackCount"]
+        "fields": [
+          {
+            "name": "executeCount",
+            "expression": "sum(executeCount)"
+          },
+          {
+            "name": "startTransactionCount",
+            "expression": "sum(startTransactionCount)"
+          },
+          {
+            "name": "commitCount",
+            "expression": "sum(commitCount)"
+          },
+          {
+            "name": "rollbackCount",
+            "expression": "sum(rollbackCount)"
+          }
+        ]
       }
     }
   ]
