@@ -90,7 +90,7 @@ public class ServiceStreamingInvocationRunnable implements Runnable {
                 public void onNext(Object data) {
                     try {
                         // Check channel status before sending
-                        if (!channel.isActive() || !channel.isWritable()) {
+                        if (!channel.isActive()) {
                             // Channel is closed - mark as cancelled and return instead of throwing
                             streamingContext.markCancelled();
                             return;
