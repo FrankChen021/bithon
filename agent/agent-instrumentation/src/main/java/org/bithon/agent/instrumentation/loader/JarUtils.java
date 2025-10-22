@@ -29,15 +29,8 @@ import java.util.jar.JarFile;
  */
 public final class JarUtils {
 
-    public static URL getClassURL(JarFile jar, String className) throws IOException {
-        return new URL("jar:file:" + jar.getName() + "!/" + className);
-    }
-
-    public static byte[] openClassFile(JarFile jar, String className) throws IOException {
-        URL classURL = getClassURL(jar, className);
-        try (InputStream inputStream = classURL.openStream()) {
-            return toByte(inputStream);
-        }
+    public static URL getClassURL(JarFile jar, String classPath) throws IOException {
+        return new URL("jar:file:" + jar.getName() + "!/" + classPath);
     }
 
     public static byte[] toByte(InputStream input) throws IOException {
