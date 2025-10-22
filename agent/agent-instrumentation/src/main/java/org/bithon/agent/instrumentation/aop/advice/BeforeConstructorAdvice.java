@@ -17,6 +17,7 @@
 package org.bithon.agent.instrumentation.aop.advice;
 
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.bithon.agent.instrumentation.aop.context.AopContextImpl;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AbstractInterceptor;
@@ -33,6 +34,7 @@ public class BeforeConstructorAdvice {
     /**
      * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class
      */
+    @SuppressFBWarnings("DLS_DEAD_LOCAL_STORE")
     @Advice.OnMethodEnter
     public static void onEnter(@AdviceAnnotation.InterceptorName String name,
                                @AdviceAnnotation.InterceptorIndex int index,
