@@ -55,14 +55,6 @@ public class Query {
     private final QuerySettings settings;
     private final ResultFormat resultFormat;
     private final boolean isAggregateQuery;
-    
-    public enum ResultFormat {
-        /**
-         * Object is output as an array
-         */
-        ValueArray,
-        Object
-    }
 
     public Query(ISchema schema,
                  List<Selector> selectors,

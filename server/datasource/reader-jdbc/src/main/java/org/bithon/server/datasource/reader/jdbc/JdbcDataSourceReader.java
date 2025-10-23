@@ -33,6 +33,7 @@ import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ReadResponse;
+import org.bithon.server.datasource.query.ResultFormat;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
 import org.bithon.server.datasource.query.setting.QuerySettings;
@@ -232,7 +233,7 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         return limit == null ? null : new LimitClause(limit.getLimit(), limit.getOffset());
     }
 
-    protected ReadResponse execute(SelectStatement selectStatement, Query.ResultFormat resultFormat) {
+    protected ReadResponse execute(SelectStatement selectStatement, ResultFormat resultFormat) {
         List<ColumnMetadata> columns = selectStatement.getSelectorList()
                                                       .getSelectors()
                                                       .stream()
@@ -249,8 +250,8 @@ public class JdbcDataSourceReader implements IDataSourceReader {
                                 columns);
     }
 
-    private Function<Record, ?> createRecordMapper(Query.ResultFormat format) {
-        if (format == Query.ResultFormat.ValueArray) {
+    public static Function<Record, ?> createRecordMapper(ResultFormat format) {
+        if (format == ResultFormat.ValueArray) {
             return (record) -> {
                 int colSize = record.size();
                 Object[] rowObject = new Object[colSize];

@@ -37,6 +37,7 @@ import org.bithon.server.datasource.expression.ExpressionASTBuilder;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
+import org.bithon.server.datasource.query.ResultFormat;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
@@ -200,7 +201,7 @@ public class QueryConverter {
                     .limit(query.getLimit())
                     .offset(query.getOffset())
                     .settings(query.getSettings())
-                    .resultFormat(query.getResultFormat() == null ? Query.ResultFormat.Object : query.getResultFormat())
+                    .resultFormat(query.getResultFormat() == null ? ResultFormat.Object : query.getResultFormat())
                     .build();
     }
 

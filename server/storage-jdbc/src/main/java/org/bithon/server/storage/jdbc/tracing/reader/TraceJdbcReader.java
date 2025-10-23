@@ -42,11 +42,11 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Interval;
-import org.bithon.server.datasource.query.Limit;
 import org.bithon.server.datasource.query.Order;
-import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ReadResponse;
+import org.bithon.server.datasource.query.ResultFormat;
+import org.bithon.server.datasource.query.ast.Column;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
@@ -75,17 +75,17 @@ import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
-import org.jooq.SelectSeekStep1;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.Function;
 
 /**
  * @author frank.chen021@outlook.com
@@ -426,77 +426,93 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     protected ReadResponse select(Query query) {
+        // TODO: compatible with old
+//        Field<?> orderField;
+//        if ("costTime".equals(orderBy.getName())) {
+//            orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS : Tables.BITHON_TRACE_SPAN.COSTTIMEMS;
+//        } else if ("startTime".equals(orderBy.getName())) {
+//            orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.COSTTIMEMS;
+//        } else {
+//            orderField = Arrays.stream((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).fields())
+//                               .filter((f) -> f.getName().equals(orderBy.getName()))
+//                               .findFirst().orElse(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.COSTTIMEMS);
+//        }
+//
         TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
         splitter.split(query.getFilter());
 
-        IExpression filter = splitter.getExpression();
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .schema(query.getSchema())
+                                                                .fields(query.getSelectors())
+                                                                .filter(splitter.getExpression())
+                                                                .interval(query.getInterval())
+                                                                .groupBy(query.getGroupBy())
+                                                                .orderBy(query.getOrderBy())
+                                                                .offset(query.getOffset())
+                                                                .sqlDialect(this.sqlDialect)
+                                                                .querySettings(query.getSettings())
+                                                                .buildSelectStatement();
+
+        // Build the indexed tag sub query
         List<IExpression> indexedTagFilter = splitter.getIndexedTagFilters();
-        Timestamp start = query.getInterval().getStartTime().toTimestamp();
-        Timestamp end = query.getInterval().getEndTime().toTimestamp();
-        OrderBy orderBy = query.getOrderBy();
-        Limit limit = query.getLimit();
+        if (CollectionUtils.isNotEmpty(indexedTagFilter)) {
+            SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.sqlDialect).dslContext(this.dslContext)
+                                                                                                              .start(query.getInterval().getStartTime().toTimestamp().toLocalDateTime())
+                                                                                                              .end(query.getInterval().getEndTime().toTimestamp().toLocalDateTime())
+                                                                                                              .build(indexedTagFilter);
+            Condition subQuery = TraceTableSchema.TRACE_SPAN_SUMMARY_SCHEMA_NAME.equals(query.getSchema().getName()) ? Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID.in(indexedTagQuery) : Tables.BITHON_TRACE_SPAN.TRACEID.in(indexedTagQuery);
+            String subQueryText = dslContext.renderInlined(subQuery);
 
-        boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
+            selectStatement.getWhere().and(new IExpression() {
+                @Override
+                public IDataType getDataType() {
+                    return null;
+                }
 
-        Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
+                @Override
+                public String getType() {
+                    return "";
+                }
 
-        IdentifierExpression tsColumn = new IdentifierExpression(timestampField.getName());
-        IExpression tsExpression = new LogicalExpression.AND(new ComparisonExpression.GTE(tsColumn, sqlDialect.toISO8601TimestampExpression(start)),
-                                                             new ComparisonExpression.LT(tsColumn, sqlDialect.toISO8601TimestampExpression(end)));
+                @Override
+                public Object evaluate(IEvaluationContext context) {
+                    return null;
+                }
 
-        // NOTE:
-        // 1. Here use selectFrom(String) instead of use selectFrom(table) because we want to use the raw objects returned by underlying JDBC
-        // 2. If the filters contain a filter that matches the ROOT kind, then the search is built upon the summary table
-        SelectConditionStep<Record> listQuery = dslContext.selectFrom(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.getUnqualifiedName().quotedName() : Tables.BITHON_TRACE_SPAN.getUnqualifiedName().quotedName())
-                                                          .where(sqlDialect.createSqlSerializer(null).serialize(tsExpression));
+                @Override
+                public void accept(IExpressionInDepthVisitor visitor) {
 
-        if (filter != null) {
-            listQuery = listQuery.and(Expression2Sql.from((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).getName(),
-                                                          sqlDialect,
-                                                          filter));
+                }
+
+                @Override
+                public <T> T accept(IExpressionVisitor<T> visitor) {
+                    return null;
+                }
+
+                @Override
+                public void serializeToText(ExpressionSerializer serializer) {
+                    serializer.append(subQueryText);
+                }
+            });
         }
 
-        // Build the tag query
-        if (CollectionUtils.isNotEmpty(indexedTagFilter)) {
-            SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.sqlDialect)
-                .dslContext(this.dslContext)
-                .start(start.toLocalDateTime())
-                .end(end.toLocalDateTime())
-                .build(indexedTagFilter);
+        String sql = selectStatement.toSQL(this.sqlDialect);
+        log.info("Get trace list: {}", sql);
 
-            if (isOnSummaryTable) {
-                listQuery = listQuery.and(Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID.in(indexedTagQuery));
-            } else {
-                listQuery = listQuery.and(Tables.BITHON_TRACE_SPAN.TRACEID.in(indexedTagQuery));
+        int tagIndex = -1;
+        List<Selector> selectors = selectStatement.getSelectorList().getSelectors();
+        for (int i = 0; i < selectors.size(); i++) {
+            Selector selector = selectors.get(i);
+            if ("attributes".equals(((Column) selector.getSelectExpression()).getName())) {
+                tagIndex = i;
+                break;
             }
         }
 
-        Field<?> orderField;
-        if ("costTime".equals(orderBy.getName())) {
-            orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS : Tables.BITHON_TRACE_SPAN.COSTTIMEMS;
-        } else if ("startTime".equals(orderBy.getName())) {
-            orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.COSTTIMEMS;
-        } else {
-            orderField = Arrays.stream((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).fields())
-                               .filter((f) -> f.getName().equals(orderBy.getName()))
-                               .findFirst().orElse(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.COSTTIMEMS);
-        }
-
-        SelectSeekStep1<?, ?> orderedListQuery;
-        if (Order.desc.equals(orderBy.getOrder())) {
-            orderedListQuery = listQuery.orderBy(orderField.desc());
-        } else {
-            orderedListQuery = listQuery.orderBy(orderField.asc());
-        }
-
-        String sql = toSQL(orderedListQuery.offset(limit.getOffset())
-                                           .limit(limit.getLimit()));
-        log.info("Get trace list: {}", sql);
-
         Cursor<Record> cursor = dslContext.fetchLazy(sql);
-        CloseableIterator<TraceSpan> iterator = CloseableIterator.transform(cursor.iterator(),
-                                                                            this::toTraceSpan,
-                                                                            cursor);
+        CloseableIterator<?> iterator = CloseableIterator.transform(cursor.iterator(),
+                                                                    createTraceSpanMapper(query.getResultFormat(), tagIndex),
+                                                                    cursor);
 
         return ReadResponse.builder()
                            .columns(query.getSelectors()
@@ -505,6 +521,35 @@ public class TraceJdbcReader implements ITraceReader {
                                          .toList())
                            .data(iterator)
                            .build();
+    }
+
+    protected Function<Record, ?> createTraceSpanMapper(ResultFormat format, int tagIndex) {
+        if (format == ResultFormat.ValueArray) {
+            return (record) -> {
+                int colSize = record.size();
+                Object[] rowObject = new Object[colSize];
+                for (int i = 0; i < colSize; i++) {
+                    rowObject[i] = record.get(i);
+                }
+                if (tagIndex >= 0 && tagIndex < colSize) {
+                    rowObject[tagIndex] = toTagMap(rowObject[tagIndex]);
+                }
+                return rowObject;
+            };
+        } else { // If not given or Object, default to Object
+            return (record) -> {
+                Map<String, Object> rowObject = new LinkedHashMap<>(record.size());
+                for (int i = 0, size = record.size(); i < size; i++) {
+                    Field<?> field = record.field(i);
+                    Object val = record.get(i);
+                    if (i == tagIndex) {
+                        val = toTagMap(val);
+                    }
+                    rowObject.put(field.getName(), val);
+                }
+                return rowObject;
+            };
+        }
     }
 
     @Override
