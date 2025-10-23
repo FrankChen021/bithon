@@ -165,27 +165,6 @@ public class VMDataSourceReader implements IDataSourceReader {
     }
 
     @Override
-    public ReadResponse select(Query query) {
-        CloseableIterator<?> emptyIterator = new CloseableIterator<>() {
-            @Override
-            public void close() {
-            }
-
-            @Override
-            public boolean hasNext() {
-                return false;
-            }
-
-            @Override
-            public Object next() {
-                return null;
-            }
-        };
-
-        return new ReadResponse(emptyIterator, List.of());
-    }
-
-    @Override
     public int count(Query query) {
         return 0;
     }

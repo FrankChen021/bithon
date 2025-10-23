@@ -36,8 +36,6 @@ public interface IDataSourceReader extends AutoCloseable {
      */
     ReadResponse query(Query query);
 
-    ReadResponse select(Query query);
-
     int count(Query query);
 
     List<String> distinct(Query query);

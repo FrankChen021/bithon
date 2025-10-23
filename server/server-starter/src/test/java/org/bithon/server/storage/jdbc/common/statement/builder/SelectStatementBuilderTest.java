@@ -16,15 +16,8 @@
 
 package org.bithon.server.storage.jdbc.common.statement.builder;
 
-import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IDataType;
-import org.bithon.component.commons.expression.IdentifierExpression;
-import org.bithon.component.commons.expression.LiteralExpression;
-import org.bithon.component.commons.expression.LogicalExpression;
-import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.utils.HumanReadableDuration;
-import org.bithon.component.commons.utils.HumanReadableNumber;
-import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.DefaultSchema;
@@ -34,14 +27,10 @@ import org.bithon.server.datasource.column.ExpressionColumn;
 import org.bithon.server.datasource.column.StringColumn;
 import org.bithon.server.datasource.column.aggregatable.last.AggregateLongLastColumn;
 import org.bithon.server.datasource.column.aggregatable.sum.AggregateLongSumColumn;
-import org.bithon.server.datasource.expression.ExpressionASTBuilder;
 import org.bithon.server.datasource.query.IDataSourceReader;
-import org.bithon.server.datasource.query.Interval;
+import org.bithon.server.datasource.query.Limit;
 import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
-import org.bithon.server.datasource.query.ast.Alias;
-import org.bithon.server.datasource.query.ast.ExpressionNode;
-import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.clickhouse.AggregateFunctionColumn;
 import org.bithon.server.datasource.reader.clickhouse.ClickHouseSqlDialect;
@@ -53,6 +42,10 @@ import org.bithon.server.datasource.reader.jdbc.statement.builder.SelectStatemen
 import org.bithon.server.datasource.reader.mysql.MySQLSqlDialect;
 import org.bithon.server.datasource.reader.postgresql.PostgreSqlDialect;
 import org.bithon.server.datasource.store.IDataStoreSpec;
+import org.bithon.server.web.service.datasource.api.IntervalRequest;
+import org.bithon.server.web.service.datasource.api.QueryField;
+import org.bithon.server.web.service.datasource.api.QueryRequest;
+import org.bithon.server.web.service.datasource.api.impl.QueryConverter;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -60,7 +53,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -138,13 +131,16 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testSimpleAggregation_GroupBy() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("t", "totalCount", null, "sum(totalCount)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .groupBy(new LinkedHashSet<>(List.of("appName")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "sum(totalCount)"), new Alias("t"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .groupBy(List.of("appName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
@@ -166,15 +162,16 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testExpressionInAggregation_GroupBy() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("t", "totalCount", null, "sum(totalCount*2)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .groupBy(new LinkedHashSet<>(List.of("appName")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
-                                                                    schema,
-                                                                    "sum(totalCount*2)"), new Alias("t"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .groupBy(List.of("appName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
@@ -196,18 +193,19 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testSimpleAggregation_TimeSeries() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        IntervalRequest intervalRequest = IntervalRequest.builder()
+                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                         .step(10)
+                                                         .bucketByTimestamp(true)
+                                                         .build();
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("totalCount", "totalCount", null, "sum(totalCount)")))
+                                                .interval(intervalRequest)
+                                                .groupBy(new LinkedHashSet<>(List.of("appName")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, intervalRequest.calculateStep()))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
-                                                                    schema,
-                                                                    "sum(totalCount)"), new Alias("totalCount"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
-                                                                                      Duration.ofSeconds(10),
-                                                                                      new IdentifierExpression("timestamp")
-                                                                ))
-                                                                .groupBy(List.of("appName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
@@ -234,30 +232,31 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testPostAggregation_GroupBy() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("avg", "responseTime", null, "sum(responseTime*2)/sum(totalCount)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .groupBy(new LinkedHashSet<>(List.of("appName", "instance")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
-                                                                    schema,
-                                                                    "sum(responseTime*2)/sum(totalCount)"), new Alias("avg"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .groupBy(List.of("appName", "instanceName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
                                     SELECT "appName",
-                                           "instanceName",
+                                           "instance",
                                            CASE WHEN ( "sum_totalCount" <> 0 ) THEN ( "_var0" / "sum_totalCount" ) ELSE ( 0 ) END AS "avg"
                                     FROM
                                     (
                                       SELECT "appName",
-                                             "instanceName",
+                                             "instance",
                                              sum("responseTime" * 2) AS "_var0",
                                              sum("totalCount") AS "sum_totalCount"
                                       FROM "bithon_http_incoming_metrics"
                                       WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
-                                      GROUP BY "appName", "instanceName"
+                                      GROUP BY "appName", "instance"
                                     )
                                     """.trim(),
                                 selectStatement.toSQL(h2Dialect));
@@ -268,7 +267,7 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
 
-        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals("instance", selectStatement.getSelectorList().get(1).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
 
         Assertions.assertEquals("avg", selectStatement.getSelectorList().get(2).getOutputName());
@@ -277,31 +276,31 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testPostAggregation_GroupBy_NestedFunction() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("avg", "responseTime", null, "round(round(sum(responseTime)/sum(totalCount),2), 2)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .groupBy(new LinkedHashSet<>(List.of("appName", "instance")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
-                                                                    schema,
-                                                                    "round(round(sum(responseTime)/sum(totalCount),2), 2)"),
-                                                                                                               new Alias("avg"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .groupBy(List.of("appName", "instanceName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
                                     SELECT "appName",
-                                           "instanceName",
+                                           "instance",
                                            round(round(CASE WHEN ( "sum_totalCount" <> 0 ) THEN ( "sum_responseTime" / "sum_totalCount" ) ELSE ( 0 ) END, 2), 2) AS "avg"
                                     FROM
                                     (
                                       SELECT "appName",
-                                             "instanceName",
+                                             "instance",
                                              sum("responseTime") AS "sum_responseTime",
                                              sum("totalCount") AS "sum_totalCount"
                                       FROM "bithon_http_incoming_metrics"
                                       WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
-                                      GROUP BY "appName", "instanceName"
+                                      GROUP BY "appName", "instance"
                                     )
                                     """.trim(),
                                 selectStatement.toSQL(h2Dialect));
@@ -312,7 +311,7 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
 
-        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals("instance", selectStatement.getSelectorList().get(1).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
 
         Assertions.assertEquals("avg", selectStatement.getSelectorList().get(2).getOutputName());
@@ -321,32 +320,36 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testPostAggregation_TimeSeries() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        IntervalRequest intervalRequest = IntervalRequest.builder()
+                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                         .step(10)
+                                                         .bucketByTimestamp(true)
+                                                         .build();
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("avg", "responseTime", null, "sum(responseTime)/sum(totalCount)")))
+                                                .interval(intervalRequest)
+                                                .groupBy(new LinkedHashSet<>(List.of("appName", "instance")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, intervalRequest.calculateStep()))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
-                                                                                      Duration.ofSeconds(10),
-                                                                                      new IdentifierExpression("timestamp")))
-                                                                .groupBy(List.of("appName", "instanceName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
                                            "appName",
-                                           "instanceName",
+                                           "instance",
                                            CASE WHEN ( "sum_totalCount" <> 0 ) THEN ( "sum_responseTime" / "sum_totalCount" ) ELSE ( 0 ) END AS "avg"
                                     FROM
                                     (
                                       SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
                                              "appName",
-                                             "instanceName",
+                                             "instance",
                                              sum("responseTime") AS "sum_responseTime",
                                              sum("totalCount") AS "sum_totalCount"
                                       FROM "bithon_http_incoming_metrics"
                                       WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
-                                      GROUP BY "appName", "instanceName", "_timestamp"
+                                      GROUP BY "appName", "instance", "_timestamp"
                                     )
                                     """.trim(),
                                 selectStatement.toSQL(h2Dialect));
@@ -360,7 +363,7 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals("appName", selectStatement.getSelectorList().get(1).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
 
-        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals("instance", selectStatement.getSelectorList().get(2).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(2).getDataType());
 
         Assertions.assertEquals("avg", selectStatement.getSelectorList().get(3).getOutputName());
@@ -369,41 +372,44 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testPostAggregation_TimeSeries_DifferentWindowAndInterval_HasGroupBy() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        IntervalRequest intervalRequest = IntervalRequest.builder()
+                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:05.000+0800"))
+                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:05.000+0800"))
+                                                         .step(10)
+                                                         .bucketByTimestamp(true)
+                                                         .window(HumanReadableDuration.parse("5m"))
+                                                         .build();
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("avg", "responseTime", null, "sum(responseTime)/sum(totalCount)")))
+                                                .interval(intervalRequest)
+                                                .groupBy(new LinkedHashSet<>(List.of("appName", "instance")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, intervalRequest.calculateStep()))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:05.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:05.000+0800"),
-                                                                                      Duration.ofSeconds(10),
-                                                                                      // 5 minutes window
-                                                                                      HumanReadableDuration.parse("5m"),
-                                                                                      new IdentifierExpression("timestamp")))
-                                                                .groupBy(List.of("appName", "instanceName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
                                            "appName",
-                                           "instanceName",
+                                           "instance",
                                            CASE WHEN ( "sum_totalCount" <> 0 ) THEN ( "sum_responseTime" / "sum_totalCount" ) ELSE ( 0 ) END AS "avg"
                                     FROM
                                     (
                                       SELECT "_timestamp",
                                              "appName",
-                                             "instanceName",
-                                             sum("sum_responseTime") OVER (PARTITION BY "appName", "instanceName" ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "sum_responseTime",
-                                             sum("sum_totalCount") OVER (PARTITION BY "appName", "instanceName" ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "sum_totalCount"
+                                             "instance",
+                                             sum("sum_responseTime") OVER (PARTITION BY "appName", "instance" ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "sum_responseTime",
+                                             sum("sum_totalCount") OVER (PARTITION BY "appName", "instance" ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "sum_totalCount"
                                       FROM
                                       (
                                         SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
                                                "appName",
-                                               "instanceName",
+                                               "instance",
                                                sum("responseTime") AS "sum_responseTime",
                                                sum("totalCount") AS "sum_totalCount"
                                         FROM "bithon_http_incoming_metrics"
                                         WHERE ("timestamp" >= '2024-07-26T21:17:05.000+08:00') AND ("timestamp" < '2024-07-26T21:32:05.000+08:00')
-                                        GROUP BY "appName", "instanceName", "_timestamp"
+                                        GROUP BY "appName", "instance", "_timestamp"
                                       )
                                       WHERE ("_timestamp" >= 1722000120) AND ("_timestamp" < 1722000725)
                                     )
@@ -419,7 +425,7 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals("appName", selectStatement.getSelectorList().get(1).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
 
-        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals("instance", selectStatement.getSelectorList().get(2).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(2).getDataType());
 
         Assertions.assertEquals("avg", selectStatement.getSelectorList().get(3).getOutputName());
@@ -428,16 +434,19 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testPostAggregation_TimeSeries_DifferentWindowAndInterval_NoGroupBy() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        IntervalRequest intervalRequest = IntervalRequest.builder()
+                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:05.000+0800"))
+                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:05.000+0800"))
+                                                         .step(10)
+                                                         .bucketByTimestamp(true)
+                                                         .window(HumanReadableDuration.parse("5m"))
+                                                         .build();
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("avg", "responseTime", null, "sum(responseTime)/sum(totalCount)")))
+                                                .interval(intervalRequest)
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, intervalRequest.calculateStep()))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:05.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:05.000+0800"),
-                                                                                      Duration.ofSeconds(10),
-                                                                                      // 5 minutes window
-                                                                                      HumanReadableDuration.parse("5m"),
-                                                                                      new IdentifierExpression("timestamp")))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
@@ -474,28 +483,31 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testPostFunctionExpression_GroupBy() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("avg", "responseTime", null, "round(sum(responseTime)/sum(totalCount), 2)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .groupBy(new LinkedHashSet<>(List.of("appName", "instance")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "round(sum(responseTime)/sum(totalCount), 2)"), new Alias("avg"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .groupBy(List.of("appName", "instanceName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
                                     SELECT "appName",
-                                           "instanceName",
+                                           "instance",
                                            round(CASE WHEN ( "sum_totalCount" <> 0 ) THEN ( "sum_responseTime" / "sum_totalCount" ) ELSE ( 0 ) END, 2) AS "avg"
                                     FROM
                                     (
                                       SELECT "appName",
-                                             "instanceName",
+                                             "instance",
                                              sum("responseTime") AS "sum_responseTime",
                                              sum("totalCount") AS "sum_totalCount"
                                       FROM "bithon_http_incoming_metrics"
                                       WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
-                                      GROUP BY "appName", "instanceName"
+                                      GROUP BY "appName", "instance"
                                     )
                                     """.trim(),
                                 selectStatement.toSQL(h2Dialect));
@@ -506,7 +518,7 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
 
-        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals("instance", selectStatement.getSelectorList().get(1).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
 
         Assertions.assertEquals("avg", selectStatement.getSelectorList().get(2).getOutputName());
@@ -515,37 +527,36 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testDuplicateAggregations() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(
+                                                    new QueryField("errorCount", "count4xx", null, "sum(count4xx) + sum(count5xx)"),
+                                                    new QueryField("errorRate", "count4xx", null, "round((sum(count4xx) + sum(count5xx))*100.0/sum(totalCount), 2)")
+                                                ))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .groupBy(new LinkedHashSet<>(List.of("appName", "instance")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(List.of(new Selector(new ExpressionNode(schema,
-                                                                                                                "sum(count4xx) + sum(count5xx)"),
-                                                                                             new Alias("errorCount")),
-                                                                                new Selector(new ExpressionNode(schema,
-                                                                                                                "round((sum(count4xx) + sum(count5xx))*100.0/sum(totalCount), 2)"),
-                                                                                             new Alias("errorRate"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
-                                                                .groupBy(List.of("appName", "instanceName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
                                     SELECT "appName",
-                                           "instanceName",
+                                           "instance",
                                            "sum_count4xx" + "sum_count5xx" AS "errorCount",
                                            round(CASE WHEN ( "sum_totalCount" <> 0 ) THEN ( (("sum_count4xx" + "sum_count5xx") * 100.0) / "sum_totalCount" ) ELSE ( 0 ) END, 2) AS "errorRate"
                                     FROM
                                     (
                                       SELECT "appName",
-                                             "instanceName",
+                                             "instance",
                                              sum("count4xx") AS "sum_count4xx",
                                              sum("count5xx") AS "sum_count5xx",
                                              sum("totalCount") AS "sum_totalCount"
                                       FROM "bithon_http_incoming_metrics"
                                       WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
-                                      GROUP BY "appName", "instanceName"
+                                      GROUP BY "appName", "instance"
                                     )
                                     """.trim(),
                                 selectStatement.toSQL(h2Dialect));
@@ -556,7 +567,7 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
 
-        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals("instance", selectStatement.getSelectorList().get(1).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
 
         Assertions.assertEquals("errorCount", selectStatement.getSelectorList().get(2).getOutputName());
@@ -568,32 +579,32 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testWindowFunction_GroupBy() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("a", "activeThreads", null, "first(activeThreads)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .groupBy(new LinkedHashSet<>(List.of("appName", "instance")))
+                                                .filterExpression("a > 5")
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
-                                                                    schema,
-                                                                    "first(activeThreads)"), new Alias("a"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .groupBy(List.of("appName", "instanceName"))
-                                                                .filter(new ComparisonExpression.GT(new IdentifierExpression(
-                                                                    "a"), new LiteralExpression.LongLiteral(5)))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
                                     SELECT "appName",
-                                           "instanceName",
+                                           "instance",
                                            "a"
                                     FROM
                                     (
                                       SELECT "appName",
-                                             "instanceName",
+                                             "instance",
                                              FIRST_VALUE("activeThreads") OVER (PARTITION BY (UNIX_TIMESTAMP("timestamp") / 600) * 600 ORDER BY "timestamp" ASC) AS "a"
                                       FROM "bithon_http_incoming_metrics"
                                       WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                     )
-                                    GROUP BY "appName", "instanceName", "a"
+                                    GROUP BY "appName", "instance", "a"
                                     HAVING "a" > 5
                                     """.trim(),
                                 selectStatement.toSQL(h2Dialect));
@@ -604,7 +615,7 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
 
-        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals("instance", selectStatement.getSelectorList().get(1).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
 
         Assertions.assertEquals("a", selectStatement.getSelectorList().get(2).getOutputName());
@@ -613,26 +624,29 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testWindowFunction_GroupBy_NoUseWindowAggregator_CK() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(
+                                                    new QueryField("a", "activeThreads", null, "first(activeThreads)"),
+                                                    new QueryField("b", "activeThreads", null, "last(activeThreads)")
+                                                ))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .groupBy(new LinkedHashSet<>(List.of("appName", "instance")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(List.of(
-                                                                    new Selector(new ExpressionNode(schema, "first(activeThreads)"), new Alias("a")),
-                                                                    new Selector(new ExpressionNode(schema, "last(activeThreads)"), new Alias("b")))
-                                                                )
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .groupBy(List.of("appName", "instanceName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
                                     SELECT "appName",
-                                           "instanceName",
+                                           "instance",
                                            argMin("activeThreads", "timestamp") AS "a",
                                            argMax("activeThreads", "timestamp") AS "b"
                                     FROM "bithon_http_incoming_metrics"
                                     WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720))
-                                    GROUP BY "appName", "instanceName"
+                                    GROUP BY "appName", "instance"
                                     """.trim(),
                                 selectStatement.toSQL(clickHouseDialect));
 
@@ -642,7 +656,7 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
 
-        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals("instance", selectStatement.getSelectorList().get(1).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
 
         Assertions.assertEquals("a", selectStatement.getSelectorList().get(2).getOutputName());
@@ -663,29 +677,33 @@ public class SelectStatementBuilderTest {
 
             TimeSpan start = TimeSpan.fromISO8601("2024-07-26T21:22:03.000+0800");
             TimeSpan end = TimeSpan.fromISO8601("2024-07-26T21:32:04.000+0800");
-            SelectStatement selectStatement = SelectStatementBuilder.builder()
+            IntervalRequest intervalRequest = IntervalRequest.builder()
+                                                             .startISO8601(start)
+                                                             .endISO8601(end)
+                                                             .build();
+            QueryRequest queryRequest = QueryRequest.builder()
+                                                    .fields(List.of(
+                                                        new QueryField("a", "activeThreads", null, "first(activeThreads)"),
+                                                        new QueryField("b", "activeThreads", null, "last(activeThreads)")
+                                                    ))
+                                                    .interval(intervalRequest)
+                                                    .groupBy(new LinkedHashSet<>(List.of("appName", "instance")))
+                                                    .settings(QuerySettings.builder()
+                                                                           .floorTimestampFilterGranularity(granularity)
+                                                                           .build())
+                                                    .build();
+            SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                     .sqlDialect(clickHouseDialect)
-                                                                    .fields(List.of(
-                                                                        new Selector(new ExpressionNode(schema, "first(activeThreads)"), new Alias("a")),
-                                                                        new Selector(new ExpressionNode(schema, "last(activeThreads)"), new Alias("b")))
-                                                                    )
-                                                                    .interval(Interval.of(start, end))
-                                                                    .groupBy(List.of("appName", "instanceName"))
-                                                                    .schema(schema)
-                                                                    // Set the time filter granularity to 60 seconds
-                                                                    .querySettings(QuerySettings.builder()
-                                                                                                .floorTimestampFilterGranularity(granularity)
-                                                                                                .build())
                                                                     .build();
 
             Assertions.assertEquals(StringUtils.format("""
                                                            SELECT "appName",
-                                                                  "instanceName",
+                                                                  "instance",
                                                                   argMin("activeThreads", "timestamp") AS "a",
                                                                   argMax("activeThreads", "timestamp") AS "b"
                                                            FROM "bithon_http_incoming_metrics"
                                                            WHERE (%s("timestamp") >= fromUnixTimestamp(%d)) AND (%s("timestamp") < fromUnixTimestamp(%d))
-                                                           GROUP BY "appName", "instanceName"
+                                                           GROUP BY "appName", "instance"
                                                            """.trim(),
                                                        function,
                                                        start.floor(Duration.ofSeconds(granularity)).getSeconds(),
@@ -698,39 +716,36 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testWindowFunction_TimeSeries() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        IntervalRequest intervalRequest = IntervalRequest.builder()
+                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                         .step(10)
+                                                         .bucketByTimestamp(true)
+                                                         .build();
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("activeThreads", "activeThreads", null, "first(activeThreads)")))
+                                                .interval(intervalRequest)
+                                                .groupBy(new LinkedHashSet<>(List.of("appName", "instance")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, intervalRequest.calculateStep()))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
-                                                                    schema,
-                                                                    "first(activeThreads)"),
-                                                                                                               new Alias(
-                                                                                                                   "activeThreads"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800"),
-                                                                                      Duration.ofSeconds(10),
-                                                                                      new IdentifierExpression(
-                                                                                          "timestamp")))
-                                                                .groupBy(List.of("appName", "instanceName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
                                            "appName",
-                                           "instanceName",
+                                           "instance",
                                            "activeThreads"
                                     FROM
                                     (
                                       SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
                                              "appName",
-                                             "instanceName",
+                                             "instance",
                                              FIRST_VALUE("activeThreads") OVER (PARTITION BY (UNIX_TIMESTAMP("timestamp") / 600) * 600 ORDER BY "timestamp" ASC) AS "activeThreads"
                                       FROM "bithon_http_incoming_metrics"
                                       WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                     )
-                                    GROUP BY "appName", "instanceName", "activeThreads", "_timestamp"
+                                    GROUP BY "appName", "instance", "activeThreads", "_timestamp"
                                     """.trim(),
                                 selectStatement.toSQL(h2Dialect));
 
@@ -743,7 +758,7 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals("appName", selectStatement.getSelectorList().get(1).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
 
-        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals("instance", selectStatement.getSelectorList().get(2).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(2).getDataType());
 
         Assertions.assertEquals("activeThreads", selectStatement.getSelectorList().get(3).getOutputName());
@@ -752,37 +767,38 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testWindowFunction_WithAggregator_H2() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("ratio", "activeThreads", null, "first(activeThreads)/sum(totalThreads)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .groupBy(new LinkedHashSet<>(List.of("appName", "instance")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
-                                                                    schema,
-                                                                    "first(activeThreads)/sum(totalThreads)"), new Alias("ratio"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .groupBy(List.of("appName", "instanceName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
                                     SELECT "appName",
-                                           "instanceName",
+                                           "instance",
                                            CASE WHEN ( "sum_totalThreads" <> 0 ) THEN ( "first_activeThreads" / "sum_totalThreads" ) ELSE ( 0 ) END AS "ratio"
                                     FROM
                                     (
                                       SELECT "appName",
-                                             "instanceName",
+                                             "instance",
                                              "first_activeThreads",
                                              sum("totalThreads") AS "sum_totalThreads"
                                       FROM
                                       (
                                         SELECT "appName",
-                                               "instanceName",
+                                               "instance",
                                                FIRST_VALUE("activeThreads") OVER (PARTITION BY (UNIX_TIMESTAMP("timestamp") / 600) * 600 ORDER BY "timestamp" ASC) AS "first_activeThreads",
                                                "totalThreads"
                                         FROM "bithon_http_incoming_metrics"
                                         WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                       )
-                                      GROUP BY "appName", "instanceName", "first_activeThreads"
+                                      GROUP BY "appName", "instance", "first_activeThreads"
                                     )
                                     """.trim(),
                                 selectStatement.toSQL(h2Dialect));
@@ -793,7 +809,7 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
 
-        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals("instance", selectStatement.getSelectorList().get(1).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
 
         Assertions.assertEquals("ratio", selectStatement.getSelectorList().get(2).getOutputName());
@@ -802,28 +818,31 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testWindowFunction_WithAggregator_CK() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("ratio", "activeThreads", null, "first(activeThreads)/sum(totalThreads)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .groupBy(new LinkedHashSet<>(List.of("appName", "instance")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "first(activeThreads)/sum(totalThreads)"), new Alias("ratio"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .groupBy(List.of("appName", "instanceName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
                                     SELECT "appName",
-                                           "instanceName",
+                                           "instance",
                                            "first_activeThreads" / "sum_totalThreads" AS "ratio"
                                     FROM
                                     (
                                       SELECT "appName",
-                                             "instanceName",
+                                             "instance",
                                              argMin("activeThreads", "timestamp") AS "first_activeThreads",
                                              sum("totalThreads") AS "sum_totalThreads"
                                       FROM "bithon_http_incoming_metrics"
                                       WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720))
-                                      GROUP BY "appName", "instanceName"
+                                      GROUP BY "appName", "instance"
                                     )
                                     """.trim(),
                                 selectStatement.toSQL(clickHouseDialect));
@@ -834,7 +853,7 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
 
-        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals("instance", selectStatement.getSelectorList().get(1).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
 
         Assertions.assertEquals("ratio", selectStatement.getSelectorList().get(2).getOutputName());
@@ -843,41 +862,38 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testWindowFunctionAfterAggregator() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("daemon", "totalThreads", null, "sum(totalThreads) - first(activeThreads)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .groupBy(new LinkedHashSet<>(List.of("appName", "instance")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
-                                                                    schema,
-                                                                    "sum(totalThreads) - first(activeThreads)"),
-                                                                                                               new Alias(
-                                                                                                                   "daemon"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
-                                                                .groupBy(List.of("appName", "instanceName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
                                     SELECT "appName",
-                                           "instanceName",
+                                           "instance",
                                            "sum_totalThreads" - "first_activeThreads" AS "daemon"
                                     FROM
                                     (
                                       SELECT "appName",
-                                             "instanceName",
+                                             "instance",
                                              sum("totalThreads") AS "sum_totalThreads",
                                              "first_activeThreads"
                                       FROM
                                       (
                                         SELECT "appName",
-                                               "instanceName",
+                                               "instance",
                                                FIRST_VALUE("activeThreads") OVER (PARTITION BY (UNIX_TIMESTAMP("timestamp") / 600) * 600 ORDER BY "timestamp" ASC) AS "first_activeThreads",
                                                "totalThreads"
                                         FROM "bithon_http_incoming_metrics"
                                         WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                       )
-                                      GROUP BY "appName", "instanceName", "first_activeThreads"
+                                      GROUP BY "appName", "instance", "first_activeThreads"
                                     )
                                     """.trim(),
                                 selectStatement.toSQL(h2Dialect));
@@ -888,7 +904,7 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
 
-        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals("instance", selectStatement.getSelectorList().get(1).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
 
         Assertions.assertEquals("daemon", selectStatement.getSelectorList().get(2).getOutputName());
@@ -897,35 +913,38 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testWindowFunctionAfterAggregator_MySQL() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("daemon", "totalThreads", null, "sum(totalThreads) - first(activeThreads)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .groupBy(new LinkedHashSet<>(List.of("appName", "instance")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(mysql)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "sum(totalThreads) - first(activeThreads)"), new Alias("daemon"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .groupBy(List.of("appName", "instanceName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
                                     SELECT `appName`,
-                                           `instanceName`,
+                                           `instance`,
                                            `sum_totalThreads` - `first_activeThreads` AS `daemon`
                                     FROM
                                     (
                                       SELECT `appName`,
-                                             `instanceName`,
+                                             `instance`,
                                              sum(`totalThreads`) AS `sum_totalThreads`,
                                              `first_activeThreads`
                                       FROM
                                       (
                                         SELECT `appName`,
-                                               `instanceName`,
+                                               `instance`,
                                                FIRST_VALUE(`activeThreads`) OVER (PARTITION BY (UNIX_TIMESTAMP(`timestamp`) DIV 600) * 600 ORDER BY `timestamp` ASC) AS `first_activeThreads`,
                                                `totalThreads`
                                         FROM `bithon_http_incoming_metrics`
                                         WHERE (`timestamp` >= '2024-07-26T21:22:00.000+08:00') AND (`timestamp` < '2024-07-26T21:32:00.000+08:00')
                                       ) AS `tbl0`
-                                      GROUP BY `appName`, `instanceName`, `first_activeThreads`
+                                      GROUP BY `appName`, `instance`, `first_activeThreads`
                                     ) AS `tbl1`
                                     """.trim(),
                                 selectStatement.toSQL(mysql));
@@ -936,7 +955,7 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
 
-        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals("instance", selectStatement.getSelectorList().get(1).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
 
         Assertions.assertEquals("daemon", selectStatement.getSelectorList().get(2).getOutputName());
@@ -945,36 +964,40 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testAggregationWithMacroExpression() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        IntervalRequest intervalRequest = IntervalRequest.builder()
+                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                         .step(10)
+                                                         .bucketByTimestamp(true)
+                                                         .build();
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(
+                                                    new QueryField("qps", "totalCount", null, "sum(totalCount)/{interval}"),
+                                                    new QueryField("qpsPerInstance", "totalCount", null, "sum(totalCount)/cardinality(instance)")
+                                                ))
+                                                .interval(intervalRequest)
+                                                .groupBy(new LinkedHashSet<>(List.of("appName", "instance")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, intervalRequest.calculateStep()))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Arrays.asList(
-                                                                    new Selector(new ExpressionNode(schema, "sum(totalCount)/{interval}"), new Alias("qps")),
-                                                                    new Selector(new ExpressionNode(schema, "sum(totalCount)/{instanceCount}"), new Alias("qpsPerInstance"))
-                                                                ))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
-                                                                                      Duration.ofSeconds(10),
-                                                                                      new IdentifierExpression("timestamp")))
-                                                                .groupBy(List.of("appName", "instanceName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
                                            "appName",
-                                           "instanceName",
+                                           "instance",
                                            "sum_totalCount" / 10 AS "qps",
                                            CASE WHEN ( "cardinality_var0" <> 0 ) THEN ( "sum_totalCount" / "cardinality_var0" ) ELSE ( 0 ) END AS "qpsPerInstance"
                                     FROM
                                     (
                                       SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
                                              "appName",
-                                             "instanceName",
+                                             "instance",
                                              sum("totalCount") AS "sum_totalCount",
-                                             count(distinct "instanceName") AS "cardinality_var0"
+                                             count(distinct "instance") AS "cardinality_var0"
                                       FROM "bithon_http_incoming_metrics"
                                       WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
-                                      GROUP BY "appName", "instanceName", "_timestamp"
+                                      GROUP BY "appName", "instance", "_timestamp"
                                     )
                                     """.trim(),
                                 selectStatement.toSQL(h2Dialect));
@@ -988,7 +1011,7 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals("appName", selectStatement.getSelectorList().get(1).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
 
-        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals("instance", selectStatement.getSelectorList().get(2).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(2).getDataType());
 
         Assertions.assertEquals("qps", selectStatement.getSelectorList().get(3).getOutputName());
@@ -1000,17 +1023,20 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testCardinalityAggregation() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("instanceCount", "instance", null, "cardinality(instance)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .groupBy(new LinkedHashSet<>(List.of("appName")))
+                                                .orderBy(OrderBy.builder()
+                                                                .name("appName")
+                                                                .order(Order.asc)
+                                                                .build())
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "cardinality(instance)"), new Alias("instanceCount"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .groupBy(List.of("appName"))
-                                                                .orderBy(OrderBy.builder()
-                                                                                .name("appName")
-                                                                                .order(Order.asc)
-                                                                                .build())
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
@@ -1036,16 +1062,20 @@ public class SelectStatementBuilderTest {
     @Test
     public void testCardinalityAggregation_RewriteToGroupBy_False() {
         // the default behavior is NOT to rewrite distinct count to group by
-        QuerySettings settings = new QuerySettings();
-        settings.setRewriteCardinalityToGroupBy(false);
+        QuerySettings settings = QuerySettings.builder()
+                                              .rewriteCardinalityToGroupBy(false)
+                                              .build();
 
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("instanceCount", "instance", null, "cardinality(instance)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .settings(settings)
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "cardinality(instance)"), new Alias("instanceCount"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .querySettings(settings)
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
@@ -1065,16 +1095,20 @@ public class SelectStatementBuilderTest {
     @Test
     public void testCardinalityAggregation_RewriteToGroupBy_True() {
         // the default behavior is NOT to rewrite distinct count to group by
-        QuerySettings settings = new QuerySettings();
-        settings.setRewriteCardinalityToGroupBy(true);
+        QuerySettings settings = QuerySettings.builder()
+                                              .rewriteCardinalityToGroupBy(true)
+                                              .build();
 
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("instanceCount", "instance", null, "cardinality(instance)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .settings(settings)
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "cardinality(instance)"), new Alias("instanceCount"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .querySettings(settings)
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
@@ -1098,19 +1132,20 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testCountAggregation() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("cnt", "1", null, "count(1)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .groupBy(new LinkedHashSet<>(List.of("appName")))
+                                                .orderBy(OrderBy.builder()
+                                                                .name("appName")
+                                                                .order(Order.asc)
+                                                                .build())
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
-                                                                    schema,
-                                                                    "count(1)"), new Alias("cnt"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .groupBy(List.of("appName"))
-                                                                .orderBy(OrderBy.builder()
-                                                                                .name("appName")
-                                                                                .order(Order.asc)
-                                                                                .build())
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
@@ -1135,30 +1170,21 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testHumanReadableLiteral() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("cnt", "1", null, "count(1)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .filterExpression("totalCount > 1MiB AND totalCount < 1h AND totalCount < 50%")
+                                                .groupBy(new LinkedHashSet<>(List.of("appName")))
+                                                .orderBy(OrderBy.builder()
+                                                                .name("appName")
+                                                                .order(Order.asc)
+                                                                .build())
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
-                                                                    schema,
-                                                                    "count(1)"), new Alias("cnt"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .filter(new LogicalExpression.AND(new ComparisonExpression.GT(new IdentifierExpression("totalCount"),
-                                                                                                                              new LiteralExpression.ReadableNumberLiteral(HumanReadableNumber.of("1MiB"))),
-                                                                                                  new ComparisonExpression.LT(
-                                                                                                      new IdentifierExpression("totalCount"),
-                                                                                                      new LiteralExpression.ReadableDurationLiteral(
-                                                                                                          HumanReadableDuration.parse("1h"))),
-                                                                                                  new ComparisonExpression.LT(
-                                                                                                      new IdentifierExpression("totalCount"),
-                                                                                                      new LiteralExpression.ReadablePercentageLiteral(
-                                                                                                          HumanReadablePercentage.of("50%")))
-                                                                ))
-                                                                .groupBy(List.of("appName"))
-                                                                .orderBy(OrderBy.builder()
-                                                                                .name("appName")
-                                                                                .order(Order.asc)
-                                                                                .build())
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
@@ -1186,36 +1212,32 @@ public class SelectStatementBuilderTest {
      */
     @Test
     public void testPostFilter_UseExpressionVariable() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("avg", "responseTime", null, "sum(responseTime*2)/sum(totalCount)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .filterExpression("appName = 'bithon' AND avg > 0.2")
+                                                .groupBy(new LinkedHashSet<>(List.of("appName", "instance")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "sum(responseTime*2)/sum(totalCount)"), new Alias("avg"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .filter(
-                                                                    new LogicalExpression.AND(
-                                                                        new ComparisonExpression.EQ(new IdentifierExpression("appName"),
-                                                                                                    new LiteralExpression.StringLiteral("bithon")),
-                                                                        new ComparisonExpression.GT(new IdentifierExpression("avg"),
-                                                                                                    new LiteralExpression.DoubleLiteral(0.2))
-                                                                    )
-                                                                )
-                                                                .groupBy(List.of("appName", "instanceName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
                                     SELECT "appName",
-                                           "instanceName",
+                                           "instance",
                                            CASE WHEN ( "sum_totalCount" <> 0 ) THEN ( "_var0" / "sum_totalCount" ) ELSE ( 0 ) END AS "avg"
                                     FROM
                                     (
                                       SELECT "appName",
-                                             "instanceName",
+                                             "instance",
                                              sum("responseTime" * 2) AS "_var0",
                                              sum("totalCount") AS "sum_totalCount"
                                       FROM "bithon_http_incoming_metrics"
                                       WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_http_incoming_metrics"."appName" = 'bithon')
-                                      GROUP BY "appName", "instanceName"
+                                      GROUP BY "appName", "instance"
                                     )
                                     WHERE "avg" > 0.2
                                     """.trim(),
@@ -1227,7 +1249,7 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
 
-        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals("instance", selectStatement.getSelectorList().get(1).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
 
         Assertions.assertEquals("avg", selectStatement.getSelectorList().get(2).getOutputName());
@@ -1239,26 +1261,26 @@ public class SelectStatementBuilderTest {
      */
     @Test
     public void testPostFilter_UseAggregationAliasInFilter() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("cnt", "totalCount", null, "sum(totalCount)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .filterExpression("cnt > 1000")
+                                                .groupBy(new LinkedHashSet<>(List.of("appName", "instance")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
-                                                                    schema,
-                                                                    "sum(totalCount)"), new Alias("cnt"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .filter(new ComparisonExpression.GT(new IdentifierExpression(
-                                                                    "cnt"), new LiteralExpression.LongLiteral(1000)))
-                                                                .groupBy(List.of("appName", "instanceName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
                                     SELECT "appName",
-                                           "instanceName",
+                                           "instance",
                                            sum("totalCount") AS "cnt"
                                     FROM "bithon_http_incoming_metrics"
                                     WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
-                                    GROUP BY "appName", "instanceName"
+                                    GROUP BY "appName", "instance"
                                     HAVING "cnt" > 1000
                                     """.trim(),
                                 selectStatement.toSQL(h2Dialect));
@@ -1269,7 +1291,7 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
 
-        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals("instance", selectStatement.getSelectorList().get(1).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
 
         Assertions.assertEquals("cnt", selectStatement.getSelectorList().get(2).getOutputName());
@@ -1281,26 +1303,26 @@ public class SelectStatementBuilderTest {
      */
     @Test
     public void testPostFilter_UseAggregationFilter() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("totalCount", "totalCount", null, "sum(totalCount)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .filterExpression("totalCount > 1000")
+                                                .groupBy(new LinkedHashSet<>(List.of("appName", "instance")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
-                                                                    schema,
-                                                                    "sum(totalCount)"), new Alias("totalCount"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .filter(new ComparisonExpression.GT(new IdentifierExpression("totalCount"),
-                                                                                                    new LiteralExpression.LongLiteral(1000)))
-                                                                .groupBy(List.of("appName", "instanceName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
                                     SELECT "appName",
-                                           "instanceName",
+                                           "instance",
                                            sum("totalCount") AS "totalCount"
                                     FROM "bithon_http_incoming_metrics"
                                     WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
-                                    GROUP BY "appName", "instanceName"
+                                    GROUP BY "appName", "instance"
                                     HAVING "totalCount" > 1000
                                     """.trim(),
                                 selectStatement.toSQL(h2Dialect));
@@ -1311,7 +1333,7 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
 
-        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals("instance", selectStatement.getSelectorList().get(1).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
 
         Assertions.assertEquals("totalCount", selectStatement.getSelectorList().get(2).getOutputName());
@@ -1320,21 +1342,17 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testPostFilter_FilterNotInTheSelectList_H2() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("totalCount", "totalCount", null, "sum(totalCount)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .filterExpression("avgResponseTime > 5")
+                                                .groupBy(new LinkedHashSet<>(List.of("appName", "instance")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
-                                                                    schema,
-                                                                    "sum(totalCount)"), new Alias("totalCount"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
-                                                                .filter(ExpressionASTBuilder.builder()
-                                                                                            .schema(schema)
-                                                                                            .functions(Functions.getInstance())
-                                                                                            .build("avgResponseTime > 5"))
-                                                                .groupBy(List.of("appName", "instanceName"))
-                                                                .schema(schema)
                                                                 .build();
 
         // NOTE that in the WHERE clause, the rhs is 5.0, however, our input is 5
@@ -1342,18 +1360,18 @@ public class SelectStatementBuilderTest {
         // and there's a type conversion in 'ExpressionTypeValidator'
         Assertions.assertEquals("""
                                     SELECT "appName",
-                                           "instanceName",
+                                           "instance",
                                            "sum_totalCount" AS "totalCount",
                                            CASE WHEN ( "sum_totalCount" <> 0 ) THEN ( "sum_responseTime" / "sum_totalCount" ) ELSE ( 0 ) END AS "avgResponseTime"
                                     FROM
                                     (
                                       SELECT "appName",
-                                             "instanceName",
+                                             "instance",
                                              sum("totalCount") AS "sum_totalCount",
                                              sum("responseTime") AS "sum_responseTime"
                                       FROM "bithon_http_incoming_metrics"
                                       WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
-                                      GROUP BY "appName", "instanceName"
+                                      GROUP BY "appName", "instance"
                                     )
                                     WHERE "avgResponseTime" > 5.0
                                     """.trim(),
@@ -1365,7 +1383,7 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
 
-        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals("instance", selectStatement.getSelectorList().get(1).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
 
         Assertions.assertEquals("totalCount", selectStatement.getSelectorList().get(2).getOutputName());
@@ -1377,21 +1395,17 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testPostFilter_FilterNotInTheSelectList_CK() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("totalCount", "totalCount", null, "sum(totalCount)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .filterExpression("avgResponseTime > 5")
+                                                .groupBy(new LinkedHashSet<>(List.of("appName", "instance")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
-                                                                    schema,
-                                                                    "sum(totalCount)"), new Alias("totalCount"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
-                                                                .filter(ExpressionASTBuilder.builder()
-                                                                                            .schema(schema)
-                                                                                            .functions(Functions.getInstance())
-                                                                                            .build("avgResponseTime > 5"))
-                                                                .groupBy(List.of("appName", "instanceName"))
-                                                                .schema(schema)
                                                                 .build();
 
         // NOTE that in the WHERE clause, the rhs is 5.0, however, our input is 5
@@ -1399,18 +1413,18 @@ public class SelectStatementBuilderTest {
         // and there's a type conversion in 'ExpressionTypeValidator'
         Assertions.assertEquals("""
                                     SELECT "appName",
-                                           "instanceName",
+                                           "instance",
                                            "sum_totalCount" AS "totalCount",
                                            "sum_responseTime" / "sum_totalCount" AS "avgResponseTime"
                                     FROM
                                     (
                                       SELECT "appName",
-                                             "instanceName",
+                                             "instance",
                                              sum("totalCount") AS "sum_totalCount",
                                              sum("responseTime") AS "sum_responseTime"
                                       FROM "bithon_http_incoming_metrics"
                                       WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720))
-                                      GROUP BY "appName", "instanceName"
+                                      GROUP BY "appName", "instance"
                                     )
                                     WHERE "avgResponseTime" > 5.0
                                     """.trim(),
@@ -1422,7 +1436,7 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
 
-        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals("instance", selectStatement.getSelectorList().get(1).getOutputName());
         Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
 
         Assertions.assertEquals("totalCount", selectStatement.getSelectorList().get(2).getOutputName());
@@ -1434,14 +1448,19 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testAggregateFunctionColumn_CK() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(
+                                                    new QueryField("t1", "clickedSum", null, "sum(clickedSum)"),
+                                                    new QueryField("t2", "clickedCnt", null, "count(clickedCnt)")
+                                                ))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .groupBy(new LinkedHashSet<>(List.of("appName")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(Arrays.asList(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1")),
-                                                                                      new Selector(new ExpressionNode(schema, "count(clickedCnt)"), new Alias("t2"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .groupBy(List.of("appName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
@@ -1469,13 +1488,16 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testCountOverCountMergeColumn_CK() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("t1", "clickedSum", null, "count(clickedSum)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .groupBy(new LinkedHashSet<>(List.of("appName")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(List.of(new Selector(new ExpressionNode(schema, "count(clickedSum)"), new Alias("t1"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .groupBy(List.of("appName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
@@ -1499,13 +1521,16 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void testSumOverCountMergeColumn_CK() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("t1", "clickedCnt", null, "sum(clickedCnt)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .groupBy(new LinkedHashSet<>(List.of("appName")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(List.of(new Selector(new ExpressionNode(schema, "sum(clickedCnt)"), new Alias("t1"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .groupBy(List.of("appName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
@@ -1529,17 +1554,23 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void test_SlidingWindowOverAggregateFunctionColumn_CK() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        IntervalRequest intervalRequest = IntervalRequest.builder()
+                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                         .step(10)
+                                                         .bucketByTimestamp(true)
+                                                         .window(HumanReadableDuration.parse("1m"))
+                                                         .build();
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(
+                                                    new QueryField("t1", "clickedSum", null, "sum(clickedSum)"),
+                                                    new QueryField("t2", "clickedCnt", null, "count(clickedCnt)")
+                                                ))
+                                                .interval(intervalRequest)
+                                                .groupBy(new LinkedHashSet<>(List.of("appName")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, intervalRequest.calculateStep()))
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(Arrays.asList(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1")),
-                                                                                      new Selector(new ExpressionNode(schema, "count(clickedCnt)"), new Alias("t2"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
-                                                                                      Duration.ofSeconds(10),
-                                                                                      HumanReadableDuration.parse("1m"),
-                                                                                      new IdentifierExpression("timestamp")))
-                                                                .groupBy(List.of("appName"))
-                                                                .schema(schema)
                                                                 .build();
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
@@ -1584,19 +1615,25 @@ public class SelectStatementBuilderTest {
         // 1722000720
         TimeSpan currentEnd = TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800");
 
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        IntervalRequest intervalRequest = IntervalRequest.builder()
+                                                         .startISO8601(currentStart)
+                                                         .endISO8601(currentEnd)
+                                                         .step(10)
+                                                         .bucketByTimestamp(true)
+                                                         .window(HumanReadableDuration.parse("1m"))
+                                                         .build();
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(
+                                                    new QueryField("t1", "clickedSum", null, "sum(clickedSum)"),
+                                                    new QueryField("t2", "clickedCnt", null, "count(clickedCnt)")
+                                                ))
+                                                .interval(intervalRequest)
+                                                // -1d offset
+                                                .offset(HumanReadableDuration.parse("-1d"))
+                                                .groupBy(new LinkedHashSet<>(List.of("appName")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, intervalRequest.calculateStep()))
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(Arrays.asList(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1")),
-                                                                                      new Selector(new ExpressionNode(schema, "count(clickedCnt)"), new Alias("t2"))))
-                                                                .interval(Interval.of(currentStart,
-                                                                                      currentEnd,
-                                                                                      Duration.ofSeconds(10),
-                                                                                      HumanReadableDuration.parse("1m"),
-                                                                                      new IdentifierExpression("timestamp")))
-                                                                // -1d offset
-                                                                .offset(HumanReadableDuration.parse("-1d"))
-                                                                .groupBy(List.of("appName"))
-                                                                .schema(schema)
                                                                 .build();
 
         // The timestamp in INNER sub query which extends the query range by one duration which is 1m in this case
@@ -1649,17 +1686,20 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void test_RegularExpressionMatch_H2() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        IntervalRequest intervalRequest = IntervalRequest.builder()
+                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                         .step(10)
+                                                         .bucketByTimestamp(true)
+                                                         .build();
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("t1", "clickedSum", null, "sum(clickedSum)")))
+                                                .interval(intervalRequest)
+                                                .filterExpression("appName =~ 'bithon.*' AND instance !~ '192.*'")
+                                                .groupBy(new LinkedHashSet<>(List.of("appName")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, intervalRequest.calculateStep()))
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(List.of(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
-                                                                                      Duration.ofSeconds(10),
-                                                                                      null,
-                                                                                      new IdentifierExpression("timestamp")))
-                                                                .filter(ExpressionASTBuilder.builder().build("appName =~ 'bithon.*' AND instanceName !~ '192.*'"))
-                                                                .groupBy(List.of("appName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
@@ -1667,7 +1707,7 @@ public class SelectStatementBuilderTest {
                                            "appName",
                                            sum("clickedSum") AS "t1"
                                     FROM "bithon_http_incoming_metrics"
-                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND (regexp_like("bithon_http_incoming_metrics"."appName", 'bithon.*', 'nm') AND (NOT regexp_like("bithon_http_incoming_metrics"."instanceName", '192.*', 'nm')))
+                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND (regexp_like("bithon_http_incoming_metrics"."appName", 'bithon.*', 'nm') AND (NOT regexp_like("bithon_http_incoming_metrics"."instance", '192.*', 'nm')))
                                     GROUP BY "appName", "_timestamp"
                                     """.trim(),
                                 selectStatement.toSQL(h2Dialect));
@@ -1675,17 +1715,20 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void test_RegularExpressionMatch_CK() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        IntervalRequest intervalRequest = IntervalRequest.builder()
+                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                         .step(10)
+                                                         .bucketByTimestamp(true)
+                                                         .build();
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("t1", "clickedSum", null, "sum(clickedSum)")))
+                                                .interval(intervalRequest)
+                                                .filterExpression("appName =~ 'bithon.*' AND instance !~ '192.*'")
+                                                .groupBy(new LinkedHashSet<>(List.of("appName")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, intervalRequest.calculateStep()))
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(List.of(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
-                                                                                      Duration.ofSeconds(10),
-                                                                                      null,
-                                                                                      new IdentifierExpression("timestamp")))
-                                                                .filter(ExpressionASTBuilder.builder().build("appName =~ 'bithon.*' AND instanceName !~ '192.*'"))
-                                                                .groupBy(List.of("appName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
@@ -1693,7 +1736,7 @@ public class SelectStatementBuilderTest {
                                            "appName",
                                            sumMerge("clickedSum") AS "t1"
                                     FROM "bithon_http_incoming_metrics"
-                                    WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720)) AND (match("bithon_http_incoming_metrics"."appName", 'bithon.*') AND (NOT match("bithon_http_incoming_metrics"."instanceName", '192.*')))
+                                    WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720)) AND (match("bithon_http_incoming_metrics"."appName", 'bithon.*') AND (NOT match("bithon_http_incoming_metrics"."instance", '192.*')))
                                     GROUP BY "appName", "_timestamp"
                                     """.trim(),
                                 selectStatement.toSQL(clickHouseDialect));
@@ -1701,17 +1744,20 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void test_RegularExpressionMatch_Optimized_CK() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        IntervalRequest intervalRequest = IntervalRequest.builder()
+                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                         .step(10)
+                                                         .bucketByTimestamp(true)
+                                                         .build();
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("t1", "clickedSum", null, "sum(clickedSum)")))
+                                                .interval(intervalRequest)
+                                                .filterExpression("appName =~ '^bithon.*' AND instance !~ '^192.*'")
+                                                .groupBy(new LinkedHashSet<>(List.of("appName")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, intervalRequest.calculateStep()))
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(List.of(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
-                                                                                      Duration.ofSeconds(10),
-                                                                                      null,
-                                                                                      new IdentifierExpression("timestamp")))
-                                                                .filter(ExpressionASTBuilder.builder().build("appName =~ '^bithon.*' AND instanceName !~ '^192.*'"))
-                                                                .groupBy(List.of("appName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
@@ -1719,7 +1765,7 @@ public class SelectStatementBuilderTest {
                                            "appName",
                                            sumMerge("clickedSum") AS "t1"
                                     FROM "bithon_http_incoming_metrics"
-                                    WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720)) AND (startsWith("bithon_http_incoming_metrics"."appName", 'bithon') AND (NOT startsWith("bithon_http_incoming_metrics"."instanceName", '192')))
+                                    WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720)) AND (startsWith("bithon_http_incoming_metrics"."appName", 'bithon') AND (NOT startsWith("bithon_http_incoming_metrics"."instance", '192')))
                                     GROUP BY "appName", "_timestamp"
                                     """.trim(),
                                 selectStatement.toSQL(clickHouseDialect));
@@ -1727,17 +1773,20 @@ public class SelectStatementBuilderTest {
 
     @Test
     public void test_RegularExpressionMatch_MySQL() {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        IntervalRequest intervalRequest = IntervalRequest.builder()
+                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                         .step(10)
+                                                         .bucketByTimestamp(true)
+                                                         .build();
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("t1", "clickedSum", null, "sum(clickedSum)")))
+                                                .interval(intervalRequest)
+                                                .filterExpression("appName =~ 'bithon.*' AND instance !~ '192.*'")
+                                                .groupBy(new LinkedHashSet<>(List.of("appName")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, intervalRequest.calculateStep()))
                                                                 .sqlDialect(mysql)
-                                                                .fields(List.of(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
-                                                                                      Duration.ofSeconds(10),
-                                                                                      null,
-                                                                                      new IdentifierExpression("timestamp")))
-                                                                .filter(ExpressionASTBuilder.builder().build("appName =~ 'bithon.*' AND instanceName !~ '192.*'"))
-                                                                .groupBy(List.of("appName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
@@ -1745,7 +1794,7 @@ public class SelectStatementBuilderTest {
                                            `appName`,
                                            sum(`clickedSum`) AS `t1`
                                     FROM `bithon_http_incoming_metrics`
-                                    WHERE (`timestamp` >= '2024-07-26T21:22:00.000+08:00') AND (`timestamp` < '2024-07-26T21:32:00.000+08:00') AND (REGEXP_LIKE(`bithon_http_incoming_metrics`.`appName`, 'bithon.*') AND (NOT REGEXP_LIKE(`bithon_http_incoming_metrics`.`instanceName`, '192.*')))
+                                    WHERE (`timestamp` >= '2024-07-26T21:22:00.000+08:00') AND (`timestamp` < '2024-07-26T21:32:00.000+08:00') AND (REGEXP_LIKE(`bithon_http_incoming_metrics`.`appName`, 'bithon.*') AND (NOT REGEXP_LIKE(`bithon_http_incoming_metrics`.`instance`, '192.*')))
                                     GROUP BY `appName`, `_timestamp`
                                     """.trim(),
                                 selectStatement.toSQL(mysql));
@@ -1754,17 +1803,20 @@ public class SelectStatementBuilderTest {
     @Test
     public void test_RegularExpressionMatch_PG() {
         ISqlDialect pg = new PostgreSqlDialect();
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        IntervalRequest intervalRequest = IntervalRequest.builder()
+                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                         .step(10)
+                                                         .bucketByTimestamp(true)
+                                                         .build();
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("t1", "clickedSum", null, "sum(clickedSum)")))
+                                                .interval(intervalRequest)
+                                                .filterExpression("appName =~ 'bithon.*' AND instance !~ '192.*'")
+                                                .groupBy(new LinkedHashSet<>(List.of("appName")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, intervalRequest.calculateStep()))
                                                                 .sqlDialect(pg)
-                                                                .fields(List.of(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
-                                                                                      Duration.ofSeconds(10),
-                                                                                      null,
-                                                                                      new IdentifierExpression("timestamp")))
-                                                                .filter(ExpressionASTBuilder.builder().build("appName =~ 'bithon.*' AND instanceName !~ '192.*'"))
-                                                                .groupBy(List.of("appName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
@@ -1772,7 +1824,7 @@ public class SelectStatementBuilderTest {
                                            "appName",
                                            sum("clickedSum") AS "t1"
                                     FROM "bithon_http_incoming_metrics"
-                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND (("bithon_http_incoming_metrics"."appName" ~ 'bithon.*') AND (NOT ("bithon_http_incoming_metrics"."instanceName" ~ '192.*')))
+                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND (("bithon_http_incoming_metrics"."appName" ~ 'bithon.*') AND (NOT ("bithon_http_incoming_metrics"."instance" ~ '192.*')))
                                     GROUP BY "appName", "_timestamp"
                                     """.trim(),
                                 selectStatement.toSQL(pg));
@@ -1784,22 +1836,25 @@ public class SelectStatementBuilderTest {
     @Test
     public void test_MultipleAggregator_On_Same_Column() {
         ISqlDialect pg = new PostgreSqlDialect();
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
+        IntervalRequest intervalRequest = IntervalRequest.builder()
+                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                         .step(10)
+                                                         .bucketByTimestamp(true)
+                                                         .build();
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(
+                                                    new QueryField("maxResponseTime", "responseTime", null, "max(responseTime)"),
+                                                    new QueryField("minResponseTime", "responseTime", null, "min(responseTime)"),
+                                                    new QueryField("avgResponseTime", "responseTime", null, "sum(responseTime)/count()"),
+                                                    new QueryField("count", "1", null, "count()")
+                                                ))
+                                                .interval(intervalRequest)
+                                                .filterExpression("appName =~ 'bithon.*' AND instance !~ '192.*'")
+                                                .groupBy(new LinkedHashSet<>(List.of("appName")))
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, intervalRequest.calculateStep()))
                                                                 .sqlDialect(pg)
-                                                                .fields(List.of(
-                                                                    new Selector(new ExpressionNode(schema, "max(responseTime)"), new Alias("maxResponseTime")),
-                                                                    new Selector(new ExpressionNode(schema, "min(responseTime)"), new Alias("minResponseTime")),
-                                                                    new Selector(new ExpressionNode(schema, "sum(responseTime)/count()"), new Alias("avgResponseTime")),
-                                                                    new Selector(new ExpressionNode(schema, "count()"), new Alias("count"))
-                                                                ))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
-                                                                                      Duration.ofSeconds(10),
-                                                                                      null,
-                                                                                      new IdentifierExpression("timestamp")))
-                                                                .filter(ExpressionASTBuilder.builder().build("appName =~ 'bithon.*' AND instanceName !~ '192.*'"))
-                                                                .groupBy(List.of("appName"))
-                                                                .schema(schema)
                                                                 .build();
 
         Assertions.assertEquals("""
@@ -1818,10 +1873,67 @@ public class SelectStatementBuilderTest {
                                              sum("responseTime") AS "sum_responseTime",
                                              count(1) AS "_var0"
                                       FROM "bithon_http_incoming_metrics"
-                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND (("bithon_http_incoming_metrics"."appName" ~ 'bithon.*') AND (NOT ("bithon_http_incoming_metrics"."instanceName" ~ '192.*')))
+                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND (("bithon_http_incoming_metrics"."appName" ~ 'bithon.*') AND (NOT ("bithon_http_incoming_metrics"."instance" ~ '192.*')))
                                       GROUP BY "appName", "_timestamp"
                                     )
                                     """.trim(),
                                 selectStatement.toSQL(pg));
+    }
+
+    @Test
+    public void test_SelectStatement() {
+        ISqlDialect dialect = new H2SqlDialect();
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(
+                                                    new QueryField("maxResponseTime", "responseTime", null, null),
+                                                    new QueryField("minResponseTime", "responseTime", null, null)
+                                                ))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .filterExpression("appName = 'bithon'")
+                                                .limit(Limit.fromLong(100))
+                                                .orderBy(OrderBy.builder()
+                                                                .name("maxResponseTime")
+                                                                .order(Order.asc)
+                                                                .build())
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
+                                                                .sqlDialect(dialect)
+                                                                .buildSelectStatement();
+
+        Assertions.assertEquals("""
+                                    SELECT "responseTime" AS "maxResponseTime",
+                                           "responseTime" AS "minResponseTime"
+                                    FROM "bithon_http_incoming_metrics"
+                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_http_incoming_metrics"."appName" = 'bithon')
+                                    ORDER BY "maxResponseTime" asc
+                                    LIMIT 100
+                                    """.trim(),
+                                selectStatement.toSQL(dialect));
+    }
+
+    @Test
+    public void test_AggregateWithoutGroupBy() {
+        ISqlDialect dialect = new H2SqlDialect();
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("maxResponseTime", "responseTime", null, "max(responseTime)")))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .filterExpression("appName = 'bithon'")
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
+                                                                .sqlDialect(dialect)
+                                                                .build();
+
+        Assertions.assertEquals("""
+                                    SELECT max("responseTime") AS "maxResponseTime"
+                                    FROM "bithon_http_incoming_metrics"
+                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_http_incoming_metrics"."appName" = 'bithon')
+                                    """.trim(),
+                                selectStatement.toSQL(dialect));
     }
 }

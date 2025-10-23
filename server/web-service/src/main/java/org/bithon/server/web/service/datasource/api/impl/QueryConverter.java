@@ -16,20 +16,24 @@
 
 package org.bithon.server.web.service.datasource.api.impl;
 
-import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.FunctionExpression;
+import org.bithon.component.commons.expression.IDataType;
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
+import org.bithon.component.commons.expression.validation.ExpressionValidationException;
+import org.bithon.component.commons.expression.validation.IIdentifier;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.column.ExpressionColumn;
 import org.bithon.server.datasource.column.IColumn;
+import org.bithon.server.datasource.expression.ExpressionASTBuilder;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
@@ -38,11 +42,11 @@ import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
-import org.springframework.http.HttpStatus;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -54,32 +58,36 @@ public class QueryConverter {
     public static Query toQuery(ISchema schema,
                                 QueryRequest query,
                                 Duration step) {
-        IntervalRequest interval = query.getInterval();
-        if (interval.getWindow() != null && interval.getStep() != null) {
-            Preconditions.checkIfTrue(interval.getWindow().getDuration().getSeconds() >= interval.getStep(),
-                                      "The window parameter (%s) in the request is less than the step parameter (%d).",
-                                      interval.getWindow(),
-                                      interval.getStep());
-        }
-        validateQueryRequest(schema, query);
+        validate(schema, query);
 
-        Query.QueryBuilder builder = Query.builder();
+        boolean hasAggregator = false;
 
-        Set<String> groupBy = CollectionUtils.emptyOrOriginal(query.getGroupBy());
-        for (String groupByField : groupBy) {
-            IColumn column = schema.getColumnByName(groupByField);
-            Preconditions.checkNotNull(column, "Field [%s] given in the GROUP-BY expression does not exist in the schema.", groupBy);
-        }
-
-        // Turn into internal objects (post aggregators...)
         List<Selector> selectorList = new ArrayList<>(query.getFields().size());
+        int insertedIndex = -1;
         for (QueryField field : query.getFields()) {
+            if (LiteralExpression.AsteriskLiteral.INSTANCE.getValue().equals(field.getField())) {
+                // select all fields - handle asterisk for both aggregation and select queries
+                insertedIndex = selectorList.size();
+                continue;
+            }
+
             if (field.getExpression() != null) {
-                selectorList.add(new Selector(new ExpressionNode(schema, field.getExpression()), field.getName()));
+                IExpression parsedExpression = ExpressionASTBuilder.builder()
+                                                                   .functions(Functions.getInstance())
+                                                                   .schema(schema)
+                                                                   .build(field.getExpression());
+                if (!hasAggregator) {
+                    if (new AggregatorFinder().find(parsedExpression)) {
+                        hasAggregator = true;
+                    }
+                }
+                selectorList.add(new Selector(new ExpressionNode(parsedExpression), field.getName()));
                 continue;
             }
 
             if (field.getAggregator() != null) {
+                hasAggregator = true;
+
                 IFunction function = Functions.getInstance().getFunction(field.getAggregator());
 
                 if (function instanceof AggregateFunction.Count) {
@@ -112,84 +120,19 @@ public class QueryConverter {
                 }
             } else {
                 IColumn columnSpec = schema.getColumnByName(field.getField());
-                Preconditions.checkNotNull(columnSpec, "Column [%s] does not exist in the schema.", field.getField());
+                Preconditions.checkNotNull(columnSpec, "Field [%s] does not exist in the schema.", field.getField());
 
-                Selector selector = columnSpec.toSelector();
+                Selector selector;
+                if (columnSpec instanceof ExpressionColumn) {
+                    selector = columnSpec.toSelector();
+                } else {
+                    selector = new Selector(columnSpec.getName(), field.getName(), columnSpec.getDataType());
+                }
                 if (columnSpec.getAlias().equals(field.getName())) {
                     selector = selector.withOutput(field.getName());
                 }
                 selectorList.add(selector);
             }
-        }
-
-        TimeSpan start = interval.getStartISO8601();
-        TimeSpan end = interval.getEndISO8601();
-
-        String timestampColumn = schema.getTimestampSpec().getColumnName();
-        if (StringUtils.hasText(interval.getTimestampColumn())) {
-            // Try to use query's timestamp column if provided
-            timestampColumn = interval.getTimestampColumn();
-        }
-
-        return builder.groupBy(new ArrayList<>(groupBy))
-                      .selectors(selectorList)
-                      .schema(schema)
-                      .filter(QueryFilter.build(schema, query.getFilterExpression()))
-                      .interval(Interval.of(start, end, step, interval.getWindow(), new IdentifierExpression(timestampColumn)))
-                      .orderBy(query.getOrderBy())
-                      .limit(query.getLimit())
-                      .offset(query.getOffset())
-                      .settings(query.getSettings())
-                      .resultFormat(query.getResultFormat() == null ? Query.ResultFormat.Object : query.getResultFormat())
-                      .build();
-    }
-
-    public static Query toSelectQuery(ISchema schema,
-                                      QueryRequest query) {
-
-        validateQueryRequest(schema, query);
-        Preconditions.checkIfTrue(CollectionUtils.isEmpty(query.getGroupBy()), "Select query should not come with the 'groupBy' property.");
-        Preconditions.checkNotNull(query.getLimit(), "Select query must come with the 'limit' property");
-
-        Query.QueryBuilder builder = Query.builder();
-
-        List<Selector> selectorList = new ArrayList<>(query.getFields().size());
-        int insertedIndex = -1;
-        for (QueryField field : query.getFields()) {
-            if (LiteralExpression.AsteriskLiteral.INSTANCE.getValue().equals(field.getField())) {
-                // select all fields
-                insertedIndex = selectorList.size();
-                continue;
-            }
-
-            if (field.getExpression() != null) {
-                // This is a client side passed post simple expression, NOT aggregation expression
-                // TODO: check if there's any aggregation function in the expression
-                selectorList.add(new Selector(new ExpressionNode(schema, field.getExpression()), field.getName()));
-
-                continue;
-            }
-
-            if (field.getAggregator() != null) {
-                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
-                                                "Aggregator [%s] on field [%s] is not supported in a list query",
-                                                field.getAggregator(),
-                                                field.getName());
-            }
-            IColumn columnSpec = schema.getColumnByName(field.getField());
-            Preconditions.checkNotNull(columnSpec, "Field [%s] does not exist in the schema.", field.getField());
-
-            Selector selector;
-            if (columnSpec instanceof ExpressionColumn) {
-                selector = columnSpec.toSelector();
-                // TODO: check if there's any aggregation function in the expression
-            } else {
-                selector = new Selector(columnSpec.getName(), columnSpec.getDataType());
-            }
-            if (columnSpec.getAlias().equals(field.getName())) {
-                selector = selector.withOutput(field.getName());
-            }
-            selectorList.add(selector);
         }
 
         // Replace the input '*' with all columns in the schema
@@ -208,30 +151,71 @@ public class QueryConverter {
             }
         }
 
-        TimeSpan start = query.getInterval().getStartISO8601();
-        TimeSpan end = query.getInterval().getEndISO8601();
-
+        IntervalRequest interval = query.getInterval();
         String timestampColumn = schema.getTimestampSpec().getColumnName();
-        if (StringUtils.hasText(query.getInterval().getTimestampColumn())) {
+        if (StringUtils.hasText(interval.getTimestampColumn())) {
             // Try to use query's timestamp column if provided
-            timestampColumn = query.getInterval().getTimestampColumn();
+            timestampColumn = interval.getTimestampColumn();
         }
 
-        return builder.selectors(selectorList)
-                      .schema(schema)
-                      .filter(QueryFilter.build(schema, query.getFilterExpression()))
-                      .interval(Interval.of(start, end, null, new IdentifierExpression(timestampColumn)))
-                      .orderBy(query.getOrderBy())
-                      .limit(query.getLimit())
-                      .settings(query.getSettings())
-                      .resultFormat(query.getResultFormat() == null ? Query.ResultFormat.Object : query.getResultFormat())
-                      .build();
+        IExpression parsedFilterException = null;
+        if (StringUtils.hasText(query.getFilterExpression())) {
+            Map<String, Selector> outputNames = selectorList.stream()
+                                                            .collect(Collectors.toMap(Selector::getOutputName, v -> v));
+
+            parsedFilterException = QueryFilter.build(identifier -> {
+                IColumn col = schema.getColumnByName(identifier);
+                if (col != null) {
+                    return col;
+                }
+                Selector outputColumn = outputNames.get(identifier);
+                if (outputColumn != null) {
+                    return new IIdentifier() {
+                        @Override
+                        public String getName() {
+                            return identifier;
+                        }
+
+                        @Override
+                        public IDataType getDataType() {
+                            return outputColumn.getDataType();
+                        }
+                    };
+                }
+                throw new ExpressionValidationException("identifier [%s] not found in schema or in the output", identifier);
+            }, query.getFilterExpression());
+        }
+
+        return Query.builder()
+                    .schema(schema)
+                    .isAggregateQuery(hasAggregator || interval.getStep() != null || CollectionUtils.isNotEmpty(query.getGroupBy()))
+                    .selectors(selectorList)
+                    .groupBy(new ArrayList<>(CollectionUtils.emptyOrOriginal(query.getGroupBy())))
+                    .filter(parsedFilterException)
+                    .interval(Interval.of(interval.getStartISO8601(),
+                                          interval.getEndISO8601(),
+                                          step, interval.getWindow(),
+                                          new IdentifierExpression(timestampColumn)))
+                    .orderBy(query.getOrderBy())
+                    .limit(query.getLimit())
+                    .offset(query.getOffset())
+                    .settings(query.getSettings())
+                    .resultFormat(query.getResultFormat() == null ? Query.ResultFormat.Object : query.getResultFormat())
+                    .build();
     }
 
     /**
      * Validate the request to ensure the safety
      */
-    private static void validateQueryRequest(ISchema schema, QueryRequest request) {
+    private static void validate(ISchema schema, QueryRequest request) {
+        IntervalRequest interval = request.getInterval();
+        if (interval.getWindow() != null && interval.getStep() != null) {
+            Preconditions.checkIfTrue(interval.getWindow().getDuration().getSeconds() >= interval.getStep(),
+                                      "The window parameter (%s) in the request is less than the step parameter (%d).",
+                                      interval.getWindow(),
+                                      interval.getStep());
+        }
+
         if (CollectionUtils.isNotEmpty(request.getGroupBy())) {
             for (String field : request.getGroupBy()) {
                 Preconditions.checkNotNull(schema.getColumnByName(field),
@@ -250,9 +234,31 @@ public class QueryConverter {
                                     .anyMatch((filter) -> filter.getName().equals(orderBy.getName()))
                              || (request.getGroupBy() != null && request.getGroupBy().contains(orderBy.getName()));
 
-            boolean hasAll = request.getFields().stream().anyMatch((field) -> "*".equals(field.getField()));
+            boolean hasAll = request.getFields()
+                                    .stream()
+                                    .anyMatch((field) -> "*".equals(field.getField()));
 
             Preconditions.checkIfTrue(exists || hasAll, "OrderBy field [%s] can not be found in the query fields.", orderBy.getName());
+        }
+    }
+
+    private static class AggregatorFinder implements IExpressionInDepthVisitor {
+        private boolean hasAggregator;
+
+        @Override
+        public boolean visit(FunctionExpression expression) {
+            if (expression.getFunction().isAggregator()) {
+                hasAggregator = true;
+            }
+
+            // If aggregator not found, continue to visit
+            return !hasAggregator;
+        }
+
+        public boolean find(IExpression expression) {
+            hasAggregator = false;
+            expression.accept(this);
+            return hasAggregator;
         }
     }
 }

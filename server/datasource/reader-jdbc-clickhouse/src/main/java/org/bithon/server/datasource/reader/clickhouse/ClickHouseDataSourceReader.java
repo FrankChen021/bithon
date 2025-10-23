@@ -17,17 +17,21 @@
 package org.bithon.server.datasource.reader.clickhouse;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.query.Query;
+import org.bithon.server.datasource.query.ReadResponse;
+import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.JdbcDataSourceReader;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByClause;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.TableIdentifier;
 import org.bithon.server.datasource.reader.jdbc.statement.serializer.Expression2Sql;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -90,8 +94,30 @@ public class ClickHouseDataSourceReader extends JdbcDataSourceReader {
     }
 
     @Override
+    public ReadResponse query(Query query) {
+        if (query.isAggregateQuery()) {
+            return super.query(query);
+        } else {
+            // Try to apply read in order optimization
+            return execute(toSelectStatement(query), query.getResultFormat());
+        }
+    }
+
     protected SelectStatement toSelectStatement(Query query) {
-        SelectStatement selectStatement = super.toSelectStatement(query);
+        IdentifierExpression timestampCol = IdentifierExpression.of(query.getSchema().getTimestampSpec().getColumnName());
+
+        SelectStatement selectStatement = new SelectStatement();
+        selectStatement.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
+        for (Selector selector : query.getSelectors()) {
+            selectStatement.getSelectorList().add(selector.getSelectExpression(), selector.getOutput(), selector.getDataType());
+        }
+        selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getStartTime())));
+        selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getEndTime())));
+        selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter(), this.querySettings));
+        selectStatement.setLimit(toLimitClause(query.getLimit()));
+        selectStatement.setOrderBy(toOrderByClause(query.getOrderBy()));
+
+
         if (!querySettings.isEnableReadInOrderOptimization()) {
             return selectStatement;
         }
@@ -100,7 +126,7 @@ public class ClickHouseDataSourceReader extends JdbcDataSourceReader {
             return selectStatement;
         }
 
-        // rewrite the order by clause to use the actual column name for speed up
+        // Rewrite the order by clause to use the actual column name for speed up
         List<IExpression> orderByExpressionList = this.metadataManager.getOrderByExpression(query.getSchema()
                                                                                                  .getDataStoreSpec()
                                                                                                  .getStore());

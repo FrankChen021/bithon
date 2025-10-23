@@ -39,6 +39,7 @@ import org.bithon.server.datasource.TimestampSpec;
 import org.bithon.server.datasource.column.ExpressionColumn;
 import org.bithon.server.datasource.column.IColumn;
 import org.bithon.server.datasource.query.Interval;
+import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ast.Column;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.IASTNode;
@@ -98,6 +99,19 @@ public class SelectStatementBuilder {
 
     public static SelectStatementBuilder builder() {
         return new SelectStatementBuilder();
+    }
+
+    public static SelectStatementBuilder from(Query query) {
+        return SelectStatementBuilder.builder()
+                                     .schema(query.getSchema())
+                                     .fields(query.getSelectors())
+                                     .filter(query.getFilter())
+                                     .interval(query.getInterval())
+                                     .groupBy(query.getGroupBy())
+                                     .orderBy(query.getOrderBy())
+                                     .limit(query.getLimit())
+                                     .offset(query.getOffset())
+                                     .querySettings(query.getSettings());
     }
 
     public SelectStatementBuilder schema(ISchema schema) {
@@ -513,6 +527,24 @@ public class SelectStatementBuilder {
         return pipeline.outermost;
     }
 
+    public SelectStatement buildSelectStatement() {
+        SelectStatementChain chain = new SelectStatementChain();
+        chain.outermost = chain.innermost = new SelectStatement();
+
+        chain.outermost.getFrom().setExpression(new TableIdentifier(schema.getDataStoreSpec().getStore()));
+        for (Selector selector : this.selectors) {
+            boolean useOutputName = !(selector.getSelectExpression() instanceof Column column && column.getName().equals(selector.getOutputName()));
+            chain.outermost.getSelectorList()
+                           .add(selector.getSelectExpression(), useOutputName ? selector.getOutput() : null, selector.getDataType());
+        }
+
+        buildWhere(chain);
+        buildOrderBy(chain);
+        buildLimit(chain);
+
+        return chain.outermost;
+    }
+
     /**
      * Add a sliding window aggregation step to the pipeline, which produces SQL as follows:
      * <p>
@@ -721,10 +753,10 @@ public class SelectStatementBuilder {
     /**
      * Rewrite cardinality(column) to group by column
      * <code>
-     *     SELECT cardinality(userId) AS userId FROM table
+     * SELECT cardinality(userId) AS userId FROM table
      * </code>
      * <code>
-     *     SELECT count() FROM (SELECT userId FROM table GROUP BY userId)
+     * SELECT count() FROM (SELECT userId FROM table GROUP BY userId)
      * </code>
      */
     private void rewriteCardinalityAsGroupBy(SelectStatementChain chain) {

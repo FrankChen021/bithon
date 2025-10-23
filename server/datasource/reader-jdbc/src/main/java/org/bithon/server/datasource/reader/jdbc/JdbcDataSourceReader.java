@@ -33,7 +33,6 @@ import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ReadResponse;
-import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
 import org.bithon.server.datasource.query.setting.QuerySettings;
@@ -157,43 +156,19 @@ public class JdbcDataSourceReader implements IDataSourceReader {
 
     @Override
     public ReadResponse query(Query query) {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
-                                                                .schema(query.getSchema())
-                                                                .fields(query.getSelectors())
-                                                                .filter(query.getFilter())
-                                                                .interval(query.getInterval())
-                                                                .groupBy(query.getGroupBy())
-                                                                .orderBy(query.getOrderBy())
-                                                                .limit(query.getLimit())
-                                                                .offset(query.getOffset())
-                                                                .querySettings(query.getSettings())
-                                                                .sqlDialect(this.sqlDialect)
-                                                                .build();
+        SelectStatementBuilder builder = SelectStatementBuilder.builder()
+                                                               .schema(query.getSchema())
+                                                               .fields(query.getSelectors())
+                                                               .filter(query.getFilter())
+                                                               .interval(query.getInterval())
+                                                               .groupBy(query.getGroupBy())
+                                                               .orderBy(query.getOrderBy())
+                                                               .limit(query.getLimit())
+                                                               .offset(query.getOffset())
+                                                               .querySettings(query.getSettings())
+                                                               .sqlDialect(this.sqlDialect);
 
-        return execute(selectStatement, query.getResultFormat());
-    }
-
-    @Override
-    public ReadResponse select(Query query) {
-        SelectStatement selectStatement = toSelectStatement(query);
-
-        return execute(selectStatement, query.getResultFormat());
-    }
-
-    protected SelectStatement toSelectStatement(Query query) {
-        IdentifierExpression timestampCol = IdentifierExpression.of(query.getSchema().getTimestampSpec().getColumnName());
-
-        SelectStatement selectStatement = new SelectStatement();
-        selectStatement.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
-        for (Selector selector : query.getSelectors()) {
-            selectStatement.getSelectorList().add(selector.getSelectExpression(), selector.getOutput(), selector.getDataType());
-        }
-        selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getStartTime())));
-        selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getEndTime())));
-        selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter(), this.querySettings));
-        selectStatement.setLimit(toLimitClause(query.getLimit()));
-        selectStatement.setOrderBy(toOrderByClause(query.getOrderBy()));
-        return selectStatement;
+        return execute(query.isAggregateQuery() ? builder.build() : builder.buildSelectStatement(), query.getResultFormat());
     }
 
     @Override
@@ -249,7 +224,7 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         }
     }
 
-    private OrderByClause toOrderByClause(OrderBy orderBy) {
+    protected OrderByClause toOrderByClause(OrderBy orderBy) {
         return orderBy == null ? null : new OrderByClause(orderBy.getName(), orderBy.getOrder());
     }
 
@@ -257,7 +232,7 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         return limit == null ? null : new LimitClause(limit.getLimit(), limit.getOffset());
     }
 
-    private ReadResponse execute(SelectStatement selectStatement, Query.ResultFormat resultFormat) {
+    protected ReadResponse execute(SelectStatement selectStatement, Query.ResultFormat resultFormat) {
         List<ColumnMetadata> columns = selectStatement.getSelectorList()
                                                       .getSelectors()
                                                       .stream()

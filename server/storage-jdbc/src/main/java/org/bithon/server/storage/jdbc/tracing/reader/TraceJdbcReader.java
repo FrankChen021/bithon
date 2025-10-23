@@ -202,13 +202,13 @@ public class TraceJdbcReader implements ITraceReader {
         return getTraceList(filter, indexedTagFilter, start, end, orderBy, limit, this::toTraceSpan);
     }
 
-    private <T> CloseableIterator<T> getTraceList(IExpression filter,
-                                                  List<IExpression> indexedTagFilter,
-                                                  Timestamp start,
-                                                  Timestamp end,
-                                                  OrderBy orderBy,
-                                                  Limit limit,
-                                                  Function<Record, T> mapper) {
+    protected <T> CloseableIterator<T> getTraceList(IExpression filter,
+                                                    List<IExpression> indexedTagFilter,
+                                                    Timestamp start,
+                                                    Timestamp end,
+                                                    OrderBy orderBy,
+                                                    Limit limit,
+                                                    Function<Record, T> mapper) {
         boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
 
         Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
@@ -539,11 +539,14 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public ReadResponse query(Query query) {
-        return getDataSourceReader().query(query);
+        if (query.isAggregateQuery()) {
+            return getDataSourceReader().query(query);
+        } else {
+            return select(query);
+        }
     }
 
-    @Override
-    public ReadResponse select(Query query) {
+    private ReadResponse select(Query query) {
         TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
         splitter.split(query.getFilter());
 

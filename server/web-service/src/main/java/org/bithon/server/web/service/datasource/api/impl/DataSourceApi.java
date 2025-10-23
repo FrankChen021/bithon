@@ -146,7 +146,7 @@ public class DataSourceApi implements IDataSourceApi {
     public QueryResponse list(QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
-        Query query = QueryConverter.toSelectQuery(schema, request);
+        Query query = QueryConverter.toQuery(schema, request, null);
 
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
 
@@ -159,9 +159,10 @@ public class DataSourceApi implements IDataSourceApi {
 
             CompletableFuture<ReadResponse> list = CompletableFuture.supplyAsync(() -> {
                 // The query is executed in an async task, and the filter AST might be optimized in further processing
-                // To make sure the optimization is thread safe, we create a new AST
+                // To make sure the optimization is thread safe, we clone the AST
+                // But since we don't have 'clone' support on AST, we just create a new one
                 IExpression filter = QueryFilter.build(schema, request.getFilterExpression());
-                return reader.select(query.with(filter));
+                return reader.query(query.with(filter));
             }, asyncExecutor);
 
             try {
@@ -187,69 +188,14 @@ public class DataSourceApi implements IDataSourceApi {
 
     @Override
     public ResponseEntity<StreamingResponseBody> list(String acceptEncoding, QueryRequest request) {
-        ISchema schema = schemaManager.getSchema(request.getDataSource());
-        Query query = QueryConverter.toSelectQuery(schema, request);
-
-        // Check if client accepts gzip encoding
-        boolean useGzip = acceptEncoding != null && acceptEncoding.contains("gzip");
-        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok()
-                                                                   .contentType(MediaType.parseMediaType("application/x-ndjson"));
-        if (useGzip) {
-            responseBuilder.header(HttpHeaders.CONTENT_ENCODING, "gzip");
-        }
-
-        StreamingResponseBody responseBodyStream = os -> {
-            // Create the appropriate output stream based on Accept-Encoding
-            try (OutputStream outputStream = useGzip ? new GZIPOutputStream(os) : os;
-                 JsonGenerator jsonGenerator = objectMapper.getFactory()
-                                                           .createGenerator(outputStream)
-                                                           .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET)) {
-                try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
-                    ReadResponse readResponse = reader.select(query);
-
-                    try (CloseableIterator<?> streamData = readResponse.getData()) {
-
-                        // Write header
-                        jsonGenerator.writeStartArray();
-                        {
-                            List<ColumnMetadata> metadata = readResponse.getColumns();
-                            for (ColumnMetadata medataum : metadata) {
-                                jsonGenerator.writeStartObject();
-                                jsonGenerator.writeStringField("name", medataum.getName());
-                                jsonGenerator.writeStringField("type", medataum.getDataType());
-                                jsonGenerator.writeEndObject();
-                            }
-                        }
-                        jsonGenerator.writeEndArray();
-                        jsonGenerator.writeRaw('\n'); // Using writeRaw for newline
-                        jsonGenerator.flush();
-
-                        // Write data and flush every N items
-                        int batchSize = 0;
-                        while (streamData.hasNext()) {
-                            Object row = streamData.next();
-
-                            objectMapper.writeValue(jsonGenerator, row);
-                            jsonGenerator.writeRaw('\n'); // Using writeRaw for newline
-
-                            if (++batchSize % 10 == 0) {
-                                jsonGenerator.flush();
-                            }
-                        }
-                        jsonGenerator.flush();
-                    }
-                }
-            }
-        };
-
-        return responseBuilder.body(responseBodyStream);
+        return streamQuery(acceptEncoding, request);
     }
 
     @Override
     public QueryResponse count(QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
-        Query query = QueryConverter.toSelectQuery(schema, request);
+        Query query = QueryConverter.toQuery(schema, request, null);
 
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             return QueryResponse.builder()
@@ -281,8 +227,21 @@ public class DataSourceApi implements IDataSourceApi {
 
     @Override
     public ResponseEntity<StreamingResponseBody> query(String acceptEncoding, QueryRequest request) {
+        return streamQuery(acceptEncoding, request);
+    }
+
+    /**
+     * Unified streaming method for both query and list endpoints.
+     * Now uses a single query converter and reader method for all queries.
+     * 
+     * @param acceptEncoding the Accept-Encoding header value
+     * @param request the query request
+     * @return streaming response body
+     */
+    private ResponseEntity<StreamingResponseBody> streamQuery(String acceptEncoding, QueryRequest request) {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
+        // Use unified toQuery method for all queries (both aggregation and select)
         Query query = QueryConverter.toQuery(schema, request, request.getInterval().calculateStep());
 
         // Check if client accepts gzip encoding
@@ -300,6 +259,7 @@ public class DataSourceApi implements IDataSourceApi {
                                                            .createGenerator(outputStream)
                                                            .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET)) {
                 try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
+                    // Always use reader.query() for all queries
                     ReadResponse response = reader.query(query);
 
                     try (CloseableIterator<?> streamData = response.getData()) {

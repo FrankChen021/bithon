@@ -54,10 +54,8 @@ public class Query {
 
     private final QuerySettings settings;
     private final ResultFormat resultFormat;
-
-    /**
-     * Was used, but not used now. May be used in the future.
-     */
+    private final boolean isAggregateQuery;
+    
     public enum ResultFormat {
         /**
          * Object is output as an array
@@ -75,11 +73,13 @@ public class Query {
                  @Nullable Limit limit,
                  @Nullable HumanReadableDuration offset,
                  @Nullable QuerySettings settings,
-                 @Nullable ResultFormat resultFormat) {
+                 @Nullable ResultFormat resultFormat,
+                 boolean isAggregateQuery) {
         this.schema = schema;
         this.selectors = selectors;
         this.filter = filter;
         this.interval = interval;
+        this.isAggregateQuery = isAggregateQuery;
         this.groupBy = CollectionUtils.emptyOrOriginal(groupBy);
         this.orderBy = orderBy;
         this.offset = offset;
@@ -102,6 +102,8 @@ public class Query {
                          this.limit,
                          this.offset,
                          this.settings,
-                         this.resultFormat);
+                         this.resultFormat,
+                         this.isAggregateQuery
+                         );
     }
 }

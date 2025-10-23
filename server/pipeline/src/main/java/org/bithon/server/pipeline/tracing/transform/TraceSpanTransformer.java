@@ -95,6 +95,11 @@ public class TraceSpanTransformer implements ITransformer {
             if ("".equals(uri)) {
                 uri = tags.getOrDefault("uri", "");
             }
+
+            // Some systems use http.path tag name
+            if ("".equals(uri)) {
+                uri = tags.getOrDefault("http.path", "");
+            }
         }
 
         // For the http.uri tag, if it's from the HttpClient,
