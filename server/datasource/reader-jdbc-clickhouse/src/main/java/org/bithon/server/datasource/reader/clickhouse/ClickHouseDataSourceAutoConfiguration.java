@@ -20,6 +20,7 @@ package org.bithon.server.datasource.reader.clickhouse;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
+import org.bithon.server.datasource.reader.clickhouse.function.ClickHouseFunctionRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -54,5 +55,10 @@ public class ClickHouseDataSourceAutoConfiguration {
                 context.registerSubtypes(new NamedType(AggregateFunctionColumn.class, "aggregateFunction"));
             }
         };
+    }
+
+    @Bean
+    public ClickHouseFunctionRegistry clickHouseFunctionRegistry() {
+        return new ClickHouseFunctionRegistry();
     }
 }
