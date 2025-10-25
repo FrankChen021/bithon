@@ -36,7 +36,7 @@ public class DropTransformerTest {
         // Test a simple drop expression
         DropTransformer transformer = new DropTransformer("age > 100", null);
 
-        // deserialize from json to test deserialization
+        // deserialize from JSON to test deserialization
         ObjectMapper om = new ObjectMapper();
         String transformerText = om.writeValueAsString(transformer);
         ITransformer newTransformer = om.readValue(transformerText, ITransformer.class);
@@ -63,7 +63,7 @@ public class DropTransformerTest {
         String transformerText = om.writeValueAsString(transformer);
         ITransformer newTransformer = om.readValue(transformerText, ITransformer.class);
 
-        // Current time should be greater than 1000000000000 (September 2001)
+        // The Current time should be greater than 1000000000000 (September 2001)
         // So the expression should be false, and the row should NOT be dropped
         InputRow row = new InputRow(new HashMap<>());
         TransformResult result = newTransformer.transform(row);
@@ -85,7 +85,7 @@ public class DropTransformerTest {
         
         DropTransformer transformer = new DropTransformer(expr, null);
 
-        // deserialize from json to test deserialization
+        // deserialize from JSON to test deserialization
         ObjectMapper om = new ObjectMapper();
         String transformerText = om.writeValueAsString(transformer);
         ITransformer newTransformer = om.readValue(transformerText, ITransformer.class);
@@ -119,14 +119,4 @@ public class DropTransformerTest {
         TransformResult sixDaysFutureResult = newTransformer.transform(sixDaysFutureRow);
         Assertions.assertEquals(TransformResult.CONTINUE, sixDaysFutureResult, "Timestamp from 6 days in future should not be dropped");
     }
-
-    /**
-     * NOTE: The pattern suggested in the issue description would be:
-     * "currentMilliseconds() - timestamp > 7days OR timestamp - currentMilliseconds() > 7days"
-     * 
-     * However, this requires schema information for the 'timestamp' column when building expressions.
-     * In actual usage with a configured schema, this expression would work correctly.
-     * 
-     * The currentMilliseconds() function is now available for use in such expressions.
-     */
 }

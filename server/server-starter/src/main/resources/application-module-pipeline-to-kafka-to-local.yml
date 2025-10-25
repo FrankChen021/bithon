@@ -2,7 +2,7 @@
 # The configuration below shows the ability that run two pipelines in one application.
 # This is mainly for local development and test, not for real deployment.
 #
-# In this demo, the first pipelines consume data to Kafka,
+# In this demo, the first pipelines write data to Kafka,
 # and the other consumes data from Kafka into storage
 #
 bithon:
@@ -105,6 +105,9 @@ bithon:
             "[bootstrap.servers]": localhost:9092
             "[fetch.min.bytes]": 1048576
       processors:
+        # drop data arriving too late or too early
+        - type: drop
+          expr: (startTime - currentMicroseconds() < -3d.toMicroseconds) OR (startTime - currentMicroseconds() > 1d.toMicroseconds)
           # drop spans
         - type: drop
           expr: clazz endsWith 'UriNormalizer'

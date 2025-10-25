@@ -45,10 +45,28 @@ public class TimeFunction {
 
     /**
      * returns the current seconds since unix epoch
+     *
+     * @deprecated use {@link CurrentSeconds} instead
      */
     public static class Now extends AbstractFunction {
         public Now() {
             super("now", IDataType.LONG);
+        }
+
+        @Override
+        public Object evaluate(List<Object> args) {
+            return System.currentTimeMillis() / 1000;
+        }
+
+        @Override
+        public boolean isDeterministic() {
+            return false;
+        }
+    }
+
+    public static class CurrentSeconds extends AbstractFunction {
+        public CurrentSeconds() {
+            super("currentSeconds", IDataType.LONG);
         }
 
         @Override
@@ -73,6 +91,25 @@ public class TimeFunction {
         @Override
         public Object evaluate(List<Object> args) {
             return System.currentTimeMillis();
+        }
+
+        @Override
+        public boolean isDeterministic() {
+            return false;
+        }
+    }
+
+    /**
+     * returns the current milliseconds since unix epoch
+     */
+    public static class CurrentMicroseconds extends AbstractFunction {
+        public CurrentMicroseconds() {
+            super("currentMicroseconds", IDataType.LONG);
+        }
+
+        @Override
+        public Object evaluate(List<Object> args) {
+            return System.currentTimeMillis() * 1000;
         }
 
         @Override
