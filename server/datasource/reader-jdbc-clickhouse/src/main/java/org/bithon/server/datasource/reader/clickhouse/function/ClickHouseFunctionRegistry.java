@@ -14,33 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.commons.expression.function;
+package org.bithon.server.datasource.reader.clickhouse.function;
 
-import org.bithon.component.commons.expression.IDataType;
-import org.bithon.component.commons.expression.IExpression;
 
-import java.util.List;
+import org.bithon.component.commons.expression.function.Functions;
+import org.springframework.beans.factory.InitializingBean;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/11/2 17:31
+ * @date 25/10/25 5:28 pm
  */
-public interface IFunction {
-
-    String getName();
-
-    void validateArgs(List<IExpression> args);
-
-    Object evaluate(List<Object> args);
-
-    IDataType getReturnType();
-
-    /**
-     * If the function is an aggregate function
-     */
-    default boolean isAggregator() {
-        return false;
+public class ClickHouseFunctionRegistry implements InitializingBean {
+    @Override
+    public void afterPropertiesSet() {
+        Functions.getInstance().register(new HasFunction());
     }
-
-    boolean isDeterministic();
 }

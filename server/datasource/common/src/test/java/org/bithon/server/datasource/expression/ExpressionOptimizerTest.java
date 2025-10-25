@@ -26,7 +26,6 @@ import org.bithon.component.commons.expression.serialization.IdentifierQuotaStra
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -53,11 +52,6 @@ public class ExpressionOptimizerTest {
                 @Override
                 public String getName() {
                     return "sum";
-                }
-
-                @Override
-                public List<IDataType> getParameterTypeList() {
-                    return Arrays.asList(IDataType.LONG, IDataType.LONG);
                 }
 
                 @Override
