@@ -51,7 +51,8 @@ public class DropTransformer extends AbstractTransformer {
         this.expr = Preconditions.checkArgumentNotNull("expr", expr);
 
         this.dropExpression = ExpressionASTBuilder.builder()
-                                                  .functions(Functions.getInstance()).build(this.expr);
+                                                  .functions(Functions.getInstance())
+                                                  .build(this.expr);
         AbstractTransformer.validateConditionExpression(this.dropExpression);
     }
 

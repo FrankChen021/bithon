@@ -26,7 +26,7 @@ expression
 // The 'endsWith' and 'startsWith' functions are supported in previous version,
 // but now they're defined as predicate, to make sure the backward compatibility, we put them in the expression below
 functionExpressionDecl
-   : (IDENTIFIER | ENDSWITH | STARTSWITH | HASTOKEN) expressionListDecl
+   : (IDENTIFIER | ENDSWITH | STARTSWITH | HASTOKEN | 'toMilliseconds' | 'toMicroseconds' | 'toNanoseconds') expressionListDecl
    ;
 
 notExpressionDecl
@@ -50,7 +50,7 @@ literalExpressionDecl
 
 durationLiteral
     // Time unit converters are supported as a suffix of the duration literal for better syntax suggestion
-  : READABLE_DURATION_LITERAL (DOT ('toMilliSeconds' | 'toMicroSeconds' | 'toNanoSeconds'))?
+  : READABLE_DURATION_LITERAL (DOT ('toMilliseconds' | 'toMicroseconds' | 'toNanoseconds'))?
   ;
 
 identifierExpressionDecl

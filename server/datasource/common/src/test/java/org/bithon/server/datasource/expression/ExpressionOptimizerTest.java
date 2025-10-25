@@ -26,7 +26,6 @@ import org.bithon.component.commons.expression.serialization.IdentifierQuotaStra
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
@@ -382,34 +381,5 @@ public class ExpressionOptimizerTest {
     public void test_Not_LTE() {
         IExpression expr = ExpressionASTBuilder.builder().build("not a <= b");
         Assertions.assertEquals("a > b", expr.serializeToText(IdentifierQuotaStrategy.NONE));
-    }
-
-    @Test
-    public void test_Optimize_Now_Function() {
-        {
-            long prev = System.currentTimeMillis() / 1000 - 5;
-            IExpression expr = ExpressionASTBuilder.builder()
-                                                   .functions(Functions.getInstance())
-                                                   .build("now() - 5s");
-            Assertions.assertInstanceOf(LiteralExpression.LongLiteral.class, expr);
-
-            long diff = Math.abs(((LiteralExpression.LongLiteral) expr).getValue() - prev);
-
-            // To avoid flaky, we think that 3 seconds are enough for evaluation above code
-            Assertions.assertTrue(diff < 3);
-        }
-
-        {
-            long prev = System.currentTimeMillis() / 1000 - Duration.ofDays(5).getSeconds();
-            IExpression expr = ExpressionASTBuilder.builder()
-                                                   .functions(Functions.getInstance())
-                                                   .build("now() - 5d");
-            Assertions.assertInstanceOf(LiteralExpression.LongLiteral.class, expr);
-
-            long diff = Math.abs(((LiteralExpression.LongLiteral) expr).getValue() - prev);
-
-            // To avoid flaky, we think that 3 seconds are enough for evaluation above code
-            Assertions.assertTrue(diff < 3);
-        }
     }
 }

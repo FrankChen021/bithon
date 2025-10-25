@@ -23,8 +23,11 @@ import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
+import org.bithon.server.datasource.column.DateTimeColumn;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import java.time.Duration;
 
 
 /**
@@ -208,8 +211,8 @@ public class ExpressionASTBuilderTest {
         // At the AST layer, the string literal does not hold escape characters.
         // The business layer (the layer that uses the AST) needs to handle the escaping
         Assertions.assertEquals("message contains 'a''", ExpressionASTBuilder.builder()
-                                                                         .build("message contains 'a\\''")
-                                                                         .serializeToText(IdentifierQuotaStrategy.NONE));
+                                                                             .build("message contains 'a\\''")
+                                                                             .serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
     @Test
@@ -262,19 +265,19 @@ public class ExpressionASTBuilderTest {
             Assertions.assertEquals(69, ((LiteralExpression.ReadableDurationLiteral) expr).getValue().getDuration().toSeconds());
         }
         {
-            IExpression expr = ExpressionASTBuilder.builder().build("69s.toMilliSeconds");
+            IExpression expr = ExpressionASTBuilder.builder().build("69s.toMilliseconds");
 
             // The 69s.toMilli is interpreted as toMilliSeconds(69s), which has been optimized to 69_000
             Assertions.assertEquals("69000", expr.serializeToText(IdentifierQuotaStrategy.NONE));
         }
         {
-            IExpression expr = ExpressionASTBuilder.builder().build("1d .toMicroSeconds");
+            IExpression expr = ExpressionASTBuilder.builder().build("1d .toMicroseconds");
 
             // The 69s.toMicro is interpreted as toMicroSeconds(1d), which has been optimized to 86400_000_000
             Assertions.assertEquals("86400000000", expr.serializeToText(IdentifierQuotaStrategy.NONE));
         }
         {
-            IExpression expr = ExpressionASTBuilder.builder().build("3m. toNanoSeconds");
+            IExpression expr = ExpressionASTBuilder.builder().build("3m. toNanoseconds");
 
             // The 69s.toNano is interpreted as toNanoSeconds(3m), which has been optimized to 180_000_000_000
             Assertions.assertEquals("180000000000", expr.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -377,5 +380,62 @@ public class ExpressionASTBuilderTest {
 
         // rhs must be a string literal
         Assertions.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("a !~ b"));
+    }
+
+    @Test
+    public void test_CurrentSeconds() {
+        IExpression expr = ExpressionASTBuilder.builder()
+                                               .identifier((id) -> {
+                                                   if ("timestamp".equals(id)) {
+                                                       return new DateTimeColumn("timestamp", "timestamp");
+                                                   }
+                                                   throw new InvalidExpressionException("Invalid expression");
+                                               })
+                                               .functions(Functions.getInstance())
+                                               .build("timestamp - currentSeconds() < -7d");
+
+        // Validate a timestamp with current timestamp which does not meet the condition
+        Assertions.assertFalse((boolean) expr.evaluate(name -> System.currentTimeMillis() / 1000));
+
+        // Validate a timestamp with 8 days ago
+        Assertions.assertTrue((boolean) expr.evaluate(name -> System.currentTimeMillis() / 1000 - Duration.ofDays(8).toSeconds()));
+    }
+
+    @Test
+    public void test_CurrentMilliseconds() {
+        IExpression expr = ExpressionASTBuilder.builder()
+                                               .identifier((id) -> {
+                                                   if ("timestamp".equals(id)) {
+                                                       return new DateTimeColumn("timestamp", "timestamp");
+                                                   }
+                                                   throw new InvalidExpressionException("Invalid expression");
+                                               })
+                                               .functions(Functions.getInstance())
+                                               .build("timestamp - currentMilliseconds() < -7d.toMilliseconds");
+
+        // Validate a timestamp with current timestamp which does not meet the condition
+        Assertions.assertFalse((boolean) expr.evaluate(name -> System.currentTimeMillis()));
+
+        // Validate a timestamp with 8 days ago
+        Assertions.assertTrue((boolean) expr.evaluate(name -> System.currentTimeMillis() - Duration.ofDays(8).toMillis()));
+    }
+
+    @Test
+    public void test_CurrentMicroseconds() {
+        IExpression expr = ExpressionASTBuilder.builder()
+                                               .identifier((id) -> {
+                                                   if ("timestamp".equals(id)) {
+                                                       return new DateTimeColumn("timestamp", "timestamp");
+                                                   }
+                                                   throw new InvalidExpressionException("Invalid expression");
+                                               })
+                                               .functions(Functions.getInstance())
+                                               .build("timestamp - currentMicroseconds() < -7d.toMicroseconds");
+
+        // Validate a timestamp with current timestamp which does not meet the condition
+        Assertions.assertFalse((boolean) expr.evaluate(name -> System.currentTimeMillis() * 1000));
+
+        // Validate a timestamp with 8 days ago
+        Assertions.assertTrue((boolean) expr.evaluate(name -> (System.currentTimeMillis() - Duration.ofDays(8).toMillis()) * 1000L));
     }
 }
