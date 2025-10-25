@@ -303,5 +303,194 @@ public class ColumnSerializerTest {
         assertEquals("alpha", deserialized.getString(0));
         assertEquals("beta", deserialized.getString(1));
     }
+
+    @Test
+    void testLongColumnViewSerialization() throws Exception {
+        // Create a column with 5 elements
+        LongColumn column = new LongColumn("test", 5);
+        column.addLong(10);
+        column.addLong(20);
+        column.addLong(30);
+        column.addLong(40);
+        column.addLong(50);
+
+        // Create a view that selects elements at indices [4, 2, 0]
+        // This should give us values [50, 30, 10]
+        int[] selections = new int[]{4, 2, 0};
+        Column view = column.view(selections, 3);
+
+        // Verify the view returns correct values
+        assertEquals(3, view.size());
+        assertEquals(50, view.getLong(0));
+        assertEquals(30, view.getLong(1));
+        assertEquals(10, view.getLong(2));
+
+        // Serialize and deserialize the view
+        String json = objectMapper.writeValueAsString(view);
+        
+        // The deserialized column should contain the view's selected values [50, 30, 10]
+        // NOT the first 3 elements of the underlying array [10, 20, 30]
+        LongColumn deserialized = objectMapper.readValue(json, LongColumn.class);
+        assertEquals(3, deserialized.size());
+        assertEquals(50, deserialized.getLong(0));
+        assertEquals(30, deserialized.getLong(1));
+        assertEquals(10, deserialized.getLong(2));
+    }
+
+    @Test
+    void testDoubleColumnViewSerialization() throws Exception {
+        // Create a column with 5 elements
+        DoubleColumn column = new DoubleColumn("test", 5);
+        column.addDouble(1.1);
+        column.addDouble(2.2);
+        column.addDouble(3.3);
+        column.addDouble(4.4);
+        column.addDouble(5.5);
+
+        // Create a view that selects elements at indices [4, 2, 0]
+        // This should give us values [5.5, 3.3, 1.1]
+        int[] selections = new int[]{4, 2, 0};
+        Column view = column.view(selections, 3);
+
+        // Verify the view returns correct values
+        assertEquals(3, view.size());
+        assertEquals(5.5, view.getDouble(0), 0.001);
+        assertEquals(3.3, view.getDouble(1), 0.001);
+        assertEquals(1.1, view.getDouble(2), 0.001);
+
+        // Serialize and deserialize the view
+        String json = objectMapper.writeValueAsString(view);
+        
+        // The deserialized column should contain the view's selected values [5.5, 3.3, 1.1]
+        // NOT the first 3 elements of the underlying array [1.1, 2.2, 3.3]
+        DoubleColumn deserialized = objectMapper.readValue(json, DoubleColumn.class);
+        assertEquals(3, deserialized.size());
+        assertEquals(5.5, deserialized.getDouble(0), 0.001);
+        assertEquals(3.3, deserialized.getDouble(1), 0.001);
+        assertEquals(1.1, deserialized.getDouble(2), 0.001);
+    }
+
+    @Test
+    void testStringColumnViewSerialization() throws Exception {
+        // Create a column with 5 elements
+        StringColumn column = new StringColumn("test", 5);
+        column.addString("one");
+        column.addString("two");
+        column.addString("three");
+        column.addString("four");
+        column.addString("five");
+
+        // Create a view that selects elements at indices [4, 2, 0]
+        // This should give us values ["five", "three", "one"]
+        int[] selections = new int[]{4, 2, 0};
+        Column view = column.view(selections, 3);
+
+        // Verify the view returns correct values
+        assertEquals(3, view.size());
+        assertEquals("five", view.getString(0));
+        assertEquals("three", view.getString(1));
+        assertEquals("one", view.getString(2));
+
+        // Serialize and deserialize the view
+        String json = objectMapper.writeValueAsString(view);
+        
+        // The deserialized column should contain the view's selected values ["five", "three", "one"]
+        // NOT the first 3 elements of the underlying array ["one", "two", "three"]
+        StringColumn deserialized = objectMapper.readValue(json, StringColumn.class);
+        assertEquals(3, deserialized.size());
+        assertEquals("five", deserialized.getString(0));
+        assertEquals("three", deserialized.getString(1));
+        assertEquals("one", deserialized.getString(2));
+    }
+
+    @Test
+    void testLongColumnViewSerializationWithNonSequentialSelection() throws Exception {
+        // Create a column with capacity larger than actual size
+        LongColumn column = new LongColumn("test", 10);
+        column.addLong(100);
+        column.addLong(200);
+        column.addLong(300);
+        column.addLong(400);
+        column.addLong(500);
+
+        // Create a view that selects non-sequential elements [3, 1, 4]
+        // This should give us values [400, 200, 500]
+        int[] selections = new int[]{3, 1, 4};
+        Column view = column.view(selections, 3);
+
+        assertEquals(3, view.size());
+        assertEquals(400, view.getLong(0));
+        assertEquals(200, view.getLong(1));
+        assertEquals(500, view.getLong(2));
+
+        // Serialize and deserialize
+        String json = objectMapper.writeValueAsString(view);
+        
+        LongColumn deserialized = objectMapper.readValue(json, LongColumn.class);
+        assertEquals(3, deserialized.size());
+        assertEquals(400, deserialized.getLong(0));
+        assertEquals(200, deserialized.getLong(1));
+        assertEquals(500, deserialized.getLong(2));
+    }
+
+    @Test
+    void testDoubleColumnViewSerializationWithNonSequentialSelection() throws Exception {
+        // Create a column with capacity larger than actual size
+        DoubleColumn column = new DoubleColumn("test", 10);
+        column.addDouble(10.0);
+        column.addDouble(20.0);
+        column.addDouble(30.0);
+        column.addDouble(40.0);
+        column.addDouble(50.0);
+
+        // Create a view that selects non-sequential elements [3, 1, 4]
+        // This should give us values [40.0, 20.0, 50.0]
+        int[] selections = new int[]{3, 1, 4};
+        Column view = column.view(selections, 3);
+
+        assertEquals(3, view.size());
+        assertEquals(40.0, view.getDouble(0), 0.001);
+        assertEquals(20.0, view.getDouble(1), 0.001);
+        assertEquals(50.0, view.getDouble(2), 0.001);
+
+        // Serialize and deserialize
+        String json = objectMapper.writeValueAsString(view);
+        
+        DoubleColumn deserialized = objectMapper.readValue(json, DoubleColumn.class);
+        assertEquals(3, deserialized.size());
+        assertEquals(40.0, deserialized.getDouble(0), 0.001);
+        assertEquals(20.0, deserialized.getDouble(1), 0.001);
+        assertEquals(50.0, deserialized.getDouble(2), 0.001);
+    }
+
+    @Test
+    void testStringColumnViewSerializationWithNonSequentialSelection() throws Exception {
+        // Create a column with capacity larger than actual size
+        StringColumn column = new StringColumn("test", 10);
+        column.addString("alpha");
+        column.addString("beta");
+        column.addString("gamma");
+        column.addString("delta");
+        column.addString("epsilon");
+
+        // Create a view that selects non-sequential elements [3, 1, 4]
+        // This should give us values ["delta", "beta", "epsilon"]
+        int[] selections = new int[]{3, 1, 4};
+        Column view = column.view(selections, 3);
+
+        assertEquals(3, view.size());
+        assertEquals("delta", view.getString(0));
+        assertEquals("beta", view.getString(1));
+        assertEquals("epsilon", view.getString(2));
+
+        // Serialize and deserialize
+        String json = objectMapper.writeValueAsString(view);
+        
+        StringColumn deserialized = objectMapper.readValue(json, StringColumn.class);
+        assertEquals(3, deserialized.size());
+        assertEquals("delta", deserialized.getString(0));
+        assertEquals("beta", deserialized.getString(1));
+        assertEquals("epsilon", deserialized.getString(2));
+    }
 }
 

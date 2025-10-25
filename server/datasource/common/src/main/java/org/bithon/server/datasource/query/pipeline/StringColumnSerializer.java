@@ -35,17 +35,16 @@ public class StringColumnSerializer extends JsonSerializer<StringColumn> {
     public void serialize(StringColumn column, JsonGenerator gen, SerializerProvider serializers) throws IOException {
         gen.writeStartObject();
         gen.writeStringField("name", column.getName());
-        
+
         gen.writeFieldName("data");
         gen.writeStartArray();
         {
-            String[] data = column.getData();
             for (int i = 0, size = column.size(); i < size; i++) {
-                gen.writeString(data[i]);
+                gen.writeString(column.getString(i));
             }
         }
         gen.writeEndArray();
-        
+
         gen.writeEndObject();
     }
 }

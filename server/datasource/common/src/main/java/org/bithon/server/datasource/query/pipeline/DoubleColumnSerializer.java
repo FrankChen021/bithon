@@ -35,17 +35,16 @@ public class DoubleColumnSerializer extends JsonSerializer<DoubleColumn> {
     public void serialize(DoubleColumn column, JsonGenerator gen, SerializerProvider serializers) throws IOException {
         gen.writeStartObject();
         gen.writeStringField("name", column.getName());
-        
+
         gen.writeFieldName("data");
         gen.writeStartArray();
         {
-            double[] data = column.getData();
             for (int i = 0, size = column.size(); i < size; i++) {
-                gen.writeNumber(data[i]);
+                gen.writeNumber(column.getDouble(i));
             }
         }
         gen.writeEndArray();
-        
+
         gen.writeEndObject();
     }
 }

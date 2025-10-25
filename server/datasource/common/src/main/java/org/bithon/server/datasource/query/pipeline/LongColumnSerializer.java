@@ -39,9 +39,8 @@ public class LongColumnSerializer extends JsonSerializer<LongColumn> {
         gen.writeFieldName("data");
         gen.writeStartArray();
         {
-            long[] data = column.getData();
             for (int i = 0, size = column.size(); i < size; i++) {
-                gen.writeNumber(data[i]);
+                gen.writeNumber(column.getLong(i));
             }
         }
         gen.writeEndArray();
