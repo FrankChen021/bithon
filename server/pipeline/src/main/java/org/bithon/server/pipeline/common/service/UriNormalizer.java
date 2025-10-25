@@ -79,7 +79,12 @@ public class UriNormalizer {
     }
 
     private NormalizedResult normalize(UriNormalizationRuleConfig matchers, String path) {
-        path = URLDecoder.decode(path, StandardCharsets.UTF_8);
+        try {
+            path = URLDecoder.decode(path, StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
+            // If URL decoding fails due to malformed encoding (e.g., "50%!" where %! is invalid),
+            // continue with the original path instead of propagating the exception
+        }
 
         //
         // 使用Path匹配
