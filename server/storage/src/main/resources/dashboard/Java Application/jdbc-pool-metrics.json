@@ -22,9 +22,9 @@
         "fields": [
           { "name": "activeCount", "expression": "last(activeCount)" },
           { "name": "poolingCount", "expression": "last(poolingCount)" },
-          { "name": "createCount", "expression": "last(createCount)" },
-          { "name": "destroyCount", "expression": "last(destroyCount)" },
-          { "name": "waitThreadCount", "expression": "last(waitThreadCount)" }
+          { "name": "createCount", "expression": "sum(createCount)" },
+          { "name": "destroyCount", "expression": "sum(destroyCount)" },
+          { "name": "waitThreadCount", "expression": "sum(waitThreadCount)" }
         ]
       }
     },
