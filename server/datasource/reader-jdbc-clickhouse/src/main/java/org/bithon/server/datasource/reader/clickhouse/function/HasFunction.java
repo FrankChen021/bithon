@@ -46,7 +46,7 @@ public class HasFunction extends AbstractFunction {
 
     @Override
     public boolean isDeterministic() {
-        return false;
+        return true;
     }
 
     @Override
