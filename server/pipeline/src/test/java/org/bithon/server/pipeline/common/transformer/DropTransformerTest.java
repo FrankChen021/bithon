@@ -55,7 +55,7 @@ public class DropTransformerTest {
     @Test
     public void testCurrentMillisecondsFunction() throws JsonProcessingException {
         // Test that currentMilliseconds() function returns a reasonable value
-        // This expression checks if current time is less than a past date (Sept 2001)
+        // This expression checks if current time is less than a past date (September 2001)
         // The expression will be false, so rows should NOT be dropped
         DropTransformer transformer = new DropTransformer("currentMilliseconds() < 1000000000000", null);
 
@@ -63,7 +63,7 @@ public class DropTransformerTest {
         String transformerText = om.writeValueAsString(transformer);
         ITransformer newTransformer = om.readValue(transformerText, ITransformer.class);
 
-        // Current time should be greater than 1000000000000 (Sept 2001)
+        // Current time should be greater than 1000000000000 (September 2001)
         // So the expression should be false, and the row should NOT be dropped
         InputRow row = new InputRow(new HashMap<>());
         TransformResult result = newTransformer.transform(row);
@@ -101,8 +101,8 @@ public class DropTransformerTest {
         TransformResult pastResult = newTransformer.transform(invalidPastRow);
         Assertions.assertEquals(TransformResult.DROP, pastResult, "Timestamp from 1970 should be dropped");
 
-        // Test case 3: Timestamp too far in the future (year 2299) - should be dropped
-        long invalidFutureTime = 10_000_000_000_000L; // Far future timestamp
+        // Test case 3: Timestamp too far in the future - should be dropped
+        long invalidFutureTime = 10_000_000_000_000L; // Far future timestamp (~November 2286)
         InputRow invalidFutureRow = new InputRow(new HashMap<>(ImmutableMap.of("timestamp", invalidFutureTime)));
         TransformResult futureResult = newTransformer.transform(invalidFutureRow);
         Assertions.assertEquals(TransformResult.DROP, futureResult, "Timestamp from far future should be dropped");
