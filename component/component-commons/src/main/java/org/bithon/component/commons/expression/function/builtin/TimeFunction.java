@@ -62,6 +62,25 @@ public class TimeFunction {
         }
     }
 
+    /**
+     * returns the current milliseconds since unix epoch
+     */
+    public static class CurrentMilliseconds extends AbstractFunction {
+        public CurrentMilliseconds() {
+            super("currentMilliseconds", IDataType.LONG);
+        }
+
+        @Override
+        public Object evaluate(List<Object> args) {
+            return System.currentTimeMillis();
+        }
+
+        @Override
+        public boolean isDeterministic() {
+            return false;
+        }
+    }
+
     public static class ToNanoSeconds extends AbstractFunction {
         public static final ToNanoSeconds INSTANCE = new ToNanoSeconds();
 
