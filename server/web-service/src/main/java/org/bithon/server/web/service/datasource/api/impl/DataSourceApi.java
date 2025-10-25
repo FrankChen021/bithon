@@ -122,6 +122,7 @@ public class DataSourceApi implements IDataSourceApi {
         Query query = QueryConverter.toQuery(schema, request, step);
         TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
         return QueryResponse.builder()
+                            .deprecated("!Important! This API has been deprecated. Please use /api/datasource/query/stream instead")
                             .meta(query.getSelectors()
                                        .stream()
                                        .map((selector) -> new ColumnMetadata(selector.getOutputName(), selector.getDataType().name()))
@@ -167,7 +168,7 @@ public class DataSourceApi implements IDataSourceApi {
 
             try {
                 return QueryResponse.builder()
-                                    .deprecated("This API has been deprecated. Please use /api/datasource/query/stream instead.")
+                                    .deprecated("!Important! This API has been deprecated. Please use /api/datasource/query/stream instead.")
                                     .meta(list.get().getColumns())
                                     .total(total.get())
                                     .limit(query.getLimit())

@@ -62,15 +62,6 @@ public interface IDataSourceApi {
     QueryResponse groupByV3(@Validated @RequestBody QueryRequest request) throws IOException;
 
     /**
-     * Stream group by results in NDJSON format.
-     * The first row is the header that contains the metadata of columns. Each element has two properties, name and type.
-     * The rest rows are data rows in JSON array format to reduce the payload size.
-     */
-    @PostMapping("/api/datasource/query/stream")
-    ResponseEntity<StreamingResponseBody> streamQuery(@RequestHeader(value = "Accept-Encoding", required = false) String acceptEncoding,
-                                                      @Validated @RequestBody QueryRequest request) throws IOException;
-
-    /**
      * @deprecated use {@link #streamQuery(String, QueryRequest)}
      */
     @Deprecated
@@ -95,6 +86,15 @@ public interface IDataSourceApi {
      */
     @PostMapping("/api/datasource/count")
     QueryResponse count(@Validated @RequestBody QueryRequest request) throws IOException;
+
+    /**
+     * Stream group by results in NDJSON format.
+     * The first row is the header that contains the metadata of columns. Each element has two properties, name and type.
+     * The rest rows are data rows in JSON array format to reduce the payload size.
+     */
+    @PostMapping("/api/datasource/query/stream")
+    ResponseEntity<StreamingResponseBody> streamQuery(@RequestHeader(value = "Accept-Encoding", required = false) String acceptEncoding,
+                                                      @Validated @RequestBody QueryRequest request) throws IOException;
 
     @PostMapping("/api/datasource/schemas")
     Map<String, ISchema> getSchemas();
