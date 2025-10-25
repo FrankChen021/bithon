@@ -265,19 +265,19 @@ public class ExpressionASTBuilderTest {
             Assertions.assertEquals(69, ((LiteralExpression.ReadableDurationLiteral) expr).getValue().getDuration().toSeconds());
         }
         {
-            IExpression expr = ExpressionASTBuilder.builder().build("69s.toMilliSeconds");
+            IExpression expr = ExpressionASTBuilder.builder().build("69s.toMilliseconds");
 
             // The 69s.toMilli is interpreted as toMilliSeconds(69s), which has been optimized to 69_000
             Assertions.assertEquals("69000", expr.serializeToText(IdentifierQuotaStrategy.NONE));
         }
         {
-            IExpression expr = ExpressionASTBuilder.builder().build("1d .toMicroSeconds");
+            IExpression expr = ExpressionASTBuilder.builder().build("1d .toMicroseconds");
 
             // The 69s.toMicro is interpreted as toMicroSeconds(1d), which has been optimized to 86400_000_000
             Assertions.assertEquals("86400000000", expr.serializeToText(IdentifierQuotaStrategy.NONE));
         }
         {
-            IExpression expr = ExpressionASTBuilder.builder().build("3m. toNanoSeconds");
+            IExpression expr = ExpressionASTBuilder.builder().build("3m. toNanoseconds");
 
             // The 69s.toNano is interpreted as toNanoSeconds(3m), which has been optimized to 180_000_000_000
             Assertions.assertEquals("180000000000", expr.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -383,13 +383,6 @@ public class ExpressionASTBuilderTest {
     }
 
     @Test
-    public void test_DurationSuffix() {
-        Assertions.assertEquals("86400000", ExpressionASTBuilder.builder().build("1d.toMilliseconds").serializeToText());
-        Assertions.assertEquals("86400000000", ExpressionASTBuilder.builder().build("1d.toMicroseconds").serializeToText());
-        Assertions.assertEquals("86400000000000", ExpressionASTBuilder.builder().build("1d.toNanoseconds").serializeToText());
-    }
-
-    @Test
     public void test_CurrentSeconds() {
         IExpression expr = ExpressionASTBuilder.builder()
                                                .identifier((id) -> {
@@ -418,7 +411,7 @@ public class ExpressionASTBuilderTest {
                                                    throw new InvalidExpressionException("Invalid expression");
                                                })
                                                .functions(Functions.getInstance())
-                                               .build("timestamp - currentMilliseconds() < -7d.toMilliSeconds");
+                                               .build("timestamp - currentMilliseconds() < -7d.toMilliseconds");
 
         // Validate a timestamp with current timestamp which does not meet the condition
         Assertions.assertFalse((boolean) expr.evaluate(name -> System.currentTimeMillis()));
@@ -437,7 +430,7 @@ public class ExpressionASTBuilderTest {
                                                    throw new InvalidExpressionException("Invalid expression");
                                                })
                                                .functions(Functions.getInstance())
-                                               .build("timestamp - currentMicroseconds() < -7d.toMicroSeconds");
+                                               .build("timestamp - currentMicroseconds() < -7d.toMicroseconds");
 
         // Validate a timestamp with current timestamp which does not meet the condition
         Assertions.assertFalse((boolean) expr.evaluate(name -> System.currentTimeMillis() * 1000));

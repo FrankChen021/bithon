@@ -122,7 +122,7 @@ public class TimeFunction {
         public static final ToNanoSeconds INSTANCE = new ToNanoSeconds();
 
         private ToNanoSeconds() {
-            super("toNanoSeconds", IDataType.LONG, IDataType.LONG);
+            super("toNanoseconds", IDataType.LONG, IDataType.LONG);
         }
 
         @Override
@@ -140,7 +140,7 @@ public class TimeFunction {
         public static final ToMicroSeconds INSTANCE = new ToMicroSeconds();
 
         private ToMicroSeconds() {
-            super("toMicroSeconds", IDataType.LONG, IDataType.LONG);
+            super("toMicroseconds", IDataType.LONG, IDataType.LONG);
         }
 
         @Override
@@ -158,7 +158,7 @@ public class TimeFunction {
         public static final ToMilliSeconds INSTANCE = new ToMilliSeconds();
 
         private ToMilliSeconds() {
-            super("ToMilliSeconds", IDataType.LONG, IDataType.LONG);
+            super("ToMilliseconds", IDataType.LONG, IDataType.LONG);
         }
 
         @Override

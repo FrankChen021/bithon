@@ -61,8 +61,9 @@ class ExpressionTypeValidator implements IExpressionInDepthVisitor {
     @Override
     public boolean visit(ConditionalExpression expression) {
         if (!this.identifierHasTypeInfo
-            && (expression.getLhs() instanceof IdentifierExpression
-                || expression.getRhs() instanceof IdentifierExpression)) {
+            && (HasIdentifierExpressionVisitor.hasIdentifierExpression(expression.getLhs())
+                || HasIdentifierExpressionVisitor.hasIdentifierExpression(expression.getRhs())
+            )) {
             // When the identifier does not have type info,
             // and either one of the operands of conditional expression is identifier,
             // we skip the validation and cast the type
@@ -126,5 +127,21 @@ class ExpressionTypeValidator implements IExpressionInDepthVisitor {
             function.validateArgs(expression.getArgs());
         }
         return true;
+    }
+
+    static class HasIdentifierExpressionVisitor implements IExpressionInDepthVisitor {
+        private boolean hasIdentifier = false;
+
+        @Override
+        public boolean visit(IdentifierExpression expression) {
+            this.hasIdentifier = true;
+            return false;
+        }
+
+        public static boolean hasIdentifierExpression(IExpression expr) {
+            HasIdentifierExpressionVisitor visitor = new HasIdentifierExpressionVisitor();
+            expr.accept(visitor);
+            return visitor.hasIdentifier;
+        }
     }
 }
