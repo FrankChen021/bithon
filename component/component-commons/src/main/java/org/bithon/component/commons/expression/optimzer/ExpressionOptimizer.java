@@ -24,7 +24,6 @@ import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
-import org.bithon.component.commons.expression.function.builtin.TimeFunction;
 
 import java.util.Iterator;
 
@@ -218,17 +217,8 @@ public class ExpressionOptimizer {
     }
 
     static class ConstantFunctionOptimizer extends AbstractOptimizer {
-        // Make sure all now() function in the expression return the same value
-        private LiteralExpression.LongLiteral now;
-
         @Override
         public IExpression visit(FunctionExpression expression) {
-            if (expression.getFunction() instanceof TimeFunction.Now) {
-                if (now == null) {
-                    now = LiteralExpression.ofLong((long) expression.getFunction().evaluate(null));
-                }
-                return now;
-            }
             return super.visit(expression);
         }
     }

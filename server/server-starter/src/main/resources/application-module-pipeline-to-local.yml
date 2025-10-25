@@ -25,6 +25,9 @@ bithon:
         - type: jaeger-trace-udp
         - type: jaeger-trace-http
       processors:
+          # drop data arriving too late or too early
+        - type: drop
+          expr: (startTime - currentMicroseconds() < -3d.toMicroseconds) OR (startTime - currentMicroseconds() > 1d.toMicroseconds)
           # drop spans
         - type: drop
           expr: clazz endsWith 'UriNormalizer'

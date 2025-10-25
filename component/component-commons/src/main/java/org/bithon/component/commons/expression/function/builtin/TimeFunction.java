@@ -45,6 +45,8 @@ public class TimeFunction {
 
     /**
      * returns the current seconds since unix epoch
+     *
+     * @deprecated use {@link CurrentSeconds} instead
      */
     public static class Now extends AbstractFunction {
         public Now() {
@@ -62,11 +64,65 @@ public class TimeFunction {
         }
     }
 
+    public static class CurrentSeconds extends AbstractFunction {
+        public CurrentSeconds() {
+            super("currentSeconds", IDataType.LONG);
+        }
+
+        @Override
+        public Object evaluate(List<Object> args) {
+            return System.currentTimeMillis() / 1000;
+        }
+
+        @Override
+        public boolean isDeterministic() {
+            return false;
+        }
+    }
+
+    /**
+     * returns the current milliseconds since unix epoch
+     */
+    public static class CurrentMilliseconds extends AbstractFunction {
+        public CurrentMilliseconds() {
+            super("currentMilliseconds", IDataType.LONG);
+        }
+
+        @Override
+        public Object evaluate(List<Object> args) {
+            return System.currentTimeMillis();
+        }
+
+        @Override
+        public boolean isDeterministic() {
+            return false;
+        }
+    }
+
+    /**
+     * returns the current milliseconds since unix epoch
+     */
+    public static class CurrentMicroseconds extends AbstractFunction {
+        public CurrentMicroseconds() {
+            super("currentMicroseconds", IDataType.LONG);
+        }
+
+        @Override
+        public Object evaluate(List<Object> args) {
+            return System.currentTimeMillis() * 1000;
+        }
+
+        @Override
+        public boolean isDeterministic() {
+            return false;
+        }
+    }
+
     public static class ToNanoSeconds extends AbstractFunction {
         public static final ToNanoSeconds INSTANCE = new ToNanoSeconds();
 
         private ToNanoSeconds() {
-            super("toNanoSeconds", IDataType.LONG, IDataType.LONG);
+            super("toNanoseconds", IDataType.LONG, IDataType.LONG);
         }
 
         @Override
@@ -84,7 +140,7 @@ public class TimeFunction {
         public static final ToMicroSeconds INSTANCE = new ToMicroSeconds();
 
         private ToMicroSeconds() {
-            super("toMicroSeconds", IDataType.LONG, IDataType.LONG);
+            super("toMicroseconds", IDataType.LONG, IDataType.LONG);
         }
 
         @Override
@@ -102,7 +158,7 @@ public class TimeFunction {
         public static final ToMilliSeconds INSTANCE = new ToMilliSeconds();
 
         private ToMilliSeconds() {
-            super("ToMilliSeconds", IDataType.LONG, IDataType.LONG);
+            super("ToMilliseconds", IDataType.LONG, IDataType.LONG);
         }
 
         @Override
