@@ -398,7 +398,7 @@ public class ExpressionASTBuilderTest {
         Assertions.assertFalse((boolean) expr.evaluate(name -> System.currentTimeMillis() / 1000));
 
         // Validate a timestamp with 8 days ago
-        Assertions.assertTrue((boolean) expr.evaluate(name -> System.currentTimeMillis() / 1000 - Duration.ofDays(8).toMillis()));
+        Assertions.assertTrue((boolean) expr.evaluate(name -> System.currentTimeMillis() / 1000 - Duration.ofDays(8).toSeconds()));
     }
 
     @Test
