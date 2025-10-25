@@ -31,6 +31,7 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.datasource.TimestampSpec;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Query;
+import org.bithon.server.datasource.query.ReadResponse;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.pipeline.Column;
@@ -143,32 +144,24 @@ public class VMDataSourceReader implements IDataSourceReader {
     }
 
     @Override
-    public List<?> groupBy(Query query) {
-        return List.of();
-    }
+    public ReadResponse query(Query query) {
+        CloseableIterator<?> emptyIterator = new CloseableIterator<>() {
+            @Override
+            public void close() {
+            }
 
-    @Override
-    public List<?> select(Query query) {
-        return List.of();
-    }
-
-    @Override
-    public CloseableIterator<Object[]> streamSelect(Query query) {
-        return new CloseableIterator<>() {
             @Override
             public boolean hasNext() {
                 return false;
             }
 
             @Override
-            public Object[] next() {
+            public Object next() {
                 return null;
             }
-
-            @Override
-            public void close() {
-            }
         };
+
+        return new ReadResponse(emptyIterator, List.of());
     }
 
     @Override

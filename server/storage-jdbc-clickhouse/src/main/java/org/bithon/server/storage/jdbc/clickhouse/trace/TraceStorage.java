@@ -35,6 +35,9 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.query.Limit;
 import org.bithon.server.datasource.query.OrderBy;
+import org.bithon.server.datasource.query.Query;
+import org.bithon.server.datasource.query.ReadResponse;
+import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.clickhouse.ClickHouseMetadataManager;
 import org.bithon.server.datasource.reader.jdbc.dialect.SqlDialectManager;
@@ -56,6 +59,7 @@ import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.bithon.server.storage.tracing.TraceTableSchema;
+import org.bithon.server.storage.tracing.reader.TraceFilterSplitter;
 import org.jooq.Cursor;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -193,6 +197,7 @@ public class TraceStorage extends TraceJdbcStorage {
         return new TraceJdbcReader(this.dslContext,
                                    this.objectMapper,
                                    this.applicationContext.getBean(SchemaManager.class).getSchema(TraceTableSchema.TRACE_SPAN_SUMMARY_SCHEMA_NAME),
+                                   this.applicationContext.getBean(SchemaManager.class).getSchema(TraceTableSchema.TRACE_SPAN_SCHEMA_NAME),
                                    this.applicationContext.getBean(SchemaManager.class).getSchema(TraceTableSchema.TRACE_SPAN_TAG_INDEX_SCHEMA_NAME),
                                    this.storageConfig,
                                    this.sqlDialectManager.getSqlDialect(this.dslContext),
@@ -208,12 +213,17 @@ public class TraceStorage extends TraceJdbcStorage {
              * Override to apply read in order optimization
              */
             @Override
-            public CloseableIterator<TraceSpan> getTraceList(IExpression filter,
-                                                             List<IExpression> indexedTagFilter,
-                                                             Timestamp start,
-                                                             Timestamp end,
-                                                             OrderBy orderBy,
-                                                             Limit limit) {
+            protected ReadResponse select(Query query) {
+                TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
+                splitter.split(query.getFilter());
+
+                IExpression filter = splitter.getExpression();
+                List<IExpression> indexedTagFilter = splitter.getIndexedTagFilters();
+                Timestamp start = query.getInterval().getStartTime().toTimestamp();
+                Timestamp end = query.getInterval().getEndTime().toTimestamp();
+                OrderBy orderBy = query.getOrderBy();
+                Limit limit = query.getLimit();
+
                 boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
 
                 Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
@@ -279,9 +289,17 @@ public class TraceStorage extends TraceJdbcStorage {
                 log.info("Get trace list: {}", sql);
 
                 Cursor<?> cursor = dslContext.fetchLazy(sql);
-                return CloseableIterator.transform(cursor.iterator(),
-                                                   this::toTraceSpan,
-                                                   cursor);
+                CloseableIterator<TraceSpan> iterator = CloseableIterator.transform(cursor.iterator(),
+                                                                                    this::toTraceSpan,
+                                                                                    cursor);
+
+                return ReadResponse.builder()
+                                   .columns(query.getSelectors()
+                                                 .stream()
+                                                 .map(Selector::toColumnMetadata)
+                                                 .toList())
+                                   .data(iterator)
+                                   .build();
             }
 
             @Override
@@ -303,7 +321,6 @@ public class TraceStorage extends TraceJdbcStorage {
             if (!(orderByExpression instanceof FunctionExpression functionExpression)) {
                 continue;
             }
-            String timestampColumn = Tables.BITHON_TRACE_SPAN.TIMESTAMP.getName();
             boolean hasTimestampColumn = functionExpression.getArgs()
                                                            .stream()
                                                            .anyMatch(tsColumn::equals);

@@ -39,18 +39,6 @@ public interface ITraceReader extends IDataSourceReader {
                                                    TimeSpan start,
                                                    TimeSpan end);
 
-    CloseableIterator<TraceSpan> getTraceList(IExpression filter,
-                                              List<IExpression> indexedTagFilters,
-                                              Timestamp start,
-                                              Timestamp end,
-                                              OrderBy orderBy,
-                                              Limit limit);
-
-    int getTraceListSize(IExpression filter,
-                         List<IExpression> indexedTagFilters,
-                         Timestamp start,
-                         Timestamp end);
-
     List<TraceSpan> getTraceByParentSpanId(String parentSpanId);
 
     /**

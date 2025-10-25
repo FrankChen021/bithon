@@ -16,31 +16,15 @@
 
 package org.bithon.server.datasource.query;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.datasource.query.pipeline.ColumnarTable;
-
-import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/11 11:09 上午
+ * @date 23/10/25 11:36 pm
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface IDataSourceReader extends AutoCloseable {
-
-    ColumnarTable timeseries(Query query);
-
+public enum ResultFormat {
     /**
-     * Aggregate metrics by their pre-defined aggregators in the given period.
-     * Returns a DataSourceReadResponse that contains both the data iterator and column metadata.
+     * Object is output as an array
      */
-    ReadResponse query(Query query);
-
-    int count(Query query);
-
-    List<String> distinct(Query query);
-
-    default void close() {
-    }
-
+    ValueArray,
+    Object
 }

@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.datasource.query.ColumnMetadata;
 
 /**
  * Take SQL as example, this AST nodes represent a column that appears right after SELECT keyword.
@@ -89,5 +90,9 @@ public class Selector implements IASTNode {
             return ((Column) selectExpression).getName();
         }
         throw new RuntimeException(StringUtils.format("no result name for result column [%s]", selectExpression));
+    }
+
+    public ColumnMetadata toColumnMetadata() {
+        return new ColumnMetadata(getOutputName(), dataType.name());
     }
 }

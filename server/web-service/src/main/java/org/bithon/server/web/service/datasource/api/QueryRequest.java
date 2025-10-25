@@ -28,7 +28,7 @@ import lombok.NoArgsConstructor;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.datasource.query.Limit;
 import org.bithon.server.datasource.query.OrderBy;
-import org.bithon.server.datasource.query.Query;
+import org.bithon.server.datasource.query.ResultFormat;
 import org.bithon.server.datasource.query.setting.QuerySettings;
 
 import java.util.LinkedHashSet;
@@ -78,5 +78,5 @@ public class QueryRequest {
     @Nullable
     private QuerySettings settings;
 
-    private Query.ResultFormat resultFormat;
+    private ResultFormat resultFormat;
 }

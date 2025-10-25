@@ -16,31 +16,31 @@
 
 package org.bithon.server.datasource.query;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.datasource.query.pipeline.ColumnarTable;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import org.bithon.component.commons.utils.CloseableIterator;
 
 import java.util.List;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2020/12/11 11:09 上午
+ * Response object containing streaming data and column metadata
+ * @date 20/10/25 11:06 pm
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface IDataSourceReader extends AutoCloseable {
-
-    ColumnarTable timeseries(Query query);
+@Data
+@Builder
+@AllArgsConstructor
+public class ReadResponse {
+    /**
+     * Iterator for streaming row data
+     */
+    private CloseableIterator<?> data;
 
     /**
-     * Aggregate metrics by their pre-defined aggregators in the given period.
-     * Returns a DataSourceReadResponse that contains both the data iterator and column metadata.
+     * Column metadata for the result set.
+     * Each entry contains column name and data type.
      */
-    ReadResponse query(Query query);
-
-    int count(Query query);
-
-    List<String> distinct(Query query);
-
-    default void close() {
-    }
+    private List<ColumnMetadata> columns;
 
 }

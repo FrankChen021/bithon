@@ -20,6 +20,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bithon.server.datasource.query.ColumnMetadata;
 import org.bithon.server.datasource.query.Limit;
 
 import java.util.List;
@@ -33,6 +34,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class QueryResponse<T> {
+    /**
+     * A notice to the client that if the called API is deprecated
+     */
+    private String deprecated;
 
     /**
      * The number of total records that satisfies the request conditions.
@@ -54,16 +59,6 @@ public class QueryResponse<T> {
     private long interval;
     private T data;
 
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class QueryResponseColumn {
-        private String name;
-
-        private String dataType;
-    }
-
     // The column metadata info in the result set
-    private List<QueryResponseColumn> meta;
+    private List<ColumnMetadata> meta;
 }

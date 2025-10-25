@@ -26,6 +26,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.component.commons.Experimental;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.datasource.query.ColumnMetadata;
 import org.bithon.server.datasource.query.pipeline.Column;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
 import org.bithon.server.datasource.query.pipeline.PipelineQueryResult;
@@ -142,12 +143,12 @@ public class MetricQueryApi {
             }
         }
 
-        List<QueryResponse.QueryResponseColumn> responseColumns = new ArrayList<>(dimCols.size() + queryResult.getValColumns().size());
+        List<ColumnMetadata> responseColumns = new ArrayList<>(dimCols.size() + queryResult.getValColumns().size());
         for (Column dim : dimCols) {
-            responseColumns.add(new QueryResponse.QueryResponseColumn(dim.getName(), dim.getDataType().name()));
+            responseColumns.add(new ColumnMetadata(dim.getName(), dim.getDataType().name()));
         }
         for (Column val : valCols) {
-            responseColumns.add(new QueryResponse.QueryResponseColumn(val.getName(), val.getDataType().name()));
+            responseColumns.add(new ColumnMetadata(val.getName(), val.getDataType().name()));
         }
 
         return QueryResponse.builder()
