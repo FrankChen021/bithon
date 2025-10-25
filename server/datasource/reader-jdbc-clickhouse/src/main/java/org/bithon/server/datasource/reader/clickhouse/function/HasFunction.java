@@ -52,7 +52,7 @@ public class HasFunction extends AbstractFunction {
     @Override
     public void validateArgs(List<IExpression> args) {
         if (args.size() != 2) {
-            throw new InvalidExpressionException("In expression [%s %s], function [%s] can only accept 2 args, but got [%d]",
+            throw new InvalidExpressionException("In expression [%s(%s)], function [%s] can only accept 2 args, but got [%d]",
                                                  getName(),
                                                  args.stream().map(IExpression::serializeToText).collect(Collectors.joining(",")),
                                                  getName(),
