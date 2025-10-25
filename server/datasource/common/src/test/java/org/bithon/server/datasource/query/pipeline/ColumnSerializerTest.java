@@ -44,7 +44,7 @@ public class ColumnSerializerTest {
         column.addLong(3L);
 
         String json = objectMapper.writeValueAsString(column);
-        
+
         // Verify that only 3 elements are serialized, not 10
         assertTrue(json.contains("\"data\":[1,2,3]"));
         assertFalse(json.contains(",0")); // Should not contain trailing zeros
@@ -60,7 +60,7 @@ public class ColumnSerializerTest {
         column.addDouble(3.5);
 
         String json = objectMapper.writeValueAsString(column);
-        
+
         // Verify that only 3 elements are serialized, not 10
         assertTrue(json.contains("\"data\":[1.5,2.5,3.5]"));
         assertFalse(json.contains(",0.0")); // Should not contain trailing zeros
@@ -76,7 +76,7 @@ public class ColumnSerializerTest {
         column.addString("c");
 
         String json = objectMapper.writeValueAsString(column);
-        
+
         // Verify that only 3 elements are serialized, not 10
         assertTrue(json.contains("\"data\":[\"a\",\"b\",\"c\"]"));
         assertFalse(json.contains("null")); // Should not contain null values for unused capacity
@@ -89,7 +89,7 @@ public class ColumnSerializerTest {
         LongColumn column = new LongColumn("test", new long[]{1L, 2L, 3L});
 
         String json = objectMapper.writeValueAsString(column);
-        
+
         assertTrue(json.contains("\"data\":[1,2,3]"));
         assertFalse(json.contains("size")); // Size field should not be in JSON
     }
@@ -103,7 +103,7 @@ public class ColumnSerializerTest {
         DoubleColumn column = new DoubleColumn("test", data, 2);
 
         String json = objectMapper.writeValueAsString(column);
-        
+
         // Should only serialize first 2 elements
         assertTrue(json.contains("\"data\":[1.1,2.2]"));
         assertFalse(json.contains("size")); // Size field should not be in JSON
@@ -118,7 +118,7 @@ public class ColumnSerializerTest {
         StringColumn column = new StringColumn("test", data, 2);
 
         String json = objectMapper.writeValueAsString(column);
-        
+
         // Should only serialize first 2 elements
         assertTrue(json.contains("\"data\":[\"first\",\"second\"]"));
         assertFalse(json.contains("size")); // Size field should not be in JSON
@@ -127,9 +127,9 @@ public class ColumnSerializerTest {
     @Test
     void testLongColumnDeserializer() throws Exception {
         String json = "{\"name\":\"test\",\"data\":[10,20,30]}";
-        
+
         LongColumn column = objectMapper.readValue(json, LongColumn.class);
-        
+
         assertEquals("test", column.getName());
         assertEquals(3, column.size());
         assertEquals(10L, column.getLong(0));
@@ -140,9 +140,9 @@ public class ColumnSerializerTest {
     @Test
     void testDoubleColumnDeserializer() throws Exception {
         String json = "{\"name\":\"test\",\"data\":[1.5,2.5,3.5]}";
-        
+
         DoubleColumn column = objectMapper.readValue(json, DoubleColumn.class);
-        
+
         assertEquals("test", column.getName());
         assertEquals(3, column.size());
         assertEquals(1.5, column.getDouble(0), 0.001);
@@ -153,9 +153,9 @@ public class ColumnSerializerTest {
     @Test
     void testStringColumnDeserializer() throws Exception {
         String json = "{\"name\":\"test\",\"data\":[\"a\",\"b\",\"c\"]}";
-        
+
         StringColumn column = objectMapper.readValue(json, StringColumn.class);
-        
+
         assertEquals("test", column.getName());
         assertEquals(3, column.size());
         assertEquals("a", column.getString(0));
@@ -173,10 +173,10 @@ public class ColumnSerializerTest {
 
         // Serialize
         String json = objectMapper.writeValueAsString(original);
-        
+
         // Deserialize
         LongColumn deserialized = objectMapper.readValue(json, LongColumn.class);
-        
+
         // Verify
         assertEquals(original.getName(), deserialized.getName());
         assertEquals(original.size(), deserialized.size());
@@ -196,10 +196,10 @@ public class ColumnSerializerTest {
 
         // Serialize
         String json = objectMapper.writeValueAsString(original);
-        
+
         // Deserialize
         DoubleColumn deserialized = objectMapper.readValue(json, DoubleColumn.class);
-        
+
         // Verify
         assertEquals(original.getName(), deserialized.getName());
         assertEquals(original.size(), deserialized.size());
@@ -218,10 +218,10 @@ public class ColumnSerializerTest {
 
         // Serialize
         String json = objectMapper.writeValueAsString(original);
-        
+
         // Deserialize
         StringColumn deserialized = objectMapper.readValue(json, StringColumn.class);
-        
+
         // Verify
         assertEquals(original.getName(), deserialized.getName());
         assertEquals(original.size(), deserialized.size());
@@ -241,13 +241,13 @@ public class ColumnSerializerTest {
 
         // Serialize
         String json = objectMapper.writeValueAsString(original);
-        
+
         // Verify only 3 elements are in JSON
         assertFalse(json.contains(",0"));
-        
+
         // Deserialize
         LongColumn deserialized = objectMapper.readValue(json, LongColumn.class);
-        
+
         // Verify
         assertEquals(original.getName(), deserialized.getName());
         assertEquals(3, deserialized.size());
@@ -266,13 +266,13 @@ public class ColumnSerializerTest {
 
         // Serialize
         String json = objectMapper.writeValueAsString(original);
-        
+
         // Verify only 2 elements are in JSON
         assertFalse(json.contains(",0.0"));
-        
+
         // Deserialize
         DoubleColumn deserialized = objectMapper.readValue(json, DoubleColumn.class);
-        
+
         // Verify
         assertEquals(original.getName(), deserialized.getName());
         assertEquals(2, deserialized.size());
@@ -290,13 +290,13 @@ public class ColumnSerializerTest {
 
         // Serialize
         String json = objectMapper.writeValueAsString(original);
-        
+
         // Verify only 2 elements are in JSON
         assertFalse(json.contains("null"));
-        
+
         // Deserialize
         StringColumn deserialized = objectMapper.readValue(json, StringColumn.class);
-        
+
         // Verify
         assertEquals(original.getName(), deserialized.getName());
         assertEquals(2, deserialized.size());
@@ -327,7 +327,7 @@ public class ColumnSerializerTest {
 
         // Serialize and deserialize the view
         String json = objectMapper.writeValueAsString(view);
-        
+
         // The deserialized column should contain the view's selected values [50, 30, 10]
         // NOT the first 3 elements of the underlying array [10, 20, 30]
         LongColumn deserialized = objectMapper.readValue(json, LongColumn.class);
@@ -360,7 +360,7 @@ public class ColumnSerializerTest {
 
         // Serialize and deserialize the view
         String json = objectMapper.writeValueAsString(view);
-        
+
         // The deserialized column should contain the view's selected values [5.5, 3.3, 1.1]
         // NOT the first 3 elements of the underlying array [1.1, 2.2, 3.3]
         DoubleColumn deserialized = objectMapper.readValue(json, DoubleColumn.class);
@@ -393,7 +393,7 @@ public class ColumnSerializerTest {
 
         // Serialize and deserialize the view
         String json = objectMapper.writeValueAsString(view);
-        
+
         // The deserialized column should contain the view's selected values ["five", "three", "one"]
         // NOT the first 3 elements of the underlying array ["one", "two", "three"]
         StringColumn deserialized = objectMapper.readValue(json, StringColumn.class);
@@ -425,7 +425,7 @@ public class ColumnSerializerTest {
 
         // Serialize and deserialize
         String json = objectMapper.writeValueAsString(view);
-        
+
         LongColumn deserialized = objectMapper.readValue(json, LongColumn.class);
         assertEquals(3, deserialized.size());
         assertEquals(400, deserialized.getLong(0));
@@ -455,7 +455,7 @@ public class ColumnSerializerTest {
 
         // Serialize and deserialize
         String json = objectMapper.writeValueAsString(view);
-        
+
         DoubleColumn deserialized = objectMapper.readValue(json, DoubleColumn.class);
         assertEquals(3, deserialized.size());
         assertEquals(40.0, deserialized.getDouble(0), 0.001);
@@ -485,7 +485,7 @@ public class ColumnSerializerTest {
 
         // Serialize and deserialize
         String json = objectMapper.writeValueAsString(view);
-        
+
         StringColumn deserialized = objectMapper.readValue(json, StringColumn.class);
         assertEquals(3, deserialized.size());
         assertEquals("delta", deserialized.getString(0));
