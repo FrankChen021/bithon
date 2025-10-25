@@ -159,7 +159,7 @@ public class DataSourceApi implements IDataSourceApi {
 
             CompletableFuture<ReadResponse> list = CompletableFuture.supplyAsync(() -> {
                 // The query is executed in an async task, and the filter AST might be optimized in further processing
-                // To make sure the optimization is thread safe, we clone the AST
+                // To make sure the optimization is thread safe, we clone the AST,
                 // But since we don't have 'clone' support on AST, we just create a new one
                 IExpression filter = QueryFilter.build(schema, request.getFilterExpression());
                 return reader.query(query.with(filter));
@@ -225,19 +225,19 @@ public class DataSourceApi implements IDataSourceApi {
         }
     }
 
+    /**
+     * Unified streaming method for both query and list endpoints.
+     * Now uses a single query converter and reader method for all queries.
+     *
+     * @param acceptEncoding the Accept-Encoding header value
+     * @param request        the query request
+     * @return streaming response body
+     */
     @Override
     public ResponseEntity<StreamingResponseBody> query(String acceptEncoding, QueryRequest request) {
         return streamQuery(acceptEncoding, request);
     }
 
-    /**
-     * Unified streaming method for both query and list endpoints.
-     * Now uses a single query converter and reader method for all queries.
-     * 
-     * @param acceptEncoding the Accept-Encoding header value
-     * @param request the query request
-     * @return streaming response body
-     */
     private ResponseEntity<StreamingResponseBody> streamQuery(String acceptEncoding, QueryRequest request) {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 

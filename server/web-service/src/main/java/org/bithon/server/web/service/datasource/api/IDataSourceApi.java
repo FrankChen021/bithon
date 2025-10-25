@@ -68,6 +68,10 @@ public interface IDataSourceApi {
     ResponseEntity<StreamingResponseBody> query(@RequestHeader(value = "Accept-Encoding", required = false) String acceptEncoding,
                                                 @Validated @RequestBody QueryRequest request) throws IOException;
 
+    /**
+     * @deprecated use {@link #query(String, QueryRequest)}
+     */
+    @Deprecated
     @PostMapping("/api/datasource/list/v2")
     QueryResponse list(@Validated @RequestBody QueryRequest request) throws IOException;
 
@@ -76,7 +80,9 @@ public interface IDataSourceApi {
      * The response is streamed in NDJSON row format.
      * The first row is the header that contains the metadata of columns. Each element has two properties, name and type.
      * The rest rows are data rows in JSON array format to reduce the payload size.
+     * @deprecated use {@link #query(String, QueryRequest)}
      */
+    @Deprecated
     @PostMapping("/api/datasource/list/stream")
     ResponseEntity<StreamingResponseBody> list(@RequestHeader(value = "Accept-Encoding", required = false) String acceptEncoding,
                                                @Validated @RequestBody QueryRequest request) throws IOException;

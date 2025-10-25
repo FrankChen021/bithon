@@ -65,7 +65,6 @@ import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
-import org.bithon.server.storage.tracing.TraceTableSchema;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.bithon.server.storage.tracing.reader.TraceFilterSplitter;
 import org.jooq.Condition;
@@ -102,12 +101,15 @@ public class TraceJdbcReader implements ITraceReader {
     protected final ObjectMapper objectMapper;
     protected final TraceStorageConfig traceStorageConfig;
     protected final ISchema traceSpanSchema;
+    private final ISchema traceSpanSummarySchema;
     protected final ISchema traceTagIndexSchema;
     protected final ISqlDialect sqlDialect;
     protected final QuerySettings querySettings;
 
+
     public TraceJdbcReader(DSLContext dslContext,
                            ObjectMapper objectMapper,
+                           ISchema traceSpanSummarySchema,
                            ISchema traceSpanSchema,
                            ISchema traceTagIndexSchema,
                            TraceStorageConfig traceStorageConfig,
@@ -117,6 +119,7 @@ public class TraceJdbcReader implements ITraceReader {
         this.objectMapper = objectMapper;
         this.traceStorageConfig = traceStorageConfig;
         this.traceSpanSchema = traceSpanSchema;
+        this.traceSpanSummarySchema = traceSpanSummarySchema;
         this.traceTagIndexSchema = traceTagIndexSchema;
         this.sqlDialect = sqlDialect;
         this.querySettings = querySettings;
@@ -338,11 +341,13 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public ColumnarTable timeseries(Query query) {
+        boolean isOnRootTable = isFilterOnRootSpanOnly(query.getFilter());
+
         TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
         splitter.split(query.getFilter());
 
         SelectStatement selectStatement = SelectStatementBuilder.builder()
-                                                                .schema(query.getSchema())
+                                                                .schema(isOnRootTable ? this.traceSpanSummarySchema : this.traceSpanSchema)
                                                                 .fields(query.getSelectors())
                                                                 .filter(splitter.getExpression())
                                                                 .interval(query.getInterval())
@@ -360,7 +365,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                                                                               .start(query.getInterval().getStartTime().toTimestamp().toLocalDateTime())
                                                                                                               .end(query.getInterval().getEndTime().toTimestamp().toLocalDateTime())
                                                                                                               .build(indexedTagFilter);
-            Condition subQuery = TraceTableSchema.TRACE_SPAN_SUMMARY_SCHEMA_NAME.equals(query.getSchema().getName()) ? Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID.in(indexedTagQuery) : Tables.BITHON_TRACE_SPAN.TRACEID.in(indexedTagQuery);
+            Condition subQuery = isOnRootTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID.in(indexedTagQuery) : Tables.BITHON_TRACE_SPAN.TRACEID.in(indexedTagQuery);
             String subQueryText = dslContext.renderInlined(subQuery);
 
             selectStatement.getWhere().and(new IExpression() {
@@ -427,6 +432,8 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     protected ReadResponse select(Query query) {
+        boolean isOnRootTable = isFilterOnRootSpanOnly(query.getFilter());
+
         OrderBy orderBy = query.getOrderBy();
         if (orderBy != null) {
             // Compatible with old client side implementation
@@ -447,7 +454,8 @@ public class TraceJdbcReader implements ITraceReader {
         splitter.split(query.getFilter());
 
         SelectStatement selectStatement = SelectStatementBuilder.builder()
-                                                                .schema(query.getSchema())
+                                                                // Choose the correct table for speed up based on filter
+                                                                .schema(isOnRootTable ? this.traceSpanSummarySchema : this.traceSpanSchema)
                                                                 .fields(query.getSelectors())
                                                                 .filter(splitter.getExpression())
                                                                 .interval(query.getInterval())
@@ -465,7 +473,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                                                                               .start(query.getInterval().getStartTime().toTimestamp().toLocalDateTime())
                                                                                                               .end(query.getInterval().getEndTime().toTimestamp().toLocalDateTime())
                                                                                                               .build(indexedTagFilter);
-            Condition subQuery = TraceTableSchema.TRACE_SPAN_SUMMARY_SCHEMA_NAME.equals(query.getSchema().getName()) ? Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID.in(indexedTagQuery) : Tables.BITHON_TRACE_SPAN.TRACEID.in(indexedTagQuery);
+            Condition subQuery = isOnRootTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID.in(indexedTagQuery) : Tables.BITHON_TRACE_SPAN.TRACEID.in(indexedTagQuery);
             String subQueryText = dslContext.renderInlined(subQuery);
 
             selectStatement.getWhere().and(new IExpression() {
