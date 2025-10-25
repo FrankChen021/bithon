@@ -28,7 +28,13 @@
       "query": {
         "type": "timeseries",
         "dataSource": "kafka-network-metrics",
-        "fields": ["type", "qps"]
+        "fields": [
+          {
+            "name": "qps",
+            "expression": "round(sum(requestCount)/{interval}, 2)"
+          }
+        ],
+        "groupBy": ["type"]
       }
     },
     {
@@ -44,7 +50,20 @@
       "query": {
         "type": "timeseries",
         "dataSource": "kafka-network-metrics",
-        "fields": ["minResponseTime", "avgResponseTime", "maxResponseTime"]
+        "fields": [
+          {
+            "name": "minResponseTime",
+            "expression": "min(minResponseTime)"
+          },
+          {
+            "name": "avgResponseTime",
+            "expression": "round(sum(responseTime) * 1.0 /sum(requestCount),2)"
+          },
+          {
+            "name": "maxResponseTime",
+            "expression": "max(maxResponseTime)"
+          }
+        ]
       },
       "details": {
         "columns": [
@@ -67,10 +86,22 @@
           "type": "groupBy",
           "dataSource": "kafka-network-metrics",
           "fields": [
-            { "name": "count", "expression": "count()" },
-            "minResponseTime",
-            "avgResponseTime",
-            "maxResponseTime"
+            {
+              "name": "count",
+              "expression": "count()"
+            },
+            {
+              "name": "minResponseTime",
+              "expression": "min(minResponseTime)"
+            },
+            {
+              "name": "avgResponseTime",
+              "expression": "round(sum(responseTime) * 1.0 /sum(requestCount),2)"
+            },
+            {
+              "name": "maxResponseTime",
+              "expression": "max(maxResponseTime)"
+            }
           ],
           "groupBy": ["cluster", "type"],
           "orderBy": {

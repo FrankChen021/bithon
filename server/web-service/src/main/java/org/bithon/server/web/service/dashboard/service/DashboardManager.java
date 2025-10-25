@@ -18,6 +18,7 @@ package org.bithon.server.web.service.dashboard.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
@@ -144,12 +145,24 @@ public class DashboardManager implements SmartLifecycle {
                 if (dashboard.isDeleted()) {
                     this.dashboards.remove(dashboard.getId());
                 } else {
-                    // Set the title/folder into payload so that when a dashboard is fetched by id, the title/folder is always up-to-date
+                    // Set management fields back to the JSON document so that users can use the returned document for update directly without filling these properties
                     try {
-                        ObjectNode payload = (ObjectNode) this.objectMapper.readTree(dashboard.getPayload());
-                        payload.set("title", new TextNode(dashboard.getTitle()));
-                        payload.set("folder", new TextNode(dashboard.getFolder()));
-                        dashboard.setPayload(this.objectMapper.writeValueAsString(payload));
+                        // Create a new ObjectNode so that these fields appear in front of other properties from the payload
+                        ObjectNode newPayload = this.objectMapper.createObjectNode();
+                        newPayload.set("id", new TextNode(dashboard.getId()));
+                        newPayload.set("title", new TextNode(dashboard.getTitle()));
+                        newPayload.set("folder", new TextNode(dashboard.getFolder()));
+                        newPayload.set("visible", dashboard.isVisible() ? BooleanNode.TRUE : BooleanNode.FALSE);
+
+                        // Copy all other fields from the original payload
+                        ObjectNode originalPayload = (ObjectNode) this.objectMapper.readTree(dashboard.getPayload());
+                        originalPayload.fields().forEachRemaining(entry -> {
+                            if (!newPayload.has(entry.getKey())) {
+                                newPayload.set(entry.getKey(), entry.getValue());
+                            }
+                        });
+
+                        dashboard.setPayload(this.objectMapper.writeValueAsString(newPayload));
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);
                     }

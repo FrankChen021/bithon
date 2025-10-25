@@ -38,7 +38,10 @@
       ],
       "query": {
         "dataSource": "grpc-client-metrics",
-        "fields": ["qps", "callCount"]
+        "fields": [
+          {"name": "qps",       "expression": "round(sum(callCount)/{interval}, 2)"},
+          {"name": "callCount", "expression": "sum(callCount)"}
+        ]
       },
       "details": {
         "type": "groupBy",
@@ -46,7 +49,10 @@
         "query": {
           "type": "timeseries",
           "dataSource": "grpc-client-metrics",
-          "fields": ["qps", "callCount"],
+          "fields": [
+            {"name": "qps",       "expression": "round(sum(callCount)/{interval}, 2)"},
+            {"name": "callCount", "expression": "sum(callCount)"}
+          ],
           "groupBy": ["server", "service", "method", "status"],
           "orderBy": {
             "name": "qps",
@@ -86,7 +92,11 @@
       "query": {
         "type": "timeseries",
         "dataSource": "grpc-client-metrics",
-        "fields": ["minResponseTime", "avgResponseTime", "maxResponseTime"]
+        "fields": [
+          {"name": "minResponseTime", "expression": "min(minResponseTime)"},
+          {"name": "avgResponseTime", "expression": "round(sum(responseTime) * 1.0 /sum(callCount), 2)"},
+          {"name": "maxResponseTime", "expression": "max(maxResponseTime)"}
+        ]
       },
       "details": {
         "columns": [
@@ -113,7 +123,12 @@
         ],
         "query": {
           "type": "groupBy",
-          "fields": ["callCount", "minResponseTime", "avgResponseTime", "maxResponseTime"],
+          "fields": [
+            {"name": "callCount", "expression": "sum(callCount)"},
+            {"name": "minResponseTime", "expression": "min(minResponseTime)"},
+            {"name": "avgResponseTime", "expression": "round(sum(responseTime) * 1.0 /sum(callCount), 2)"},
+            {"name": "maxResponseTime", "expression": "max(maxResponseTime)"}
+          ],
           "groupBy": ["server", "service", "method", "status"],
           "orderBy": {
             "name": "avgResponseTime",
@@ -140,13 +155,18 @@
       "query": {
         "dataSource": "grpc-client-metrics",
         "type": "timeseries",
-        "fields": ["errorCount"]
+        "fields": [
+          {"name" : "errorCount", "expression": "sum(errorCount)"}
+        ]
       },
       "details": {
         "columns": ["server", "service", "method", "status", "callCount", "errorCount"],
         "query": {
           "type": "groupBy",
-          "fields": ["callCount", "errorCount"],
+          "fields": [
+            {"name" : "callCount", "expression": "sum(callCount)"},
+            {"name" : "errorCount", "expression": "sum(errorCount)"}
+          ],
           "groupBy": ["server", "service", "method", "status"],
           "filter": "status <> 'OK'",
           "orderBy": {
@@ -193,7 +213,12 @@
       "query": {
         "dataSource": "grpc-client-metrics",
         "type": "timeseries",
-        "fields": ["bytesSentRate", "bytesReceivedRate", "bytesSent", "bytesReceived"]
+        "fields": [
+          {"name": "bytesSentRate","expression": "round(sum(bytesSent)/{interval}, 2)"},
+          {"name": "bytesReceivedRate","expression": "round(sum(bytesReceived)/{interval}, 2)"},
+          {"name": "bytesSent","expression": "sum(bytesSent)"},
+          {"name": "bytesReceived","expression": "sum(bytesReceived)" }
+        ]
       },
       "details": {
         "columns": [
@@ -213,7 +238,11 @@
         ],
         "query": {
           "type": "groupBy",
-          "fields": ["callCount", "bytesSentRate", "bytesReceivedRate"],
+          "fields": [
+            {"name": "callCount", "expression": "sum(callCount)"},
+            {"name": "bytesSentRate","expression": "round(sum(bytesSent)/{interval}, 2)"},
+            {"name": "bytesReceivedRate","expression": "round(sum(bytesReceived)/{interval}, 2)"}
+          ],
           "groupBy": ["server", "service", "method", "status"],
           "orderBy": {
             "name": "bytesSentRate",

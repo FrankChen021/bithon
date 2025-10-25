@@ -40,7 +40,16 @@
       "query": {
         "type": "timeseries",
         "dataSource": "kafka-consumer-metrics",
-        "fields": ["consumedRecordsRate", "consumedRecords"]
+        "fields": [
+          {
+            "name": "consumedRecordsRate",
+            "expression": "round(sum(consumedRecords)/{interval}, 2)"
+          },
+          {
+            "name": "consumedRecords",
+            "expression": "sum(consumedRecords)"
+          }
+        ]
       },
       "details": {
         "columns": [
@@ -64,7 +73,20 @@
         "query": {
           "type": "groupBy",
           "dataSource": "kafka-consumer-metrics",
-          "fields": [{ "name": "count", "expression": "count()" }, "consumedRecordsRate", "consumedRecords"],
+          "fields": [
+            {
+              "name": "count",
+              "expression": "count()"
+            },
+            {
+              "name": "consumedRecordsRate",
+              "expression": "round(sum(consumedRecords)/{interval}, 2)"
+            },
+            {
+              "name": "consumedRecords",
+              "expression": "sum(consumedRecords)"
+            }
+          ],
           "groupBy": ["cluster", "topic", "groupId", "partition"],
           "orderBy": {
             "name": "consumedRecordsRate",
@@ -103,7 +125,16 @@
       "query": {
         "type": "timeseries",
         "dataSource": "kafka-consumer-metrics",
-        "fields": ["consumedBytesRate", "consumedBytes"]
+        "fields": [
+          {
+            "name": "consumedBytesRate",
+            "expression": "round(sum(consumedBytes)/{interval}, 2)"
+          },
+          {
+            "name": "consumedBytes",
+            "expression": "sum(consumedBytes)"
+          }
+        ]
       },
       "details": {
         "columns": [
@@ -127,7 +158,20 @@
         "query": {
           "type": "groupBy",
           "dataSource": "kafka-consumer-metrics",
-          "fields": [{ "name": "count", "expression": "count()" }, "consumedBytesRate", "consumedBytes"],
+          "fields": [
+            {
+              "name": "count",
+              "expression": "count()"
+            },
+            {
+              "name": "consumedBytesRate",
+              "expression": "round(sum(consumedBytes)/{interval}, 2)"
+            },
+            {
+              "name": "consumedBytes",
+              "expression": "sum(consumedBytes)"
+            }
+          ],
           "groupBy": ["cluster", "topic", "groupId", "partition"],
           "orderBy": {
             "name": "consumedBytesRate",

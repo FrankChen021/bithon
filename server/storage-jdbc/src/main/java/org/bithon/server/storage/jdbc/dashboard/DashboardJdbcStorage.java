@@ -63,6 +63,7 @@ public class DashboardJdbcStorage implements IDashboardStorage {
     @Override
     public List<Dashboard> getDashboard(long afterTimestamp) {
         return dslContext.selectFrom(Tables.BITHON_WEB_DASHBOARD)
+                         // NOTE: DELETED is not checked here because the application side will use the flag to sync data in memory
                          .where(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED.ge(new Timestamp(afterTimestamp).toLocalDateTime()))
                          .fetch(this::toDashboard);
     }

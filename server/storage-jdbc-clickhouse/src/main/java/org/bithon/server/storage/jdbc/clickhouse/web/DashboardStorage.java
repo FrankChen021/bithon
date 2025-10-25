@@ -69,6 +69,8 @@ public class DashboardStorage extends DashboardJdbcStorage {
     public List<Dashboard> getDashboard(long afterTimestamp) {
         String sql = dslContext.selectFrom(Tables.BITHON_WEB_DASHBOARD)
                                .getSQL() + " FINAL WHERE ";
+
+        // NOTE: DELETED is not checked here because the application side will use the flag to sync data in memory
         sql += dslContext.renderInlined(Tables.BITHON_WEB_DASHBOARD.LASTMODIFIED.ge(new Timestamp(afterTimestamp).toLocalDateTime()));
 
         return dslContext.fetch(sql)
