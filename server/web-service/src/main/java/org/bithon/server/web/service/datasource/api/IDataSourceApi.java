@@ -84,8 +84,8 @@ public interface IDataSourceApi {
      */
     @Deprecated
     @PostMapping("/api/datasource/list/stream")
-    ResponseEntity<StreamingResponseBody> list(@RequestHeader(value = "Accept-Encoding", required = false) String acceptEncoding,
-                                               @Validated @RequestBody QueryRequest request) throws IOException;
+    ResponseEntity<StreamingResponseBody> streamList(@RequestHeader(value = "Accept-Encoding", required = false) String acceptEncoding,
+                                                     @Validated @RequestBody QueryRequest request) throws IOException;
 
     /**
      * Return count only

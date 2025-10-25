@@ -187,7 +187,7 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public ResponseEntity<StreamingResponseBody> list(String acceptEncoding, QueryRequest request) {
+    public ResponseEntity<StreamingResponseBody> streamList(String acceptEncoding, QueryRequest request) {
         return streamQuery(acceptEncoding, request);
     }
 
