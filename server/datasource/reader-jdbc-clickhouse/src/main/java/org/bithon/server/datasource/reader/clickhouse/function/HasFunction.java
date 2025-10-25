@@ -32,7 +32,11 @@ import java.util.stream.Collectors;
 public class HasFunction extends AbstractFunction {
 
     public HasFunction() {
-        super("has", List.of(IDataType.OBJECT, IDataType.STRING), IDataType.BOOLEAN);
+        super("has",
+              // Don't provide declaring parameters because it accepts either object or array,
+              // and we will validate by ourselves
+              (List<IDataType>) null,
+              IDataType.BOOLEAN);
     }
 
     @Override
@@ -52,7 +56,7 @@ public class HasFunction extends AbstractFunction {
                                                  getName(),
                                                  args.stream().map(IExpression::serializeToText).collect(Collectors.joining(",")),
                                                  getName(),
-                                                 this.getParameterTypeList().size(),
+                                                 this.getDeclaredParameterTypes().size(),
                                                  args.size());
         }
 

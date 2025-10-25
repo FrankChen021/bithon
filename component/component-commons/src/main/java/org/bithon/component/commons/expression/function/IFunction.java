@@ -29,8 +29,6 @@ public interface IFunction {
 
     String getName();
 
-    List<IDataType> getParameterTypeList();
-
     void validateArgs(List<IExpression> args);
 
     Object evaluate(List<Object> args);

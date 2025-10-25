@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractFunction implements IFunction {
     private final String name;
-    private final List<IDataType> parameterTypeList;
+    private final List<IDataType> declaredParameterTypes;
     private final IDataType returnType;
 
     public AbstractFunction(String name, IDataType returnType) {
@@ -43,9 +43,9 @@ public abstract class AbstractFunction implements IFunction {
         this(name, Collections.singletonList(paramType), returnType);
     }
 
-    public AbstractFunction(String name, List<IDataType> parameterTypeList, IDataType returnType) {
+    public AbstractFunction(String name, List<IDataType> declaredParameterTypes, IDataType returnType) {
         this.name = name;
-        this.parameterTypeList = parameterTypeList;
+        this.declaredParameterTypes = declaredParameterTypes;
         this.returnType = returnType;
     }
 
@@ -54,9 +54,8 @@ public abstract class AbstractFunction implements IFunction {
         return this.name;
     }
 
-    @Override
-    public List<IDataType> getParameterTypeList() {
-        return this.parameterTypeList;
+    protected final List<IDataType> getDeclaredParameterTypes() {
+        return this.declaredParameterTypes;
     }
 
     @Override
@@ -66,12 +65,12 @@ public abstract class AbstractFunction implements IFunction {
 
     @Override
     public void validateArgs(List<IExpression> args) {
-        if (getParameterTypeList().size() != args.size()) {
+        if (this.declaredParameterTypes.size() != args.size()) {
             throw new InvalidExpressionException("In expression [%s %s], function [%s] can only accept [%d] args, but got [%d]",
                                                  name,
                                                  args.stream().map(IExpression::serializeToText).collect(Collectors.joining(",")),
                                                  name,
-                                                 this.parameterTypeList.size(),
+                                                 this.declaredParameterTypes.size(),
                                                  args.size());
         }
         for (int i = 0; i < args.size(); i++) {
@@ -81,7 +80,7 @@ public abstract class AbstractFunction implements IFunction {
 
     protected void validateArgs(IExpression arg, int index) {
         if (arg instanceof LiteralExpression) {
-            IDataType declaredType = this.getParameterTypeList().get(index);
+            IDataType declaredType = this.declaredParameterTypes.get(index);
             IDataType inputType = arg.getDataType();
             if (!declaredType.canCastFrom(inputType)) {
                 throw new InvalidExpressionException("The parameter at index %d of function [%s] must be type of %s",
