@@ -40,7 +40,7 @@ import java.util.Map;
 public interface IDataSourceApi {
 
     /**
-     * @deprecated use {@link #query(String, QueryRequest)} instead
+     * @deprecated use {@link #streamQuery(String, QueryRequest)} instead
      */
     @Deprecated
     @PostMapping("/api/datasource/timeseries/v4")
@@ -53,9 +53,11 @@ public interface IDataSourceApi {
     ColumnarTable timeseriesV5(@Validated @RequestBody QueryRequest request) throws IOException;
 
     /**
-     * use groupBy/stream instead
+     * Use {@link #streamQuery(String, QueryRequest)} instead
+     * It's not marked as deprecated because it's still used internally.
+     * In the future we can provide a 'query'
+     * method that returns the {@link org.bithon.server.datasource.query.ReadResponse} so that we can replace internal API calls
      */
-    @Deprecated
     @PostMapping("/api/datasource/groupBy/v3")
     QueryResponse groupByV3(@Validated @RequestBody QueryRequest request) throws IOException;
 
@@ -65,11 +67,11 @@ public interface IDataSourceApi {
      * The rest rows are data rows in JSON array format to reduce the payload size.
      */
     @PostMapping("/api/datasource/query/stream")
-    ResponseEntity<StreamingResponseBody> query(@RequestHeader(value = "Accept-Encoding", required = false) String acceptEncoding,
-                                                @Validated @RequestBody QueryRequest request) throws IOException;
+    ResponseEntity<StreamingResponseBody> streamQuery(@RequestHeader(value = "Accept-Encoding", required = false) String acceptEncoding,
+                                                      @Validated @RequestBody QueryRequest request) throws IOException;
 
     /**
-     * @deprecated use {@link #query(String, QueryRequest)}
+     * @deprecated use {@link #streamQuery(String, QueryRequest)}
      */
     @Deprecated
     @PostMapping("/api/datasource/list/v2")
@@ -80,7 +82,8 @@ public interface IDataSourceApi {
      * The response is streamed in NDJSON row format.
      * The first row is the header that contains the metadata of columns. Each element has two properties, name and type.
      * The rest rows are data rows in JSON array format to reduce the payload size.
-     * @deprecated use {@link #query(String, QueryRequest)}
+     *
+     * @deprecated use {@link #streamQuery(String, QueryRequest)}
      */
     @Deprecated
     @PostMapping("/api/datasource/list/stream")

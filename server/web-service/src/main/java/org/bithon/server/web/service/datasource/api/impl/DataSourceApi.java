@@ -167,6 +167,7 @@ public class DataSourceApi implements IDataSourceApi {
 
             try {
                 return QueryResponse.builder()
+                                    .deprecated("This API has been deprecated. Please use /api/datasource/query/stream instead.")
                                     .meta(list.get().getColumns())
                                     .total(total.get())
                                     .limit(query.getLimit())
@@ -187,11 +188,6 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public ResponseEntity<StreamingResponseBody> streamList(String acceptEncoding, QueryRequest request) {
-        return streamQuery(acceptEncoding, request);
-    }
-
-    @Override
     public QueryResponse count(QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
@@ -206,7 +202,11 @@ public class DataSourceApi implements IDataSourceApi {
         }
     }
 
-    @Deprecated
+    @Override
+    public ResponseEntity<StreamingResponseBody> streamList(String acceptEncoding, QueryRequest request) {
+        return streamQuery(acceptEncoding, request);
+    }
+
     @Override
     public QueryResponse groupByV3(QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
@@ -214,6 +214,7 @@ public class DataSourceApi implements IDataSourceApi {
         Query query = QueryConverter.toQuery(schema, request, null);
 
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
+
             ReadResponse response = reader.query(query);
 
             return QueryResponse.builder()
@@ -234,11 +235,7 @@ public class DataSourceApi implements IDataSourceApi {
      * @return streaming response body
      */
     @Override
-    public ResponseEntity<StreamingResponseBody> query(String acceptEncoding, QueryRequest request) {
-        return streamQuery(acceptEncoding, request);
-    }
-
-    private ResponseEntity<StreamingResponseBody> streamQuery(String acceptEncoding, QueryRequest request) {
+    public ResponseEntity<StreamingResponseBody> streamQuery(String acceptEncoding, QueryRequest request) {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
         // Use unified toQuery method for all queries (both aggregation and select)

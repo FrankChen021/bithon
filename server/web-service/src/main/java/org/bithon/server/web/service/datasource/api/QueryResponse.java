@@ -34,6 +34,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class QueryResponse<T> {
+    /**
+     * A notice to the client that if the called API is deprecated
+     */
+    private String deprecated;
 
     /**
      * The number of total records that satisfies the request conditions.
