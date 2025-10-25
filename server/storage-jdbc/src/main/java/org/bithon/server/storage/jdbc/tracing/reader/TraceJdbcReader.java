@@ -43,6 +43,7 @@ import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Order;
+import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ReadResponse;
 import org.bithon.server.datasource.query.ResultFormat;
@@ -426,18 +427,22 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     protected ReadResponse select(Query query) {
-        // TODO: compatible with old
-//        Field<?> orderField;
-//        if ("costTime".equals(orderBy.getName())) {
-//            orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS : Tables.BITHON_TRACE_SPAN.COSTTIMEMS;
-//        } else if ("startTime".equals(orderBy.getName())) {
-//            orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.COSTTIMEMS;
-//        } else {
-//            orderField = Arrays.stream((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).fields())
-//                               .filter((f) -> f.getName().equals(orderBy.getName()))
-//                               .findFirst().orElse(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.COSTTIMEMS);
-//        }
-//
+        OrderBy orderBy = query.getOrderBy();
+        if (orderBy != null) {
+            // Compatible with old client side implementation
+            String orderByField;
+            if ("costTime".equals(orderBy.getName())) {
+                orderByField = Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS.getName();
+            } else if ("startTime".equals(orderBy.getName())) {
+                orderByField = Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP.getName();
+            } else {
+                orderByField = orderBy.getName();
+            }
+            orderBy = new OrderBy(orderByField, orderBy.getOrder());
+        } else {
+            orderBy = new OrderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.getName(), Order.desc);
+        }
+
         TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
         splitter.split(query.getFilter());
 
@@ -447,7 +452,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                                 .filter(splitter.getExpression())
                                                                 .interval(query.getInterval())
                                                                 .groupBy(query.getGroupBy())
-                                                                .orderBy(query.getOrderBy())
+                                                                .orderBy(orderBy)
                                                                 .offset(query.getOffset())
                                                                 .sqlDialect(this.sqlDialect)
                                                                 .querySettings(query.getSettings())
