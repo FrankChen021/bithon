@@ -122,6 +122,7 @@ public class DataSourceApi implements IDataSourceApi {
         Query query = QueryConverter.toQuery(schema, request, step);
         TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
         return QueryResponse.builder()
+                            .deprecated("!Important! This API has been deprecated. Please use /api/datasource/query/stream instead")
                             .meta(query.getSelectors()
                                        .stream()
                                        .map((selector) -> new ColumnMetadata(selector.getOutputName(), selector.getDataType().name()))
@@ -142,6 +143,10 @@ public class DataSourceApi implements IDataSourceApi {
         return this.dataSourceService.timeseriesQuery2(query);
     }
 
+    /**
+     * @deprecated use {@link #streamQuery(String, QueryRequest)} 
+     */
+    @Deprecated
     @Override
     public QueryResponse list(QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
@@ -159,7 +164,7 @@ public class DataSourceApi implements IDataSourceApi {
 
             CompletableFuture<ReadResponse> list = CompletableFuture.supplyAsync(() -> {
                 // The query is executed in an async task, and the filter AST might be optimized in further processing
-                // To make sure the optimization is thread safe, we clone the AST
+                // To make sure the optimization is thread safe, we clone the AST,
                 // But since we don't have 'clone' support on AST, we just create a new one
                 IExpression filter = QueryFilter.build(schema, request.getFilterExpression());
                 return reader.query(query.with(filter));
@@ -167,6 +172,7 @@ public class DataSourceApi implements IDataSourceApi {
 
             try {
                 return QueryResponse.builder()
+                                    .deprecated("!Important! This API has been deprecated. Please use /api/datasource/query/stream instead.")
                                     .meta(list.get().getColumns())
                                     .total(total.get())
                                     .limit(query.getLimit())
@@ -187,11 +193,6 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public ResponseEntity<StreamingResponseBody> list(String acceptEncoding, QueryRequest request) {
-        return streamQuery(acceptEncoding, request);
-    }
-
-    @Override
     public QueryResponse count(QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
@@ -206,7 +207,11 @@ public class DataSourceApi implements IDataSourceApi {
         }
     }
 
-    @Deprecated
+    @Override
+    public ResponseEntity<StreamingResponseBody> streamList(String acceptEncoding, QueryRequest request) {
+        return streamQuery(acceptEncoding, request);
+    }
+
     @Override
     public QueryResponse groupByV3(QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
@@ -225,20 +230,16 @@ public class DataSourceApi implements IDataSourceApi {
         }
     }
 
-    @Override
-    public ResponseEntity<StreamingResponseBody> query(String acceptEncoding, QueryRequest request) {
-        return streamQuery(acceptEncoding, request);
-    }
-
     /**
      * Unified streaming method for both query and list endpoints.
      * Now uses a single query converter and reader method for all queries.
-     * 
+     *
      * @param acceptEncoding the Accept-Encoding header value
-     * @param request the query request
+     * @param request        the query request
      * @return streaming response body
      */
-    private ResponseEntity<StreamingResponseBody> streamQuery(String acceptEncoding, QueryRequest request) {
+    @Override
+    public ResponseEntity<StreamingResponseBody> streamQuery(String acceptEncoding, QueryRequest request) {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
         // Use unified toQuery method for all queries (both aggregation and select)
