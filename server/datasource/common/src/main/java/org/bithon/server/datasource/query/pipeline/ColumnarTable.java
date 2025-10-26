@@ -19,7 +19,7 @@ package org.bithon.server.datasource.query.pipeline;
 
 import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.server.datasource.query.ColumnMetadata;
-import org.bithon.server.datasource.query.Query;
+import org.bithon.server.datasource.query.ResultFormat;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -124,9 +124,9 @@ public class ColumnarTable {
         return rows;
     }
 
-    public CloseableIterator<?> toIterator(Query.ResultFormat format) {
+    public CloseableIterator<?> toIterator(ResultFormat format) {
         BiFunction<ColumnarTable, Integer, Object> rowMapper;
-        if (format == Query.ResultFormat.ValueArray) {
+        if (format == ResultFormat.ValueArray) {
             rowMapper = (ColumnarTable table, Integer rowIndex) -> {
                 int colSize = table.getColumns().size();
                 Object[] rowObject = new Object[colSize];
