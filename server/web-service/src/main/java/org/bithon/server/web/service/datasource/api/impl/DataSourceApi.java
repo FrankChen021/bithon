@@ -144,7 +144,7 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     /**
-     * @deprecated use {@link #streamQuery(String, QueryRequest)} 
+     * @deprecated use {@link #streamQuery(String, QueryRequest)}
      */
     @Deprecated
     @Override
@@ -162,21 +162,24 @@ public class DataSourceApi implements IDataSourceApi {
                 return request.getLimit().getOffset() == 0 ? reader.count(query) : 0;
             }, asyncExecutor);
 
-            CompletableFuture<ReadResponse> list = CompletableFuture.supplyAsync(() -> {
+            CompletableFuture<List<?>> list = CompletableFuture.supplyAsync(() -> {
                 // The query is executed in an async task, and the filter AST might be optimized in further processing
                 // To make sure the optimization is thread safe, we clone the AST,
                 // But since we don't have 'clone' support on AST, we just create a new one
                 IExpression filter = QueryFilter.build(schema, request.getFilterExpression());
-                return reader.query(query.with(filter));
+                return reader.select(query.with(filter));
             }, asyncExecutor);
 
             try {
                 return QueryResponse.builder()
                                     .deprecated("!Important! This API has been deprecated. Please use /api/datasource/query/stream instead.")
-                                    .meta(list.get().getColumns())
+                                    .meta(query.getSelectors()
+                                               .stream()
+                                               .map((selector) -> new ColumnMetadata(selector.getOutputName(), selector.getDataType().name()))
+                                               .toList())
                                     .total(total.get())
                                     .limit(query.getLimit())
-                                    .data(list.get().getData().toList())
+                                    .data(list.get())
                                     .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
                                     .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
                                     .build();

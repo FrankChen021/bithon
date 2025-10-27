@@ -165,6 +165,11 @@ public class VMDataSourceReader implements IDataSourceReader {
     }
 
     @Override
+    public List<?> select(Query query) {
+        return List.of();
+    }
+
+    @Override
     public int count(Query query) {
         return 0;
     }

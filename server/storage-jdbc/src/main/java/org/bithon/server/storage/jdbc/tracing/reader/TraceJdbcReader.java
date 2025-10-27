@@ -545,15 +545,29 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
+    public List<?> select(Query query) {
+        TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
+        splitter.split(query.getFilter());
+
+        CloseableIterator<TraceSpan> iterator = getTraceList(splitter.getExpression(),
+                                                             splitter.getIndexedTagFilters(),
+                                                             query.getInterval().getStartTime().toTimestamp(),
+                                                             query.getInterval().getEndTime().toTimestamp(),
+                                                             query.getOrderBy(),
+                                                             query.getLimit());
+        return iterator.toList();
+    }
+
+    @Override
     public ReadResponse query(Query query) {
         if (query.isAggregateQuery()) {
             return getDataSourceReader().query(query);
         } else {
-            return select(query);
+            return selectImpl(query);
         }
     }
 
-    protected ReadResponse select(Query query) {
+    protected ReadResponse selectImpl(Query query) {
         boolean isOnRootTable = isFilterOnRootSpanOnly(query.getFilter());
 
         OrderBy orderBy = query.getOrderBy();

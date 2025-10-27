@@ -293,7 +293,7 @@ public class TraceStorage extends TraceJdbcStorage {
              * Override to apply read in order optimization
              */
             @Override
-            protected ReadResponse select(Query query) {
+            protected ReadResponse selectImpl(Query query) {
                 TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
                 splitter.split(query.getFilter());
 

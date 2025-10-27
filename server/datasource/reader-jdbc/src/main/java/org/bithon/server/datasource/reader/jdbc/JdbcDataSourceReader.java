@@ -34,6 +34,7 @@ import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ReadResponse;
 import org.bithon.server.datasource.query.ResultFormat;
+import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
 import org.bithon.server.datasource.query.setting.QuerySettings;
@@ -56,6 +57,7 @@ import org.springframework.boot.autoconfigure.jooq.ExceptionTranslatorExecuteLis
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqProperties;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -173,6 +175,29 @@ public class JdbcDataSourceReader implements IDataSourceReader {
     }
 
     @Override
+    public List<?> select(Query query) {
+        SelectStatement selectStatement = toSelectStatement(query);
+
+        return executeSql(selectStatement.toSQL(this.sqlDialect));
+    }
+
+    protected SelectStatement toSelectStatement(Query query) {
+        IdentifierExpression timestampCol = IdentifierExpression.of(query.getSchema().getTimestampSpec().getColumnName());
+
+        SelectStatement selectStatement = new SelectStatement();
+        selectStatement.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
+        for (Selector selector : query.getSelectors()) {
+            selectStatement.getSelectorList().add(selector.getSelectExpression(), selector.getOutput(), selector.getDataType());
+        }
+        selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getStartTime())));
+        selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getEndTime())));
+        selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter(), this.querySettings));
+        selectStatement.setLimit(toLimitClause(query.getLimit()));
+        selectStatement.setOrderBy(toOrderByClause(query.getOrderBy()));
+        return selectStatement;
+    }
+
+    @Override
     public int count(Query query) {
         IdentifierExpression timestampCol = IdentifierExpression.of(query.getSchema().getTimestampSpec().getColumnName());
 
@@ -269,5 +294,22 @@ public class JdbcDataSourceReader implements IDataSourceReader {
                 return rowObject;
             };
         }
+    }
+
+    private List<Map<String, Object>> executeSql(String sql) {
+        log.info("Executing {}", sql);
+
+        List<Record> records = dslContext.fetch(sql);
+
+        // PAY ATTENTION:
+        //  although the explicit cast seems unnecessary, it must be kept so that compilation can pass
+        //  this might be a bug of JDK
+        return (List<Map<String, Object>>) records.stream().map(record -> {
+            Map<String, Object> mapObject = new HashMap<>(record.fields().length);
+            for (Field<?> field : record.fields()) {
+                mapObject.put(field.getName(), record.get(field));
+            }
+            return mapObject;
+        }).collect(Collectors.toList());
     }
 }
