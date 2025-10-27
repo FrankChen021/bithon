@@ -82,6 +82,7 @@
             "expression": "count(traceId)"
           }
         ],
+        "filterExpression": "kind in ('SERVER', 'CONSUMER', 'TIMER')",
         "interval": {
           "step": 60
         },
