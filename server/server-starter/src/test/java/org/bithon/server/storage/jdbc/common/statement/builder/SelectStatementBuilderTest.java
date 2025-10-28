@@ -197,7 +197,7 @@ public class SelectStatementBuilderTest {
                                                          .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
                                                          .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
                                                          .step(10)
-                                                         .bucketByTimestamp(true)
+
                                                          .build();
         QueryRequest queryRequest = QueryRequest.builder()
                                                 .fields(List.of(new QueryField("totalCount", "totalCount", null, "sum(totalCount)")))
@@ -324,7 +324,7 @@ public class SelectStatementBuilderTest {
                                                          .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
                                                          .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
                                                          .step(10)
-                                                         .bucketByTimestamp(true)
+
                                                          .build();
         QueryRequest queryRequest = QueryRequest.builder()
                                                 .fields(List.of(new QueryField("avg", "responseTime", null, "sum(responseTime)/sum(totalCount)")))
@@ -376,7 +376,7 @@ public class SelectStatementBuilderTest {
                                                          .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:05.000+0800"))
                                                          .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:05.000+0800"))
                                                          .step(10)
-                                                         .bucketByTimestamp(true)
+
                                                          .window(HumanReadableDuration.parse("5m"))
                                                          .build();
         QueryRequest queryRequest = QueryRequest.builder()
@@ -438,7 +438,7 @@ public class SelectStatementBuilderTest {
                                                          .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:05.000+0800"))
                                                          .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:05.000+0800"))
                                                          .step(10)
-                                                         .bucketByTimestamp(true)
+
                                                          .window(HumanReadableDuration.parse("5m"))
                                                          .build();
         QueryRequest queryRequest = QueryRequest.builder()
@@ -720,7 +720,7 @@ public class SelectStatementBuilderTest {
                                                          .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
                                                          .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
                                                          .step(10)
-                                                         .bucketByTimestamp(true)
+
                                                          .build();
         QueryRequest queryRequest = QueryRequest.builder()
                                                 .fields(List.of(new QueryField("activeThreads", "activeThreads", null, "first(activeThreads)")))
@@ -968,7 +968,7 @@ public class SelectStatementBuilderTest {
                                                          .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
                                                          .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
                                                          .step(10)
-                                                         .bucketByTimestamp(true)
+
                                                          .build();
         QueryRequest queryRequest = QueryRequest.builder()
                                                 .fields(List.of(
@@ -1558,7 +1558,6 @@ public class SelectStatementBuilderTest {
                                                          .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
                                                          .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
                                                          .step(10)
-                                                         .bucketByTimestamp(true)
                                                          .window(HumanReadableDuration.parse("1m"))
                                                          .build();
         QueryRequest queryRequest = QueryRequest.builder()
@@ -1619,7 +1618,7 @@ public class SelectStatementBuilderTest {
                                                          .startISO8601(currentStart)
                                                          .endISO8601(currentEnd)
                                                          .step(10)
-                                                         .bucketByTimestamp(true)
+
                                                          .window(HumanReadableDuration.parse("1m"))
                                                          .build();
         QueryRequest queryRequest = QueryRequest.builder()
@@ -1690,7 +1689,6 @@ public class SelectStatementBuilderTest {
                                                          .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
                                                          .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
                                                          .step(10)
-                                                         .bucketByTimestamp(true)
                                                          .build();
         QueryRequest queryRequest = QueryRequest.builder()
                                                 .fields(List.of(new QueryField("t1", "clickedSum", null, "sum(clickedSum)")))
@@ -1719,7 +1717,6 @@ public class SelectStatementBuilderTest {
                                                          .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
                                                          .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
                                                          .step(10)
-                                                         .bucketByTimestamp(true)
                                                          .build();
         QueryRequest queryRequest = QueryRequest.builder()
                                                 .fields(List.of(new QueryField("t1", "clickedSum", null, "sum(clickedSum)")))
@@ -1748,7 +1745,6 @@ public class SelectStatementBuilderTest {
                                                          .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
                                                          .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
                                                          .step(10)
-                                                         .bucketByTimestamp(true)
                                                          .build();
         QueryRequest queryRequest = QueryRequest.builder()
                                                 .fields(List.of(new QueryField("t1", "clickedSum", null, "sum(clickedSum)")))
@@ -1777,7 +1773,6 @@ public class SelectStatementBuilderTest {
                                                          .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
                                                          .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
                                                          .step(10)
-                                                         .bucketByTimestamp(true)
                                                          .build();
         QueryRequest queryRequest = QueryRequest.builder()
                                                 .fields(List.of(new QueryField("t1", "clickedSum", null, "sum(clickedSum)")))
@@ -1807,7 +1802,6 @@ public class SelectStatementBuilderTest {
                                                          .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
                                                          .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
                                                          .step(10)
-                                                         .bucketByTimestamp(true)
                                                          .build();
         QueryRequest queryRequest = QueryRequest.builder()
                                                 .fields(List.of(new QueryField("t1", "clickedSum", null, "sum(clickedSum)")))
@@ -1840,7 +1834,6 @@ public class SelectStatementBuilderTest {
                                                          .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
                                                          .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
                                                          .step(10)
-                                                         .bucketByTimestamp(true)
                                                          .build();
         QueryRequest queryRequest = QueryRequest.builder()
                                                 .fields(List.of(

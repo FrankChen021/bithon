@@ -31,6 +31,8 @@ import org.bithon.server.datasource.column.ExpressionColumn;
 import org.bithon.server.datasource.column.IColumn;
 import org.bithon.server.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.datasource.query.ColumnMetadata;
+import org.bithon.server.datasource.query.DataRow;
+import org.bithon.server.datasource.query.DataRowType;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Query;
@@ -217,8 +219,20 @@ public class DataSourceApi implements IDataSourceApi {
 
     @Override
     public QueryResponse groupByV3(QueryRequest request) throws IOException {
+        request.getInterval().setStep(null);
+        request.getInterval().setBucketCount(null);
+
         QueryResponse response = query(request);
+
+        //noinspection unchecked,rawtypes
+        List<DataRow> rows = (List<DataRow>) response.getData();
+        List<Object> dataList = rows.stream()
+                                    .filter((row) -> DataRowType.DATA.equals(row.getType()))
+                                    .map(DataRow::getPayload)
+                                    .toList();
+
         response.setDeprecated("!Important! This API has been deprecated. Please use /api/datasource/query or /api/datasource/query/stream instead.");
+        response.setData(dataList);
         return response;
     }
 
@@ -226,7 +240,7 @@ public class DataSourceApi implements IDataSourceApi {
     public QueryResponse query(@Validated @RequestBody QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
-        Query query = QueryConverter.toQuery(schema, request, request.getInterval().calculateStep());
+        Query query = QueryConverter.toQuery(schema, request);
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             ReadResponse response = reader.query(query);
             return QueryResponse.builder()
@@ -249,7 +263,7 @@ public class DataSourceApi implements IDataSourceApi {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
         // Use unified toQuery method for all queries (both aggregation and select)
-        Query query = QueryConverter.toQuery(schema, request, request.getInterval().calculateStep());
+        Query query = QueryConverter.toQuery(schema, request);
 
         // Check if client accepts gzip encoding
         boolean useGzip = acceptEncoding != null && acceptEncoding.contains("gzip");

@@ -56,6 +56,13 @@ import java.util.stream.Collectors;
  * @date 2024/2/1 20:35
  */
 public class QueryConverter {
+    public static Query toQuery(ISchema schema, QueryRequest request) {
+        Integer step = request.getInterval().getStep();
+        return toQuery(schema,
+                       request,
+                       step == null ? null : Duration.ofSeconds(step));
+    }
+
     public static Query toQuery(ISchema schema,
                                 QueryRequest query,
                                 Duration step) {
