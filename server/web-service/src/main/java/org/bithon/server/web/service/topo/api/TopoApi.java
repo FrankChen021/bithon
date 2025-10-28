@@ -26,6 +26,8 @@ import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.column.IColumn;
 import org.bithon.server.datasource.input.IInputRow;
 import org.bithon.server.datasource.input.InputRow;
+import org.bithon.server.datasource.query.DataRow;
+import org.bithon.server.datasource.query.DataRowType;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Query;
@@ -103,6 +105,9 @@ public class TopoApi {
             // noinspection unchecked
             List<Map<String, Object>> callees = (List<Map<String, Object>>) dataSourceReader.query(calleeQuery)
                                                                                             .getData()
+                                                                                            .toList()
+                                                                                            .stream().filter((dataRow) -> DataRowType.DATA.equals(((DataRow<?>) dataRow).getType()))
+                                                                                            .map((dataRow) -> ((DataRow<?>) dataRow).getPayload())
                                                                                             .toList();
 
             Topo topo = new Topo();
@@ -154,7 +159,12 @@ public class TopoApi {
             //noinspection unchecked
             List<Map<String, Object>> callers = (List<Map<String, Object>>) dataSourceReader.query(callerQuery)
                                                                                             .getData()
+                                                                                            .toList()
+                                                                                            .stream()
+                                                                                            .filter((dataRow) -> DataRowType.DATA.equals(((DataRow<?>) dataRow).getType()))
+                                                                                            .map((dataRow) -> ((DataRow<?>) dataRow).getPayload())
                                                                                             .toList();
+
 
             for (Map<String, Object> caller : callers) {
                 IInputRow inputRow = new InputRow(caller);

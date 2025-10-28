@@ -26,6 +26,8 @@ import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.query.ColumnMetadata;
+import org.bithon.server.datasource.query.DataRow;
+import org.bithon.server.datasource.query.DataRowType;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Limit;
@@ -269,10 +271,11 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         log.info("Executing {}", sql);
         Cursor<Record> cursor = dslContext.fetchLazy(sql);
 
+        Function<Record, ?> mapper = createRecordMapper(resultFormat);
         return new ReadResponse(CloseableIterator.transform(cursor.iterator(),
-                                                            createRecordMapper(resultFormat),
+                                                            (record) -> DataRow.data(mapper.apply(record)),
                                                             cursor),
-                                columns);
+                                new DataRow.Meta(columns));
     }
 
     public static Function<Record, ?> createRecordMapper(ResultFormat format) {

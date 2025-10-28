@@ -17,30 +17,12 @@
 package org.bithon.server.datasource.query;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import org.bithon.component.commons.utils.CloseableIterator;
-
-import java.util.List;
-
 /**
- * Response object containing streaming data and column metadata
- * @date 20/10/25 11:06 pm
+ * @author frank.chen021@outlook.com
+ * @date 28/10/25 4:12 pm
  */
-@Data
-@Builder
-@AllArgsConstructor
-public class ReadResponse<T> {
-    /**
-     * Iterator for streaming row data
-     */
-    private CloseableIterator<DataRow<T>> data;
-
-    /**
-     * Column metadata for the result set.
-     * Each entry contains column name and data type.
-     */
-    private DataRow.Meta meta;
-
+public class DataRowType {
+    public static final String DATA = "data";
+    public static final String PROGRESS = "progress";
+    public static final String META = "meta";
 }

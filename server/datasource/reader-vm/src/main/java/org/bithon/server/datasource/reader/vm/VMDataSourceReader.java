@@ -29,6 +29,7 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.datasource.TimestampSpec;
+import org.bithon.server.datasource.query.DataRow;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ReadResponse;
@@ -161,7 +162,7 @@ public class VMDataSourceReader implements IDataSourceReader {
             }
         };
 
-        return new ReadResponse(emptyIterator, List.of());
+        return new ReadResponse(emptyIterator, new DataRow.Meta(List.of()));
     }
 
     @Override

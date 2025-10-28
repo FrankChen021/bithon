@@ -33,6 +33,7 @@ import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.datasource.query.DataRow;
 import org.bithon.server.datasource.query.Limit;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
@@ -369,15 +370,15 @@ public class TraceStorage extends TraceJdbcStorage {
                 log.info("Get trace list: {}", sql);
 
                 Cursor<?> cursor = dslContext.fetchLazy(sql);
-                CloseableIterator<TraceSpan> iterator = CloseableIterator.transform(cursor.iterator(),
-                                                                                    this::toTraceSpan,
-                                                                                    cursor);
+                CloseableIterator<DataRow<Object>> iterator = CloseableIterator.transform(cursor.iterator(),
+                                                                                          (record) -> DataRow.data(toTraceSpan(record)),
+                                                                                          cursor);
 
                 return ReadResponse.builder()
-                                   .columns(query.getSelectors()
-                                                 .stream()
-                                                 .map(Selector::toColumnMetadata)
-                                                 .toList())
+                                   .meta(DataRow.Meta.of(query.getSelectors()
+                                                              .stream()
+                                                              .map(Selector::toColumnMetadata)
+                                                              .toList()))
                                    .data(iterator)
                                    .build();
             }

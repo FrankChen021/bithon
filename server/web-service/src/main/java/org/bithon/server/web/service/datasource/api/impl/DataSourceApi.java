@@ -217,17 +217,20 @@ public class DataSourceApi implements IDataSourceApi {
 
     @Override
     public QueryResponse groupByV3(QueryRequest request) throws IOException {
+        QueryResponse response = query(request);
+        response.setDeprecated("!Important! This API has been deprecated. Please use /api/datasource/query or /api/datasource/query/stream instead.");
+        return response;
+    }
+
+    @Override
+    public QueryResponse query(@Validated @RequestBody QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
-        Query query = QueryConverter.toQuery(schema, request, null);
-
+        Query query = QueryConverter.toQuery(schema, request, request.getInterval().calculateStep());
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             ReadResponse response = reader.query(query);
-
             return QueryResponse.builder()
-                                .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
-                                .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
-                                .meta(response.getColumns())
+                                .meta(response.getMeta().getPayload())
                                 .data(response.getData().toList())
                                 .build();
         }
@@ -263,21 +266,12 @@ public class DataSourceApi implements IDataSourceApi {
                                                            .createGenerator(outputStream)
                                                            .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET)) {
                 try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
-                    // Always use reader.query() for all queries
-                    ReadResponse response = reader.query(query);
+
+                    ReadResponse<?> response = reader.query(query);
 
                     try (CloseableIterator<?> streamData = response.getData()) {
                         // Write header with column metadata from response
-                        jsonGenerator.writeStartArray();
-                        {
-                            for (ColumnMetadata column : response.getColumns()) {
-                                jsonGenerator.writeStartObject();
-                                jsonGenerator.writeStringField("name", column.getName());
-                                jsonGenerator.writeStringField("type", column.getDataType());
-                                jsonGenerator.writeEndObject();
-                            }
-                        }
-                        jsonGenerator.writeEndArray();
+                        jsonGenerator.writeObject(response.getMeta());
                         jsonGenerator.writeRaw('\n'); // Using writeRaw for newline
                         jsonGenerator.flush();
 

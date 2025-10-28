@@ -40,6 +40,8 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.query.DataRow;
+import org.bithon.server.datasource.query.DataRowType;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Limit;
@@ -658,16 +660,17 @@ public class TraceJdbcReader implements ITraceReader {
             }
         }
 
+        Function<Record, ?> mapper = createTraceSpanMapper(query.getResultFormat(), tagIndex);
         Cursor<Record> cursor = dslContext.fetchLazy(sql);
-        CloseableIterator<?> iterator = CloseableIterator.transform(cursor.iterator(),
-                                                                    createTraceSpanMapper(query.getResultFormat(), tagIndex),
-                                                                    cursor);
+        CloseableIterator<DataRow<Object>> iterator = CloseableIterator.transform(cursor.iterator(),
+                                                                                  (record) -> DataRow.data(mapper.apply(record)),
+                                                                                  cursor);
 
         return ReadResponse.builder()
-                           .columns(query.getSelectors()
-                                         .stream()
-                                         .map(Selector::toColumnMetadata)
-                                         .toList())
+                           .meta(DataRow.Meta.of(query.getSelectors()
+                                                      .stream()
+                                                      .map(Selector::toColumnMetadata)
+                                                      .toList()))
                            .data(iterator)
                            .build();
     }

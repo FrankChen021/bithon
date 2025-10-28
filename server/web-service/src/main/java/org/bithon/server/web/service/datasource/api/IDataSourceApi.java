@@ -19,6 +19,7 @@ package org.bithon.server.web.service.datasource.api;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
 import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.query.ReadResponse;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -53,11 +54,9 @@ public interface IDataSourceApi {
     ColumnarTable timeseriesV5(@Validated @RequestBody QueryRequest request) throws IOException;
 
     /**
-     * Use {@link #streamQuery(String, QueryRequest)} instead
-     * It's not marked as deprecated because it's still used internally.
-     * In the future we can provide a 'query'
-     * method that returns the {@link org.bithon.server.datasource.query.ReadResponse} so that we can replace internal API calls
+     * Use {@link #query(QueryRequest)} instead
      */
+    @Deprecated
     @PostMapping("/api/datasource/groupBy/v3")
     QueryResponse groupByV3(@Validated @RequestBody QueryRequest request) throws IOException;
 
@@ -86,6 +85,14 @@ public interface IDataSourceApi {
      */
     @PostMapping("/api/datasource/count")
     QueryResponse count(@Validated @RequestBody QueryRequest request) throws IOException;
+
+    /**
+     * Stream group by results in NDJSON format.
+     * The first row is the header that contains the metadata of columns. Each element has two properties, name and type.
+     * The rest rows are data rows in JSON array format to reduce the payload size.
+     */
+    @PostMapping("/api/datasource/query")
+    QueryResponse query(@Validated @RequestBody QueryRequest request) throws IOException;
 
     /**
      * Stream group by results in NDJSON format.
