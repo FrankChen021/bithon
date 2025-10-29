@@ -22,8 +22,6 @@ import lombok.Builder;
 import lombok.Data;
 import org.bithon.component.commons.utils.CloseableIterator;
 
-import java.util.List;
-
 /**
  * Response object containing streaming data and column metadata
  * @date 20/10/25 11:06 pm

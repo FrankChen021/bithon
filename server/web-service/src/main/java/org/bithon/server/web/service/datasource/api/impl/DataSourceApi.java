@@ -218,25 +218,6 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public QueryResponse groupByV3(QueryRequest request) throws IOException {
-        request.getInterval().setStep(null);
-        request.getInterval().setBucketCount(null);
-
-        QueryResponse response = query(request);
-
-        //noinspection unchecked,rawtypes
-        List<DataRow> rows = (List<DataRow>) response.getData();
-        List<Object> dataList = rows.stream()
-                                    .filter((row) -> DataRowType.DATA.equals(row.getType()))
-                                    .map(DataRow::getPayload)
-                                    .toList();
-
-        response.setDeprecated("!Important! This API has been deprecated. Please use /api/datasource/query or /api/datasource/query/stream instead.");
-        response.setData(dataList);
-        return response;
-    }
-
-    @Override
     public QueryResponse query(@Validated @RequestBody QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
@@ -308,6 +289,25 @@ public class DataSourceApi implements IDataSourceApi {
         };
 
         return responseBuilder.body(responseBodyStream);
+    }
+
+    @Override
+    public QueryResponse groupByV3(QueryRequest request) throws IOException {
+        request.getInterval().setStep(null);
+        request.getInterval().setBucketCount(null);
+
+        QueryResponse response = query(request);
+
+        //noinspection unchecked,rawtypes
+        List<DataRow> rows = (List<DataRow>) response.getData();
+        List<Object> dataList = rows.stream()
+                                    .filter((row) -> DataRowType.DATA.equals(row.getType()))
+                                    .map(DataRow::getPayload)
+                                    .toList();
+
+        response.setDeprecated("!Important! This API has been deprecated. Please use /api/datasource/query or /api/datasource/query/stream instead.");
+        response.setData(dataList);
+        return response;
     }
 
     @Override
