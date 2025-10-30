@@ -100,55 +100,106 @@ public class TraceJdbcWriter implements ITraceWriter {
             return;
         }
 
-        String insertStatement = dslContext.render(dslContext.insertInto(table,
-                                                                         Tables.BITHON_TRACE_SPAN.TIMESTAMP,
-                                                                         Tables.BITHON_TRACE_SPAN.APPNAME,
-                                                                         Tables.BITHON_TRACE_SPAN.INSTANCENAME,
-                                                                         Tables.BITHON_TRACE_SPAN.TRACEID,
-                                                                         Tables.BITHON_TRACE_SPAN.SPANID,
-                                                                         Tables.BITHON_TRACE_SPAN.PARENTSPANID,
-                                                                         Tables.BITHON_TRACE_SPAN.NAME,
-                                                                         Tables.BITHON_TRACE_SPAN.CLAZZ,
-                                                                         Tables.BITHON_TRACE_SPAN.METHOD,
-                                                                         Tables.BITHON_TRACE_SPAN.KIND,
-                                                                         Tables.BITHON_TRACE_SPAN.STARTTIMEUS,
-                                                                         Tables.BITHON_TRACE_SPAN.ENDTIMEUS,
-                                                                         Tables.BITHON_TRACE_SPAN.COSTTIMEMS,
-                                                                         Tables.BITHON_TRACE_SPAN.ATTRIBUTES,
-                                                                         Tables.BITHON_TRACE_SPAN.NORMALIZEDURL,
-                                                                         Tables.BITHON_TRACE_SPAN.STATUS)
-                                                             .values((LocalDateTime) null,
-                                                                     //app name
-                                                                     null,
-                                                                     // instance
-                                                                     null,
-                                                                     //trace id
-                                                                     null,
-                                                                     // span id
-                                                                     null,
-                                                                     // parent id
-                                                                     null,
-                                                                     // name
-                                                                     null,
-                                                                     // class
-                                                                     null,
-                                                                     // method
-                                                                     null,
-                                                                     // kind
-                                                                     null,
-                                                                     // start time
-                                                                     null,
-                                                                     // end time
-                                                                     null,
-                                                                     // cost time
-                                                                     null,
-                                                                     // tags
-                                                                     null,
-                                                                     // normalized url
-                                                                     null,
-                                                                     // status
-                                                                     null
-                                                                    ));
+        String insertStatement;
+        if (table == Tables.BITHON_TRACE_SPAN_SUMMARY) {
+            insertStatement = dslContext.render(dslContext.insertInto(table,
+                                                                      Tables.BITHON_TRACE_SPAN_SUMMARY.APPNAME,
+                                                                      Tables.BITHON_TRACE_SPAN_SUMMARY.INSTANCENAME,
+                                                                      Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID,
+                                                                      Tables.BITHON_TRACE_SPAN_SUMMARY.SPANID,
+                                                                      Tables.BITHON_TRACE_SPAN_SUMMARY.PARENTSPANID,
+                                                                      Tables.BITHON_TRACE_SPAN_SUMMARY.NAME,
+                                                                      Tables.BITHON_TRACE_SPAN_SUMMARY.CLAZZ,
+                                                                      Tables.BITHON_TRACE_SPAN_SUMMARY.METHOD,
+                                                                      Tables.BITHON_TRACE_SPAN_SUMMARY.KIND,
+                                                                      Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS,
+                                                                      Tables.BITHON_TRACE_SPAN_SUMMARY.ENDTIMEUS,
+                                                                      Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEUS,
+                                                                      Tables.BITHON_TRACE_SPAN_SUMMARY.ATTRIBUTES,
+                                                                      Tables.BITHON_TRACE_SPAN_SUMMARY.NORMALIZEDURL,
+                                                                      Tables.BITHON_TRACE_SPAN_SUMMARY.STATUS)
+                                                          .values(//app name
+                                                                  (String) null,
+                                                                  // instance
+                                                                  null,
+                                                                  //trace id
+                                                                  null,
+                                                                  // span id
+                                                                  null,
+                                                                  // parent id
+                                                                  null,
+                                                                  // name
+                                                                  null,
+                                                                  // class
+                                                                  null,
+                                                                  // method
+                                                                  null,
+                                                                  // kind
+                                                                  null,
+                                                                  // start time
+                                                                  null,
+                                                                  // end time
+                                                                  null,
+                                                                  // cost time
+                                                                  null,
+                                                                  // tags
+                                                                  null,
+                                                                  // normalized url
+                                                                  null,
+                                                                  // status
+                                                                  null
+                                                          ));
+        } else {
+            insertStatement = dslContext.render(dslContext.insertInto(table,
+                                                                      Tables.BITHON_TRACE_SPAN.TIMESTAMP,
+                                                                      Tables.BITHON_TRACE_SPAN.APPNAME,
+                                                                      Tables.BITHON_TRACE_SPAN.INSTANCENAME,
+                                                                      Tables.BITHON_TRACE_SPAN.TRACEID,
+                                                                      Tables.BITHON_TRACE_SPAN.SPANID,
+                                                                      Tables.BITHON_TRACE_SPAN.PARENTSPANID,
+                                                                      Tables.BITHON_TRACE_SPAN.NAME,
+                                                                      Tables.BITHON_TRACE_SPAN.CLAZZ,
+                                                                      Tables.BITHON_TRACE_SPAN.METHOD,
+                                                                      Tables.BITHON_TRACE_SPAN.KIND,
+                                                                      Tables.BITHON_TRACE_SPAN.STARTTIMEUS,
+                                                                      Tables.BITHON_TRACE_SPAN.ENDTIMEUS,
+                                                                      Tables.BITHON_TRACE_SPAN.COSTTIMEUS,
+                                                                      Tables.BITHON_TRACE_SPAN.ATTRIBUTES,
+                                                                      Tables.BITHON_TRACE_SPAN.NORMALIZEDURL,
+                                                                      Tables.BITHON_TRACE_SPAN.STATUS)
+                                                          .values((LocalDateTime) null,
+                                                                  //app name
+                                                                  null,
+                                                                  // instance
+                                                                  null,
+                                                                  //trace id
+                                                                  null,
+                                                                  // span id
+                                                                  null,
+                                                                  // parent id
+                                                                  null,
+                                                                  // name
+                                                                  null,
+                                                                  // class
+                                                                  null,
+                                                                  // method
+                                                                  null,
+                                                                  // kind
+                                                                  null,
+                                                                  // start time
+                                                                  null,
+                                                                  // end time
+                                                                  null,
+                                                                  // cost time
+                                                                  null,
+                                                                  // tags
+                                                                  null,
+                                                                  // normalized url
+                                                                  null,
+                                                                  // status
+                                                                  null
+                                                          ));
+        }
 
         doInsert(createInsertSpanRunnable(table.getName(), insertStatement, traceSpans));
     }

@@ -51,7 +51,7 @@ class TraceSpanRecordAccessor {
         SPAN_ID = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.SPANID));
         PARENT_SPAN_ID = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.PARENTSPANID));
         START_TIME = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS));
-        COST_TIME = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS));
+        COST_TIME = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEUS));
         END_TIME = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.ENDTIMEUS));
         NAME = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.NAME));
         KIND = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.KIND));

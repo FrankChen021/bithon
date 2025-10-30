@@ -102,20 +102,19 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     public final TableField<BithonTraceSpanRecord, String> KIND = createField(DSL.name("kind"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>bithon_trace_span.costTimeMs</code>. Micro Second,
-     * suffix is wrong
+     * The column <code>bithon_trace_span.costTimeUs</code>. Microsecond
      */
-    public final TableField<BithonTraceSpanRecord, Long> COSTTIMEMS = createField(DSL.name("costTimeMs"), SQLDataType.BIGINT.nullable(false), this, "Micro Second, suffix is wrong");
+    public final TableField<BithonTraceSpanRecord, Long> COSTTIMEUS = createField(DSL.name("costTimeUs"), SQLDataType.BIGINT.nullable(false), this, "Microsecond");
 
     /**
-     * The column <code>bithon_trace_span.startTimeUs</code>. Micro Second
+     * The column <code>bithon_trace_span.startTimeUs</code>. Microsecond
      */
-    public final TableField<BithonTraceSpanRecord, Long> STARTTIMEUS = createField(DSL.name("startTimeUs"), SQLDataType.BIGINT.nullable(false), this, "Micro Second");
+    public final TableField<BithonTraceSpanRecord, Long> STARTTIMEUS = createField(DSL.name("startTimeUs"), SQLDataType.BIGINT.nullable(false), this, "Microsecond");
 
     /**
-     * The column <code>bithon_trace_span.endTimeUs</code>. Micro Second
+     * The column <code>bithon_trace_span.endTimeUs</code>. Microsecond
      */
-    public final TableField<BithonTraceSpanRecord, Long> ENDTIMEUS = createField(DSL.name("endTimeUs"), SQLDataType.BIGINT.nullable(false), this, "Micro Second");
+    public final TableField<BithonTraceSpanRecord, Long> ENDTIMEUS = createField(DSL.name("endTimeUs"), SQLDataType.BIGINT.nullable(false), this, "Microsecond");
 
     /**
      * The column <code>bithon_trace_span.tags</code>. Kept for compatibility

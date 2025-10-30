@@ -46,7 +46,7 @@ public class TraceTableSchema implements ISchema {
     public static final String TRACE_SPAN_SUMMARY_SCHEMA_NAME = "trace_span_summary";
     public static final String TRACE_SPAN_SCHEMA_NAME = "trace_span";
     public static final String TRACE_SPAN_TAG_INDEX_SCHEMA_NAME = "trace_span_tag_index";
-    private final TimestampSpec timestampSpec = new TimestampSpec("timestamp");
+    private final TimestampSpec timestampSpec;
     private final String name;
 
     private final IDataStoreSpec dataStoreSpec;
@@ -55,9 +55,10 @@ public class TraceTableSchema implements ISchema {
     private final Map<String, IColumn> columnMap = new LinkedHashMap<>();
     private final Map<String, IColumn> aliasMap = new HashMap<>();
 
-    TraceTableSchema(String name, ITraceStorage storage, List<IColumn> columns) {
+    TraceTableSchema(String name, ITraceStorage storage, List<IColumn> columns, String timestampColumn) {
         this.name = name;
         this.dataStoreSpec = new TraceDataStore("bithon_" + name, storage);
+        this.timestampSpec = new TimestampSpec(timestampColumn);
 
         columns.forEach((column) -> {
             columnMap.put(column.getName(), column);
@@ -131,23 +132,22 @@ public class TraceTableSchema implements ISchema {
     public static TraceTableSchema createTraceSpanSummaryTableSchema(ITraceStorage traceStorage) {
         return new TraceTableSchema(TRACE_SPAN_SUMMARY_SCHEMA_NAME,
                                     traceStorage,
-                                    getTraceSpanColumns());
+                                    getTraceSpanColumns(),
+                                    "startTimeUs");
     }
 
     public static TraceTableSchema createTraceSpanTableSchema(ITraceStorage traceStorage) {
         return new TraceTableSchema(TRACE_SPAN_SCHEMA_NAME,
                                     traceStorage,
-                                    getTraceSpanColumns());
+                                    getTraceSpanColumns(),
+                                    "timestamp");
     }
 
     private static List<IColumn> getTraceSpanColumns() {
         return Arrays.asList(new StringColumn("traceId", "traceId"),
-                             new StringColumn("appName",
-                                              "appName"),
-                             new StringColumn("instanceName",
-                                              "instanceName"),
-                             new StringColumn("status",
-                                              "status"),
+                             new StringColumn("appName", "appName"),
+                             new StringColumn("instanceName", "instanceName"),
+                             new StringColumn("status", "status"),
                              new StringColumn("name", "name"),
                              new StringColumn("clazz", "clazz"),
                              new StringColumn("method", "method"),
@@ -156,7 +156,7 @@ public class TraceTableSchema implements ISchema {
                              new ObjectColumn("attributes", "tags"),
 
                              // microsecond
-                             new LongColumn("costTimeMs", "costTimeMs"),
+                             new LongColumn("costTimeUs", "costTimeMs"),
                              new LongColumn("startTimeUs", "startTimeUs"));
     }
 
@@ -174,7 +174,8 @@ public class TraceTableSchema implements ISchema {
 
         return new TraceTableSchema(TRACE_SPAN_TAG_INDEX_SCHEMA_NAME,
                                     traceStorage,
-                                    dimensionSpecs);
+                                    dimensionSpecs,
+                                    "timestamp");
 
     }
 

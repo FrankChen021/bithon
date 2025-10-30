@@ -107,7 +107,7 @@ public class TraceJdbcReader implements ITraceReader {
     protected final ObjectMapper objectMapper;
     protected final TraceStorageConfig traceStorageConfig;
     protected final ISchema traceSpanSchema;
-    private final ISchema traceSpanSummarySchema;
+    protected final ISchema traceSpanSummarySchema;
     protected final ISchema traceTagIndexSchema;
     protected final ISqlDialect sqlDialect;
     protected final QuerySettings querySettings;
@@ -219,7 +219,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                     Function<Record, T> mapper) {
         boolean isOnSummaryTable = RootSpanKindFilterAnalyzer.isOnRootSpanOnly(filter);
 
-        Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
+        Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
 
         IdentifierExpression tsColumn = new IdentifierExpression(timestampField.getName());
         IExpression tsExpression = new LogicalExpression.AND(new ComparisonExpression.GTE(tsColumn, sqlDialect.toISO8601TimestampExpression(start)),
@@ -254,13 +254,13 @@ public class TraceJdbcReader implements ITraceReader {
 
         Field<?> orderField;
         if ("costTime".equals(orderBy.getName())) {
-            orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS : Tables.BITHON_TRACE_SPAN.COSTTIMEMS;
+            orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEUS : Tables.BITHON_TRACE_SPAN.COSTTIMEUS;
         } else if ("startTime".equals(orderBy.getName())) {
-            orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.COSTTIMEMS;
+            orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.STARTTIMEUS;
         } else {
             orderField = Arrays.stream((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).fields())
                                .filter((f) -> f.getName().equals(orderBy.getName()))
-                               .findFirst().orElse(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.COSTTIMEMS);
+                               .findFirst().orElse(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.COSTTIMEUS);
         }
 
         SelectSeekStep1<?, ?> orderedListQuery;
@@ -287,7 +287,7 @@ public class TraceJdbcReader implements ITraceReader {
                                 Timestamp end) {
         boolean isOnSummaryTable = RootSpanKindFilterAnalyzer.isOnRootSpanOnly(filter);
 
-        Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
+        Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
 
         // NOTE:
         // 1. the query is performed on summary table or detail table based on input filters
@@ -519,7 +519,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                                         interval.getEndTime(),
                                                                         interval.getStep(),
                                                                         null,
-                                                                        new IdentifierExpression(Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP.getName())))
+                                                                        new IdentifierExpression(Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS.getName())))
                                                   .build();
 
         try {
@@ -547,24 +547,61 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public ReadResponse query(Query query) {
+        ISchema schema;
+        if (RootSpanKindFilterAnalyzer.isOnRootSpanOnly(query.getFilter())) {
+            schema = this.traceSpanSummarySchema;
+        } else {
+            schema = this.traceSpanSchema;
+        }
+
+        query = query.with(schema)
+                     .with(query.getInterval().with(schema.getTimestampSpec().getColumnName()));
+
+
         if (query.isAggregateQuery()) {
             return getDataSourceReader().query(query);
         } else {
-            return selectImpl(query);
+            SelectStatement selectStatement = toSelectStatement(query);
+            String sql = selectStatement.toSQL(this.sqlDialect);
+            log.info("Get trace list: {}", sql);
+
+            int tagFieldIndex = -1;
+            int startTimeFieldIndex = -1;
+            List<Selector> selectors = selectStatement.getSelectorList().getSelectors();
+            for (int i = 0; i < selectors.size(); i++) {
+                Selector selector = selectors.get(i);
+                if ("attributes".equals(((Column) selector.getSelectExpression()).getName())) {
+                    tagFieldIndex = i;
+                } else if ("startTimeUs".equals(((Column) selector.getSelectExpression()).getName())) {
+                    startTimeFieldIndex = i;
+                }
+            }
+
+            Function<Record, ?> mapper = createTraceSpanMapper(query.getResultFormat(), startTimeFieldIndex, tagFieldIndex);
+            Cursor<Record> cursor = dslContext.fetchLazy(sql);
+            CloseableIterator<DataRow<Object>> iterator = CloseableIterator.transform(cursor.iterator(),
+                                                                                      (record) -> DataRow.data(mapper.apply(record)),
+                                                                                      cursor);
+
+            return ReadResponse.builder()
+                               .meta(DataRow.Meta.of(query.getSelectors()
+                                                          .stream()
+                                                          .map(Selector::toColumnMetadata)
+                                                          .toList()))
+                               .data(iterator)
+                               .build();
         }
     }
 
-    protected ReadResponse selectImpl(Query query) {
-        boolean isOnRootTable = RootSpanKindFilterAnalyzer.isOnRootSpanOnly(query.getFilter());
-
+    protected SelectStatement toSelectStatement(Query query) {
         OrderBy orderBy = query.getOrderBy();
         if (orderBy != null) {
             // Compatible with old client side implementation
             String orderByField;
             if ("costTime".equals(orderBy.getName())) {
-                orderByField = Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS.getName();
+                orderByField = Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEUS.getName();
             } else if ("startTime".equals(orderBy.getName())) {
-                orderByField = Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP.getName();
+                orderByField = Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS.getName();
             } else {
                 orderByField = orderBy.getName();
             }
@@ -576,14 +613,17 @@ public class TraceJdbcReader implements ITraceReader {
         TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
         splitter.split(query.getFilter());
 
+        boolean isOnRootTable = query.getSchema().getName().equals(this.traceSpanSummarySchema.getName());
+
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 // Choose the correct table for speed up based on filter
-                                                                .schema(isOnRootTable ? this.traceSpanSummarySchema : this.traceSpanSchema)
+                                                                .schema(query.getSchema())
                                                                 .fields(query.getSelectors())
                                                                 .filter(splitter.getExpression())
                                                                 .interval(query.getInterval())
                                                                 .groupBy(query.getGroupBy())
                                                                 .orderBy(orderBy)
+                                                                .limit(query.getLimit())
                                                                 .offset(query.getOffset())
                                                                 .sqlDialect(this.sqlDialect)
                                                                 .querySettings(query.getSettings())
@@ -632,35 +672,10 @@ public class TraceJdbcReader implements ITraceReader {
             });
         }
 
-        String sql = selectStatement.toSQL(this.sqlDialect);
-        log.info("Get trace list: {}", sql);
-
-        int tagIndex = -1;
-        List<Selector> selectors = selectStatement.getSelectorList().getSelectors();
-        for (int i = 0; i < selectors.size(); i++) {
-            Selector selector = selectors.get(i);
-            if ("attributes".equals(((Column) selector.getSelectExpression()).getName())) {
-                tagIndex = i;
-                break;
-            }
-        }
-
-        Function<Record, ?> mapper = createTraceSpanMapper(query.getResultFormat(), tagIndex);
-        Cursor<Record> cursor = dslContext.fetchLazy(sql);
-        CloseableIterator<DataRow<Object>> iterator = CloseableIterator.transform(cursor.iterator(),
-                                                                                  (record) -> DataRow.data(mapper.apply(record)),
-                                                                                  cursor);
-
-        return ReadResponse.builder()
-                           .meta(DataRow.Meta.of(query.getSelectors()
-                                                      .stream()
-                                                      .map(Selector::toColumnMetadata)
-                                                      .toList()))
-                           .data(iterator)
-                           .build();
+        return selectStatement;
     }
 
-    protected Function<Record, ?> createTraceSpanMapper(ResultFormat format, int tagIndex) {
+    protected Function<Record, ?> createTraceSpanMapper(ResultFormat format, int startTimeFieldIndex, int tagFieldIndex) {
         if (format == ResultFormat.ValueArray) {
             return (record) -> {
                 int colSize = record.size();
@@ -668,8 +683,15 @@ public class TraceJdbcReader implements ITraceReader {
                 for (int i = 0; i < colSize; i++) {
                     rowObject[i] = record.get(i);
                 }
-                if (tagIndex >= 0 && tagIndex < colSize) {
-                    rowObject[tagIndex] = toTagMap(rowObject[tagIndex]);
+                if (startTimeFieldIndex >= 0 && startTimeFieldIndex < colSize) {
+                    if (rowObject[startTimeFieldIndex] instanceof LocalDateTime localDateTime) {
+                        // Convert to microseconds
+                        Timestamp ts = Timestamp.valueOf(localDateTime);
+                        rowObject[startTimeFieldIndex] = ts.getTime() * 1000 + ts.getNanos() / 1000;
+                    }
+                }
+                if (tagFieldIndex >= 0 && tagFieldIndex < colSize) {
+                    rowObject[tagFieldIndex] = toTagMap(rowObject[tagFieldIndex]);
                 }
                 return rowObject;
             };
@@ -679,8 +701,14 @@ public class TraceJdbcReader implements ITraceReader {
                 for (int i = 0, size = record.size(); i < size; i++) {
                     Field<?> field = record.field(i);
                     Object val = record.get(i);
-                    if (i == tagIndex) {
+                    if (i == tagFieldIndex) {
                         val = toTagMap(val);
+                    } else if (i == startTimeFieldIndex) {
+                        if (val instanceof LocalDateTime localDateTime) {
+                            // Convert to microseconds
+                            Timestamp ts = Timestamp.valueOf(localDateTime);
+                            val = ts.getTime() * 1000 + ts.getNanos() / 1000;
+                        }
                     }
                     rowObject.put(field.getName(), val);
                 }
@@ -701,7 +729,7 @@ public class TraceJdbcReader implements ITraceReader {
 
         boolean isOnSummaryTable = RootSpanKindFilterAnalyzer.isOnRootSpanOnly(filter);
 
-        Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
+        Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
 
         // NOTE:
         // 1. the query is performed on summary table or detail table based on input filters
@@ -736,13 +764,23 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public List<String> distinct(Query query) {
+        String schemaName = query.getSchema().getName();
+
+        // Because the distinct queries can also be executed on tag table, so we need to check if the target schema is the span table
+        if (schemaName.equals(this.traceSpanSchema.getName()) || schemaName.equals(this.traceSpanSummarySchema.getName())) {
+            if (RootSpanKindFilterAnalyzer.isOnRootSpanOnly(query.getFilter())) {
+                query = query.with(this.traceSpanSummarySchema);
+            } else {
+                query = query.with(this.traceSpanSchema);
+            }
+        }
         return getDataSourceReader().distinct(query);
     }
 
     public static class RootSpanKindFilterAnalyzer implements IExpressionInDepthVisitor {
         public static boolean isOnRootSpanOnly(IExpression expression) {
             if (expression == null) {
-                return true;
+                return false;
             }
 
             final String kindFieldName = Tables.BITHON_TRACE_SPAN_SUMMARY.KIND.getName();

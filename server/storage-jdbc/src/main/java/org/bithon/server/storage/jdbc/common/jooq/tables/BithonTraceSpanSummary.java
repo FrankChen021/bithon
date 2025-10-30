@@ -14,12 +14,12 @@ import org.bithon.server.storage.jdbc.common.jooq.Indexes;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonTraceSpanSummaryRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function17;
+import org.jooq.Function16;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row17;
+import org.jooq.Row16;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -50,12 +50,6 @@ public class BithonTraceSpanSummary extends TableImpl<BithonTraceSpanSummaryReco
     public Class<BithonTraceSpanSummaryRecord> getRecordType() {
         return BithonTraceSpanSummaryRecord.class;
     }
-
-    /**
-     * The column <code>bithon_trace_span_summary.timestamp</code>. Milli
-     * Seconds
-     */
-    public final TableField<BithonTraceSpanSummaryRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "Milli Seconds");
 
     /**
      * The column <code>bithon_trace_span_summary.appName</code>.
@@ -103,21 +97,20 @@ public class BithonTraceSpanSummary extends TableImpl<BithonTraceSpanSummaryReco
     public final TableField<BithonTraceSpanSummaryRecord, String> KIND = createField(DSL.name("kind"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>bithon_trace_span_summary.costTimeMs</code>. Milli
-     * Second
+     * The column <code>bithon_trace_span_summary.costTimeUs</code>. Microsecond
      */
-    public final TableField<BithonTraceSpanSummaryRecord, Long> COSTTIMEMS = createField(DSL.name("costTimeMs"), SQLDataType.BIGINT.nullable(false), this, "Milli Second");
+    public final TableField<BithonTraceSpanSummaryRecord, Long> COSTTIMEUS = createField(DSL.name("costTimeUs"), SQLDataType.BIGINT.nullable(false), this, "Microsecond");
 
     /**
-     * The column <code>bithon_trace_span_summary.startTimeUs</code>. Micro
-     * Second
+     * The column <code>bithon_trace_span_summary.startTimeUs</code>.
+     * Microsecond
      */
-    public final TableField<BithonTraceSpanSummaryRecord, Long> STARTTIMEUS = createField(DSL.name("startTimeUs"), SQLDataType.BIGINT.nullable(false), this, "Micro Second");
+    public final TableField<BithonTraceSpanSummaryRecord, LocalDateTime> STARTTIMEUS = createField(DSL.name("startTimeUs"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "Microsecond");
 
     /**
-     * The column <code>bithon_trace_span_summary.endTimeUs</code>. Micro Second
+     * The column <code>bithon_trace_span_summary.endTimeUs</code>. Microsecond
      */
-    public final TableField<BithonTraceSpanSummaryRecord, Long> ENDTIMEUS = createField(DSL.name("endTimeUs"), SQLDataType.BIGINT.nullable(false), this, "Micro Second");
+    public final TableField<BithonTraceSpanSummaryRecord, Long> ENDTIMEUS = createField(DSL.name("endTimeUs"), SQLDataType.BIGINT.nullable(false), this, "Microsecond");
 
     /**
      * The column <code>bithon_trace_span_summary.tags</code>. Kept for
@@ -180,7 +173,7 @@ public class BithonTraceSpanSummary extends TableImpl<BithonTraceSpanSummaryReco
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_1_TIMESTAMP, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_2_APP_NAME, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_3_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_4_TRACEID);
+        return Arrays.asList(Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_1_STARTTIME, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_2_APP_NAME, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_3_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_4_TRACEID);
     }
 
     @Override
@@ -223,18 +216,18 @@ public class BithonTraceSpanSummary extends TableImpl<BithonTraceSpanSummaryReco
     }
 
     // -------------------------------------------------------------------------
-    // Row17 type methods
+    // Row16 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row17<LocalDateTime, String, String, String, String, String, String, String, String, String, Long, Long, Long, String, String, String, String> fieldsRow() {
-        return (Row17) super.fieldsRow();
+    public Row16<String, String, String, String, String, String, String, String, String, Long, LocalDateTime, Long, String, String, String, String> fieldsRow() {
+        return (Row16) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function17<? super LocalDateTime, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super Long, ? super Long, ? super Long, ? super String, ? super String, ? super String, ? super String, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function16<? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super Long, ? super LocalDateTime, ? super Long, ? super String, ? super String, ? super String, ? super String, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -242,7 +235,7 @@ public class BithonTraceSpanSummary extends TableImpl<BithonTraceSpanSummaryReco
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function17<? super LocalDateTime, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super Long, ? super Long, ? super Long, ? super String, ? super String, ? super String, ? super String, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function16<? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super Long, ? super LocalDateTime, ? super Long, ? super String, ? super String, ? super String, ? super String, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

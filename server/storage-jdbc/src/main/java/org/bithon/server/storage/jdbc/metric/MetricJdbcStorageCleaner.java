@@ -107,18 +107,19 @@ public class MetricJdbcStorageCleaner extends MetricStorageCleaner {
     static class DeleteTable extends TableImpl {
         final Field<Timestamp> timestampField;
 
-        public DeleteTable(String name) {
+        public DeleteTable(String name, String tsColumn) {
             super(DSL.name(name));
 
             //noinspection unchecked
-            timestampField = createField(DSL.name("timestamp"), SQLDataType.TIMESTAMP);
+            timestampField = createField(DSL.name(tsColumn), SQLDataType.TIMESTAMP);
         }
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     protected void expireImpl(ISchema schema, Timestamp before, List<TimeSpan> skipDateList) {
-        final DeleteTable table = new DeleteTable(schema.getDataStoreSpec().getStore());
+        final DeleteTable table = new DeleteTable(schema.getDataStoreSpec().getStore(),
+                                                  schema.getTimestampSpec().getColumnName());
         DeleteConditionStep delete = dslContext.deleteFrom(table)
                                                .where(table.timestampField.le(before));
         if (!skipDateList.isEmpty()) {

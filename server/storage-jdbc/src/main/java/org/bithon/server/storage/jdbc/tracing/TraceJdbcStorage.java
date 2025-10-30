@@ -141,7 +141,7 @@ public class TraceJdbcStorage implements ITraceStorage {
                           .execute();
 
                 dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN_SUMMARY)
-                          .where(Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP.le(before.toLocalDateTime()))
+                          .where(Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS.le(before.toLocalDateTime()))
                           .execute();
 
                 dslContext.deleteFrom(Tables.BITHON_TRACE_MAPPING)

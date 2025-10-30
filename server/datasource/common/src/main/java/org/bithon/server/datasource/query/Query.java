@@ -96,6 +96,36 @@ public class Query {
                          this.settings,
                          this.resultFormat,
                          this.isAggregateQuery
-                         );
+        );
+    }
+
+    public Query with(ISchema schema) {
+        return new Query(schema,
+                         this.selectors,
+                         this.filter,
+                         this.interval,
+                         this.groupBy,
+                         this.orderBy,
+                         this.limit,
+                         this.offset,
+                         this.settings,
+                         this.resultFormat,
+                         this.isAggregateQuery
+        );
+    }
+
+    public Query with(Interval interval) {
+        return new Query(this.schema,
+                         this.selectors,
+                         this.filter,
+                         interval,
+                         this.groupBy,
+                         this.orderBy,
+                         this.limit,
+                         this.offset,
+                         this.settings,
+                         this.resultFormat,
+                         this.isAggregateQuery
+        );
     }
 }

@@ -19,12 +19,14 @@ package org.bithon.server.storage.jdbc.tracing.writer;
 import org.bithon.component.commons.utils.RetryUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.common.IOnceTableWriter;
+import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -38,6 +40,7 @@ public abstract class SpanTableJdbcWriter implements IOnceTableWriter {
     private final List<TraceSpan> spans;
     private final String table;
     private final Predicate<Exception> isRetryableException;
+    private final boolean isSummaryTable;
 
     public SpanTableJdbcWriter(String table,
                                String insertStatement,
@@ -47,6 +50,7 @@ public abstract class SpanTableJdbcWriter implements IOnceTableWriter {
         this.insertStatement = insertStatement;
         this.spans = spans;
         this.isRetryableException = isRetryableException;
+        this.isSummaryTable = table.equals(Tables.BITHON_TRACE_SPAN_SUMMARY.getName());
     }
 
     @Override
@@ -63,22 +67,26 @@ public abstract class SpanTableJdbcWriter implements IOnceTableWriter {
     public void run(Connection connection) throws Exception {
         try (PreparedStatement statement = connection.prepareStatement(insertStatement)) {
             for (TraceSpan span : spans) {
-                statement.setTimestamp(1, new Timestamp(span.startTime / 1000));
-                statement.setObject(2, span.appName);
-                statement.setObject(3, span.instanceName);
-                statement.setObject(4, span.traceId);
-                statement.setObject(5, span.spanId);
-                statement.setObject(6, span.parentSpanId);
-                statement.setObject(7, StringUtils.getOrEmpty(span.name));
-                statement.setObject(8, StringUtils.getOrEmpty(span.clazz));
-                statement.setObject(9, StringUtils.getOrEmpty(span.method));
-                statement.setObject(10, StringUtils.getOrEmpty(span.kind));
-                statement.setObject(11, span.startTime);
-                statement.setObject(12, span.endTime);
-                statement.setObject(13, span.costTime);
-                statement.setObject(14, toTagStore(span.getTags()));
-                statement.setObject(15, span.getNormalizedUri());
-                statement.setObject(16, span.getStatus());
+                int col = 0;
+                if (!isSummaryTable) {
+                    statement.setTimestamp(++col, new Timestamp(span.startTime / 1000));
+                }
+
+                statement.setObject(++col, span.appName);
+                statement.setObject(++col, span.instanceName);
+                statement.setObject(++col, span.traceId);
+                statement.setObject(++col, span.spanId);
+                statement.setObject(++col, span.parentSpanId);
+                statement.setObject(++col, StringUtils.getOrEmpty(span.name));
+                statement.setObject(++col, StringUtils.getOrEmpty(span.clazz));
+                statement.setObject(++col, StringUtils.getOrEmpty(span.method));
+                statement.setObject(++col, StringUtils.getOrEmpty(span.kind));
+                statement.setObject(++col, isSummaryTable ? fromUnixTimestampMicroseconds(span.startTime) : span.startTime);
+                statement.setObject(++col, span.endTime);
+                statement.setObject(++col, span.costTime);
+                statement.setObject(++col, toTagStore(span.getTags()));
+                statement.setObject(++col, span.getNormalizedUri());
+                statement.setObject(++col, span.getStatus());
                 statement.addBatch();
             }
 
@@ -87,6 +95,12 @@ public abstract class SpanTableJdbcWriter implements IOnceTableWriter {
                              3,
                              Duration.ofMillis(100));
         }
+    }
+
+    private LocalDateTime fromUnixTimestampMicroseconds(long microseconds) {
+        Timestamp ts = new Timestamp(microseconds / 1000);
+        ts.setNanos((int) (microseconds % 1000) * 1000);
+        return ts.toLocalDateTime();
     }
 
     protected abstract Object toTagStore(Map<String, String> tag);

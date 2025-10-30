@@ -19,6 +19,7 @@ package org.bithon.server.storage.jdbc.tracing.reader;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
 import org.bithon.server.datasource.expression.ExpressionASTBuilder;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,7 @@ public class RootSpanKindFilterAnalyzerTest {
     @Test
     @DisplayName("Null expression should return true")
     void testNullExpression() {
-        assertTrue(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(null));
+        Assertions.assertFalse(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(null));
     }
 
     @Nested
