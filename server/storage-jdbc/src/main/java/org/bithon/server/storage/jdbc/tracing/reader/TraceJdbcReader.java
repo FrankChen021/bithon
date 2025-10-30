@@ -41,7 +41,6 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.query.DataRow;
-import org.bithon.server.datasource.query.DataRowType;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Limit;
@@ -86,9 +85,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
 
@@ -216,7 +217,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                     OrderBy orderBy,
                                                     Limit limit,
                                                     Function<Record, T> mapper) {
-        boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
+        boolean isOnSummaryTable = RootSpanKindFilterAnalyzer.isOnRootSpanOnly(filter);
 
         Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
 
@@ -284,7 +285,7 @@ public class TraceJdbcReader implements ITraceReader {
                                 List<IExpression> indexedTagFilters,
                                 Timestamp start,
                                 Timestamp end) {
-        boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
+        boolean isOnSummaryTable = RootSpanKindFilterAnalyzer.isOnRootSpanOnly(filter);
 
         Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
 
@@ -435,22 +436,6 @@ public class TraceJdbcReader implements ITraceReader {
         return span;
     }
 
-    /**
-     * RootSpan has been extracted into trace_span_summary table during ingestion.
-     * If the filter on the 'kind'
-     * column selects those rows extracted into the summary table, later we only query the summary table.
-     */
-    protected boolean isFilterOnRootSpanOnly(IExpression expression) {
-        if (expression == null) {
-            return true;
-        }
-
-        final String kindFieldName = Tables.BITHON_TRACE_SPAN_SUMMARY.KIND.getName();
-        SpanKindIsRootDetector detector = new SpanKindIsRootDetector(kindFieldName);
-        expression.accept(detector);
-        return detector.isTrue;
-    }
-
     protected Map<String, String> toTagMap(Object attributes) {
         try {
             return objectMapper.readValue((String) attributes, TAG_TYPE);
@@ -465,7 +450,7 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public ColumnarTable timeseries(Query query) {
-        boolean isOnRootTable = isFilterOnRootSpanOnly(query.getFilter());
+        boolean isOnRootTable = RootSpanKindFilterAnalyzer.isOnRootSpanOnly(query.getFilter());
 
         TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
         splitter.split(query.getFilter());
@@ -570,7 +555,7 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     protected ReadResponse selectImpl(Query query) {
-        boolean isOnRootTable = isFilterOnRootSpanOnly(query.getFilter());
+        boolean isOnRootTable = RootSpanKindFilterAnalyzer.isOnRootSpanOnly(query.getFilter());
 
         OrderBy orderBy = query.getOrderBy();
         if (orderBy != null) {
@@ -714,7 +699,7 @@ public class TraceJdbcReader implements ITraceReader {
         Timestamp start = query.getInterval().getStartTime().toTimestamp();
         Timestamp end = query.getInterval().getEndTime().toTimestamp();
 
-        boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
+        boolean isOnSummaryTable = RootSpanKindFilterAnalyzer.isOnRootSpanOnly(filter);
 
         Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
 
@@ -754,21 +739,36 @@ public class TraceJdbcReader implements ITraceReader {
         return getDataSourceReader().distinct(query);
     }
 
-    static class SpanKindIsRootDetector implements IExpressionInDepthVisitor {
+    public static class RootSpanKindFilterAnalyzer implements IExpressionInDepthVisitor {
+        public static boolean isOnRootSpanOnly(IExpression expression) {
+            if (expression == null) {
+                return true;
+            }
+
+            final String kindFieldName = Tables.BITHON_TRACE_SPAN_SUMMARY.KIND.getName();
+            RootSpanKindFilterAnalyzer detector = new RootSpanKindFilterAnalyzer(kindFieldName);
+            expression.accept(detector);
+            return detector.isTrue;
+        }
+
         private boolean isTrue = false;
 
         private final String kindFieldName;
 
-        SpanKindIsRootDetector(String kindFieldName) {
+        private RootSpanKindFilterAnalyzer(String kindFieldName) {
             this.kindFieldName = kindFieldName;
         }
 
         @Override
         public boolean visit(ConditionalExpression expression) {
-            if (!(expression.getLhs() instanceof IdentifierExpression)) {
+            if (!(expression.getLhs() instanceof IdentifierExpression identifierExpression)) {
                 // Only support the IdentifierExpression in the left for simplicity.
                 // Do not throw exception here 'cause the AST might contain some other internal optimization rule
                 // such as 1 = 1 for simple processing
+                return false;
+            }
+
+            if (!identifierExpression.getIdentifier().equals(kindFieldName)) {
                 return false;
             }
 
@@ -776,26 +776,32 @@ public class TraceJdbcReader implements ITraceReader {
                 IExpression left = expression.getLhs();
                 IExpression right = expression.getRhs();
 
-                if (((IdentifierExpression) left).getIdentifier().equals(kindFieldName)) {
-                    if (right instanceof LiteralExpression) {
-                        String kindValue = (String) ((LiteralExpression<?>) right).getValue();
-                        isTrue = SpanKind.isRootSpan(kindValue);
-                    }
+                if (right instanceof LiteralExpression) {
+                    String kindValue = (String) ((LiteralExpression<?>) right).getValue();
+                    isTrue = SpanKind.isRootSpan(kindValue);
                 }
                 return false;
             }
 
             if (expression instanceof ConditionalExpression.In) {
-                IExpression left = expression.getLhs();
-                IExpression right = expression.getRhs();
+                ExpressionList inList = ((ExpressionList) expression.getRhs());
 
-                if (((IdentifierExpression) left).getIdentifier().equals(kindFieldName)) {
-                    isTrue = ((ExpressionList) right).getExpressions()
-                                                     .stream()
-                                                     .allMatch((s) -> (s instanceof LiteralExpression) && SpanKind.isRootSpan(((LiteralExpression<?>) s).getValue()));
-
-                    // TODO: Apply more optimization here is the collection size equals to the size of all root spans
-                    // We can remove such filter
+                Set<Object> sets = new HashSet<>();
+                for (IExpression expr : inList.getExpressions()) {
+                    if (expr instanceof LiteralExpression<?> literal) {
+                        Object val = literal.getValue();
+                        if (SpanKind.isRootSpan(val)) {
+                            sets.add(val);
+                        }
+                    }
+                }
+                if (!sets.isEmpty()) {
+                    isTrue = true;
+                }
+                if (sets.size() == SpanKind.distinctRootSpanCount()) {
+                    // Change to: 1 in (1)
+                    expression.setLhs(LiteralExpression.ofLong(1));
+                    expression.setRhs(new ExpressionList(LiteralExpression.ofLong(1)));
                 }
             }
 

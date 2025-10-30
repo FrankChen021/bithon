@@ -220,7 +220,7 @@ public class TraceStorage extends TraceJdbcStorage {
                                                              Timestamp end,
                                                              OrderBy orderBy,
                                                              Limit limit) {
-                boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
+                boolean isOnSummaryTable = RootSpanKindFilterAnalyzer.isOnRootSpanOnly(filter);
 
                 Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
 
@@ -305,7 +305,7 @@ public class TraceStorage extends TraceJdbcStorage {
                 OrderBy orderBy = query.getOrderBy();
                 Limit limit = query.getLimit();
 
-                boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
+                boolean isOnSummaryTable = RootSpanKindFilterAnalyzer.isOnRootSpanOnly(filter);
 
                 Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
 
