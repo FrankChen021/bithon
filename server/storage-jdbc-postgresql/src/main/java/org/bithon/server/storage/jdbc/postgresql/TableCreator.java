@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.jdbc.postgresql;
 
+import org.jooq.Constraint;
 import org.jooq.DSLContext;
 import org.jooq.Index;
 import org.jooq.Table;
@@ -25,9 +26,13 @@ import org.jooq.Table;
  * @date 2024/12/29 23:13
  */
 public class TableCreator {
-    public static void createTableIfNotExists(DSLContext dslContext, Table<?> table) {
+    public static void createTableIfNotExists(DSLContext dslContext,
+                                              Table<?> table,
+                                              Constraint... constraints
+    ) {
         dslContext.createTableIfNotExists(table)
                   .columns(table.fields())
+                  .constraints(constraints)
                   .execute();
 
         for (Index index : table.getIndexes()) {

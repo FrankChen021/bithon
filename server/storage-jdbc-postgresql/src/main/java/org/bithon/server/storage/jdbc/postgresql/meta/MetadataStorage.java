@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
+import org.bithon.server.storage.jdbc.common.jooq.Keys;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
 import org.bithon.server.storage.jdbc.postgresql.TableCreator;
@@ -39,6 +40,8 @@ public class MetadataStorage extends MetadataJdbcStorage {
 
     @Override
     public void initialize() {
-        TableCreator.createTableIfNotExists(this.dslContext, Tables.BITHON_APPLICATION_INSTANCE);
+        TableCreator.createTableIfNotExists(this.dslContext,
+                                            Tables.BITHON_APPLICATION_INSTANCE,
+                                            Keys.KEY_BITHON_APPLICATION_INSTANCE_UQ_NAME_TYPE_INSTANCE.constraint());
     }
 }

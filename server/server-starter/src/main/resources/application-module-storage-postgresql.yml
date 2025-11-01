@@ -64,6 +64,11 @@ bithon:
           cleanPeriod: PT3M
 
     providers:
+      # start postgresql in docker with the following command to test:
+      #   docker run --name postgres -e POSTGRES_USER=root -e POSTGRES_PASSWORD=root -p 5432:5432 -d postgres
+      #   docker exec -it postgres psql -U root -c "CREATE DATABASE bithon;"
+      #   docker exec -it postgres psql -U root -d bithon OR docker exec -it postgres psql -U root and then '\c bithon' to switch database
+      # use \d
       postgres-local:
         type: postgresql
         url: jdbc:postgresql://localhost:5432/bithon
