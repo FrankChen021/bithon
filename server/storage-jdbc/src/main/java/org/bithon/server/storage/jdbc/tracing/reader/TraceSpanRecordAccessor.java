@@ -20,8 +20,6 @@ import org.bithon.component.commons.utils.SupplierUtils;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.jooq.Record;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.function.Supplier;
 
 /**
@@ -120,18 +118,7 @@ public interface TraceSpanRecordAccessor {
         }
 
         public long getStartTime(Record record) {
-            Object val = record.get(START_TIME.get());
-            if (val instanceof Timestamp timestamp) {
-                return timestamp.getTime() * 1000 + timestamp.getNanos() / 1000;
-            }
-            if (val instanceof LocalDateTime localDateTime) {
-                Timestamp ts = Timestamp.valueOf(localDateTime);
-                return ts.getTime() * 1000 + ts.getNanos() / 1000;
-            }
-            if (val instanceof Long) {
-                return (long) val;
-            }
-            throw new RuntimeException("Unknow type of start time:" + val.getClass().getName());
+            return MicrosecondsUtils.from(record.get(START_TIME.get()));
         }
 
         public long getCostTime(Record record) {
@@ -233,18 +220,7 @@ public interface TraceSpanRecordAccessor {
         }
 
         public long getStartTime(Record record) {
-            Object val = record.get(START_TIME.get());
-            if (val instanceof Timestamp timestamp) {
-                return timestamp.getTime() * 1000 + timestamp.getNanos() / 1000;
-            }
-            if (val instanceof LocalDateTime localDateTime) {
-                Timestamp ts = Timestamp.valueOf(localDateTime);
-                return ts.getTime() * 1000 + ts.getNanos() / 1000;
-            }
-            if (val instanceof Long) {
-                return (long) val;
-            }
-            throw new RuntimeException("Unknow type of start time:" + val.getClass().getName());
+            return MicrosecondsUtils.from(record.get(START_TIME.get()));
         }
 
         public long getCostTime(Record record) {

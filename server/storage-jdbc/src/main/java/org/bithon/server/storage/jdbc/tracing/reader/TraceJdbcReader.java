@@ -676,11 +676,7 @@ public class TraceJdbcReader implements ITraceReader {
                     rowObject[i] = record.get(i);
                 }
                 if (startTimeFieldIndex >= 0 && startTimeFieldIndex < colSize) {
-                    if (rowObject[startTimeFieldIndex] instanceof LocalDateTime localDateTime) {
-                        // Convert to microseconds
-                        Timestamp ts = Timestamp.valueOf(localDateTime);
-                        rowObject[startTimeFieldIndex] = ts.getTime() * 1000 + ts.getNanos() / 1000;
-                    }
+                    rowObject[startTimeFieldIndex] = MicrosecondsUtils.from(rowObject[startTimeFieldIndex]);
                 }
                 if (tagFieldIndex >= 0 && tagFieldIndex < colSize) {
                     rowObject[tagFieldIndex] = toTagMap(rowObject[tagFieldIndex]);
@@ -696,11 +692,7 @@ public class TraceJdbcReader implements ITraceReader {
                     if (i == tagFieldIndex) {
                         val = toTagMap(val);
                     } else if (i == startTimeFieldIndex) {
-                        if (val instanceof LocalDateTime localDateTime) {
-                            // Convert to microseconds
-                            Timestamp ts = Timestamp.valueOf(localDateTime);
-                            val = ts.getTime() * 1000 + ts.getNanos() / 1000;
-                        }
+                        val = MicrosecondsUtils.from(val);
                     }
                     rowObject.put(field.getName(), val);
                 }
