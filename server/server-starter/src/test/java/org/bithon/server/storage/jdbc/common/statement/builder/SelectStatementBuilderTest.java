@@ -1814,7 +1814,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         Assertions.assertEquals("""
-                                    SELECT  FLOOR(EXTRACT(EPOCH FROM "timestamp" AT TIME ZONE 'UTC-8') / 10) * 10 AS "_timestamp",
+                                    SELECT FLOOR(EXTRACT(EPOCH FROM "timestamp" AT TIME ZONE 'UTC-8') / 10) * 10 AS "_timestamp",
                                            "appName",
                                            sum("clickedSum") AS "t1"
                                     FROM "bithon_http_incoming_metrics"
@@ -1859,7 +1859,7 @@ public class SelectStatementBuilderTest {
                                            "_var0" AS "count"
                                     FROM
                                     (
-                                      SELECT  FLOOR(EXTRACT(EPOCH FROM "timestamp" AT TIME ZONE 'UTC-8') / 10) * 10 AS "_timestamp",
+                                      SELECT FLOOR(EXTRACT(EPOCH FROM "timestamp" AT TIME ZONE 'UTC-8') / 10) * 10 AS "_timestamp",
                                              "appName",
                                              max("responseTime") AS "max_responseTime",
                                              min("responseTime") AS "min_responseTime",
