@@ -118,7 +118,7 @@ public interface TraceSpanRecordAccessor {
         }
 
         public long getStartTime(Record record) {
-            return MicrosecondsUtils.from(record.get(START_TIME.get()));
+            return MicrosecondsUtils.toMicroseconds(record.get(START_TIME.get()));
         }
 
         public long getCostTime(Record record) {
@@ -220,7 +220,7 @@ public interface TraceSpanRecordAccessor {
         }
 
         public long getStartTime(Record record) {
-            return MicrosecondsUtils.from(record.get(START_TIME.get()));
+            return MicrosecondsUtils.toMicroseconds(record.get(START_TIME.get()));
         }
 
         public long getCostTime(Record record) {

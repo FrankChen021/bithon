@@ -20,13 +20,13 @@ import org.bithon.component.commons.utils.RetryUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.common.IOnceTableWriter;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
+import org.bithon.server.storage.jdbc.tracing.reader.MicrosecondsUtils;
 import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -81,7 +81,7 @@ public abstract class SpanTableJdbcWriter implements IOnceTableWriter {
                 statement.setObject(++col, StringUtils.getOrEmpty(span.clazz));
                 statement.setObject(++col, StringUtils.getOrEmpty(span.method));
                 statement.setObject(++col, StringUtils.getOrEmpty(span.kind));
-                statement.setObject(++col, isSummaryTable ? fromUnixTimestampMicroseconds(span.startTime) : span.startTime);
+                statement.setObject(++col, isSummaryTable ? MicrosecondsUtils.toLocalDateTime(span.startTime) : span.startTime);
                 statement.setObject(++col, span.endTime);
                 statement.setObject(++col, span.costTime);
                 statement.setObject(++col, toTagStore(span.getTags()));
@@ -95,12 +95,6 @@ public abstract class SpanTableJdbcWriter implements IOnceTableWriter {
                              3,
                              Duration.ofMillis(100));
         }
-    }
-
-    private LocalDateTime fromUnixTimestampMicroseconds(long microseconds) {
-        Timestamp ts = new Timestamp(microseconds / 1000);
-        ts.setNanos((int) (microseconds % 1000) * 1000);
-        return ts.toLocalDateTime();
     }
 
     protected abstract Object toTagStore(Map<String, String> tag);

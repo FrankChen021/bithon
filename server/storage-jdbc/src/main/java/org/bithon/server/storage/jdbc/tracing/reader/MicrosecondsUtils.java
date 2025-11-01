@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
  * @date 1/11/25 12:42 pm
  */
 public class MicrosecondsUtils {
-    public static long from(Object val) {
+    public static long toMicroseconds(Object val) {
         if (val instanceof LocalDateTime localDateTime) {
             val = Timestamp.valueOf(localDateTime);
         }
@@ -36,5 +36,11 @@ public class MicrosecondsUtils {
             return (long) val;
         }
         throw new RuntimeException("Unknow type: " + val.getClass().getName());
+    }
+
+    public static LocalDateTime toLocalDateTime(long microseconds) {
+        Timestamp ts = new Timestamp(microseconds / 1000);
+        ts.setNanos((int) (microseconds % 1000) * 1000);
+        return ts.toLocalDateTime();
     }
 }
