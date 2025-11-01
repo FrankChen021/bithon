@@ -164,7 +164,7 @@ public class TraceJdbcReader implements ITraceReader {
                                    .fetchLazy();
 
         return CloseableIterator.transform(cursor.iterator(),
-                                           this::toTraceSpan,
+                                           (record) -> toTraceSpan(record, TraceSpanRecordAccessor.TABLE_RECORD_ACCESSOR),
                                            cursor);
     }
 
@@ -207,16 +207,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                      Timestamp end,
                                                      OrderBy orderBy,
                                                      Limit limit) {
-        return getTraceList(filter, indexedTagFilter, start, end, orderBy, limit, this::toTraceSpan);
-    }
 
-    protected <T> CloseableIterator<T> getTraceList(IExpression filter,
-                                                    List<IExpression> indexedTagFilter,
-                                                    Timestamp start,
-                                                    Timestamp end,
-                                                    OrderBy orderBy,
-                                                    Limit limit,
-                                                    Function<Record, T> mapper) {
         boolean isOnSummaryTable = RootSpanKindFilterAnalyzer.isOnRootSpanOnly(filter);
 
         Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
@@ -276,7 +267,7 @@ public class TraceJdbcReader implements ITraceReader {
 
         Cursor<Record> cursor = dslContext.fetchLazy(sql);
         return CloseableIterator.transform(cursor.iterator(),
-                                           mapper,
+                                           (record) -> toTraceSpan(record, isOnSummaryTable ? TraceSpanRecordAccessor.SUMMARY_TABLE_RECORD_ACCESSOR : TraceSpanRecordAccessor.TABLE_RECORD_ACCESSOR),
                                            cursor);
     }
 
@@ -337,7 +328,7 @@ public class TraceJdbcReader implements ITraceReader {
                          .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc(),
                                   Tables.BITHON_TRACE_SPAN.INSTANCENAME,
                                   Tables.BITHON_TRACE_SPAN.STARTTIMEUS)
-                         .fetch(this::toTraceSpan);
+                         .fetch((record) -> toTraceSpan(record, TraceSpanRecordAccessor.TABLE_RECORD_ACCESSOR));
     }
 
     @Override
@@ -408,30 +399,30 @@ public class TraceJdbcReader implements ITraceReader {
                          .toList();
     }
 
-    protected TraceSpan toTraceSpan(Record record) {
+    protected TraceSpan toTraceSpan(Record record, TraceSpanRecordAccessor recordAccessor) {
         TraceSpan span = new TraceSpan();
-        span.appName = TraceSpanRecordAccessor.getAppName(record);
-        span.instanceName = TraceSpanRecordAccessor.getInstanceName(record);
-        span.traceId = TraceSpanRecordAccessor.getTraceId(record);
-        span.spanId = TraceSpanRecordAccessor.getSpanId(record);
-        span.parentSpanId = TraceSpanRecordAccessor.getParentSpanId(record);
-        span.startTime = TraceSpanRecordAccessor.getStartTime(record);
-        span.costTime = TraceSpanRecordAccessor.getCostTime(record);
-        span.endTime = TraceSpanRecordAccessor.getEndTime(record);
-        span.name = TraceSpanRecordAccessor.getName(record);
-        span.kind = TraceSpanRecordAccessor.getKind(record);
-        span.method = TraceSpanRecordAccessor.getMethod(record);
-        span.clazz = TraceSpanRecordAccessor.getClazz(record);
-        span.status = TraceSpanRecordAccessor.getStatus(record);
-        span.normalizedUri = TraceSpanRecordAccessor.getNormalizedUrl(record);
-        if (StringUtils.hasText(TraceSpanRecordAccessor.getTags(record))) {
+        span.appName = recordAccessor.getAppName(record);
+        span.instanceName = recordAccessor.getInstanceName(record);
+        span.traceId = recordAccessor.getTraceId(record);
+        span.spanId = recordAccessor.getSpanId(record);
+        span.parentSpanId = recordAccessor.getParentSpanId(record);
+        span.startTime = recordAccessor.getStartTime(record);
+        span.costTime = recordAccessor.getCostTime(record);
+        span.endTime = recordAccessor.getEndTime(record);
+        span.name = recordAccessor.getName(record);
+        span.kind = recordAccessor.getKind(record);
+        span.method = recordAccessor.getMethod(record);
+        span.clazz = recordAccessor.getClazz(record);
+        span.status = recordAccessor.getStatus(record);
+        span.normalizedUri = recordAccessor.getNormalizedUrl(record);
+        if (StringUtils.hasText(recordAccessor.getTags(record))) {
             // Compatible with old data
             try {
-                span.tags = objectMapper.readValue(TraceSpanRecordAccessor.getTags(record), TAG_TYPE);
+                span.tags = objectMapper.readValue(recordAccessor.getTags(record), TAG_TYPE);
             } catch (JsonProcessingException ignored) {
             }
         } else {
-            span.tags = toTagMap(TraceSpanRecordAccessor.getAttributes(record));
+            span.tags = toTagMap(recordAccessor.getAttributes(record));
         }
         return span;
     }
@@ -451,15 +442,16 @@ public class TraceJdbcReader implements ITraceReader {
     @Override
     public ColumnarTable timeseries(Query query) {
         boolean isOnRootTable = RootSpanKindFilterAnalyzer.isOnRootSpanOnly(query.getFilter());
+        ISchema schema = isOnRootTable ? this.traceSpanSummarySchema : this.traceSpanSchema;
 
-        TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
+        TraceFilterSplitter splitter = new TraceFilterSplitter(schema, this.traceTagIndexSchema);
         splitter.split(query.getFilter());
 
         SelectStatement selectStatement = SelectStatementBuilder.builder()
-                                                                .schema(isOnRootTable ? this.traceSpanSummarySchema : this.traceSpanSchema)
+                                                                .schema(schema)
                                                                 .fields(query.getSelectors())
                                                                 .filter(splitter.getExpression())
-                                                                .interval(query.getInterval())
+                                                                .interval(query.getInterval().with(schema.getTimestampSpec().getColumnName()))
                                                                 .groupBy(query.getGroupBy())
                                                                 .orderBy(query.getOrderBy())
                                                                 .offset(query.getOffset())
@@ -519,7 +511,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                                         interval.getEndTime(),
                                                                         interval.getStep(),
                                                                         null,
-                                                                        new IdentifierExpression(Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS.getName())))
+                                                                        new IdentifierExpression(schema.getTimestampSpec().getColumnName())))
                                                   .build();
 
         try {

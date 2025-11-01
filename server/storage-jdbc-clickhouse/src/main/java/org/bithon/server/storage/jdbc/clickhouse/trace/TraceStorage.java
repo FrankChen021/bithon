@@ -56,6 +56,7 @@ import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.reader.IndexedTagQueryBuilder;
 import org.bithon.server.storage.jdbc.tracing.reader.TraceJdbcReader;
+import org.bithon.server.storage.jdbc.tracing.reader.TraceSpanRecordAccessor;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceSpan;
@@ -310,7 +311,7 @@ public class TraceStorage extends TraceJdbcStorage {
 
                 Cursor<?> cursor = dslContext.fetchLazy(sql);
                 return CloseableIterator.transform(cursor.iterator(),
-                                                   this::toTraceSpan,
+                                                   (record) -> toTraceSpan(record, isOnSummaryTable ? TraceSpanRecordAccessor.SUMMARY_TABLE_RECORD_ACCESSOR : TraceSpanRecordAccessor.TABLE_RECORD_ACCESSOR),
                                                    cursor);
             }
 
