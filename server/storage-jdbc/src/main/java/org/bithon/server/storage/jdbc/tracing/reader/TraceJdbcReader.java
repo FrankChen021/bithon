@@ -795,7 +795,6 @@ public class TraceJdbcReader implements ITraceReader {
             }
 
             if (expression instanceof ComparisonExpression.EQ) {
-                IExpression left = expression.getLhs();
                 IExpression right = expression.getRhs();
 
                 if (right instanceof LiteralExpression) {
