@@ -55,9 +55,24 @@ public class TraceTableSchema implements ISchema {
     private final Map<String, IColumn> columnMap = new LinkedHashMap<>();
     private final Map<String, IColumn> aliasMap = new HashMap<>();
 
-    TraceTableSchema(String name, ITraceStorage storage, List<IColumn> columns, String timestampColumn) {
+    /**
+     *
+     * @param name schema name
+     */
+    TraceTableSchema(String name,
+                     ITraceStorage storage,
+                     List<IColumn> columns,
+                     String timestampColumn) {
+        this(name, name, storage, columns, timestampColumn);
+    }
+
+    TraceTableSchema(String name,
+                     String storeName,
+                     ITraceStorage storage,
+                     List<IColumn> columns,
+                     String timestampColumn) {
         this.name = name;
-        this.dataStoreSpec = new TraceDataStore("bithon_" + name, storage);
+        this.dataStoreSpec = new TraceDataStore("bithon_" + storeName, storage);
         this.timestampSpec = new TimestampSpec(timestampColumn);
 
         columns.forEach((column) -> {
