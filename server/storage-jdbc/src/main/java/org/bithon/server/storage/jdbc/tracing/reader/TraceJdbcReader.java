@@ -705,14 +705,25 @@ public class TraceJdbcReader implements ITraceReader {
     @Override
     public int count(Query query) {
         ISchema schema;
-        if (RootSpanKindFilterAnalyzer.analyze(query.getFilter()).isRootSpan()) {
+
+        AnalyzeResult result = RootSpanKindFilterAnalyzer.analyze(query.getFilter());
+        if (result.isRootSpan()) {
             schema = this.traceSpanSummarySchema;
         } else {
             schema = this.traceSpanSchema;
         }
 
-        query = query.with(schema)
-                     .with(query.getInterval().with(schema.getTimestampSpec().getColumnName()));
+        query = new Query(result.isRootSpan() ? this.traceSpanSummarySchema : this.traceSpanSchema,
+                          query.getSelectors(),
+                          result.getExpression(),
+                          query.getInterval().with(schema.getTimestampSpec().getColumnName()),
+                          query.getGroupBy(),
+                          query.getOrderBy(),
+                          query.getLimit(),
+                          query.getOffset(),
+                          query.getSettings(),
+                          query.getResultFormat(),
+                          query.isAggregateQuery());
 
         return getDataSourceReader().count(query);
     }
