@@ -18,6 +18,8 @@ package org.bithon.component.commons.expression.optimizer;
 
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
+import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
@@ -384,5 +386,80 @@ public class ExpressionOptimizerTest {
 
         ast = ExpressionOptimizer.optimize(ast);
         Assertions.assertEquals("'4567'", ast.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testConstantFolding_FoldInExpression_Folded() {
+        IExpression ast = ExpressionOptimizer.optimize(new ConditionalExpression.In(
+            LiteralExpression.ofLong(1),
+            new ExpressionList(LiteralExpression.ofLong(1))
+        ));
+        Assertions.assertEquals("true", ast.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testConstantFolding_FoldInExpression_Folded2() {
+        IExpression ast = ExpressionOptimizer.optimize(new ConditionalExpression.In(
+            LiteralExpression.ofLong(2),
+            new ExpressionList(LiteralExpression.ofLong(1), LiteralExpression.ofLong(2))
+        ));
+        Assertions.assertEquals("true", ast.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testConstantFolding_FoldInExpression_Folded3() {
+        IExpression ast = ExpressionOptimizer.optimize(new ConditionalExpression.In(
+            LiteralExpression.ofLong(3),
+            new ExpressionList(LiteralExpression.ofLong(1), LiteralExpression.ofLong(2))
+        ));
+        Assertions.assertEquals("false", ast.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testConstantFolding_FoldInExpression_NotFolded() {
+        IExpression ast = ExpressionOptimizer.optimize(new ConditionalExpression.In(
+            LiteralExpression.ofLong(3),
+            new ExpressionList(LiteralExpression.ofLong(1),
+                               new IdentifierExpression("a"))
+        ));
+        Assertions.assertEquals("3 in (1, a)", ast.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    /**
+     * a = b AND 3 in (1) ===> false
+     */
+    @Test
+    public void testConstantFolding_FoldInExpression_CompoundExpression() {
+        IExpression ast = ExpressionOptimizer.optimize(
+            new LogicalExpression.AND(
+                new ComparisonExpression.EQ(IdentifierExpression.of("a"), IdentifierExpression.of("b")),
+
+                // not in
+                new ConditionalExpression.In(
+                    LiteralExpression.ofLong(3),
+                    new ExpressionList(LiteralExpression.ofLong(1))
+                )
+            )
+        );
+        Assertions.assertEquals("false", ast.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    /**
+     * a = b AND 1 in (1) ===> a = b
+     */
+    @Test
+    public void testConstantFolding_FoldInExpression_CompoundExpression_2() {
+        IExpression ast = ExpressionOptimizer.optimize(
+            new LogicalExpression.AND(
+                new ComparisonExpression.EQ(IdentifierExpression.of("a"), IdentifierExpression.of("b")),
+
+                // in
+                new ConditionalExpression.In(
+                    LiteralExpression.ofLong(1),
+                    new ExpressionList(LiteralExpression.ofLong(1))
+                )
+            )
+        );
+        Assertions.assertEquals("a = b", ast.serializeToText(IdentifierQuotaStrategy.NONE));
     }
 }

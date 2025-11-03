@@ -37,9 +37,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class RootSpanKindFilterAnalyzerTest {
 
     @Test
-    @DisplayName("Null expression should return true")
+    @DisplayName("Null expression should return false")
     void testNullExpression() {
-        Assertions.assertFalse(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(null));
+        TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(null);
+        assertFalse(result.isRootSpan());
+        Assertions.assertNull(result.getExpression());
     }
 
     @Nested
@@ -51,7 +53,9 @@ public class RootSpanKindFilterAnalyzerTest {
         void testServerKind() {
             IExpression expr = ExpressionASTBuilder.builder()
                                                    .build("kind = 'SERVER'");
-            assertTrue(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr), "SERVER is a root span kind");
+            TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+            assertTrue(result.isRootSpan(), "SERVER is a root span kind");
+            assertEquals("kind = 'SERVER'", result.getExpression().serializeToText(IdentifierQuotaStrategy.NONE));
         }
 
         @Test
@@ -59,7 +63,9 @@ public class RootSpanKindFilterAnalyzerTest {
         void testTimerKind() {
             IExpression expr = ExpressionASTBuilder.builder()
                                                    .build("kind = 'TIMER'");
-            assertTrue(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr), "TIMER is a root span kind");
+            TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+            assertTrue(result.isRootSpan(), "TIMER is a root span kind");
+            assertEquals("kind = 'TIMER'", result.getExpression().serializeToText(IdentifierQuotaStrategy.NONE));
         }
 
         @Test
@@ -67,7 +73,9 @@ public class RootSpanKindFilterAnalyzerTest {
         void testConsumerKind() {
             IExpression expr = ExpressionASTBuilder.builder()
                                                    .build("kind = 'CONSUMER'");
-            assertTrue(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr), "CONSUMER is a root span kind");
+            TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+            assertTrue(result.isRootSpan(), "CONSUMER is a root span kind");
+            assertEquals("kind = 'CONSUMER'", result.getExpression().serializeToText(IdentifierQuotaStrategy.NONE));
         }
     }
 
@@ -80,7 +88,9 @@ public class RootSpanKindFilterAnalyzerTest {
         void testClientKind() {
             IExpression expr = ExpressionASTBuilder.builder()
                                                    .build("kind = 'CLIENT'");
-            assertFalse(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr), "CLIENT is not a root span kind");
+            TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+            assertFalse(result.isRootSpan(), "CLIENT is not a root span kind");
+            assertEquals("kind = 'CLIENT'", result.getExpression().serializeToText(IdentifierQuotaStrategy.NONE));
         }
 
         @Test
@@ -88,7 +98,9 @@ public class RootSpanKindFilterAnalyzerTest {
         void testInternalKind() {
             IExpression expr = ExpressionASTBuilder.builder()
                                                    .build("kind = 'INTERNAL'");
-            assertFalse(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr), "INTERNAL is not a root span kind");
+            TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+            assertFalse(result.isRootSpan(), "INTERNAL is not a root span kind");
+            assertEquals("kind = 'INTERNAL'", result.getExpression().serializeToText(IdentifierQuotaStrategy.NONE));
         }
 
         @Test
@@ -96,7 +108,9 @@ public class RootSpanKindFilterAnalyzerTest {
         void testProducerKind() {
             IExpression expr = ExpressionASTBuilder.builder()
                                                    .build("kind = 'PRODUCER'");
-            assertFalse(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr), "PRODUCER is not a root span kind");
+            TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+            assertFalse(result.isRootSpan(), "PRODUCER is not a root span kind");
+            assertEquals("kind = 'PRODUCER'", result.getExpression().serializeToText(IdentifierQuotaStrategy.NONE));
         }
     }
 
@@ -109,7 +123,9 @@ public class RootSpanKindFilterAnalyzerTest {
         void testInWithAllRootSpans() {
             IExpression expr = ExpressionASTBuilder.builder()
                                                    .build("kind IN ('SERVER', 'TIMER')");
-            assertTrue(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr), "All values in IN are root span kinds");
+            TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+            assertTrue(result.isRootSpan(), "All values in IN are root span kinds");
+            assertEquals("kind in ('SERVER', 'TIMER')", result.getExpression().serializeToText(IdentifierQuotaStrategy.NONE));
         }
 
         @Test
@@ -117,7 +133,9 @@ public class RootSpanKindFilterAnalyzerTest {
         void testInWithAllThreeRootSpans() {
             IExpression expr = ExpressionASTBuilder.builder()
                                                    .build("kind IN ('SERVER', 'TIMER', 'CONSUMER')");
-            assertTrue(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr), "All values in IN are root span kinds (all 3 root kinds)");
+            TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+            assertTrue(result.isRootSpan(), "All values in IN are root span kinds (all 3 root kinds)");
+            assertEquals("true", result.getExpression().serializeToText());
         }
 
         @Test
@@ -127,7 +145,9 @@ public class RootSpanKindFilterAnalyzerTest {
                                                    .build("kind IN ('SERVER', 'CLIENT')");
             // Returns true because the filter matches root spans (SERVER), so we can use the summary table
             // The filter itself will ensure we only get matching root spans from the summary table
-            assertTrue(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr), "IN contains root span kind (SERVER), so can use summary table");
+            TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+            assertTrue(result.isRootSpan(), "IN contains root span kind (SERVER), so can use summary table");
+            assertEquals("kind in ('SERVER', 'CLIENT')", result.getExpression().serializeToText(IdentifierQuotaStrategy.NONE));
         }
 
         @Test
@@ -135,7 +155,9 @@ public class RootSpanKindFilterAnalyzerTest {
         void testInWithNoRootSpans() {
             IExpression expr = ExpressionASTBuilder.builder()
                                                    .build("kind IN ('CLIENT', 'INTERNAL')");
-            assertFalse(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr), "IN contains no root span kinds");
+            TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+            assertFalse(result.isRootSpan(), "IN contains no root span kinds");
+            assertEquals("kind in ('CLIENT', 'INTERNAL')", result.getExpression().serializeToText(IdentifierQuotaStrategy.NONE));
         }
 
         @Test
@@ -143,7 +165,9 @@ public class RootSpanKindFilterAnalyzerTest {
         void testInWithSingleRootSpan() {
             IExpression expr = ExpressionASTBuilder.builder()
                                                    .build("kind IN ('SERVER')");
-            assertTrue(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr), "Single root span kind in IN should return true");
+            TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+            assertTrue(result.isRootSpan(), "Single root span kind in IN should return true");
+            assertEquals("kind = 'SERVER'", result.getExpression().serializeToText(IdentifierQuotaStrategy.NONE));
         }
     }
 
@@ -156,7 +180,9 @@ public class RootSpanKindFilterAnalyzerTest {
         void testOtherField() {
             IExpression expr = ExpressionASTBuilder.builder()
                                                    .build("appName = 'myapp'");
-            assertFalse(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr), "Expression without 'kind' field should return false");
+            TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+            assertFalse(result.isRootSpan(), "Expression without 'kind' field should return false");
+            assertEquals("appName = 'myapp'", result.getExpression().serializeToText(IdentifierQuotaStrategy.NONE));
         }
 
         @Test
@@ -165,7 +191,9 @@ public class RootSpanKindFilterAnalyzerTest {
             IExpression expr = ExpressionASTBuilder.builder()
                                                    .build("kind = 'SERVER' AND appName = 'myapp'");
             // Should return true because it contains kind = 'SERVER' which is a root span
-            assertTrue(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr), "Expression with kind = 'SERVER' should return true even with other fields");
+            TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+            assertTrue(result.isRootSpan(), "Expression with kind = 'SERVER' should return true even with other fields");
+            assertEquals("(kind = 'SERVER') AND (appName = 'myapp')", result.getExpression().serializeToText(IdentifierQuotaStrategy.NONE));
         }
     }
 
@@ -178,7 +206,9 @@ public class RootSpanKindFilterAnalyzerTest {
         void testLowerCaseServer() {
             IExpression expr = ExpressionASTBuilder.builder()
                                                    .build("kind = 'server'");
-            assertTrue(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr), "SpanKind.isRootSpan handles case conversion, lowercase should work");
+            TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+            assertTrue(result.isRootSpan(), "SpanKind.isRootSpan handles case conversion, lowercase should work");
+            assertEquals("kind = 'server'", result.getExpression().serializeToText(IdentifierQuotaStrategy.NONE));
         }
 
         @Test
@@ -186,7 +216,9 @@ public class RootSpanKindFilterAnalyzerTest {
         void testMixedCaseServer() {
             IExpression expr = ExpressionASTBuilder.builder()
                                                    .build("kind = 'Server'");
-            assertTrue(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr), "SpanKind.isRootSpan handles case conversion, mixed case should work");
+            TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+            assertTrue(result.isRootSpan(), "SpanKind.isRootSpan handles case conversion, mixed case should work");
+            assertEquals("kind = 'Server'", result.getExpression().serializeToText(IdentifierQuotaStrategy.NONE));
         }
     }
 
@@ -199,7 +231,9 @@ public class RootSpanKindFilterAnalyzerTest {
         void testComplexAndWithRootKind() {
             IExpression expr = ExpressionASTBuilder.builder()
                                                    .build("kind = 'SERVER' AND status = 'ok' AND appName = 'myapp'");
-            assertTrue(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr), "Complex AND with root span kind should return true");
+            TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+            assertTrue(result.isRootSpan(), "Complex AND with root span kind should return true");
+            assertEquals("(kind = 'SERVER') AND (status = 'ok') AND (appName = 'myapp')", result.getExpression().serializeToText(IdentifierQuotaStrategy.NONE));
         }
 
         @Test
@@ -207,7 +241,9 @@ public class RootSpanKindFilterAnalyzerTest {
         void testComplexAndWithoutRootKind() {
             IExpression expr = ExpressionASTBuilder.builder()
                                                    .build("status = 'ok' AND appName = 'myapp'");
-            assertFalse(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr), "Complex AND without kind field should return false");
+            TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+            assertFalse(result.isRootSpan(), "Complex AND without kind field should return false");
+            assertEquals("(status = 'ok') AND (appName = 'myapp')", result.getExpression().serializeToText(IdentifierQuotaStrategy.NONE));
         }
 
         @Test
@@ -215,7 +251,9 @@ public class RootSpanKindFilterAnalyzerTest {
         void testComplexAndWithNonRootKind() {
             IExpression expr = ExpressionASTBuilder.builder()
                                                    .build("kind = 'CLIENT' AND status = 'ok'");
-            assertFalse(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr), "Complex AND with non-root kind should return false");
+            TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+            assertFalse(result.isRootSpan(), "Complex AND with non-root kind should return false");
+            assertEquals("(kind = 'CLIENT') AND (status = 'ok')", result.getExpression().serializeToText(IdentifierQuotaStrategy.NONE));
         }
 
         @Test
@@ -223,7 +261,9 @@ public class RootSpanKindFilterAnalyzerTest {
         void testComplexAndWithKindIn() {
             IExpression expr = ExpressionASTBuilder.builder()
                                                    .build("kind IN ('SERVER', 'TIMER') AND status = 'ok'");
-            assertTrue(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr), "Complex AND with kind IN containing root spans should return true");
+            TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+            assertTrue(result.isRootSpan(), "Complex AND with kind IN containing root spans should return true");
+            assertEquals("(kind in ('SERVER', 'TIMER')) AND (status = 'ok')", result.getExpression().serializeToText(IdentifierQuotaStrategy.NONE));
         }
     }
 
@@ -236,14 +276,16 @@ public class RootSpanKindFilterAnalyzerTest {
             {
                 IExpression expr = ExpressionASTBuilder.builder()
                                                        .build("kind in ('SERVER', 'TIMER', 'CONSUMER')");
-                assertTrue(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr));
-                assertEquals("1 in (1)", expr.serializeToText());
+                TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+                assertTrue(result.isRootSpan());
+                assertEquals("true", result.getExpression().serializeToText());
             }
             {
                 IExpression expr = ExpressionASTBuilder.builder()
                                                        .build("kind in ('SERVER', 'TIMER')");
-                assertTrue(TraceJdbcReader.RootSpanKindFilterAnalyzer.isOnRootSpanOnly(expr));
-                assertEquals("kind in ('SERVER', 'TIMER')", expr.serializeToText(IdentifierQuotaStrategy.NONE));
+                TraceJdbcReader.AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(expr);
+                assertTrue(result.isRootSpan());
+                assertEquals("kind in ('SERVER', 'TIMER')", result.getExpression().serializeToText(IdentifierQuotaStrategy.NONE));
             }
         }
     }

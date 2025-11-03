@@ -35,8 +35,8 @@ public class ExpressionOptimizer {
 
     public static IExpression optimize(IExpression expression) {
         return expression.accept(new ConstantFunctionOptimizer())
-                         .accept(new LogicalExpressionOptimizer())
-                         .accept(new ConstantFoldingOptimizer());
+                         .accept(new ConstantFoldingOptimizer())
+                         .accept(new LogicalExpressionOptimizer());
     }
 
     /**
