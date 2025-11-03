@@ -33,6 +33,7 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
+import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.CloseableIterator;
@@ -208,7 +209,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                      OrderBy orderBy,
                                                      Limit limit) {
 
-        boolean isOnSummaryTable = RootSpanKindFilterAnalyzer.isOnRootSpanOnly(filter);
+        boolean isOnSummaryTable = RootSpanKindFilterAnalyzer.analyze(filter).isRootSpan();
 
         Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
 
@@ -276,7 +277,7 @@ public class TraceJdbcReader implements ITraceReader {
                                 List<IExpression> indexedTagFilters,
                                 Timestamp start,
                                 Timestamp end) {
-        boolean isOnSummaryTable = RootSpanKindFilterAnalyzer.isOnRootSpanOnly(filter);
+        boolean isOnSummaryTable = RootSpanKindFilterAnalyzer.analyze(filter).isRootSpan();
 
         Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
 
@@ -441,7 +442,7 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public ColumnarTable timeseries(Query query) {
-        boolean isOnRootTable = RootSpanKindFilterAnalyzer.isOnRootSpanOnly(query.getFilter());
+        boolean isOnRootTable = RootSpanKindFilterAnalyzer.analyze(query.getFilter()).isRootSpan();
         ISchema schema = isOnRootTable ? this.traceSpanSummarySchema : this.traceSpanSchema;
 
         TraceFilterSplitter splitter = new TraceFilterSplitter(schema, this.traceTagIndexSchema);
@@ -540,7 +541,7 @@ public class TraceJdbcReader implements ITraceReader {
     @Override
     public ReadResponse query(Query query) {
         ISchema schema;
-        if (RootSpanKindFilterAnalyzer.isOnRootSpanOnly(query.getFilter())) {
+        if (RootSpanKindFilterAnalyzer.analyze(query.getFilter()).isRootSpan()) {
             schema = this.traceSpanSummarySchema;
         } else {
             schema = this.traceSpanSchema;
@@ -703,47 +704,17 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public int count(Query query) {
-        TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
-        splitter.split(query.getFilter());
-
-        IExpression filter = splitter.getExpression();
-        List<IExpression> indexedTagFilters = splitter.getIndexedTagFilters();
-        Timestamp start = query.getInterval().getStartTime().toTimestamp();
-        Timestamp end = query.getInterval().getEndTime().toTimestamp();
-
-        boolean isOnSummaryTable = RootSpanKindFilterAnalyzer.isOnRootSpanOnly(filter);
-
-        Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
-
-        // NOTE:
-        // 1. the query is performed on summary table or detail table based on input filters
-        // 2. the WHERE clause is built on raw SQL string
-        // because the jOOQ DSL expression, where(summary.TIMESTAMP.lt(xxx)), might translate the TIMESTAMP as a full qualified name,
-        // but the query might be performed on the detailed table
-        SelectConditionStep<Record1<Integer>> countQuery = dslContext.selectCount()
-                                                                     .from(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN)
-                                                                     .where(timestampField.ge(start.toLocalDateTime()).and(timestampField.lt(end.toLocalDateTime())));
-
-        if (filter != null) {
-            countQuery = countQuery.and(Expression2Sql.from((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).getName(),
-                                                            sqlDialect,
-                                                            filter));
+        ISchema schema;
+        if (RootSpanKindFilterAnalyzer.analyze(query.getFilter()).isRootSpan()) {
+            schema = this.traceSpanSummarySchema;
+        } else {
+            schema = this.traceSpanSchema;
         }
 
-        // Build the indexed tag query
-        SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.sqlDialect).dslContext(this.dslContext)
-                                                                                                          .start(start.toLocalDateTime())
-                                                                                                          .end(end.toLocalDateTime())
-                                                                                                          .build(indexedTagFilters);
-        if (indexedTagQuery != null) {
-            if (isOnSummaryTable) {
-                countQuery = countQuery.and(Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID.in(indexedTagQuery));
-            } else {
-                countQuery = countQuery.and(Tables.BITHON_TRACE_SPAN.TRACEID.in(indexedTagQuery));
-            }
-        }
+        query = query.with(schema)
+                     .with(query.getInterval().with(schema.getTimestampSpec().getColumnName()));
 
-        return ((Number) dslContext.fetchOne(toSQL(countQuery)).get(0)).intValue();
+        return getDataSourceReader().count(query);
     }
 
     @Override
@@ -752,7 +723,7 @@ public class TraceJdbcReader implements ITraceReader {
 
         // Because the distinct queries can also be executed on tag table, so we need to check if the target schema is the span table
         if (schemaName.equals(this.traceSpanSchema.getName()) || schemaName.equals(this.traceSpanSummarySchema.getName())) {
-            if (RootSpanKindFilterAnalyzer.isOnRootSpanOnly(query.getFilter())) {
+            if (RootSpanKindFilterAnalyzer.analyze(query.getFilter()).isRootSpan()) {
                 query = query.with(this.traceSpanSummarySchema);
             } else {
                 query = query.with(this.traceSpanSchema);
@@ -761,16 +732,39 @@ public class TraceJdbcReader implements ITraceReader {
         return getDataSourceReader().distinct(query);
     }
 
+    public static class AnalyzeResult {
+        private final boolean isRootSpan;
+        private final IExpression expression;
+
+        public AnalyzeResult(boolean isRootSpan, IExpression expression) {
+            this.isRootSpan = isRootSpan;
+            this.expression = expression;
+        }
+
+        public boolean isRootSpan() {
+            return isRootSpan;
+        }
+
+        public IExpression getExpression() {
+            return expression;
+        }
+    }
+
     public static class RootSpanKindFilterAnalyzer implements IExpressionInDepthVisitor {
-        public static boolean isOnRootSpanOnly(IExpression expression) {
+        public static AnalyzeResult analyze(IExpression expression) {
             if (expression == null) {
-                return false;
+                return new AnalyzeResult(false, null);
             }
 
             final String kindFieldName = Tables.BITHON_TRACE_SPAN_SUMMARY.KIND.getName();
             RootSpanKindFilterAnalyzer detector = new RootSpanKindFilterAnalyzer(kindFieldName);
             expression.accept(detector);
-            return detector.isTrue;
+            IExpression resultExpression = expression;
+            if (detector.isTrue) {
+                // Fold
+                resultExpression = ExpressionOptimizer.optimize(expression);
+            }
+            return new AnalyzeResult(detector.isTrue, resultExpression);
         }
 
         private boolean isTrue = false;
