@@ -540,16 +540,7 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public ReadResponse query(Query query) {
-        ISchema schema;
-        if (RootSpanKindFilterAnalyzer.analyze(query.getFilter()).isRootSpan()) {
-            schema = this.traceSpanSummarySchema;
-        } else {
-            schema = this.traceSpanSchema;
-        }
-
-        query = query.with(schema)
-                     .with(query.getInterval().with(schema.getTimestampSpec().getColumnName()));
-
+        query = chooseSchema(query);
 
         if (query.isAggregateQuery()) {
             return getDataSourceReader().query(query);
@@ -704,28 +695,7 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public int count(Query query) {
-        ISchema schema;
-
-        AnalyzeResult result = RootSpanKindFilterAnalyzer.analyze(query.getFilter());
-        if (result.isRootSpan()) {
-            schema = this.traceSpanSummarySchema;
-        } else {
-            schema = this.traceSpanSchema;
-        }
-
-        query = new Query(result.isRootSpan() ? this.traceSpanSummarySchema : this.traceSpanSchema,
-                          query.getSelectors(),
-                          result.getExpression(),
-                          query.getInterval().with(schema.getTimestampSpec().getColumnName()),
-                          query.getGroupBy(),
-                          query.getOrderBy(),
-                          query.getLimit(),
-                          query.getOffset(),
-                          query.getSettings(),
-                          query.getResultFormat(),
-                          query.isAggregateQuery());
-
-        return getDataSourceReader().count(query);
+        return getDataSourceReader().count(chooseSchema(query));
     }
 
     @Override
@@ -734,12 +704,9 @@ public class TraceJdbcReader implements ITraceReader {
 
         // Because the distinct queries can also be executed on tag table, so we need to check if the target schema is the span table
         if (schemaName.equals(this.traceSpanSchema.getName()) || schemaName.equals(this.traceSpanSummarySchema.getName())) {
-            if (RootSpanKindFilterAnalyzer.analyze(query.getFilter()).isRootSpan()) {
-                query = query.with(this.traceSpanSummarySchema);
-            } else {
-                query = query.with(this.traceSpanSchema);
-            }
+            query = chooseSchema(query);
         }
+
         return getDataSourceReader().distinct(query);
     }
 
@@ -839,5 +806,21 @@ public class TraceJdbcReader implements ITraceReader {
             // A little complicated to apply the optimization, ignore
             return !(expression instanceof LogicalExpression.NOT);
         }
+    }
+
+    private Query chooseSchema(Query query) {
+        ISchema schema;
+        AnalyzeResult result = RootSpanKindFilterAnalyzer.analyze(query.getFilter());
+        if (result.isRootSpan()) {
+            schema = this.traceSpanSummarySchema;
+        } else {
+            schema = this.traceSpanSchema;
+        }
+
+        return query.copy()
+                    .schema(schema)
+                    .filter(result.getExpression())
+                    .interval(query.getInterval().with(schema.getTimestampSpec().getColumnName()))
+                    .build();
     }
 }

@@ -80,6 +80,22 @@ public class Query {
         this.resultFormat = resultFormat == null ? ResultFormat.Object : resultFormat;
     }
 
+    public QueryBuilder copy() {
+        QueryBuilder newBuilder = new QueryBuilder();
+        newBuilder.schema = this.schema;
+        newBuilder.selectors = this.selectors;
+        newBuilder.filter = this.filter;
+        newBuilder.interval = this.interval;
+        newBuilder.groupBy = this.groupBy;
+        newBuilder.orderBy = this.orderBy;
+        newBuilder.limit = this.limit;
+        newBuilder.offset = this.offset;
+        newBuilder.settings = this.settings;
+        newBuilder.resultFormat = this.resultFormat;
+        newBuilder.isAggregateQuery = this.isAggregateQuery;
+        return newBuilder;
+    }
+
     /**
      * Create a new query object based on an existing query.
      * All fields in the new object except for {@param filter} is a shallow copy of an existing query object.
@@ -89,36 +105,6 @@ public class Query {
                          this.selectors,
                          filter,
                          this.interval,
-                         this.groupBy,
-                         this.orderBy,
-                         this.limit,
-                         this.offset,
-                         this.settings,
-                         this.resultFormat,
-                         this.isAggregateQuery
-        );
-    }
-
-    public Query with(ISchema schema) {
-        return new Query(schema,
-                         this.selectors,
-                         this.filter,
-                         this.interval,
-                         this.groupBy,
-                         this.orderBy,
-                         this.limit,
-                         this.offset,
-                         this.settings,
-                         this.resultFormat,
-                         this.isAggregateQuery
-        );
-    }
-
-    public Query with(Interval interval) {
-        return new Query(this.schema,
-                         this.selectors,
-                         this.filter,
-                         interval,
                          this.groupBy,
                          this.orderBy,
                          this.limit,
