@@ -78,12 +78,10 @@ import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
-import org.jooq.SelectSeekStep1;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -208,68 +206,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                      Timestamp end,
                                                      OrderBy orderBy,
                                                      Limit limit) {
-
-        boolean isOnSummaryTable = RootSpanKindFilterAnalyzer.analyze(filter).isRootSpan();
-
-        Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
-
-        IdentifierExpression tsColumn = new IdentifierExpression(timestampField.getName());
-        IExpression tsExpression = new LogicalExpression.AND(new ComparisonExpression.GTE(tsColumn, sqlDialect.toISO8601TimestampExpression(start)),
-                                                             new ComparisonExpression.LT(tsColumn, sqlDialect.toISO8601TimestampExpression(end)));
-
-        // NOTE:
-        // 1. Here use selectFrom(String) instead of use selectFrom(table) because we want to use the raw objects returned by underlying JDBC
-        // 2. If the filters contain a filter that matches the ROOT kind, then the search is built upon the summary table
-        SelectConditionStep<Record> listQuery = dslContext.selectFrom(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.getUnqualifiedName().quotedName() : Tables.BITHON_TRACE_SPAN.getUnqualifiedName().quotedName())
-                                                          .where(sqlDialect.createSqlSerializer(null).serialize(tsExpression));
-
-        if (filter != null) {
-            listQuery = listQuery.and(Expression2Sql.from((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).getName(),
-                                                          sqlDialect,
-                                                          filter));
-        }
-
-        // Build the tag query
-        if (CollectionUtils.isNotEmpty(indexedTagFilter)) {
-            SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.sqlDialect)
-                .dslContext(this.dslContext)
-                .start(start.toLocalDateTime())
-                .end(end.toLocalDateTime())
-                .build(indexedTagFilter);
-
-            if (isOnSummaryTable) {
-                listQuery = listQuery.and(Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID.in(indexedTagQuery));
-            } else {
-                listQuery = listQuery.and(Tables.BITHON_TRACE_SPAN.TRACEID.in(indexedTagQuery));
-            }
-        }
-
-        Field<?> orderField;
-        if ("costTime".equals(orderBy.getName())) {
-            orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEUS : Tables.BITHON_TRACE_SPAN.COSTTIMEUS;
-        } else if ("startTime".equals(orderBy.getName())) {
-            orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.STARTTIMEUS;
-        } else {
-            orderField = Arrays.stream((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).fields())
-                               .filter((f) -> f.getName().equals(orderBy.getName()))
-                               .findFirst().orElse(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.COSTTIMEUS);
-        }
-
-        SelectSeekStep1<?, ?> orderedListQuery;
-        if (Order.desc.equals(orderBy.getOrder())) {
-            orderedListQuery = listQuery.orderBy(orderField.desc());
-        } else {
-            orderedListQuery = listQuery.orderBy(orderField.asc());
-        }
-
-        String sql = toSQL(orderedListQuery.offset(limit.getOffset())
-                                           .limit(limit.getLimit()));
-        log.info("Get trace list: {}", sql);
-
-        Cursor<Record> cursor = dslContext.fetchLazy(sql);
-        return CloseableIterator.transform(cursor.iterator(),
-                                           (record) -> toTraceSpan(record, isOnSummaryTable ? TraceSpanRecordAccessor.SUMMARY_TABLE_RECORD_ACCESSOR : TraceSpanRecordAccessor.TABLE_RECORD_ACCESSOR),
-                                           cursor);
+        throw new UnsupportedOperationException("This API has been deprecated. Please use /api/datasource/query or /api/datasource/query/stream");
     }
 
     @Override

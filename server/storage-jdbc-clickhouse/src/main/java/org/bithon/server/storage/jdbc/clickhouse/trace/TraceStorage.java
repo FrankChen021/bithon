@@ -33,8 +33,10 @@ import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Limit;
+import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.setting.QuerySettings;
@@ -71,8 +73,6 @@ import org.jooq.Table;
 import org.springframework.context.ApplicationContext;
 
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -248,24 +248,24 @@ public class TraceStorage extends TraceJdbcStorage {
                                                              Timestamp end,
                                                              OrderBy orderBy,
                                                              Limit limit) {
-                boolean isOnSummaryTable = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(filter).isRootSpan();
+                AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(filter);
+                filter = result.getExpression();
+                boolean isOnSummaryTable = result.isRootSpan();
 
-                Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
+                ISchema schema = isOnSummaryTable ? this.traceSpanSummarySchema : this.traceSpanSchema;
 
-                IdentifierExpression tsColumn = new IdentifierExpression(timestampField.getName());
+                IdentifierExpression tsColumn = new IdentifierExpression(schema.getTimestampSpec().getColumnName());
                 IExpression tsExpression = new LogicalExpression.AND(new ComparisonExpression.GTE(tsColumn, sqlDialect.toISO8601TimestampExpression(start)),
                                                                      new ComparisonExpression.LT(tsColumn, sqlDialect.toISO8601TimestampExpression(end)));
 
                 // NOTE:
                 // 1. Here use selectFrom(String) instead of use selectFrom(table) because we want to use the raw objects returned by underlying JDBC
                 // 2. If the filters contain a filter that matches the ROOT kind, then the search is built upon the summary table
-                SelectConditionStep<Record> listQuery = dslContext.selectFrom(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.getUnqualifiedName().quotedName() : Tables.BITHON_TRACE_SPAN.getUnqualifiedName().quotedName())
+                SelectConditionStep<Record> listQuery = dslContext.selectFrom(schema.getDataStoreSpec().getStore())
                                                                   .where(sqlDialect.createSqlSerializer(null).serialize(tsExpression));
 
                 if (filter != null) {
-                    listQuery = listQuery.and(Expression2Sql.from((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).getName(),
-                                                                  sqlDialect,
-                                                                  filter));
+                    listQuery = listQuery.and(Expression2Sql.from(schema, sqlDialect, filter));
                 }
 
                 // Build the tag query
@@ -286,19 +286,22 @@ public class TraceStorage extends TraceJdbcStorage {
                 StringBuilder sqlTextBuilder = new StringBuilder(dslContext.renderInlined(listQuery));
                 sqlTextBuilder.append(" ORDER BY ");
 
-                Field<?> orderField;
-                if ("costTime".equals(orderBy.getName())) {
-                    orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEUS : Tables.BITHON_TRACE_SPAN.COSTTIMEUS;
-                } else if ("startTimeUs".equals(orderBy.getName())) {
-                    orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.COSTTIMEUS;
+                if (orderBy != null) {
+                    // Compatible with old client side implementation
+                    String orderByField;
+                    if ("costTime".equals(orderBy.getName())) {
+                        orderByField = Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEUS.getName();
+                    } else if ("startTime".equals(orderBy.getName())) {
+                        orderByField = Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS.getName();
+                    } else {
+                        orderByField = orderBy.getName();
+                    }
+                    orderBy = new OrderBy(orderByField, orderBy.getOrder());
                 } else {
-                    orderField = Arrays.stream((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).fields())
-                                       .filter((f) -> f.getName().equals(orderBy.getName()))
-                                       .findFirst()
-                                       .orElse(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.TIMESTAMP);
+                    orderBy = new OrderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.getName(), Order.desc);
                 }
 
-                sqlTextBuilder.append(orderField.getName());
+                sqlTextBuilder.append(orderBy.getName());
                 sqlTextBuilder.append(' ');
                 sqlTextBuilder.append(orderBy.getOrder().name());
 
