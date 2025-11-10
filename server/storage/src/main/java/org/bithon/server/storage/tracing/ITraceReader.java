@@ -46,11 +46,6 @@ public interface ITraceReader extends IDataSourceReader {
                                               OrderBy orderBy,
                                               Limit limit);
 
-    int getTraceListSize(IExpression filter,
-                         List<IExpression> indexedTagFilters,
-                         Timestamp start,
-                         Timestamp end);
-
     List<TraceSpan> getTraceByParentSpanId(String parentSpanId);
 
     /**

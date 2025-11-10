@@ -80,7 +80,6 @@ import org.jooq.Select;
 import org.jooq.SelectConditionStep;
 
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -207,46 +206,6 @@ public class TraceJdbcReader implements ITraceReader {
                                                      OrderBy orderBy,
                                                      Limit limit) {
         throw new UnsupportedOperationException("This API has been deprecated. Please use /api/datasource/query or /api/datasource/query/stream");
-    }
-
-    @Override
-    public int getTraceListSize(IExpression filter,
-                                List<IExpression> indexedTagFilters,
-                                Timestamp start,
-                                Timestamp end) {
-        boolean isOnSummaryTable = RootSpanKindFilterAnalyzer.analyze(filter).isRootSpan();
-
-        Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
-
-        // NOTE:
-        // 1. the query is performed on summary table or detail table based on input filters
-        // 2. the WHERE clause is built on raw SQL string
-        // because the jOOQ DSL expression, where(summary.TIMESTAMP.lt(xxx)), might translate the TIMESTAMP as a full qualified name,
-        // but the query might be performed on the detailed table
-        SelectConditionStep<Record1<Integer>> countQuery = dslContext.selectCount()
-                                                                     .from(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN)
-                                                                     .where(timestampField.ge(start.toLocalDateTime()).and(timestampField.lt(end.toLocalDateTime())));
-
-        if (filter != null) {
-            countQuery = countQuery.and(Expression2Sql.from((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).getName(),
-                                                            sqlDialect,
-                                                            filter));
-        }
-
-        // Build the indexed tag query
-        SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.sqlDialect).dslContext(this.dslContext)
-                                                                                                          .start(start.toLocalDateTime())
-                                                                                                          .end(end.toLocalDateTime())
-                                                                                                          .build(indexedTagFilters);
-        if (indexedTagQuery != null) {
-            if (isOnSummaryTable) {
-                countQuery = countQuery.and(Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID.in(indexedTagQuery));
-            } else {
-                countQuery = countQuery.and(Tables.BITHON_TRACE_SPAN.TRACEID.in(indexedTagQuery));
-            }
-        }
-
-        return ((Number) dslContext.fetchOne(toSQL(countQuery)).get(0)).intValue();
     }
 
     @SuppressWarnings("rawtypes")
