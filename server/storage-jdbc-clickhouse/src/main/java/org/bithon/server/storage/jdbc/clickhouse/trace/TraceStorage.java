@@ -277,9 +277,9 @@ public class TraceStorage extends TraceJdbcStorage {
                         .build(indexedTagFilter);
 
                     if (isOnSummaryTable) {
-                        listQuery = listQuery.and(Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID.in(indexedTagQuery));
+                        listQuery = listQuery.and(Tables.BITHON_TRACE_SPAN_SUMMARY.as(this.traceSpanSummarySchema.getDataStoreSpec().getStore()).TRACEID.in(indexedTagQuery));
                     } else {
-                        listQuery = listQuery.and(Tables.BITHON_TRACE_SPAN.TRACEID.in(indexedTagQuery));
+                        listQuery = listQuery.and(Tables.BITHON_TRACE_SPAN.as(this.traceSpanSchema.getDataStoreSpec().getStore()).TRACEID.in(indexedTagQuery));
                     }
                 }
 
@@ -289,10 +289,8 @@ public class TraceStorage extends TraceJdbcStorage {
                 if (orderBy != null) {
                     // Compatible with old client side implementation
                     String orderByField;
-                    if ("costTime".equals(orderBy.getName())) {
+                    if ("costTimeMs".equals(orderBy.getName())) {
                         orderByField = Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEUS.getName();
-                    } else if ("startTime".equals(orderBy.getName())) {
-                        orderByField = Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS.getName();
                     } else {
                         orderByField = orderBy.getName();
                     }
