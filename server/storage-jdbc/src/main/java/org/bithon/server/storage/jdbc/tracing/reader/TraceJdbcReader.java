@@ -363,7 +363,8 @@ public class TraceJdbcReader implements ITraceReader {
                                                                                                               .start(query.getInterval().getStartTime().toTimestamp().toLocalDateTime())
                                                                                                               .end(query.getInterval().getEndTime().toTimestamp().toLocalDateTime())
                                                                                                               .build(indexedTagFilter);
-            Condition subQuery = isOnRootTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID.in(indexedTagQuery) : Tables.BITHON_TRACE_SPAN.TRACEID.in(indexedTagQuery);
+            Condition subQuery = isOnRootTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.as(this.traceSpanSummarySchema.getDataStoreSpec().getStore()).TRACEID.in(indexedTagQuery)
+                                               : Tables.BITHON_TRACE_SPAN.as(this.traceSpanSchema.getDataStoreSpec().getStore()).TRACEID.in(indexedTagQuery);
             String subQueryText = dslContext.renderInlined(subQuery);
 
             selectStatement.getWhere().and(new IExpression() {
@@ -516,7 +517,8 @@ public class TraceJdbcReader implements ITraceReader {
                                                                                                               .start(query.getInterval().getStartTime().toTimestamp().toLocalDateTime())
                                                                                                               .end(query.getInterval().getEndTime().toTimestamp().toLocalDateTime())
                                                                                                               .build(indexedTagFilter);
-            Condition subQuery = isOnRootTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID.in(indexedTagQuery) : Tables.BITHON_TRACE_SPAN.TRACEID.in(indexedTagQuery);
+            Condition subQuery = isOnRootTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.as(this.traceSpanSummarySchema.getDataStoreSpec().getStore()).TRACEID.in(indexedTagQuery)
+                                               : Tables.BITHON_TRACE_SPAN.TRACEID.as(this.traceSpanSchema.getDataStoreSpec().getStore()).in(indexedTagQuery);
             String subQueryText = dslContext.renderInlined(subQuery);
 
             selectStatement.getWhere().and(new IExpression() {
