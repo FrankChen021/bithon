@@ -104,39 +104,39 @@
           {"name": "qps",         "expression": "round(sum(totalCount)/{interval}, 2)"},
           {"name": "okQPS",       "expression": "round(sum(okCount)/{interval}, 2)"},
           {"name": "totalCount",  "expression": "sum(totalCount)"}
+        ]
+      },
+      "details": {
+        "columns": [
+          "method",
+          "uri",
+          "statusCode",
+          "totalCount",
+          "qps"
         ],
-        "details": {
-          "columns": [
+        "query": {
+          "dataSource": "http-incoming-metrics",
+          "fields": [
+            {"name": "qps",         "expression": "round(sum(totalCount)/{interval}, 2)"},
+            {"name": "totalCount",  "expression": "sum(totalCount)"}
+          ],
+          "groupBy": [
             "method",
             "uri",
-            "statusCode",
-            "totalCount",
-            "qps"
+            "statusCode"
           ],
-          "query": {
-            "dataSource": "http-incoming-metrics",
-            "fields": [
-              {"name": "qps",         "expression": "round(sum(totalCount)/{interval}, 2)"},
-              {"name": "totalCount",  "expression": "sum(totalCount)"}
-            ],
-            "groupBy": [
-              "method",
-              "uri",
-              "statusCode"
-            ],
-            "orderBy": {
-              "name": "totalCount",
-              "order": "desc"
-            },
-            "limit": 15
+          "orderBy": {
+            "name": "totalCount",
+            "order": "desc"
           },
-          "tracing": {
-            "mappings": {
-              "uri": "url",
-              "statusCode": "status"
-            },
-            "filter": "kind = 'SERVER'"
-          }
+          "limit": 15
+        },
+        "tracing": {
+          "mappings": {
+            "uri": "url",
+            "statusCode": "status"
+          },
+          "filter": "kind = 'SERVER'"
         }
       }
     },
