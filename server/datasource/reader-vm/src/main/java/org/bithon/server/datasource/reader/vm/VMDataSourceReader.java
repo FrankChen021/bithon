@@ -146,7 +146,7 @@ public class VMDataSourceReader implements IDataSourceReader {
 
     @Override
     public ReadResponse query(Query query) {
-        CloseableIterator<?> emptyIterator = new CloseableIterator<>() {
+        CloseableIterator<DataRow> emptyIterator = new CloseableIterator<>() {
             @Override
             public void close() {
             }
@@ -157,12 +157,12 @@ public class VMDataSourceReader implements IDataSourceReader {
             }
 
             @Override
-            public Object next() {
+            public DataRow next() {
                 return null;
             }
         };
 
-        return new ReadResponse(emptyIterator, new DataRow.Meta(List.of()));
+        return new ReadResponse(emptyIterator, List.of());
     }
 
     @Override

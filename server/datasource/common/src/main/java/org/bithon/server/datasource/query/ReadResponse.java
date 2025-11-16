@@ -22,23 +22,25 @@ import lombok.Builder;
 import lombok.Data;
 import org.bithon.component.commons.utils.CloseableIterator;
 
+import java.util.List;
+
 /**
  * Response object containing streaming data and column metadata
+ *
  * @date 20/10/25 11:06 pm
  */
 @Data
 @Builder
 @AllArgsConstructor
-public class ReadResponse<T> {
+public class ReadResponse {
     /**
      * Iterator for streaming row data
      */
-    private CloseableIterator<DataRow<T>> data;
+    private CloseableIterator<DataRow> data;
 
     /**
      * Column metadata for the result set.
      * Each entry contains column name and data type.
      */
-    private DataRow.Meta meta;
-
+    private List<ColumnMetadata> meta;
 }

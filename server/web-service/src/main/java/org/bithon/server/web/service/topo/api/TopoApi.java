@@ -26,7 +26,6 @@ import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.column.IColumn;
 import org.bithon.server.datasource.input.IInputRow;
 import org.bithon.server.datasource.input.InputRow;
-import org.bithon.server.datasource.query.DataRow;
 import org.bithon.server.datasource.query.DataRowType;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Interval;
@@ -35,6 +34,7 @@ import org.bithon.server.datasource.query.ResultFormat;
 import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.meta.EndPointType;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.bithon.server.web.service.common.bucket.TimeBucket;
 import org.bithon.server.web.service.topo.service.EndpointBo;
 import org.bithon.server.web.service.topo.service.Link;
 import org.bithon.server.web.service.topo.service.Topo;
@@ -78,6 +78,7 @@ public class TopoApi {
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601()).floor(Duration.ofMinutes(1));
         TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601()).floor(Duration.ofMinutes(1));
         long durationSeconds = end.diff(start) / 1000;
+        int stepSeconds = TimeBucket.calculate(start, end);
 
         Query calleeQuery = Query.builder()
                                  .schema(topoSchema)
@@ -96,19 +97,20 @@ public class TopoApi {
                                                                                                LiteralExpression.ofString(request.getApplication())),
                                                                    new ComparisonExpression.EQ(new IdentifierExpression("srcEndpointType"),
                                                                                                LiteralExpression.ofString(EndPointType.APPLICATION.name()))))
-                                 .interval(Interval.of(start, end))
+                                 .interval(Interval.of(start, end, Duration.ofSeconds(stepSeconds), new IdentifierExpression("timestamp")))
+                                 .isAggregateQuery(true)
                                  .groupBy(Arrays.asList("dstEndpoint", "dstEndpointType"))
                                  .resultFormat(ResultFormat.Object)
                                  .build();
 
         try (IDataSourceReader dataSourceReader = topoSchema.getDataStoreSpec().createReader()) {
             // noinspection unchecked
-            List<Map<String, Object>> callees = (List<Map<String, Object>>) dataSourceReader.query(calleeQuery)
-                                                                                            .getData()
-                                                                                            .toList()
-                                                                                            .stream().filter((dataRow) -> DataRowType.DATA.equals(((DataRow<?>) dataRow).getType()))
-                                                                                            .map((dataRow) -> ((DataRow<?>) dataRow).getPayload())
-                                                                                            .toList();
+            List<Map<String, Object>> callees = dataSourceReader.query(calleeQuery)
+                                                                .getData()
+                                                                .toList()
+                                                                .stream().filter((dataRow) -> DataRowType.DATA.equals(dataRow.getType()))
+                                                                .map((dataRow) -> (Map<String, Object>) dataRow.getPayload())
+                                                                .toList();
 
             Topo topo = new Topo();
             EndpointBo thisApplication = new EndpointBo("application", request.getApplication());
@@ -152,18 +154,19 @@ public class TopoApi {
                                                                                                    LiteralExpression.ofString(request.getApplication())),
                                                                        new ComparisonExpression.EQ(new IdentifierExpression("dstEndpointType"),
                                                                                                    LiteralExpression.ofString(EndPointType.APPLICATION.name()))))
-                                     .interval(Interval.of(start, end))
+                                     .interval(Interval.of(start, end, Duration.ofSeconds(stepSeconds), new IdentifierExpression("timestamp")))
+                                     .isAggregateQuery(true)
                                      .resultFormat(ResultFormat.Object)
                                      .groupBy(Arrays.asList("srcEndpoint", "srcEndpointType")).build();
 
             //noinspection unchecked
-            List<Map<String, Object>> callers = (List<Map<String, Object>>) dataSourceReader.query(callerQuery)
-                                                                                            .getData()
-                                                                                            .toList()
-                                                                                            .stream()
-                                                                                            .filter((dataRow) -> DataRowType.DATA.equals(((DataRow<?>) dataRow).getType()))
-                                                                                            .map((dataRow) -> ((DataRow<?>) dataRow).getPayload())
-                                                                                            .toList();
+            List<Map<String, Object>> callers = dataSourceReader.query(callerQuery)
+                                                                .getData()
+                                                                .toList()
+                                                                .stream()
+                                                                .filter((dataRow) -> DataRowType.DATA.equals(dataRow.getType()))
+                                                                .map((dataRow) -> (Map<String, Object>) dataRow.getPayload())
+                                                                .toList();
 
 
             for (Map<String, Object> caller : callers) {

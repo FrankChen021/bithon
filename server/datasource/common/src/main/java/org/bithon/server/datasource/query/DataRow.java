@@ -26,34 +26,35 @@ import java.util.List;
  * @date 28/10/25 4:10 pm
  */
 @Getter
-public class DataRow<T> {
+public class DataRow {
 
     /**
      * see {@link DataRowType}
      */
     private final String type;
-    private final T payload;
 
-    private DataRow(String type, T payload) {
+    /**
+     * Either:
+     * 1. a Map<String, Object> for {@link DataRowType#PROGRESS} type
+     * 2. List<ColumnMetadata> for {@link DataRowType#META} type
+     * 3. Map<String, Object>/Object[] for {@link DataRowType#DATA} type determined by the given {@link ResultFormat}
+     */
+    private final Object payload;
+
+    private DataRow(String type, Object payload) {
         this.type = type;
         this.payload = payload;
     }
 
-    public static <T> DataRow<T> data(T payload) {
-        return new DataRow<>(DataRowType.DATA, payload);
+    public static DataRow data(Object payload) {
+        return new DataRow(DataRowType.DATA, payload);
     }
 
-    public static <T> DataRow<T> progress(T payload) {
-        return new DataRow<>(DataRowType.PROGRESS, payload);
+    public static DataRow meta(List<ColumnMetadata> meta) {
+        return new DataRow(DataRowType.META, meta);
     }
 
-    public static class Meta extends DataRow<List<ColumnMetadata>> {
-        public Meta(List<ColumnMetadata> payload) {
-            super(DataRowType.META, payload);
-        }
-
-        public static Meta of(List<ColumnMetadata> columnMetadata) {
-            return new Meta(columnMetadata);
-        }
+    public static DataRow progress(Object payload) {
+        return new DataRow(DataRowType.PROGRESS, payload);
     }
 }

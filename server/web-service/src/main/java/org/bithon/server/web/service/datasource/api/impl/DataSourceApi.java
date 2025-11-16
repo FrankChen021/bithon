@@ -133,7 +133,7 @@ public class DataSourceApi implements IDataSourceApi {
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             ReadResponse response = reader.query(query);
 
-            CloseableIterator<DataRow<?>> rows = response.getData();
+            CloseableIterator<DataRow> rows = response.getData();
             List<?> dataList = rows.stream()
                                    .filter((row) -> DataRowType.DATA.equals(row.getType()))
                                    .map(DataRow::getPayload)
@@ -141,7 +141,6 @@ public class DataSourceApi implements IDataSourceApi {
 
             // Find the metrics
             List<String> metrics = response.getMeta()
-                                           .getPayload()
                                            .stream()
                                            .filter((col) -> {
                                                if (request.getGroupBy() != null && request.getGroupBy().contains(col.getName())) {
@@ -163,7 +162,7 @@ public class DataSourceApi implements IDataSourceApi {
 
             return QueryResponse.builder()
                                 .deprecated("!Important! This API has been deprecated. Please use /api/datasource/query or /api/datasource/query/stream instead")
-                                .meta(response.getMeta().getPayload())
+                                .meta(response.getMeta())
                                 .data(result.getMetrics())
                                 .startTimestamp(result.getStartTimestamp())
                                 .endTimestamp(result.getEndTimestamp())
@@ -260,7 +259,7 @@ public class DataSourceApi implements IDataSourceApi {
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             ReadResponse response = reader.query(query);
             return QueryResponse.builder()
-                                .meta(response.getMeta().getPayload())
+                                .meta(response.getMeta())
                                 .data(response.getData().toList())
                                 .build();
         }
@@ -297,11 +296,11 @@ public class DataSourceApi implements IDataSourceApi {
                                                            .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET)) {
                 try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
 
-                    ReadResponse<?> response = reader.query(query);
+                    ReadResponse response = reader.query(query);
 
                     try (CloseableIterator<?> streamData = response.getData()) {
                         // Write header with column metadata from response
-                        jsonGenerator.writeObject(response.getMeta());
+                        jsonGenerator.writeObject(DataRow.meta(response.getMeta()));
                         jsonGenerator.writeRaw('\n'); // Using writeRaw for newline
                         jsonGenerator.flush();
 
@@ -333,7 +332,7 @@ public class DataSourceApi implements IDataSourceApi {
 
         QueryResponse response = query(request);
 
-        //noinspection unchecked,rawtypes
+        // noinspection unchecked
         List<DataRow> rows = (List<DataRow>) response.getData();
         List<Object> dataList = rows.stream()
                                     .filter((row) -> DataRowType.DATA.equals(row.getType()))

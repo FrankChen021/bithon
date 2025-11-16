@@ -274,7 +274,7 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         return new ReadResponse(CloseableIterator.transform(cursor.iterator(),
                                                             (record) -> DataRow.data(mapper.apply(record)),
                                                             cursor),
-                                new DataRow.Meta(columns));
+                                columns);
     }
 
     public static Function<Record, ?> createRecordMapper(ResultFormat format) {

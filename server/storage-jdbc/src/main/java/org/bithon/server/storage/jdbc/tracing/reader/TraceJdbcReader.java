@@ -526,15 +526,15 @@ public class TraceJdbcReader implements ITraceReader {
 
             Function<Record, ?> mapper = createTraceSpanMapper(query.getResultFormat(), startTimeFieldIndex, tagFieldIndex);
             Cursor<Record> cursor = dslContext.fetchLazy(sql);
-            CloseableIterator<DataRow<Object>> iterator = CloseableIterator.transform(cursor.iterator(),
-                                                                                      (record) -> DataRow.data(mapper.apply(record)),
-                                                                                      cursor);
+            CloseableIterator<DataRow> iterator = CloseableIterator.transform(cursor.iterator(),
+                                                                              (record) -> DataRow.data(mapper.apply(record)),
+                                                                              cursor);
 
             return ReadResponse.builder()
-                               .meta(DataRow.Meta.of(query.getSelectors()
-                                                          .stream()
-                                                          .map(Selector::toColumnMetadata)
-                                                          .toList()))
+                               .meta(query.getSelectors()
+                                          .stream()
+                                          .map(Selector::toColumnMetadata)
+                                          .toList())
                                .data(iterator)
                                .build();
         }

@@ -23,7 +23,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Spliterators;
 import java.util.function.Function;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * @author frank.chen021@outlook.com
@@ -34,13 +37,26 @@ public interface CloseableIterator<T> extends Iterator<T>, Closeable {
     default List<T> toList() {
         List<T> list = new ArrayList<>(16);
         while (hasNext()) {
-            list.add((T) next());
+            list.add(next());
         }
         try {
             close();
         } catch (IOException ignored) {
         }
         return list;
+    }
+
+    default Stream<T> stream() {
+        return StreamSupport.stream(
+            Spliterators.spliteratorUnknownSize(this, 0),
+            false
+        ).onClose(() -> {
+            try {
+                close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     default <R> CloseableIterator<R> map(Function<T, R> mapFunction) {
