@@ -27,6 +27,7 @@ import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.SchemaException;
+import org.bithon.server.datasource.TimestampSpec;
 import org.bithon.server.datasource.column.ExpressionColumn;
 import org.bithon.server.datasource.column.IColumn;
 import org.bithon.server.datasource.column.aggregatable.IAggregatableColumn;
@@ -37,6 +38,7 @@ import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ReadResponse;
+import org.bithon.server.datasource.query.ResultFormat;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.store.IDataStoreSpec;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
@@ -49,6 +51,7 @@ import org.bithon.server.web.service.datasource.api.DataSourceService;
 import org.bithon.server.web.service.datasource.api.DisplayableText;
 import org.bithon.server.web.service.datasource.api.GetDimensionRequest;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
+import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
 import org.bithon.server.web.service.datasource.api.QueryResponse;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
@@ -117,32 +120,69 @@ public class DataSourceApi implements IDataSourceApi {
 
     @Override
     public QueryResponse timeseriesV4(@Validated @RequestBody QueryRequest request) throws IOException {
-        Duration step = request.getInterval().calculateStep();
+        // Force some properties for this legacy API
+        IntervalRequest intervalRequest = request.getInterval();
+        Duration step = intervalRequest.calculateStep();
+        intervalRequest.setStep((int) step.getSeconds());
+        request.setResultFormat(ResultFormat.Object);
 
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
-        Query query = QueryConverter.toQuery(schema, request, step);
-        TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
-        return QueryResponse.builder()
-                            .deprecated("!Important! This API has been deprecated. Please use /api/datasource/query or /api/datasource/query/stream instead")
-                            .meta(query.getSelectors()
-                                       .stream()
-                                       .map((selector) -> new ColumnMetadata(selector.getOutputName(), selector.getDataType().name()))
-                                       .toList())
-                            .data(result.getMetrics())
-                            .startTimestamp(result.getStartTimestamp())
-                            .endTimestamp(result.getEndTimestamp())
-                            .interval(result.getInterval())
-                            .build();
+        Query query = QueryConverter.toQuery(schema, request);
+
+        try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
+            ReadResponse response = reader.query(query);
+
+            CloseableIterator<DataRow<?>> rows = response.getData();
+            List<?> dataList = rows.stream()
+                                   .filter((row) -> DataRowType.DATA.equals(row.getType()))
+                                   .map(DataRow::getPayload)
+                                   .toList();
+
+            // Find the metrics
+            List<String> metrics = response.getMeta()
+                                           .getPayload()
+                                           .stream()
+                                           .filter((col) -> {
+                                               if (request.getGroupBy() != null && request.getGroupBy().contains(col.getName())) {
+                                                   return false;
+                                               }
+                                               return !col.getName().equals(TimestampSpec.COLUMN_ALIAS);
+                                           })
+                                           .map(ColumnMetadata::getName)
+                                           .toList();
+
+            // Convert to the result format and fills in missed data points
+            TimeSeriesQueryResult result = TimeSeriesQueryResult.build(query.getInterval().getStartTime(),
+                                                                       query.getInterval().getEndTime(),
+                                                                       step.getSeconds(),
+                                                                       (List<Map<String, Object>>) dataList,
+                                                                       TimestampSpec.COLUMN_ALIAS,
+                                                                       query.getGroupBy(),
+                                                                       metrics);
+
+            return QueryResponse.builder()
+                                .deprecated("!Important! This API has been deprecated. Please use /api/datasource/query or /api/datasource/query/stream instead")
+                                .meta(response.getMeta().getPayload())
+                                .data(result.getMetrics())
+                                .startTimestamp(result.getStartTimestamp())
+                                .endTimestamp(result.getEndTimestamp())
+                                .interval(result.getInterval())
+                                .build();
+        }
     }
 
     @Override
-    public ColumnarTable timeseriesV5(@Validated @RequestBody QueryRequest request) throws IOException {
+    public ColumnarTable internalTimeseries(@Validated @RequestBody QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
         Query query = QueryConverter.toQuery(schema, request, request.getInterval().calculateStep());
 
-        return this.dataSourceService.timeseriesQuery2(query);
+        try (IDataSourceReader reader = query.getSchema()
+                                             .getDataStoreSpec()
+                                             .createReader()) {
+            return reader.timeseries(query);
+        }
     }
 
     /**

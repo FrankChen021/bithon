@@ -50,7 +50,7 @@ public interface IDataSourceApi {
      * Internal API that returns column based records for internal API use
      */
     @PostMapping("/api/internal/datasource/timeseries")
-    ColumnarTable timeseriesV5(@Validated @RequestBody QueryRequest request) throws IOException;
+    ColumnarTable internalTimeseries(@Validated @RequestBody QueryRequest request) throws IOException;
 
     /**
      * Use {@link #query(QueryRequest)} instead

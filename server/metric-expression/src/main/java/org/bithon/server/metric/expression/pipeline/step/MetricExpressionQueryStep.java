@@ -80,7 +80,7 @@ public class MetricExpressionQueryStep implements IQueryStep {
                 if (cachedResponse == null) {
                     cachedResponse = CompletableFuture.supplyAsync(() -> {
                         try {
-                            ColumnarTable columnTable = dataSourceApi.timeseriesV5(queryRequest);
+                            ColumnarTable columnTable = dataSourceApi.internalTimeseries(queryRequest);
 
                             List<String> keys = new ArrayList<>();
                             keys.add(TimestampSpec.COLUMN_ALIAS);
