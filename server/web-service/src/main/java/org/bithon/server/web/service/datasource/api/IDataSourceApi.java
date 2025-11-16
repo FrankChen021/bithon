@@ -64,20 +64,7 @@ public interface IDataSourceApi {
      */
     @Deprecated
     @PostMapping("/api/datasource/list/v2")
-    QueryResponse list(@Validated @RequestBody QueryRequest request) throws IOException;
-
-    /**
-     * Return list only without count.
-     * The response is streamed in NDJSON row format.
-     * The first row is the header that contains the metadata of columns. Each element has two properties, name and type.
-     * The rest rows are data rows in JSON array format to reduce the payload size.
-     *
-     * @deprecated use {@link #streamQuery(String, QueryRequest)}
-     */
-    @Deprecated
-    @PostMapping("/api/datasource/list/stream")
-    ResponseEntity<StreamingResponseBody> streamList(@RequestHeader(value = "Accept-Encoding", required = false) String acceptEncoding,
-                                                     @Validated @RequestBody QueryRequest request) throws IOException;
+    QueryResponse listV2(@Validated @RequestBody QueryRequest request) throws IOException;
 
     /**
      * Return count only
@@ -86,16 +73,16 @@ public interface IDataSourceApi {
     QueryResponse count(@Validated @RequestBody QueryRequest request) throws IOException;
 
     /**
-     * Stream group by results in NDJSON format.
-     * The first row is the header that contains the metadata of columns. Each element has two properties, name and type.
+     * Unified query API
+     * The first row in the response is the header that contains the metadata of columns. Each element has two properties, name and type.
      * The rest rows are data rows in JSON array format to reduce the payload size.
      */
     @PostMapping("/api/datasource/query")
     QueryResponse query(@Validated @RequestBody QueryRequest request) throws IOException;
 
     /**
-     * Stream group by results in NDJSON format.
-     * The first row is the header that contains the metadata of columns. Each element has two properties, name and type.
+     * Streamed version of {@link #query(QueryRequest)}
+     * The first row in the response is the header that contains the metadata of columns. Each element has two properties, name and type.
      * The rest rows are data rows in JSON array format to reduce the payload size.
      */
     @PostMapping("/api/datasource/query/stream")

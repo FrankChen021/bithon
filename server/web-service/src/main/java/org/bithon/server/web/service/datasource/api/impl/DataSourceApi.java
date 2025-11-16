@@ -124,7 +124,7 @@ public class DataSourceApi implements IDataSourceApi {
         Query query = QueryConverter.toQuery(schema, request, step);
         TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
         return QueryResponse.builder()
-                            .deprecated("!Important! This API has been deprecated. Please use /api/datasource/query/stream instead")
+                            .deprecated("!Important! This API has been deprecated. Please use /api/datasource/query or /api/datasource/query/stream instead")
                             .meta(query.getSelectors()
                                        .stream()
                                        .map((selector) -> new ColumnMetadata(selector.getOutputName(), selector.getDataType().name()))
@@ -150,7 +150,7 @@ public class DataSourceApi implements IDataSourceApi {
      */
     @Deprecated
     @Override
-    public QueryResponse list(QueryRequest request) throws IOException {
+    public QueryResponse listV2(QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
         Query query = QueryConverter.toQuery(schema, request, null);
@@ -210,11 +210,6 @@ public class DataSourceApi implements IDataSourceApi {
                                 .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
                                 .build();
         }
-    }
-
-    @Override
-    public ResponseEntity<StreamingResponseBody> streamList(String acceptEncoding, QueryRequest request) {
-        return streamQuery(acceptEncoding, request);
     }
 
     @Override
