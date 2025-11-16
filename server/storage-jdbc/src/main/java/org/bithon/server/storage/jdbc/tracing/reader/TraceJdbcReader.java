@@ -251,9 +251,19 @@ public class TraceJdbcReader implements ITraceReader {
                 orderByField = Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEUS.getName();
             } else {
                 orderByField = orderBy.getName();
+
+                // Validate orderByField against schema columns to avoid SQL injection
+                OrderBy finalOrderBy = orderBy;
+                boolean found = schema.getColumns()
+                                      .stream()
+                                      .anyMatch(c -> c.getName().equals(orderByField));
+                if (!found) {
+                    throw new IllegalArgumentException("Invalid orderBy field: " + orderByField);
+                }
             }
             orderBy = new OrderBy(orderByField, orderBy.getOrder());
         } else {
+            // Use the timestamp as default sorting field
             orderBy = new OrderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.getName(), Order.desc);
         }
 
