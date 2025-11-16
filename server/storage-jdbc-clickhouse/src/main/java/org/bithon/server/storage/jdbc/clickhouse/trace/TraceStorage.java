@@ -23,29 +23,13 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.expression.ComparisonExpression;
-import org.bithon.component.commons.expression.FunctionExpression;
-import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IdentifierExpression;
-import org.bithon.component.commons.expression.LogicalExpression;
-import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
 import org.bithon.component.commons.tracing.SpanKind;
-import org.bithon.component.commons.utils.CloseableIterator;
-import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.query.IDataSourceReader;
-import org.bithon.server.datasource.query.Limit;
-import org.bithon.server.datasource.query.Order;
-import org.bithon.server.datasource.query.OrderBy;
-import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.clickhouse.ClickHouseDataSourceReader;
 import org.bithon.server.datasource.reader.clickhouse.ClickHouseMetadataManager;
 import org.bithon.server.datasource.reader.jdbc.dialect.SqlDialectManager;
-import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByClause;
-import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
-import org.bithon.server.datasource.reader.jdbc.statement.serializer.Expression2Sql;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.datasource.SchemaManager;
@@ -56,24 +40,16 @@ import org.bithon.server.storage.jdbc.clickhouse.common.SecondaryIndex;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
-import org.bithon.server.storage.jdbc.tracing.reader.IndexedTagQueryBuilder;
 import org.bithon.server.storage.jdbc.tracing.reader.TraceJdbcReader;
-import org.bithon.server.storage.jdbc.tracing.reader.TraceSpanRecordAccessor;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceWriter;
-import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.bithon.server.storage.tracing.TraceTableSchema;
-import org.jooq.Cursor;
 import org.jooq.Field;
-import org.jooq.Record;
-import org.jooq.Record1;
-import org.jooq.SelectConditionStep;
 import org.jooq.Table;
 import org.springframework.context.ApplicationContext;
 
 import java.sql.Timestamp;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -238,135 +214,10 @@ public class TraceStorage extends TraceJdbcStorage {
                 return new ClickHouseDataSourceReader(this.dslContext, this.sqlDialect, this.querySettings);
             }
 
-            /**
-             * Override to apply read in order optimization
-             */
-            @Override
-            public CloseableIterator<TraceSpan> getTraceList(IExpression filter,
-                                                             List<IExpression> indexedTagFilter,
-                                                             Timestamp start,
-                                                             Timestamp end,
-                                                             OrderBy orderBy,
-                                                             Limit limit) {
-                AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(filter);
-                filter = result.getExpression();
-                boolean isOnSummaryTable = result.isRootSpan();
-
-                ISchema schema = isOnSummaryTable ? this.traceSpanSummarySchema : this.traceSpanSchema;
-
-                IdentifierExpression tsColumn = new IdentifierExpression(schema.getTimestampSpec().getColumnName());
-                IExpression tsExpression = new LogicalExpression.AND(new ComparisonExpression.GTE(tsColumn, sqlDialect.toISO8601TimestampExpression(start)),
-                                                                     new ComparisonExpression.LT(tsColumn, sqlDialect.toISO8601TimestampExpression(end)));
-
-                // NOTE:
-                // 1. Here use selectFrom(String) instead of use selectFrom(table) because we want to use the raw objects returned by underlying JDBC
-                // 2. If the filters contain a filter that matches the ROOT kind, then the search is built upon the summary table
-                SelectConditionStep<Record> listQuery = dslContext.selectFrom(schema.getDataStoreSpec().getStore())
-                                                                  .where(sqlDialect.createSqlSerializer(null).serialize(tsExpression));
-
-                if (filter != null) {
-                    listQuery = listQuery.and(Expression2Sql.from(schema, sqlDialect, filter));
-                }
-
-                // Build the tag query
-                if (CollectionUtils.isNotEmpty(indexedTagFilter)) {
-                    SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.sqlDialect)
-                        .dslContext(this.dslContext)
-                        .start(start.toLocalDateTime())
-                        .end(end.toLocalDateTime())
-                        .build(indexedTagFilter);
-
-                    if (isOnSummaryTable) {
-                        listQuery = listQuery.and(Tables.BITHON_TRACE_SPAN_SUMMARY.as(this.traceSpanSummarySchema.getDataStoreSpec().getStore()).TRACEID.in(indexedTagQuery));
-                    } else {
-                        listQuery = listQuery.and(Tables.BITHON_TRACE_SPAN.as(this.traceSpanSchema.getDataStoreSpec().getStore()).TRACEID.in(indexedTagQuery));
-                    }
-                }
-
-                StringBuilder sqlTextBuilder = new StringBuilder(dslContext.renderInlined(listQuery));
-                sqlTextBuilder.append(" ORDER BY ");
-
-                if (orderBy != null) {
-                    // Compatible with old client side implementation
-                    String orderByField;
-                    if ("costTimeMs".equals(orderBy.getName())) {
-                        orderByField = Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEUS.getName();
-                    } else {
-                        orderByField = orderBy.getName();
-                    }
-                    orderBy = new OrderBy(orderByField, orderBy.getOrder());
-                } else {
-                    orderBy = new OrderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.getName(), Order.desc);
-                }
-
-                sqlTextBuilder.append(orderBy.getName());
-                sqlTextBuilder.append(' ');
-                sqlTextBuilder.append(orderBy.getOrder().name());
-
-                sqlTextBuilder.append(" LIMIT ").append(limit.getLimit());
-                sqlTextBuilder.append(" OFFSET ").append(limit.getOffset());
-
-                String sql = decorateSQL(sqlTextBuilder.toString());
-
-                log.info("Get trace list: {}", sql);
-
-                Cursor<?> cursor = dslContext.fetchLazy(sql);
-                return CloseableIterator.transform(cursor.iterator(),
-                                                   (record) -> toTraceSpan(record, isOnSummaryTable ? TraceSpanRecordAccessor.SUMMARY_TABLE_RECORD_ACCESSOR : TraceSpanRecordAccessor.TABLE_RECORD_ACCESSOR),
-                                                   cursor);
-            }
-
-            /**
-             * Override to apply read in order optimization
-             */
-            @Override
-            protected SelectStatement toSelectStatement(Query query) {
-                SelectStatement selectStatement = super.toSelectStatement(query);
-
-                // Apply read-in-order optimization only when the order by is on timestamp column
-                List<OrderByClause> orderByClauses = selectStatement.getOrderBy();
-                if (orderByClauses.size() == 1) {
-                    OrderByClause orderByClause = orderByClauses.get(0);
-                    if (orderByClause.getField().equals(query.getSchema().getTimestampSpec().getColumnName())) {
-                        applyReadInOrderOptimization(TraceTableSchema.TRACE_SPAN_SUMMARY_SCHEMA_NAME.equals(query.getSchema().getName()),
-                                                     new OrderBy(orderByClause.getField(), orderByClause.getOrder()),
-                                                     this.traceSpanSummarySchema.getTimestampSpec().getColumnName(),
-                                                     orderByClauses);
-                    }
-                }
-
-                return selectStatement;
-            }
-
             @Override
             protected String decorateSQL(String sql) {
                 return sql + " SETTINGS distributed_product_mode = 'global'";
             }
         };
-    }
-
-    private void applyReadInOrderOptimization(boolean isOnSummaryTable,
-                                              OrderBy orderBy,
-                                              String tsColumn,
-                                              List<OrderByClause> orderByClauses) {
-        if (!querySettings.isEnableReadInOrderOptimization()) {
-            return;
-        }
-
-        // Use getBean because ClickHouseMetadataManager is not constructed by this storage
-        // Fundamentally, this is the dependency issue of current design
-        List<IExpression> orderByExpressions = metadataManager.getOrderByExpression(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.getName() : Tables.BITHON_TRACE_SPAN.getName());
-        for (IExpression orderByExpression : orderByExpressions) {
-            if (!(orderByExpression instanceof FunctionExpression functionExpression)) {
-                continue;
-            }
-            boolean hasTimestampColumn = functionExpression.getArgs()
-                                                           .stream()
-                                                           .anyMatch((expr) -> (expr instanceof IdentifierExpression) && ((IdentifierExpression) expr).getIdentifier().equals(tsColumn));
-            if (hasTimestampColumn) {
-                orderByClauses.add(0, new OrderByClause(functionExpression.serializeToText(IdentifierQuotaStrategy.NONE), orderBy.getOrder()));
-                break;
-            }
-        }
     }
 }

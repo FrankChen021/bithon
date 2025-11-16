@@ -78,6 +78,7 @@ import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
+import org.jooq.impl.DSL;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -205,7 +206,72 @@ public class TraceJdbcReader implements ITraceReader {
                                                      Timestamp end,
                                                      OrderBy orderBy,
                                                      Limit limit) {
-        throw new UnsupportedOperationException("This API has been deprecated. Please use /api/datasource/query or /api/datasource/query/stream");
+        AnalyzeResult result = TraceJdbcReader.RootSpanKindFilterAnalyzer.analyze(filter);
+        filter = result.getExpression();
+        boolean isOnSummaryTable = result.isRootSpan();
+
+        ISchema schema = isOnSummaryTable ? this.traceSpanSummarySchema : this.traceSpanSchema;
+
+        IdentifierExpression tsColumn = new IdentifierExpression(schema.getTimestampSpec().getColumnName());
+        IExpression tsExpression = new LogicalExpression.AND(new ComparisonExpression.GTE(tsColumn, sqlDialect.toISO8601TimestampExpression(start)),
+                                                             new ComparisonExpression.LT(tsColumn, sqlDialect.toISO8601TimestampExpression(end)));
+
+        // NOTE:
+        // 1. Here use selectFrom(String) instead of use selectFrom(table) because we want to use the raw objects returned by underlying JDBC
+        // 2. If the filters contain a filter that matches the ROOT kind, then the search is built upon the summary table
+        SelectConditionStep<Record> listQuery = dslContext.selectFrom(DSL.name(schema.getDataStoreSpec().getStore()))
+                                                          .where(sqlDialect.createSqlSerializer(null).serialize(tsExpression));
+
+        if (filter != null) {
+            listQuery = listQuery.and(Expression2Sql.from(schema, sqlDialect, filter));
+        }
+
+        // Build the tag query
+        if (CollectionUtils.isNotEmpty(indexedTagFilter)) {
+            SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.sqlDialect)
+                .dslContext(this.dslContext)
+                .start(start.toLocalDateTime())
+                .end(end.toLocalDateTime())
+                .build(indexedTagFilter);
+
+            if (isOnSummaryTable) {
+                listQuery = listQuery.and(Tables.BITHON_TRACE_SPAN_SUMMARY.as(this.traceSpanSummarySchema.getDataStoreSpec().getStore()).TRACEID.in(indexedTagQuery));
+            } else {
+                listQuery = listQuery.and(Tables.BITHON_TRACE_SPAN.as(this.traceSpanSchema.getDataStoreSpec().getStore()).TRACEID.in(indexedTagQuery));
+            }
+        }
+
+        StringBuilder sqlTextBuilder = new StringBuilder(dslContext.renderInlined(listQuery));
+        sqlTextBuilder.append(" ORDER BY ");
+
+        if (orderBy != null) {
+            // Compatible with old client side implementation
+            String orderByField;
+            if ("costTimeMs".equals(orderBy.getName())) {
+                orderByField = Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEUS.getName();
+            } else {
+                orderByField = orderBy.getName();
+            }
+            orderBy = new OrderBy(orderByField, orderBy.getOrder());
+        } else {
+            orderBy = new OrderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.getName(), Order.desc);
+        }
+
+        sqlTextBuilder.append(sqlDialect.quoteIdentifier(orderBy.getName()));
+        sqlTextBuilder.append(' ');
+        sqlTextBuilder.append(orderBy.getOrder().name());
+
+        sqlTextBuilder.append(" LIMIT ").append(limit.getLimit());
+        sqlTextBuilder.append(" OFFSET ").append(limit.getOffset());
+
+        String sql = decorateSQL(sqlTextBuilder.toString());
+
+        log.info("Get trace list: {}", sql);
+
+        Cursor<?> cursor = dslContext.fetchLazy(sql);
+        return CloseableIterator.transform(cursor.iterator(),
+                                           (record) -> toTraceSpan(record, isOnSummaryTable ? TraceSpanRecordAccessor.SUMMARY_TABLE_RECORD_ACCESSOR : TraceSpanRecordAccessor.TABLE_RECORD_ACCESSOR),
+                                           cursor);
     }
 
     @SuppressWarnings("rawtypes")
