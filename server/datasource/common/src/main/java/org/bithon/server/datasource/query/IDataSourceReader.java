@@ -17,7 +17,6 @@
 package org.bithon.server.datasource.query;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 
 import java.util.List;
@@ -32,14 +31,12 @@ public interface IDataSourceReader extends AutoCloseable {
     ColumnarTable timeseries(Query query);
 
     /**
-     * Aggregate metrics by their pre-defined aggregators in the given period
-     * The returned list is a list of map, for each map object, the key of the map is the column name
+     * Aggregate metrics by their pre-defined aggregators in the given period.
+     * Returns a DataSourceReadResponse that contains both the data iterator and column metadata.
      */
-    List<?> groupBy(Query query);
+    ReadResponse query(Query query);
 
     List<?> select(Query query);
-
-    CloseableIterator<Object[]> streamSelect(Query query);
 
     int count(Query query);
 
@@ -47,4 +44,5 @@ public interface IDataSourceReader extends AutoCloseable {
 
     default void close() {
     }
+
 }

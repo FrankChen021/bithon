@@ -39,33 +39,55 @@ import java.util.Map;
  */
 public interface IDataSourceApi {
 
+    /**
+     * @deprecated use {@link #streamQuery(String, QueryRequest)} instead
+     */
+    @Deprecated
     @PostMapping("/api/datasource/timeseries/v4")
     QueryResponse timeseriesV4(@Validated @RequestBody QueryRequest request) throws IOException;
 
     /**
-     * Internal API that returns row based records for internal API use
+     * Internal API that returns column based records for internal API use
      */
     @PostMapping("/api/internal/datasource/timeseries")
-    ColumnarTable timeseriesV5(@Validated @RequestBody QueryRequest request) throws IOException;
+    ColumnarTable internalTimeseries(@Validated @RequestBody QueryRequest request) throws IOException;
 
+    /**
+     * Use {@link #query(QueryRequest)} instead
+     */
+    @Deprecated
     @PostMapping("/api/datasource/groupBy/v3")
     QueryResponse groupByV3(@Validated @RequestBody QueryRequest request) throws IOException;
 
-    @PostMapping("/api/datasource/list/v2")
-    QueryResponse list(@Validated @RequestBody QueryRequest request) throws IOException;
-
     /**
-     * Return list only without count
+     * @deprecated use {@link #streamQuery(String, QueryRequest)}
      */
-    @PostMapping("/api/datasource/list/stream")
-    ResponseEntity<StreamingResponseBody> streamList(@RequestHeader(value = "Accept-Encoding", required = false) String acceptEncoding,
-                                                     @Validated @RequestBody QueryRequest request) throws IOException;
+    @Deprecated
+    @PostMapping("/api/datasource/list/v2")
+    QueryResponse listV2(@Validated @RequestBody QueryRequest request) throws IOException;
 
     /**
      * Return count only
      */
     @PostMapping("/api/datasource/count")
     QueryResponse count(@Validated @RequestBody QueryRequest request) throws IOException;
+
+    /**
+     * Unified query API
+     * The first row in the response is the header that contains the metadata of columns. Each element has two properties, name and type.
+     * The rest rows are data rows in JSON array format to reduce the payload size.
+     */
+    @PostMapping("/api/datasource/query")
+    QueryResponse query(@Validated @RequestBody QueryRequest request) throws IOException;
+
+    /**
+     * Streamed version of {@link #query(QueryRequest)}
+     * The first row in the response is the header that contains the metadata of columns. Each element has two properties, name and type.
+     * The rest rows are data rows in JSON array format to reduce the payload size.
+     */
+    @PostMapping("/api/datasource/query/stream")
+    ResponseEntity<StreamingResponseBody> streamQuery(@RequestHeader(value = "Accept-Encoding", required = false) String acceptEncoding,
+                                                      @Validated @RequestBody QueryRequest request) throws IOException;
 
     @PostMapping("/api/datasource/schemas")
     Map<String, ISchema> getSchemas();

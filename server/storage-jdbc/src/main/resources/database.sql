@@ -73,8 +73,8 @@ DROP TABLE IF EXISTS `bithon_trace_span`;
 CREATE TABLE `bithon_trace_span`
 (
     `timestamp`     TIMESTAMP(3)              NOT NULL COMMENT 'Milli Seconds',
-    `appName`      VARCHAR(64)             NOT NULL COMMENT '',
-    `instanceName` VARCHAR(64)             NOT NULL COMMENT '',
+    `appName`       VARCHAR(64)             NOT NULL COMMENT '',
+    `instanceName`  VARCHAR(64)             NOT NULL COMMENT '',
     `name`          VARCHAR(64)            NOT NULL COMMENT '',
     `clazz`         varchar(128)           NOT NULL COMMENT '',
     `method`        VARCHAR(128)           NOT NULL COMMENT '',
@@ -82,9 +82,9 @@ CREATE TABLE `bithon_trace_span`
     `spanId`        VARCHAR(64)            NOT NULL COMMENT '',
     `parentSpanId`  VARCHAR(64)            NOT NULL COMMENT '',
     `kind`          VARCHAR(64)            NOT NULL COMMENT '',
-    `costTimeMs`    BIGINT                 NOT NULL COMMENT 'Micro Second, suffix is wrong',
-    `startTimeUs`   BIGINT                 NOT NULL COMMENT 'Micro Second',
-    `endTimeUs`     BIGINT                 NOT NULL COMMENT 'Micro Second',
+    `costTimeUs`    BIGINT                 NOT NULL COMMENT 'Microsecond',
+    `startTimeUs`   BIGINT                 NOT NULL COMMENT 'Microsecond',
+    `endTimeUs`     BIGINT                 NOT NULL COMMENT 'Microsecond',
     `tags`          TEXT COMMENT 'Kept for compatibility',
     `attributes`    TEXT COMMENT '',
     `normalizedUrl` VARCHAR(255) NOT NULL COMMENT '',
@@ -101,7 +101,6 @@ CREATE TABLE `bithon_trace_span`
 DROP TABLE IF EXISTS `bithon_trace_span_summary`;
 CREATE TABLE `bithon_trace_span_summary`
 (
-    `timestamp`     TIMESTAMP(3)              NOT NULL COMMENT 'Milli Seconds',
     `appName`       VARCHAR(64)            NOT NULL COMMENT '',
     `instanceName`  VARCHAR(64)            NOT NULL COMMENT '',
     `name`          VARCHAR(64)            NOT NULL COMMENT '',
@@ -111,14 +110,14 @@ CREATE TABLE `bithon_trace_span_summary`
     `spanId`        VARCHAR(64)            NOT NULL COMMENT '',
     `parentSpanId`  VARCHAR(64)            NOT NULL COMMENT '',
     `kind`          VARCHAR(64)            NOT NULL COMMENT '',
-    `costTimeMs`    BIGINT                 NOT NULL COMMENT 'Milli Second',
-    `startTimeUs`   BIGINT                 NOT NULL COMMENT 'Micro Second',
-    `endTimeUs`     BIGINT                 NOT NULL COMMENT 'Micro Second',
+    `costTimeUs`    BIGINT                 NOT NULL COMMENT 'Microsecond',
+    `startTimeUs`   DATETIME(6)            NOT NULL COMMENT 'Microsecond',
+    `endTimeUs`     BIGINT                 NOT NULL COMMENT 'Microsecond',
     `tags`          TEXT COMMENT 'Kept for compatibility',
     `attributes`     TEXT COMMENT '',
     `normalizedUrl` VARCHAR(255) NOT NULL COMMENT '',
     `status`        VARCHAR(32)  NOT NULL COMMENT '',
-    KEY `idx_tss_1_timestamp` (`timestamp`),
+    KEY `idx_tss_1_starttime` (`startTimeUs`),
     KEY `idx_tss_2_app_name` (`appName`),
     KEY `idx_tss_3_instanceName` (`instanceName`),
     KEY `idx_tss_4_traceId` (`traceId`)

@@ -83,7 +83,9 @@ public class IntervalRequest {
             // Calculate the adaptive step based on the range
             return Duration.ofSeconds(TimeBucket.calculate(this.startISO8601, this.endISO8601));
         } else {
-            return Duration.ofSeconds(TimeBucket.calculate(startISO8601.getMilliseconds(), this.endISO8601.getMilliseconds(), this.bucketCount)
+            return Duration.ofSeconds(TimeBucket.calculate(startISO8601.getMilliseconds(),
+                                                           this.endISO8601.getMilliseconds(),
+                                                           this.bucketCount)
                                                 .getLength());
         }
     }

@@ -54,17 +54,7 @@ public class Query {
 
     private final QuerySettings settings;
     private final ResultFormat resultFormat;
-
-    /**
-     * Was used, but not used now. May be used in the future.
-     */
-    public enum ResultFormat {
-        /**
-         * Object is output as an array
-         */
-        ValueArray,
-        Object
-    }
+    private final boolean isAggregateQuery;
 
     public Query(ISchema schema,
                  List<Selector> selectors,
@@ -75,17 +65,35 @@ public class Query {
                  @Nullable Limit limit,
                  @Nullable HumanReadableDuration offset,
                  @Nullable QuerySettings settings,
-                 @Nullable ResultFormat resultFormat) {
+                 @Nullable ResultFormat resultFormat,
+                 boolean isAggregateQuery) {
         this.schema = schema;
         this.selectors = selectors;
         this.filter = filter;
         this.interval = interval;
+        this.isAggregateQuery = isAggregateQuery;
         this.groupBy = CollectionUtils.emptyOrOriginal(groupBy);
         this.orderBy = orderBy;
         this.offset = offset;
         this.limit = limit;
         this.settings = settings == null ? QuerySettings.DEFAULT : settings;
         this.resultFormat = resultFormat == null ? ResultFormat.Object : resultFormat;
+    }
+
+    public QueryBuilder copy() {
+        QueryBuilder newBuilder = new QueryBuilder();
+        newBuilder.schema = this.schema;
+        newBuilder.selectors = this.selectors;
+        newBuilder.filter = this.filter;
+        newBuilder.interval = this.interval;
+        newBuilder.groupBy = this.groupBy;
+        newBuilder.orderBy = this.orderBy;
+        newBuilder.limit = this.limit;
+        newBuilder.offset = this.offset;
+        newBuilder.settings = this.settings;
+        newBuilder.resultFormat = this.resultFormat;
+        newBuilder.isAggregateQuery = this.isAggregateQuery;
+        return newBuilder;
     }
 
     /**
@@ -102,6 +110,8 @@ public class Query {
                          this.limit,
                          this.offset,
                          this.settings,
-                         this.resultFormat);
+                         this.resultFormat,
+                         this.isAggregateQuery
+        );
     }
 }

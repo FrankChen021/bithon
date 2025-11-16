@@ -74,9 +74,14 @@ public class TraceFilterSplitter {
         }
 
         SplitterImpl splitter = new SplitterImpl(this.summaryTableSchema, this.indexTableSchema);
-        expression.accept(splitter);
-        this.indexedTagFilters = splitter.indexedTagFilters;
-        this.expression = expression;
+        if (expression.accept(splitter)) {
+            this.indexedTagFilters = new ArrayList<>();
+            this.indexedTagFilters.add(expression);
+            this.expression = null;
+        } else {
+            this.indexedTagFilters = splitter.indexedTagFilters;
+            this.expression = expression;
+        }
     }
 
     /**

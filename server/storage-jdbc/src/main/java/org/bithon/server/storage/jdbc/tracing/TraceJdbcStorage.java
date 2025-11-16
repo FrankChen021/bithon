@@ -119,6 +119,7 @@ public class TraceJdbcStorage implements ITraceStorage {
         return new TraceJdbcReader(this.dslContext,
                                    this.objectMapper,
                                    this.applicationContext.getBean(SchemaManager.class).getSchema(TraceTableSchema.TRACE_SPAN_SUMMARY_SCHEMA_NAME),
+                                   this.applicationContext.getBean(SchemaManager.class).getSchema(TraceTableSchema.TRACE_SPAN_SCHEMA_NAME),
                                    this.applicationContext.getBean(SchemaManager.class).getSchema(TraceTableSchema.TRACE_SPAN_TAG_INDEX_SCHEMA_NAME),
                                    this.storageConfig,
                                    this.sqlDialectManager.getSqlDialect(dslContext),
@@ -140,7 +141,7 @@ public class TraceJdbcStorage implements ITraceStorage {
                           .execute();
 
                 dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN_SUMMARY)
-                          .where(Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP.le(before.toLocalDateTime()))
+                          .where(Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS.le(before.toLocalDateTime()))
                           .execute();
 
                 dslContext.deleteFrom(Tables.BITHON_TRACE_MAPPING)

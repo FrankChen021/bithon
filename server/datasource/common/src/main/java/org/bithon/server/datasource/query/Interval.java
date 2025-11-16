@@ -54,6 +54,14 @@ public class Interval {
         this.timestampColumn = timestampColumn;
     }
 
+    public Interval with(String tsColumn) {
+        return new Interval(this.startTime,
+                            this.endTime,
+                            this.step,
+                            this.window,
+                            new IdentifierExpression(tsColumn));
+    }
+
     public static Interval of(String startISO8601, String endISO8601) {
         return of(TimeSpan.fromISO8601(startISO8601), TimeSpan.fromISO8601(endISO8601));
     }

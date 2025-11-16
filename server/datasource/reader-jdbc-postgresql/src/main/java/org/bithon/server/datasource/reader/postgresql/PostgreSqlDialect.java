@@ -17,6 +17,7 @@
 package org.bithon.server.datasource.reader.postgresql;
 
 import org.bithon.component.commons.expression.ArithmeticExpression;
+import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
@@ -46,8 +47,17 @@ public class PostgreSqlDialect implements ISqlDialect {
 
     @Override
     public String toUnixTimestamp(IExpression timestampExpression, long intervalSeconds) {
-        //TODO: Fix the hardcode UTC-8
-        return StringUtils.format(" FLOOR(EXTRACT(EPOCH FROM %s AT TIME ZONE 'UTC-8') / %d) * %d", timestampExpression.serializeToText(), intervalSeconds, intervalSeconds);
+        // FLOOR(EXTRACT(EPOCH FROM %s AT TIME ZONE 'UTC-8') / %d) * %d
+        IExpression expr = new ArithmeticExpression.MUL(
+            new FunctionExpression("FLOOR",
+                                   new ArithmeticExpression.DIV(
+                                       //TODO: Fix the hardcode UTC-8
+                                       new FunctionExpression("EXTRACT", new EpochFromExpression(timestampExpression, "UTC-8")),
+                                       LiteralExpression.ofLong(intervalSeconds))
+                                   ),
+            LiteralExpression.ofLong(intervalSeconds)
+        );
+        return expr.serializeToText();
     }
 
     @Override
@@ -85,7 +95,7 @@ public class PostgreSqlDialect implements ISqlDialect {
                                        .name("FIRST_VALUE")
                                        .args(new ArrayList<>(List.of(new IdentifierExpression(field))))
                                        .partitionBy(new ArithmeticExpression.MUL(
-                                           new ArithmeticExpression.DIV(new IdentifierExpression("timestamp"), LiteralExpression.of(window)),
+                                           new ArithmeticExpression.DIV(new FunctionExpression("EXTRACT", new EpochFromExpression(new IdentifierExpression("timestamp"))), LiteralExpression.of(window)),
                                            LiteralExpression.of(window)
                                        ))
                                        .orderBy(new OrderByElement(new IdentifierExpression("timestamp")))
@@ -115,5 +125,4 @@ public class PostgreSqlDialect implements ISqlDialect {
     public char getEscapeCharacter4SingleQuote() {
         return '\'';
     }
-
 }

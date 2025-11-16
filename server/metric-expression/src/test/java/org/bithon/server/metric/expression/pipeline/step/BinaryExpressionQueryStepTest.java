@@ -51,7 +51,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverLiteral_Add_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             LongColumn.of("activeThreads", 1)));
 
@@ -71,7 +71,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverLiteral_Add_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             LongColumn.of("activeThreads", 1)));
 
@@ -91,7 +91,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverLiteral_Add_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             DoubleColumn.of("activeThreads", 3.7)));
 
@@ -111,7 +111,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverLiteral_Add_Double_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             DoubleColumn.of("activeThreads", 10.5)));
 
@@ -131,7 +131,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverSizeLiteral_Add_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             LongColumn.of("activeThreads", 1)));
 
@@ -151,7 +151,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverPercentageLiteral_Add_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             LongColumn.of("activeThreads", 1)));
 
@@ -171,7 +171,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverDurationLiteral_Add_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             LongColumn.of("activeThreads", 1)));
 
@@ -191,7 +191,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverLiteral_Sub_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             LongColumn.of("activeThreads", 1)));
 
@@ -211,7 +211,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverLiteral_Sub_Double_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             DoubleColumn.of("activeThreads", 10.5)));
 
@@ -231,7 +231,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverLiteral_Mul_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             LongColumn.of("activeThreads", 1)));
 
@@ -251,7 +251,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverLiteral_Mul_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             DoubleColumn.of("activeThreads", 5.5)));
 
@@ -271,7 +271,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverLiteral_Mul_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             LongColumn.of("activeThreads", 1)));
 
@@ -291,7 +291,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverLiteral_Mul_Double_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             DoubleColumn.of("activeThreads", 3.5)));
 
@@ -311,7 +311,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverLiteral_Div_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             LongColumn.of("activeThreads", 10)));
 
@@ -331,7 +331,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverLiteral_Div_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             DoubleColumn.of("activeThreads", 10)));
 
@@ -351,7 +351,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverLiteral_Div_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             LongColumn.of("activeThreads", 10)));
 
@@ -371,7 +371,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverLiteral_Div_Double_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             DoubleColumn.of("activeThreads", 10.5)));
 
@@ -391,7 +391,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverLiteral_Add_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
@@ -440,7 +440,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverLiteral_Sub_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
@@ -489,7 +489,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverLiteral_Mul_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
@@ -538,7 +538,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverLiteral_Div_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
@@ -587,7 +587,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverScalar_Add_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
@@ -626,7 +626,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverScalar_Sub_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -667,7 +667,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverScalar_Mul_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
@@ -706,7 +706,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverScalar_Div_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
@@ -745,7 +745,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverVector_Add_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -795,7 +795,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverVector_Sub_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -846,7 +846,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverVector_Mul_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -897,7 +897,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverVector_Div_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -948,7 +948,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverVector_Div_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -999,7 +999,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_ScalarOverVector_Div_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -1050,7 +1050,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverScalar_Add_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
@@ -1099,7 +1099,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverScalar_Add_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
@@ -1148,7 +1148,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverScalar_Add_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
@@ -1197,7 +1197,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverScalar_Sub_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
@@ -1246,7 +1246,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverScalar_Sub_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
@@ -1295,7 +1295,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverScalar_Sub_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
@@ -1344,7 +1344,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverScalar_Mul_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
@@ -1393,7 +1393,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverScalar_Mul_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
@@ -1442,7 +1442,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverScalar_Mul_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
@@ -1491,7 +1491,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverScalar_Div_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
@@ -1541,7 +1541,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverScalar_Div_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
@@ -1591,7 +1591,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverScalar_Div_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
@@ -1641,7 +1641,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverVector_Add_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -1692,7 +1692,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverVector_Add_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -1743,7 +1743,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverVector_Add_Double_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -1795,7 +1795,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverVector_Sub_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -1846,7 +1846,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverVector_Sub_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -1897,7 +1897,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverVector_Sub_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -1948,7 +1948,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverVector_Sub_Double_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -1999,7 +1999,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverVector_Mul_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -2050,7 +2050,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverVector_Mul_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -2101,7 +2101,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverVector_Mul_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -2152,7 +2152,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverVector_Mul_Double_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -2204,7 +2204,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverVector_Div_Long_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -2255,7 +2255,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverVector_Div_Long_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -2306,7 +2306,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverVector_Div_Double_Long() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -2357,7 +2357,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverVector_Div_Double_Double() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -2408,7 +2408,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_VectorOverVector_NoIntersection() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -2459,7 +2459,7 @@ public class BinaryExpressionQueryStepTest {
      */
     @Test
     public void test_VectorOverVector_NoIntersection_2() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -2520,7 +2520,7 @@ public class BinaryExpressionQueryStepTest {
      */
     @Test
     public void test_VectorOverVector_NoIntersection_3() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -2577,7 +2577,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_MultipleExpressions() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    String metric = answer.getArgument(0, QueryRequest.class)
                                          .getFields()
@@ -2636,7 +2636,7 @@ public class BinaryExpressionQueryStepTest {
 
     @Test
     public void test_RelativeComparison() throws Exception {
-        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+        Mockito.when(dataSourceApi.internalTimeseries(Mockito.any()))
                .thenAnswer((answer) -> {
                    QueryRequest req = answer.getArgument(0, QueryRequest.class);
 

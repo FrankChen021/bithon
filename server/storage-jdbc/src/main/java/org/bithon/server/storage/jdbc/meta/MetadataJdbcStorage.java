@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
+import org.bithon.server.storage.jdbc.common.jooq.Keys;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonApplicationInstanceRecord;
 import org.bithon.server.storage.meta.IMetaStorage;
@@ -32,6 +33,7 @@ import org.jooq.DSLContext;
 import org.jooq.InsertSetStep;
 import org.jooq.InsertValuesStepN;
 import org.jooq.Record2;
+import org.jooq.SQLDialect;
 import org.jooq.SelectConditionStep;
 
 import java.sql.Timestamp;
@@ -112,9 +114,18 @@ public class MetadataJdbcStorage implements IMetaStorage {
             }
         }
 
-        valueStep.onDuplicateKeyUpdate()
-                 .set(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP, new Timestamp(System.currentTimeMillis()))
-                 .execute();
+        if (dslContext.dialect() == SQLDialect.POSTGRES) {
+            //noinspection DataFlowIssue,unchecked
+            valueStep.onConflictOnConstraint(Keys.KEY_BITHON_APPLICATION_INSTANCE_UQ_NAME_TYPE_INSTANCE)
+                     .doUpdate()
+                     .set(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP, new Timestamp(System.currentTimeMillis()))
+                     .execute();
+        } else {
+            //noinspection DataFlowIssue,unchecked
+            valueStep.onDuplicateKeyUpdate()
+                     .set(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP, new Timestamp(System.currentTimeMillis()))
+                     .execute();
+        }
     }
 
     @Override

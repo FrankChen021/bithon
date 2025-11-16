@@ -237,14 +237,14 @@ public class TraceApi {
     }
 
     /**
-     * use {@link org.bithon.server.web.service.datasource.api.IDataSourceApi#list(QueryRequest)} instead
+     * use {@link org.bithon.server.web.service.datasource.api.IDataSourceApi#query(QueryRequest)} instead
      */
     @Deprecated
     @PostMapping("/api/trace/getTraceList")
     public GetTraceListResponse getTraceList(@Valid @RequestBody GetTraceListRequest request) {
         throw new HttpMappableException(
             HttpStatus.BAD_REQUEST.value(),
-            "This API is deprecated, please use /api/datasource/list/v2 or /api/datasource/list/stream instead"
+            "This API is deprecated, please use /api/datasource/query or /api/datasource/query/stream instead"
         );
     }
 

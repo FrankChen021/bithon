@@ -42,10 +42,6 @@ public class ExpressionNode implements IASTNode {
         return parsedExpression.getDataType();
     }
 
-    public ExpressionNode(String expression) {
-        this.expression = () -> expression;
-    }
-
     public ExpressionNode(ISchema schema, String expression) {
         this.expression = () -> expression;
         this.parsedExpression = ExpressionASTBuilder.builder()

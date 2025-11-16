@@ -69,4 +69,9 @@ public enum SpanKind {
         kind = kind.toString().toUpperCase(Locale.ENGLISH);
         return SERVER.name().equals(kind) || TIMER.name().equals(kind) || CONSUMER.name().equals(kind);
     }
+
+    public static int distinctRootSpanCount() {
+        // SERVER/TIMER/CONSUMER
+        return 3;
+    }
 }

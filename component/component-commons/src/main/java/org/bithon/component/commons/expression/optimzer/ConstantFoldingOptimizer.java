@@ -20,6 +20,7 @@ package org.bithon.component.commons.expression.optimzer;
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ArrayAccessExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
+import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
@@ -116,8 +117,16 @@ public class ConstantFoldingOptimizer extends AbstractOptimizer {
     public IExpression visit(ConditionalExpression expression) {
         expression.setLhs(expression.getLhs().accept(this));
         expression.setRhs(expression.getRhs().accept(this));
-        if (expression.getLhs() instanceof LiteralExpression && expression.getRhs() instanceof LiteralExpression) {
-            return LiteralExpression.of(expression.evaluate(null));
+        if (expression.getLhs() instanceof LiteralExpression) {
+            if (expression.getRhs() instanceof LiteralExpression) {
+                return LiteralExpression.of(expression.evaluate(null));
+            }
+            if (expression.getRhs() instanceof ExpressionList) {
+                // If the expression in the expression list are ALL literal, then we can evaluate the result and fold the expression
+                if (((ExpressionList) expression.getRhs()).getExpressions().stream().allMatch((expr -> expr instanceof LiteralExpression))) {
+                    return LiteralExpression.of(expression.evaluate(null));
+                }
+            }
         }
         return expression;
     }

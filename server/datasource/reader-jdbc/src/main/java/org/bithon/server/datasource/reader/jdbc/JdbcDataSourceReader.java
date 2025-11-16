@@ -25,12 +25,16 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.datasource.query.ColumnMetadata;
+import org.bithon.server.datasource.query.DataRow;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Limit;
 import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
+import org.bithon.server.datasource.query.ReadResponse;
+import org.bithon.server.datasource.query.ResultFormat;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
@@ -59,6 +63,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -154,22 +159,20 @@ public class JdbcDataSourceReader implements IDataSourceReader {
     }
 
     @Override
-    public List<?> groupBy(Query query) {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
-                                                                .schema(query.getSchema())
-                                                                .fields(query.getSelectors())
-                                                                .filter(query.getFilter())
-                                                                .interval(query.getInterval())
-                                                                .groupBy(query.getGroupBy())
-                                                                .orderBy(query.getOrderBy())
-                                                                .limit(query.getLimit())
-                                                                .offset(query.getOffset())
-                                                                .querySettings(query.getSettings())
-                                                                .sqlDialect(this.sqlDialect)
-                                                                .build();
+    public ReadResponse query(Query query) {
+        SelectStatementBuilder builder = SelectStatementBuilder.builder()
+                                                               .schema(query.getSchema())
+                                                               .fields(query.getSelectors())
+                                                               .filter(query.getFilter())
+                                                               .interval(query.getInterval())
+                                                               .groupBy(query.getGroupBy())
+                                                               .orderBy(query.getOrderBy())
+                                                               .limit(query.getLimit())
+                                                               .offset(query.getOffset())
+                                                               .querySettings(query.getSettings())
+                                                               .sqlDialect(this.sqlDialect);
 
-        return fetch(selectStatement.toSQL(this.sqlDialect),
-                     query.getResultFormat());
+        return execute(query.isAggregateQuery() ? builder.build() : builder.buildSelectStatement(), query.getResultFormat());
     }
 
     @Override
@@ -196,37 +199,6 @@ public class JdbcDataSourceReader implements IDataSourceReader {
     }
 
     @Override
-    public CloseableIterator<Object[]> streamSelect(Query query) {
-        IdentifierExpression timestampCol = IdentifierExpression.of(query.getSchema().getTimestampSpec().getColumnName());
-
-        SelectStatement selectStatement = new SelectStatement();
-        selectStatement.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
-        for (Selector selector : query.getSelectors()) {
-            selectStatement.getSelectorList().add(selector.getSelectExpression(), selector.getOutput(), selector.getDataType());
-        }
-        selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getStartTime())));
-        selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getEndTime())));
-        selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter(), this.querySettings));
-        selectStatement.setLimit(toLimitClause(query.getLimit()));
-        selectStatement.setOrderBy(toOrderByClause(query.getOrderBy()));
-
-        String sql = selectStatement.toSQL(this.sqlDialect);
-        log.info("Executing {}", sql);
-
-        Cursor<Record> cursor = dslContext.fetchLazy(sql);
-        return CloseableIterator.transform(cursor.iterator(),
-                                           (record) -> {
-                                               int colSize = record.size();
-                                               Object[] row = new Object[colSize];
-                                               for (int i = 0; i < colSize; i++) {
-                                                   row[i] = record.get(i);
-                                               }
-                                               return row;
-                                           },
-                                           cursor);
-    }
-
-    @Override
     public int count(Query query) {
         IdentifierExpression timestampCol = IdentifierExpression.of(query.getSchema().getTimestampSpec().getColumnName());
 
@@ -242,24 +214,6 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         log.info("Executing {}", sql);
         Record record = dslContext.fetchOne(sql);
         return ((Number) record.get(0)).intValue();
-    }
-
-    private List<?> fetch(String sql, Query.ResultFormat resultFormat) {
-        log.info("Executing {}", sql);
-
-        List<Record> records = dslContext.fetch(sql);
-
-        if (resultFormat == Query.ResultFormat.Object) {
-            return records.stream().map(record -> {
-                Map<String, Object> mapObject = new LinkedHashMap<>(record.fields().length);
-                for (Field<?> field : record.fields()) {
-                    mapObject.put(field.getName(), record.get(field));
-                }
-                return mapObject;
-            }).collect(Collectors.toList());
-        } else {
-            return records.stream().map(Record::intoArray).collect(Collectors.toList());
-        }
     }
 
     @Override
@@ -297,12 +251,51 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         }
     }
 
-    private OrderByClause toOrderByClause(OrderBy orderBy) {
+    protected OrderByClause toOrderByClause(OrderBy orderBy) {
         return orderBy == null ? null : new OrderByClause(orderBy.getName(), orderBy.getOrder());
     }
 
     public LimitClause toLimitClause(Limit limit) {
         return limit == null ? null : new LimitClause(limit.getLimit(), limit.getOffset());
+    }
+
+    protected ReadResponse execute(SelectStatement selectStatement, ResultFormat resultFormat) {
+        List<ColumnMetadata> columns = selectStatement.getSelectorList()
+                                                      .getSelectors()
+                                                      .stream()
+                                                      .map((selector) -> new ColumnMetadata(selector.getOutputName(), selector.getDataType().name()))
+                                                      .toList();
+
+        String sql = selectStatement.toSQL(this.sqlDialect);
+        log.info("Executing {}", sql);
+        Cursor<Record> cursor = dslContext.fetchLazy(sql);
+
+        Function<Record, ?> mapper = createRecordMapper(resultFormat);
+        return new ReadResponse(CloseableIterator.transform(cursor.iterator(),
+                                                            (record) -> DataRow.data(mapper.apply(record)),
+                                                            cursor),
+                                columns);
+    }
+
+    public static Function<Record, ?> createRecordMapper(ResultFormat format) {
+        if (format == ResultFormat.ValueArray) {
+            return (record) -> {
+                int colSize = record.size();
+                Object[] rowObject = new Object[colSize];
+                for (int i = 0; i < colSize; i++) {
+                    rowObject[i] = record.get(i);
+                }
+                return rowObject;
+            };
+        } else { // If not given or Object, default to Object
+            return (record) -> {
+                Map<String, Object> rowObject = new LinkedHashMap<>(record.size());
+                for (Field<?> field : record.fields()) {
+                    rowObject.put(field.getName(), record.get(field));
+                }
+                return rowObject;
+            };
+        }
     }
 
     private List<Map<String, Object>> executeSql(String sql) {

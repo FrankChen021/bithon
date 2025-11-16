@@ -591,7 +591,14 @@ public abstract class LiteralExpression<T> implements IExpression {
 
         @Override
         public LiteralExpression<?> castTo(IDataType targetType) {
-            throw new UnsupportedOperationException();
+            if (targetType == IDataType.LONG) {
+                // Even the left side is integer, we still cast the percentage to double first to avoid precision loss
+                return new LiteralExpression.DoubleLiteral(value.doubleValue());
+            }
+            if (targetType == IDataType.DOUBLE) {
+                return new LiteralExpression.DoubleLiteral(value.doubleValue());
+            }
+            throw new UnsupportedOperationException("Unable to cast percentage to type of " + targetType);
         }
 
         @Override

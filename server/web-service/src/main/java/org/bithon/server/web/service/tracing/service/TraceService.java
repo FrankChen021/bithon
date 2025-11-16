@@ -33,16 +33,13 @@ import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
-import org.bithon.server.storage.tracing.reader.TraceFilterSplitter;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
-import org.bithon.server.web.service.datasource.api.impl.QueryFilter;
 import org.bithon.server.web.service.tracing.api.GetTraceSpanDistributionResponse;
 import org.bithon.server.web.service.tracing.api.TraceSpanBo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -58,15 +55,10 @@ import java.util.Map;
 public class TraceService {
 
     private final ITraceReader traceReader;
-    private final ISchema summaryTableSchema;
-    private final ISchema indexTableSchema;
     private final SchemaManager schemaManager;
 
     public TraceService(ITraceStorage traceStorage, SchemaManager schemaManager) {
         this.traceReader = traceStorage.createReader();
-
-        this.summaryTableSchema = schemaManager.getSchema("trace_span_summary");
-        this.indexTableSchema = schemaManager.getSchema("trace_span_tag_index");
         this.schemaManager = schemaManager;
     }
 
@@ -111,8 +103,7 @@ public class TraceService {
     public List<TraceSpanBo> transformSpanList(List<TraceSpan> spans, boolean returnTree) {
         List<TraceSpanBo> spanList = new ArrayList<>();
         Map<String, TraceSpanBo> spanMap = new HashMap<>();
-        for (int i = 0; i < spans.size(); i++) {
-            TraceSpan span = spans.get(i);
+        for (TraceSpan span : spans) {
             TraceSpanBo bo = new TraceSpanBo();
             BeanUtils.copyProperties(span, bo);
 
@@ -156,18 +147,6 @@ public class TraceService {
             }
         }
         return returnTree ? rootSpans : spanList;
-    }
-
-    public int getTraceListSize(String filterExpression,
-                                Timestamp start,
-                                Timestamp end) {
-        TraceFilterSplitter splitter = new TraceFilterSplitter(this.summaryTableSchema, this.indexTableSchema);
-        splitter.split(QueryFilter.build(this.summaryTableSchema, filterExpression));
-
-        return traceReader.getTraceListSize(splitter.getExpression(),
-                                            splitter.getIndexedTagFilters(),
-                                            start,
-                                            end);
     }
 
     public int getTraceSpanCount(String txId,

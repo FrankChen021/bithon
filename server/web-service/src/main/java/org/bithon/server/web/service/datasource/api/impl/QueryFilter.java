@@ -24,6 +24,7 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.function.Functions;
+import org.bithon.component.commons.expression.validation.IIdentifierProvider;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.expression.ExpressionASTBuilder;
@@ -48,23 +49,33 @@ public class QueryFilter {
         return validateIfConditional(expr);
     }
 
+    public static IExpression build(IIdentifierProvider iIdentifierProvider, @Nullable String filterExpression) {
+        if (StringUtils.isEmpty(filterExpression)) {
+            return null;
+        }
+
+        IExpression expr = ExpressionASTBuilder.builder()
+                                               .identifier(iIdentifierProvider)
+                                               .functions(Functions.getInstance())
+                                               .build(filterExpression);
+        return validateIfConditional(expr);
+    }
+
     /**
      * Validate if the expression is a filter and optimize if possible
      */
     private static IExpression validateIfConditional(IExpression expression) {
         if (expression instanceof FunctionExpression) {
             return switch (expression.getDataType()) {
-                case STRING ->
-                    throw new InvalidExpressionException("Function expression [%s] returns type of String, is not a valid filter. Consider to add comparators to your expression.",
-                                                         expression.serializeToText());
+                case STRING -> throw new InvalidExpressionException("Function expression [%s] returns type of String, is not a valid filter. Consider to add comparators to your expression.",
+                                                                    expression.serializeToText());
                 case LONG, DOUBLE ->
                     // Turn into: functionExpression <> 0
                     new ComparisonExpression.NE(expression, LiteralExpression.ofLong(0));
                 case BOOLEAN -> expression;
-                default ->
-                    throw new InvalidExpressionException("Function expression [%s] returns type of %s, is not a valid filter. Consider to add comparators to your expression.",
-                                                         expression.serializeToText(),
-                                                         expression.getDataType());
+                default -> throw new InvalidExpressionException("Function expression [%s] returns type of %s, is not a valid filter. Consider to add comparators to your expression.",
+                                                                expression.serializeToText(),
+                                                                expression.getDataType());
             };
         }
 

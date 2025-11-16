@@ -162,44 +162,42 @@ public class BithonTraceSpanRecord extends TableRecordImpl<BithonTraceSpanRecord
     }
 
     /**
-     * Setter for <code>bithon_trace_span.costTimeMs</code>. Micro Second,
-     * suffix is wrong
+     * Setter for <code>bithon_trace_span.costTimeUs</code>. Microsecond
      */
-    public void setCosttimems(Long value) {
+    public void setCosttimeus(Long value) {
         set(10, value);
     }
 
     /**
-     * Getter for <code>bithon_trace_span.costTimeMs</code>. Micro Second,
-     * suffix is wrong
+     * Getter for <code>bithon_trace_span.costTimeUs</code>. Microsecond
      */
-    public Long getCosttimems() {
+    public Long getCosttimeus() {
         return (Long) get(10);
     }
 
     /**
-     * Setter for <code>bithon_trace_span.startTimeUs</code>. Micro Second
+     * Setter for <code>bithon_trace_span.startTimeUs</code>. Microsecond
      */
     public void setStarttimeus(Long value) {
         set(11, value);
     }
 
     /**
-     * Getter for <code>bithon_trace_span.startTimeUs</code>. Micro Second
+     * Getter for <code>bithon_trace_span.startTimeUs</code>. Microsecond
      */
     public Long getStarttimeus() {
         return (Long) get(11);
     }
 
     /**
-     * Setter for <code>bithon_trace_span.endTimeUs</code>. Micro Second
+     * Setter for <code>bithon_trace_span.endTimeUs</code>. Microsecond
      */
     public void setEndtimeus(Long value) {
         set(12, value);
     }
 
     /**
-     * Getter for <code>bithon_trace_span.endTimeUs</code>. Micro Second
+     * Getter for <code>bithon_trace_span.endTimeUs</code>. Microsecond
      */
     public Long getEndtimeus() {
         return (Long) get(12);
@@ -327,7 +325,7 @@ public class BithonTraceSpanRecord extends TableRecordImpl<BithonTraceSpanRecord
 
     @Override
     public Field<Long> field11() {
-        return BithonTraceSpan.BITHON_TRACE_SPAN.COSTTIMEMS;
+        return BithonTraceSpan.BITHON_TRACE_SPAN.COSTTIMEUS;
     }
 
     @Override
@@ -412,7 +410,7 @@ public class BithonTraceSpanRecord extends TableRecordImpl<BithonTraceSpanRecord
 
     @Override
     public Long component11() {
-        return getCosttimems();
+        return getCosttimeus();
     }
 
     @Override
@@ -497,7 +495,7 @@ public class BithonTraceSpanRecord extends TableRecordImpl<BithonTraceSpanRecord
 
     @Override
     public Long value11() {
-        return getCosttimems();
+        return getCosttimeus();
     }
 
     @Override
@@ -592,7 +590,7 @@ public class BithonTraceSpanRecord extends TableRecordImpl<BithonTraceSpanRecord
 
     @Override
     public BithonTraceSpanRecord value11(Long value) {
-        setCosttimems(value);
+        setCosttimeus(value);
         return this;
     }
 
@@ -668,7 +666,7 @@ public class BithonTraceSpanRecord extends TableRecordImpl<BithonTraceSpanRecord
     /**
      * Create a detached, initialised BithonTraceSpanRecord
      */
-    public BithonTraceSpanRecord(LocalDateTime timestamp, String appname, String instancename, String name, String clazz, String method, String traceid, String spanid, String parentspanid, String kind, Long costtimems, Long starttimeus, Long endtimeus, String tags, String attributes, String normalizedurl, String status) {
+    public BithonTraceSpanRecord(LocalDateTime timestamp, String appname, String instancename, String name, String clazz, String method, String traceid, String spanid, String parentspanid, String kind, Long costtimeus, Long starttimeus, Long endtimeus, String tags, String attributes, String normalizedurl, String status) {
         super(BithonTraceSpan.BITHON_TRACE_SPAN);
 
         setTimestamp(timestamp);
@@ -681,7 +679,7 @@ public class BithonTraceSpanRecord extends TableRecordImpl<BithonTraceSpanRecord
         setSpanid(spanid);
         setParentspanid(parentspanid);
         setKind(kind);
-        setCosttimems(costtimems);
+        setCosttimeus(costtimeus);
         setStarttimeus(starttimeus);
         setEndtimeus(endtimeus);
         setTags(tags);
