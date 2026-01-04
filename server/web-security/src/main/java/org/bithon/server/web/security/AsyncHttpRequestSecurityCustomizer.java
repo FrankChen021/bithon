@@ -18,7 +18,7 @@ package org.bithon.server.web.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -41,7 +41,7 @@ public class AsyncHttpRequestSecurityCustomizer {
             log.info("Configuring async security for SSE endpoints");
 
             String contextPath = StringUtils.hasText(serverProperties.getServlet().getContextPath())
-                                 ? serverProperties.getServlet().getContextPath() : "";
+                ? serverProperties.getServlet().getContextPath() : "";
 
             // Define SSE endpoints that should be excluded from re-authentication
             String[] sseEndpoints = Stream.of(

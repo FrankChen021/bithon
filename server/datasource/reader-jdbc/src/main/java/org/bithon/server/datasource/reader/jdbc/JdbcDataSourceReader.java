@@ -54,9 +54,10 @@ import org.jooq.Record;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
-import org.springframework.boot.autoconfigure.jooq.ExceptionTranslatorExecuteListener;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqProperties;
+import org.jooq.impl.DefaultExecuteListenerProvider;
+import org.springframework.boot.jooq.autoconfigure.ExceptionTranslatorExecuteListener;
+import org.springframework.boot.jooq.autoconfigure.JooqAutoConfiguration;
+import org.springframework.boot.jooq.autoconfigure.JooqProperties;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -107,7 +108,7 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         this.dslContext = DSL.using(new DefaultConfiguration()
                                         .set(new DataSourceConnectionProvider(jdbcDataSource))
                                         .set(new JooqProperties().determineSqlDialect(jdbcDataSource))
-                                        .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider(ExceptionTranslatorExecuteListener.DEFAULT)));
+                                        .set(new DefaultExecuteListenerProvider(ExceptionTranslatorExecuteListener.DEFAULT)));
 
         this.sqlDialect = sqlDialect;
         this.querySettings = querySettings;

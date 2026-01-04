@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.datasource.api.impl;
 
+import jakarta.annotation.Nullable;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
@@ -28,8 +29,6 @@ import org.bithon.component.commons.expression.validation.IIdentifierProvider;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.expression.ExpressionASTBuilder;
-
-import javax.annotation.Nullable;
 
 /**
  * @author frank.chen021@outlook.com
@@ -67,15 +66,17 @@ public class QueryFilter {
     private static IExpression validateIfConditional(IExpression expression) {
         if (expression instanceof FunctionExpression) {
             return switch (expression.getDataType()) {
-                case STRING -> throw new InvalidExpressionException("Function expression [%s] returns type of String, is not a valid filter. Consider to add comparators to your expression.",
-                                                                    expression.serializeToText());
+                case STRING ->
+                    throw new InvalidExpressionException("Function expression [%s] returns type of String, is not a valid filter. Consider to add comparators to your expression.",
+                                                         expression.serializeToText());
                 case LONG, DOUBLE ->
                     // Turn into: functionExpression <> 0
                     new ComparisonExpression.NE(expression, LiteralExpression.ofLong(0));
                 case BOOLEAN -> expression;
-                default -> throw new InvalidExpressionException("Function expression [%s] returns type of %s, is not a valid filter. Consider to add comparators to your expression.",
-                                                                expression.serializeToText(),
-                                                                expression.getDataType());
+                default ->
+                    throw new InvalidExpressionException("Function expression [%s] returns type of %s, is not a valid filter. Consider to add comparators to your expression.",
+                                                         expression.serializeToText(),
+                                                         expression.getDataType());
             };
         }
 

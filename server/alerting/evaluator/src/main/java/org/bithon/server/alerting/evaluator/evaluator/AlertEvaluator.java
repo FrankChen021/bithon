@@ -19,6 +19,7 @@ package org.bithon.server.alerting.evaluator.evaluator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.annotations.VisibleForTesting;
+import jakarta.annotation.Nullable;
 import org.bithon.component.commons.utils.NetworkUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
@@ -44,14 +45,13 @@ import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 
-import javax.annotation.Nullable;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/11 10:40 上午
+ * @date 2020/12/11 10:40 上午Ø
  */
 public class AlertEvaluator implements DisposableBean {
 

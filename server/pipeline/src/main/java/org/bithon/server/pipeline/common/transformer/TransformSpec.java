@@ -18,6 +18,7 @@ package org.bithon.server.pipeline.common.transformer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.annotation.Nullable;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +30,6 @@ import org.bithon.server.datasource.input.IInputRow;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**

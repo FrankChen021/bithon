@@ -26,13 +26,14 @@
     <!-- Dependency Note: https://github.com/spring-cloud/spring-cloud-release/wiki/Supported-Versions -->
     <!-- Maven release: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot -->
     <!-- Maven release: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-dependencies -->
-    <spring-boot.version>3.3.1</spring-boot.version>
-    <spring-cloud.version>2023.0.2</spring-cloud.version>
+    <spring-boot.version>4.0.0</spring-boot.version>
+    <spring-cloud.version>2025.1.0</spring-cloud.version>
 
     <!-- The Alibaba Nacos is used -->
     <!-- Dependency Note: https://github.com/alibaba/spring-cloud-alibaba/wiki/%E7%89%88%E6%9C%AC%E8%AF%B4%E6%98%8E -->
     <!-- Maven release: https://mvnrepository.com/artifact/com.alibaba.cloud/spring-cloud-alibaba-dependencies -->
-    <alibaba-cloud.version>2023.0.1.0</alibaba-cloud.version>
+    <!-- NOTE: Using SNAPSHOT until stable 2025.1.x is released. See UPGRADE-NOTES.md -->
+    <alibaba-cloud.version>2025.1.0.0-SNAPSHOT</alibaba-cloud.version>
 
     <grpc.version>1.59.1</grpc.version>
 
@@ -394,6 +395,21 @@
 
     </dependencies>
   </dependencyManagement>
+
+  <!-- Repository for Spring Cloud Alibaba SNAPSHOT versions -->
+  <!-- NOTE: Requires GitHub authentication in settings.xml. See UPGRADE-NOTES.md -->
+  <repositories>
+    <repository>
+      <id>github-spring-cloud-alibaba</id>
+      <url>https://maven.pkg.github.com/alibaba/spring-cloud-alibaba</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 
   <build>
     <plugins>

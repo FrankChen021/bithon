@@ -53,7 +53,7 @@ import org.bithon.server.storage.alerting.pojo.ListRuleDTO;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.meta.api.IMetadataApi;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;

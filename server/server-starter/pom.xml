@@ -143,10 +143,11 @@
     </dependency>
 
     <!-- Validator on Rest Controllers -->
+    <!-- Updated to 9.0.x for Jakarta EE 11 / Spring Framework 7 compatibility -->
     <dependency>
       <groupId>org.hibernate.validator</groupId>
       <artifactId>hibernate-validator</artifactId>
-      <version>8.0.1.Final</version>
+      <version>9.0.0.Final</version>
     </dependency>
 
     <!-- DEV TOOLS -->
@@ -177,7 +178,7 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>2.6.3</version>
+        <version>${spring-boot.version}</version>
         <configuration>
           <mainClass>org.bithon.server.starter.StarterApplication</mainClass>
         </configuration>
