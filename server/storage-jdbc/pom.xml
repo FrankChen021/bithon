@@ -43,6 +43,16 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <!-- Spring Boot 4.0: jOOQ autoconfigure classes moved to separate module -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-jooq</artifactId>
+    </dependency>
+    <!-- Spring Boot 4.0: ServerProperties for notification channel URL building -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-web-server</artifactId>
+    </dependency>
     <dependency>
       <groupId>com.alibaba</groupId>
       <artifactId>druid-spring-boot-starter</artifactId>
