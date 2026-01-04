@@ -30,9 +30,9 @@ import org.bithon.server.storage.common.provider.IStorageProviderConfiguration;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
-import org.springframework.boot.autoconfigure.jooq.ExceptionTranslatorExecuteListener;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqProperties;
+import org.springframework.boot.jooq.autoconfigure.ExceptionTranslatorExecuteListener;
+import org.springframework.boot.jooq.autoconfigure.JooqAutoConfiguration;
+import org.springframework.boot.jooq.autoconfigure.JooqProperties;
 
 import java.util.Map;
 import java.util.Properties;
