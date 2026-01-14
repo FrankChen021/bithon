@@ -576,7 +576,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                                 // Choose the correct table for speed up based on filter
                                                                 .schema(query.getSchema())
                                                                 .fields(query.getSelectors())
-                                                                .filter(this.sqlDialect.transform(query.getSchema(), splitter.getExpression(), QuerySettings.DEFAULT))
+                                                                .filter(this.sqlDialect.transform(query.getSchema(), splitter.getExpression(), querySettings))
                                                                 .interval(query.getInterval())
                                                                 .groupBy(query.getGroupBy())
                                                                 .orderBy(orderBy)
