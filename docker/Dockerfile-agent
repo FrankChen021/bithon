@@ -36,7 +36,7 @@ RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
       mvn -ntp -P!server clean install -DskipTests -T 1C \
       ; fi
 
-FROM openjdk:8-jre-alpine
+FROM eclipse-temurin:8-jre-alpine
 
 COPY --from=builder /src/agent/agent-distribution/target/agent-distribution/agent-distribution/ /opt/agent-distribution
 
