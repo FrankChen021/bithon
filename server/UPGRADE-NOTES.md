@@ -84,6 +84,65 @@ Spring Boot 4 defaults to Jackson 3. To use Jackson 2 (for `Jackson2ObjectMapper
 1. **Dependency**: Add `spring-boot-jackson2` to `server-starter/pom.xml`
 2. **Configuration**: Set `spring.http.converters.preferred-json-mapper: jackson2` in `bootstrap.yml`
 
+## Jackson 3 Migration (Future)
+
+Migrating from Jackson 2 to Jackson 3 is a significant effort due to breaking API changes. Key changes required:
+
+### Package Changes
+- `com.fasterxml.jackson.core` → `tools.jackson.core`
+- `com.fasterxml.jackson.databind` → `tools.jackson.databind`
+- `com.fasterxml.jackson.dataformat` → `tools.jackson.dataformat`
+- `com.fasterxml.jackson.annotation` → **unchanged** (backward compatible)
+
+### API Renames
+| Jackson 2 | Jackson 3 |
+|-----------|-----------|
+| `JsonSerializer` | `ValueSerializer` (extend `StdSerializer`) |
+| `JsonDeserializer` | `ValueDeserializer` (extend `StdDeserializer`) |
+| `SerializerProvider` | `SerializationContext` |
+| `BeanDeserializerModifier` | `ValueDeserializerModifier` |
+| `JsonProcessingException` | `JacksonException` (unchecked) |
+| `JsonParser.Feature.ALLOW_COMMENTS` | `JsonReadFeature.ALLOW_JAVA_COMMENTS` |
+
+### Configuration Changes
+- Replace `Jackson2ObjectMapperBuilder` with `JsonMapper.builder()`
+- Replace `@Bean ObjectMapper` with `@Bean JsonMapper` (JsonMapper extends ObjectMapper)
+- `ObjectMapper` is immutable in Jackson 3; use builder pattern
+
+### Dependencies
+- Remove `spring-boot-jackson2`; use default `spring-boot-jackson`
+- Change `com.fasterxml.jackson.*` to `tools.jackson.*` in pom.xml (Spring Boot 4 BOM manages versions)
+- **jjwt-jackson**: Uses Jackson 2; see [jjwt-jackson details](#jjwt-jackson-module) below
+
+### jOOQ Jackson 3 Support (Prerequisite)
+
+| Aspect | Details |
+|--------|---------|
+| **Current Bithon jOOQ** | Vendored fork at **3.17.99** in `server/jOOQ/` with `jOOQ-jackson-extensions` (Jackson 2 only) |
+| **Jackson 3 support** | Introduced in **jOOQ 3.21** (Dev, TBA as of Feb 2026) |
+| **Jackson 3 converters** | `org.jooq.jackson3.extensions.converters.JSONtoJacksonConverter`, `JSONBtoJacksonConverter` |
+| **Latest stable jOOQ** | 3.20.11 (Jan 2026) — still Jackson 2 only |
+| **jOOQ 3.20 JDK baseline** | Open Source Edition requires JDK 21; Bithon uses Java 17 |
+
+**Migration path**: Upgrade the vendored jOOQ fork to 3.21+ when released, then switch to Jackson 3 converters. Alternatively, migrate to official `jooq-jackson-extensions` from Maven Central and wait for 3.21.
+
+### jjwt-jackson Module
+
+| Aspect | Details |
+|--------|---------|
+| **Bithon usage** | `jjwt-jackson` 0.11.5 in `server/web-security/pom.xml` for JWT serialization |
+| **Jackson dependency** | `com.fasterxml.jackson.core:jackson-databind:2.20.1` (transitive) |
+| **Jackson 3 support** | **None** as of Feb 2026. Upstream issues [#1029](https://github.com/jwtk/jjwt/issues/1029), [#1032](https://github.com/jwtk/jjwt/issues/1032), [#1038](https://github.com/jwtk/jjwt/issues/1038) track Jackson 3 support; PRs in progress, not yet merged |
+| **Current Bithon setup** | With `spring-boot-jackson2`, Jackson 2 is primary; jjwt-jackson fits without conflict |
+| **Jackson 3 migration impact** | jjwt-jackson would become a blocker. Users report "split brain" when mixing Jackson 2 (jjwt) and Jackson 3 (Spring Boot 4 default): separate config, different defaults, `JavaType` incompatibility in converters |
+
+**Alternatives if jjwt-jackson blocks migration**: Use `jjwt-gson` or `jjwt-orgjson` instead of `jjwt-jackson` to avoid Jackson dependency; requires swapping the serializer/deserializer implementation.
+
+### Tools
+- [OpenRewrite recipe](https://docs.openrewrite.org/recipes/java/jackson/upgradejackson_2_3_packagechanges): `org.openrewrite.java.jackson.UpgradeJackson_2_3_PackageChanges` for import updates
+- [Jackson 3 Migration Guide](https://github.com/FasterXML/jackson/blob/main/jackson3/MIGRATING_TO_JACKSON_3.md)
+- [jOOQ Jackson converters](https://www.jooq.org/doc/latest/manual/code-generation/codegen-advanced/codegen-config-database/codegen-database-forced-types/codegen-database-forced-types-jackson-converter/)
+
 ## Known Issues and Considerations
 
 1. **Spring Cloud Alibaba Compatibility**: Using stable 2025.1.0.0 release from Maven Central.
@@ -94,6 +153,7 @@ Spring Boot 4 defaults to Jackson 3. To use Jackson 2 (for `Jackson2ObjectMapper
 
 ## References
 
+- [JJWT Jackson 3 Support (GitHub #1029)](https://github.com/jwtk/jjwt/issues/1029)
 - [Spring Framework 7.0 Release Notes](https://github.com/spring-projects/spring-framework/wiki/Spring-Framework-7.0-Release-Notes)
 - [Spring Boot 4.0 Release Notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Release-Notes)
 - [Spring Cloud Alibaba GitHub](https://github.com/alibaba/spring-cloud-alibaba)
