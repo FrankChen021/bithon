@@ -8,71 +8,29 @@ This document tracks important information about the Spring Framework 7 / Spring
 |-----------|-----------------|-----------------|
 | Spring Boot | 3.3.1 | 4.0.0 |
 | Spring Cloud | 2023.0.2 | 2025.1.0 |
-| Spring Cloud Alibaba | 2023.0.1.0 | 2025.1.0.0-SNAPSHOT |
+| Spring Cloud Alibaba | 2023.0.1.0 | 2025.1.0.0 |
 | Hibernate Validator | 8.0.1.Final | 9.0.0.Final |
 | Java Baseline | 17 | 17 (unchanged) |
 
-## Spring Cloud Alibaba SNAPSHOT Usage
+## Spring Cloud Alibaba
 
-**Status**: Using SNAPSHOT version until stable release is available.
+**Status**: Using stable release 2025.1.0.0 (available on Maven Central).
 
-### Current Configuration
-
-The project currently uses `spring-cloud-alibaba-dependencies:2025.1.0.0-SNAPSHOT` because the stable 2025.1.x release for Spring Boot 4.0.x is not yet available in Maven Central.
-
-### GitHub Packages Repository
-
-A repository configuration has been added to `server/pom.xml` to fetch the SNAPSHOT:
-
-```xml
-<repositories>
-    <repository>
-        <id>github-spring-cloud-alibaba</id>
-        <url>https://maven.pkg.github.com/alibaba/spring-cloud-alibaba</url>
-        <releases>
-            <enabled>false</enabled>
-        </releases>
-        <snapshots>
-            <enabled>true</enabled>
-        </snapshots>
-    </repository>
-</repositories>
-```
-
-### GitHub Authentication Required
-
-To use GitHub Packages, you need to configure authentication in your Maven `settings.xml`:
-
-```xml
-<servers>
-    <server>
-        <id>github-spring-cloud-alibaba</id>
-        <username>YOUR_GITHUB_USERNAME</username>
-        <password>YOUR_GITHUB_TOKEN</password>
-    </server>
-</servers>
-```
-
-The GitHub token must have `read:packages` permission.
-
-### TODO: Update to Stable Release
-
-**Monitor**: https://github.com/alibaba/spring-cloud-alibaba/releases
-
-When Spring Cloud Alibaba 2025.1.x stable is released:
-
-1. Update `server/pom.xml`:
-   ```xml
-   <alibaba-cloud.version>2025.1.0.0</alibaba-cloud.version>
-   ```
-
-2. Remove the GitHub Packages repository configuration (or set `<snapshots><enabled>false</enabled></snapshots>`).
-
-3. Remove GitHub authentication from `settings.xml` if no longer needed.
+The project uses `spring-cloud-alibaba-dependencies:2025.1.0.0`, which supports Spring Boot 4.0.x and Spring Cloud 2025.1.x. No GitHub Packages repository or authentication is required.
 
 ## API Migration: javax.* to jakarta.*
 
 Spring Framework 7 removes support for `javax.annotation` and `javax.inject` annotations. The following files were migrated from `javax.annotation.Nullable` to `jakarta.annotation.Nullable`:
+
+## API Migration: DataSourceAutoConfiguration Package Change
+
+In Spring Boot 4.0, `DataSourceAutoConfiguration` moved from `org.springframework.boot.autoconfigure.jdbc` to `org.springframework.boot.jdbc.autoconfigure`. The following modules were updated (import + `spring-boot-jdbc` dependency):
+
+- `server/storage-jdbc-h2` - H2StorageModuleAutoConfiguration
+- `server/storage-jdbc-mysql` - MySQLStorageModuleAutoConfiguration
+- `server/storage-jdbc-postgresql` - PostgresqlStorageModuleAutoConfiguration
+
+Note: `server/storage-jdbc-clickhouse` does not use `@AutoConfigureBefore(DataSourceAutoConfiguration.class)` and required no changes.
 
 ## API Migration: ServerProperties Package Change
 
@@ -91,6 +49,13 @@ In Spring Boot 4.0, `ServerProperties` moved from `org.springframework.boot.auto
 - `server/storage-jdbc/src/main/java/.../NotificationChannelJdbcStorage.java`
 - `server/storage-jdbc-clickhouse/src/main/java/.../NotificationChannelStorage.java`
 - `server/storage-jdbc-postgresql/src/main/java/.../NotificationChannelStorage.java`
+
+## API Migration: jOOQ Auto-Configuration Package Change
+
+In Spring Boot 4.0, jOOQ auto-configuration classes moved from `org.springframework.boot.autoconfigure.jooq` to `org.springframework.boot.jooq.autoconfigure`. The following files were updated:
+
+- `server/storage-jdbc/src/main/java/.../JdbcStorageProviderConfiguration.java`
+- `server/storage-jdbc-clickhouse/src/main/java/.../ClickHouseStorageProviderConfiguration.java`
 
 ## API Migration: javax.annotation.Nullable
 
@@ -112,9 +77,16 @@ In Spring Boot 4.0, `ServerProperties` moved from `org.springframework.boot.auto
 
 **Note**: The `server/jOOQ/` directory contains third-party vendored code and was intentionally NOT modified.
 
+## Jackson 2 Configuration (Spring Boot 4)
+
+Spring Boot 4 defaults to Jackson 3. To use Jackson 2 (for `Jackson2ObjectMapperBuilder` and custom serializers):
+
+1. **Dependency**: Add `spring-boot-jackson2` to `server-starter/pom.xml`
+2. **Configuration**: Set `spring.http.converters.preferred-json-mapper: jackson2` in `bootstrap.yml`
+
 ## Known Issues and Considerations
 
-1. **Spring Cloud Alibaba Compatibility**: Using SNAPSHOT version - may have instability issues. Monitor for stable release.
+1. **Spring Cloud Alibaba Compatibility**: Using stable 2025.1.0.0 release from Maven Central.
 
 2. **jOOQ Library**: The vendored jOOQ library in `server/jOOQ/` still contains `javax.*` imports. This is third-party code and should not be modified. It should work as long as the jOOQ library itself maintains backward compatibility.
 
@@ -128,5 +100,5 @@ In Spring Boot 4.0, `ServerProperties` moved from `org.springframework.boot.auto
 
 ---
 
-*Last Updated: January 2026*
+*Last Updated: February 2026*
 

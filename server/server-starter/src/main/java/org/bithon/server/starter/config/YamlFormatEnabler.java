@@ -46,7 +46,7 @@ public class YamlFormatEnabler implements WebMvcConfigurer {
     }
 
     @Override
-    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+    public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
         YAMLFactory factory = new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
                                                .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES);
 
