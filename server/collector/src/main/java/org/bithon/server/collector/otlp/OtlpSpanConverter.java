@@ -54,7 +54,9 @@ public class OtlpSpanConverter {
         TracesData.Builder builder = TracesData.newBuilder();
 
         try (InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
-            JsonFormat.parser().merge(reader, builder);
+            JsonFormat.parser()
+                      .ignoringUnknownFields()
+                      .merge(reader, builder);
         }
 
         return new OtlpSpanConverter(builder.build().getResourceSpansList()) {
