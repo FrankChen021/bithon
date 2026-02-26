@@ -56,7 +56,6 @@ import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultExecuteListenerProvider;
 import org.springframework.boot.jooq.autoconfigure.ExceptionTranslatorExecuteListener;
-import org.springframework.boot.jooq.autoconfigure.JooqAutoConfiguration;
 import org.springframework.boot.jooq.autoconfigure.JooqProperties;
 
 import java.util.HashMap;
