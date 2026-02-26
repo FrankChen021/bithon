@@ -56,6 +56,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -190,7 +191,7 @@ public class TestZooKeeperClientMetrics {
     }
 
     private static void assumeEmbeddedZooKeeperIsSupported() {
-        String osName = System.getProperty("os.name", "").toLowerCase();
+        String osName = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
         String javaSpecVersion = System.getProperty("java.specification.version", "");
 
         // JDK 12 on Linux can fail in JMX initialization via JDK cgroup metrics, which
