@@ -103,11 +103,10 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         jdbcDataSource.setMaxCreateTaskCount(2);
 
         // Create a new one
-        JooqAutoConfiguration autoConfiguration = new JooqAutoConfiguration();
         this.dslContext = DSL.using(new DefaultConfiguration()
                                         .set(new DataSourceConnectionProvider(jdbcDataSource))
                                         .set(new JooqProperties().determineSqlDialect(jdbcDataSource))
-                                        .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider(ExceptionTranslatorExecuteListener.DEFAULT)));
+                                        .set(new JooqAutoConfiguration().jooqExceptionTranslatorExecuteListenerProvider(ExceptionTranslatorExecuteListener.DEFAULT)));
 
         this.sqlDialect = sqlDialect;
         this.querySettings = querySettings;
