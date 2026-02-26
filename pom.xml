@@ -13,6 +13,9 @@
   <url>https://bithon.org</url>
 
   <properties>
+    <!-- Agent modules still build/test on JDK8/9, so keep JUnit on the last compatible line.
+         JUnit Jupiter 5.10.x must be paired with JUnit Platform 1.10.x to avoid runtime NoSuchMethodError
+         during test discovery on newer JDK builds (for example JDK21 in CI). -->
     <junit.jupiter.version>5.10.2</junit.jupiter.version>
     <junit.platform.version>1.10.2</junit.platform.version>
     <lombok.version>1.18.38</lombok.version>
