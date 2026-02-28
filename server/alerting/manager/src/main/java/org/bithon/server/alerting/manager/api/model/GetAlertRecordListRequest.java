@@ -16,12 +16,11 @@
 
 package org.bithon.server.alerting.manager.api.model;
 
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
-
-import javax.annotation.Nullable;
 
 /**
  * @author frank.chen021@outlook.com

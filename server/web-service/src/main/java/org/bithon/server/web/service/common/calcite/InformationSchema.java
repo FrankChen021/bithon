@@ -19,6 +19,7 @@ package org.bithon.server.web.service.common.calcite;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import jakarta.annotation.Nullable;
 import org.apache.calcite.DataContext;
 import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.linq4j.Enumerable;
@@ -34,7 +35,6 @@ import org.apache.calcite.schema.impl.AbstractSchema;
 import org.apache.calcite.schema.impl.AbstractTable;
 import org.apache.calcite.sql.type.SqlTypeName;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 /**

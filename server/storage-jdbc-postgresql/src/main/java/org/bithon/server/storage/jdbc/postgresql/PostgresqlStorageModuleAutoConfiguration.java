@@ -33,7 +33,7 @@ import org.bithon.server.storage.jdbc.postgresql.metric.MetricStorage;
 import org.bithon.server.storage.jdbc.postgresql.setting.SettingStorage;
 import org.bithon.server.storage.jdbc.postgresql.trace.TraceStorage;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

@@ -19,6 +19,12 @@
       <artifactId>server-storage-jdbc</artifactId>
     </dependency>
 
+    <!-- Spring Boot 4.0: DataSourceAutoConfiguration for @AutoConfigureBefore -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-jdbc</artifactId>
+    </dependency>
+
     <!-- Built in H2 Database -->
     <dependency>
       <groupId>com.h2database</groupId>

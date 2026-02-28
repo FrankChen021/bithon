@@ -16,14 +16,13 @@
 
 package org.bithon.server.web.service.datasource.api;
 
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import javax.annotation.Nullable;
 
 /**
  * @author frank.chen021@outlook.com

@@ -16,6 +16,7 @@
 
 package org.bithon.server.metric.expression.ast;
 
+import jakarta.annotation.Nullable;
 import lombok.Data;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IEvaluationContext;
@@ -35,7 +36,6 @@ import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.column.IColumn;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 
@@ -110,9 +110,9 @@ public class MetricExpression implements IExpression {
         sb.append(metric.getAggregator());
         sb.append(StringUtils.format("(%s.%s%s)",
                                      from,
-                                     // Use field for serialization because it holds the raw input.
-                                     // In some cases, like the 'count' aggregator, the name property has different values from the field property
-                                     // See AlertExpressionASTParser for more
+            // Use field for serialization because it holds the raw input.
+            // In some cases, like the 'count' aggregator, the name property has different values from the field property
+            // See AlertExpressionASTParser for more
                                      metric.getField(),
                                      this.labelSelectorText));
 

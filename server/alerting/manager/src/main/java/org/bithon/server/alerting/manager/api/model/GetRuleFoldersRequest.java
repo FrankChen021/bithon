@@ -17,9 +17,8 @@
 package org.bithon.server.alerting.manager.api.model;
 
 
+import jakarta.annotation.Nullable;
 import lombok.Data;
-
-import javax.annotation.Nullable;
 
 /**
  * @author frank.chen021@outlook.com

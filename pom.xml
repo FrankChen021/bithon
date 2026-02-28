@@ -13,6 +13,11 @@
   <url>https://bithon.org</url>
 
   <properties>
+    <!-- Agent modules still build/test on JDK8/9, so keep JUnit on the last compatible line.
+         JUnit Jupiter 5.10.x must be paired with JUnit Platform 1.10.x to avoid runtime NoSuchMethodError
+         during test discovery on newer JDK builds (for example JDK21 in CI). -->
+    <junit.jupiter.version>5.10.2</junit.jupiter.version>
+    <junit.platform.version>1.10.2</junit.platform.version>
     <lombok.version>1.18.38</lombok.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -88,22 +93,52 @@
 
       <!-- Testing -->
 
-      <dependency> <!-- JUnit 5 API -->
+      <dependency> <!-- JUnit API -->
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-api</artifactId>
-        <version>5.10.2</version>
+        <version>${junit.jupiter.version}</version>
         <scope>test</scope>
       </dependency>
-      <dependency> <!-- JUnit 5 Engine for running tests -->
+      <dependency> <!-- JUnit aggregate used by some agent modules -->
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>${junit.jupiter.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency> <!-- JUnit parameterized tests -->
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-params</artifactId>
+        <version>${junit.jupiter.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency> <!-- JUnit Engine for running tests -->
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-engine</artifactId>
-        <version>5.10.2</version>
+        <version>${junit.jupiter.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency> <!-- Optional: Add this if you still have JUnit 4 tests -->
         <groupId>org.junit.vintage</groupId>
         <artifactId>junit-vintage-engine</artifactId>
-        <version>5.10.2</version>
+        <version>${junit.jupiter.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.platform</groupId>
+        <artifactId>junit-platform-commons</artifactId>
+        <version>${junit.platform.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.platform</groupId>
+        <artifactId>junit-platform-engine</artifactId>
+        <version>${junit.platform.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.platform</groupId>
+        <artifactId>junit-platform-launcher</artifactId>
+        <version>${junit.platform.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>

@@ -18,9 +18,9 @@ package org.bithon.server.web.service.datasource.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 
-import javax.annotation.Nullable;
 import java.util.Locale;
 
 /**

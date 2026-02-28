@@ -26,6 +26,12 @@
       <artifactId>server-pipeline</artifactId>
     </dependency>
 
+    <!-- Spring Boot 4.0: ServerProperties for trace receiver port configuration -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-web-server</artifactId>
+    </dependency>
+
     <!-- Bithon Commons -->
     <dependency>
       <groupId>org.bithon.component</groupId>

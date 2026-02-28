@@ -29,10 +29,12 @@ import lombok.Getter;
 import org.bithon.server.storage.common.provider.IStorageProviderConfiguration;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
+import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
-import org.springframework.boot.autoconfigure.jooq.ExceptionTranslatorExecuteListener;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqProperties;
+import org.jooq.impl.DefaultExecuteListenerProvider;
+import org.springframework.boot.jooq.autoconfigure.ExceptionTranslatorExecuteListener;
+import org.springframework.boot.jooq.autoconfigure.JooqProperties;
+import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 
 import java.util.Map;
 import java.util.Properties;
@@ -59,14 +61,13 @@ public class ClickHouseStorageProviderConfiguration implements IStorageProviderC
         props.forEach((k, v) -> properties.put("druid." + k, v));
 
         DruidDataSource dataSource = DruidDataSourceBuilder.create().build();
-        dataSource.configFromPropety(properties);
+        dataSource.configFromProperties(properties);
         dataSource.setDriver(new JdbcDriver());
 
-        JooqAutoConfiguration autoConfiguration = new JooqAutoConfiguration();
         this.dslContext = DSL.using(new DefaultConfiguration()
-                                        .set(autoConfiguration.dataSourceConnectionProvider(dataSource))
+                                        .set(new DataSourceConnectionProvider(new TransactionAwareDataSourceProxy(dataSource)))
                                         .set(new JooqProperties().determineSqlDialect(dataSource))
-                                        .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider(ExceptionTranslatorExecuteListener.DEFAULT)));
+                                        .set(new DefaultExecuteListenerProvider(ExceptionTranslatorExecuteListener.DEFAULT)));
 
         this.clickHouseConfig = objectMapper.readValue(objectMapper.writeValueAsString(props),
                                                        ClickHouseConfig.class);

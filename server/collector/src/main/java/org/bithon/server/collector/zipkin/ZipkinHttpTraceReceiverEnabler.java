@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.pipeline.tracing.ITraceProcessor;
 import org.bithon.server.pipeline.tracing.receiver.ITraceReceiver;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 
 /**
  * @author frank.chen021@outlook.com

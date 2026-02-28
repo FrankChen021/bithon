@@ -16,10 +16,9 @@
 
 package org.bithon.server.web.service.tracing.api;
 
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
-
-import javax.annotation.Nullable;
 
 /**
  * @author frank.chen021@outlook.com

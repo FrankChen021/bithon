@@ -39,7 +39,7 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.SelectConditionStep;
 import org.jooq.SortField;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;

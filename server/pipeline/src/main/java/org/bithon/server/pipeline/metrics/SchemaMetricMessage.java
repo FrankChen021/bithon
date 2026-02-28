@@ -17,6 +17,7 @@
 package org.bithon.server.pipeline.metrics;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import jakarta.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,7 +25,6 @@ import lombok.NoArgsConstructor;
 import org.bithon.server.datasource.DefaultSchema;
 import org.bithon.server.datasource.input.IInputRow;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**

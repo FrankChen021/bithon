@@ -16,9 +16,8 @@
 
 package org.bithon.server.web.service.meta.api;
 
+import jakarta.annotation.Nullable;
 import lombok.Data;
-
-import javax.annotation.Nullable;
 
 /**
  * @author frank.chen021@outlook.com

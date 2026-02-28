@@ -31,16 +31,16 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-validation</artifactId>
     </dependency>
+    <!-- Spring Boot 4: Jackson2ObjectMapperBuilder for ObjectMapper configuration -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-jackson2</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-properties-migrator</artifactId>
       <scope>runtime</scope>
     </dependency>
-    <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-bootstrap</artifactId>
-    </dependency>
-
     <dependency>
       <groupId>org.bithon.server</groupId>
       <artifactId>server-collector</artifactId>
@@ -143,10 +143,11 @@
     </dependency>
 
     <!-- Validator on Rest Controllers -->
+    <!-- Updated to 9.0.x for Jakarta EE 11 / Spring Framework 7 compatibility -->
     <dependency>
       <groupId>org.hibernate.validator</groupId>
       <artifactId>hibernate-validator</artifactId>
-      <version>8.0.1.Final</version>
+      <version>9.0.0.Final</version>
     </dependency>
 
     <!-- DEV TOOLS -->
@@ -177,7 +178,7 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>2.6.3</version>
+        <version>${spring-boot.version}</version>
         <configuration>
           <mainClass>org.bithon.server.starter.StarterApplication</mainClass>
         </configuration>

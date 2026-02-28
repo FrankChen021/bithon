@@ -7,6 +7,10 @@ spring:
     timeout-per-shutdown-phase: 120s # Default is 60s
   config:
     use-legacy-processing: true
+  # Spring Boot 4: Use Jackson 2 for ObjectMapper (Jackson2ObjectMapperBuilder)
+  http:
+    converters:
+      preferred-json-mapper: jackson2
 
   application:
     name: bithon-server
@@ -23,6 +27,7 @@ spring:
         namespace: ffffffff-d350-4755-ab1a-28721fc79cfa
         refresh-enabled: true
         group: DEFAULT_GROUP
+        # To load the configuration from Nacos, you need to add spring.config.import property as follows
       discovery:
         enabled: false
         watch:
@@ -36,3 +41,11 @@ management:
         include:
           - info
           - health
+
+
+---
+# Uncomment this if the configuration is in nacos
+#spring:
+#  config:
+#    import:
+#      - nacos:YOUR_NACOS_CONFIGURATION.yaml

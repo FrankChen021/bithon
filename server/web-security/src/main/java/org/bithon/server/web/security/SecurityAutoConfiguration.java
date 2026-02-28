@@ -22,7 +22,7 @@ import org.bithon.server.commons.spring.EnvironmentBinder;
 import org.bithon.server.web.security.filter.JwtAuthenticationFilter;
 import org.bithon.server.web.security.jwt.JwtConfig;
 import org.bithon.server.web.security.jwt.JwtTokenComponent;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

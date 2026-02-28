@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.common.calcite;
 
+import jakarta.annotation.Nullable;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.avatica.util.Casing;
 import org.apache.calcite.config.CalciteConnectionConfigImpl;
@@ -56,7 +57,6 @@ import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.IExpression;
 import org.springframework.http.HttpStatus;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;

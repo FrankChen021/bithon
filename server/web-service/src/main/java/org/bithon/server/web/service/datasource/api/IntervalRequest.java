@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.datasource.api;
 
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,7 +26,6 @@ import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.web.service.common.bucket.TimeBucket;
 
-import javax.annotation.Nullable;
 import java.time.Duration;
 
 /**

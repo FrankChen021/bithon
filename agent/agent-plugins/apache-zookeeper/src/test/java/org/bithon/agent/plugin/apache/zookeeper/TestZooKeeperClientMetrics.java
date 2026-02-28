@@ -42,6 +42,7 @@ import org.bithon.agent.observability.metric.model.schema.Schema3;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.shaded.net.bytebuddy.agent.ByteBuddyAgent;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,6 +56,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -188,8 +190,21 @@ public class TestZooKeeperClientMetrics {
         METRIC_MESSAGE_LIST.clear();
     }
 
+    private static void assumeEmbeddedZooKeeperIsSupported() {
+        String osName = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
+        String javaSpecVersion = System.getProperty("java.specification.version", "");
+
+        // Some Linux CI JDKs can fail in JMX initialization via JDK cgroup metrics, which
+        // causes Curator's embedded ZooKeeper server startup to time out in CI.
+        Assumptions.assumeFalse(osName.contains("linux")
+                                && ("12".equals(javaSpecVersion) || "18".equals(javaSpecVersion)),
+                                "Skip embedded ZooKeeper test on Linux JDK 12/18 due to JDK cgroup/JMX startup bug");
+    }
+
     @Test
     public void test_AggregatedMetrics() throws Exception {
+        assumeEmbeddedZooKeeperIsSupported();
+
         // Set the threshold to 1h which is large enough for test case to enable aggregation
         ConfigurationManager.getInstance()
                             .addPropertySource(PropertySource.from(PropertySourceType.DYNAMIC,
@@ -256,6 +271,8 @@ public class TestZooKeeperClientMetrics {
 
     @Test
     public void test_DetailLog() throws Exception {
+        assumeEmbeddedZooKeeperIsSupported();
+
         // Update responseTime threshold to 1ns which is small enough to DISABLE aggregation
         ConfigurationManager.getInstance()
                             .addPropertySource(PropertySource.from(PropertySourceType.DYNAMIC,

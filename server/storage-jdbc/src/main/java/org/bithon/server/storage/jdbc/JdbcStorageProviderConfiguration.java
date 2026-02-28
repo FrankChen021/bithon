@@ -31,10 +31,12 @@ import org.bithon.server.storage.common.provider.IStorageProviderConfiguration;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
+import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
+import org.jooq.impl.DefaultExecuteListenerProvider;
 import org.jooq.tools.jdbc.JDBCUtils;
-import org.springframework.boot.autoconfigure.jooq.ExceptionTranslatorExecuteListener;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
+import org.springframework.boot.jooq.autoconfigure.ExceptionTranslatorExecuteListener;
+import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 
 import java.util.Map;
 import java.util.Properties;
@@ -74,11 +76,10 @@ public class JdbcStorageProviderConfiguration implements IStorageProviderConfigu
         sqlDialectManager.getSqlDialect(sqlDialect);
 
         DruidDataSource dataSource = DruidDataSourceBuilder.create().build();
-        dataSource.configFromPropety(properties);
-        JooqAutoConfiguration autoConfiguration = new JooqAutoConfiguration();
+        dataSource.configFromProperties(properties);
         this.dslContext = DSL.using(new DefaultConfiguration()
-                                        .set(autoConfiguration.dataSourceConnectionProvider(dataSource))
+                                        .set(new DataSourceConnectionProvider(new TransactionAwareDataSourceProxy(dataSource)))
                                         .set(sqlDialect)
-                                        .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider(ExceptionTranslatorExecuteListener.DEFAULT)));
+                                        .set(new DefaultExecuteListenerProvider(ExceptionTranslatorExecuteListener.DEFAULT)));
     }
 }
