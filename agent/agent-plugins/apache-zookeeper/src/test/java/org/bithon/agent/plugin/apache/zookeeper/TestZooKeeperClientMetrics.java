@@ -194,10 +194,11 @@ public class TestZooKeeperClientMetrics {
         String osName = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
         String javaSpecVersion = System.getProperty("java.specification.version", "");
 
-        // JDK 12 on Linux can fail in JMX initialization via JDK cgroup metrics, which
+        // Some Linux CI JDKs can fail in JMX initialization via JDK cgroup metrics, which
         // causes Curator's embedded ZooKeeper server startup to time out in CI.
-        Assumptions.assumeFalse(osName.contains("linux") && "12".equals(javaSpecVersion),
-                                "Skip embedded ZooKeeper test on Linux JDK 12 due to JDK cgroup/JMX startup bug");
+        Assumptions.assumeFalse(osName.contains("linux")
+                                && ("12".equals(javaSpecVersion) || "18".equals(javaSpecVersion)),
+                                "Skip embedded ZooKeeper test on Linux JDK 12/18 due to JDK cgroup/JMX startup bug");
     }
 
     @Test
