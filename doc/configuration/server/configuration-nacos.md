@@ -11,16 +11,36 @@ The servers support Alibaba Nacos as a configuration and service discovery cente
 
 ## Enable Nacos
 
-By default, Nacos is not enabled in `server/server-starter/src/main/resources/bootstrap.yml`.
+On Spring Boot 4 / Spring Cloud Alibaba 2025.x, Nacos config must be imported from `application.yml`.
+The old bootstrap-based settings are not enough by themselves anymore.
 
-You can enable it by change the `spring.cloud.nacos.config.enabled` from `false` to `true` as following.
+The starter now imports the base Nacos DataId from `server/server-starter/src/main/resources/application.yml`.
+Profile-specific Nacos DataIds should also be declared in `application.yml` by using a profile-activated
+document with `spring.config.activate.on-profile`.
+
+You can enable the Nacos config client by setting `spring.cloud.nacos.config.enabled` to `true` as follows.
 
 ```yaml
 spring:
+  config:
+    import:
+      - optional:nacos:${spring.application.name}.yaml
   cloud:
     nacos:
       config:
-        enabled: false
+        enabled: true
+```
+
+Example for the `prod` profile:
+
+```yaml
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+    import:
+      - optional:nacos:${spring.application.name}-prod.yaml
 ```
 
 You also need to change the following nacos configuration items to reflect the items in nacos server.

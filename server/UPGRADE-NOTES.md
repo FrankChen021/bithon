@@ -82,7 +82,20 @@ In Spring Boot 4.0, jOOQ auto-configuration classes moved from `org.springframew
 Spring Boot 4 defaults to Jackson 3. To use Jackson 2 (for `Jackson2ObjectMapperBuilder` and custom serializers):
 
 1. **Dependency**: Add `spring-boot-jackson2` to `server-starter/pom.xml`
-2. **Configuration**: Set `spring.http.converters.preferred-json-mapper: jackson2` in `bootstrap.yml`
+2. **Configuration**: Set `spring.http.converters.preferred-json-mapper: jackson2` in `application.yml`
+
+## Nacos Configuration Loading (Spring Boot 4 / Spring Cloud Alibaba 2025)
+
+Spring Cloud Alibaba 2025.x no longer loads Nacos configuration from the old bootstrap context.
+The config client must be activated from `application.yml` using `spring.config.import`.
+
+This project now loads:
+
+1. `optional:nacos:${spring.application.name}.yaml` from `server/server-starter/src/main/resources/application.yml`
+2. `optional:nacos:${spring.application.name}-prod.yaml` from a profile-activated document in `server/server-starter/src/main/resources/application.yml`
+
+If another Spring profile is used, add another `spring.config.activate.on-profile` document in
+`application.yml` that imports `optional:nacos:${spring.application.name}-<profile>.yaml`.
 
 ## Jackson 3 Migration (Future)
 
@@ -161,4 +174,3 @@ Migrating from Jackson 2 to Jackson 3 is a significant effort due to breaking AP
 ---
 
 *Last Updated: February 2026*
-
