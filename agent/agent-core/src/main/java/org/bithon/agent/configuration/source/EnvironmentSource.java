@@ -19,6 +19,7 @@ package org.bithon.agent.configuration.source;
 import org.bithon.agent.instrumentation.expt.AgentException;
 
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -31,9 +32,10 @@ public class EnvironmentSource {
         StringBuilder propertyText = new StringBuilder();
 
         for (Map.Entry<String, String> entry : Helper.getEnvironmentVariables().entrySet()) {
-            String name = entry.getKey();
+            String name = entry.getKey().toLowerCase(Locale.ENGLISH);
             String value = entry.getValue();
-            if (name.startsWith(envPrefix) && !value.isEmpty()) {
+            String prefix = envPrefix.toLowerCase(Locale.ENGLISH);
+            if (name.startsWith(prefix) && !value.isEmpty()) {
                 name = name.substring(envPrefix.length())
                            // For env, the underscore is used as a replacement of '.' character,
                            // Here we need to convert these characters back
