@@ -68,30 +68,25 @@ public class Expression2Sql extends ExpressionSerializer {
 
     @Override
     public void serialize(LiteralExpression<?> expression) {
-        if (expression instanceof LiteralExpression.StringLiteral stringLiteral) {
-            sb.append('\'');
-            // Escape the single quote to ensure the user input is safe
-            sb.append(StringUtils.escape(stringLiteral.getValue(), sqlDialect.getEscapeCharacter4SingleQuote(), '\''));
-            sb.append('\'');
-        } else if (expression instanceof LiteralExpression.LongLiteral longLiteral) {
-            sb.append(longLiteral.getValue());
-        } else if (expression instanceof LiteralExpression.DoubleLiteral doubleLiteral) {
-            sb.append(doubleLiteral.getValue());
-        } else if (expression instanceof LiteralExpression.BooleanLiteral) {
-            // Some old versions of CK do not support true/false literal, we use integer instead
-            sb.append(expression.asBoolean() ? 1 : 0);
-        } else if (expression instanceof LiteralExpression.TimestampLiteral) {
-            sb.append(sqlDialect.formatDateTime((LiteralExpression.TimestampLiteral) expression));
-        } else if (expression instanceof LiteralExpression.AsteriskLiteral) {
-            sb.append('*');
-        } else if (expression instanceof LiteralExpression.ReadableDurationLiteral durationLiteral) {
-            sb.append(durationLiteral.getValue().getDuration().getSeconds());
-        } else if (expression instanceof LiteralExpression.ReadableNumberLiteral numberLiteral) {
-            sb.append(numberLiteral.getValue().longValue());
-        } else if (expression instanceof LiteralExpression.ReadablePercentageLiteral percentageLiteral) {
-            sb.append(percentageLiteral.getValue().getFraction());
-        } else {
-            throw new RuntimeException("Not supported type " + expression.getDataType());
+        switch (expression) {
+            case LiteralExpression.NullLiteral nullLiteral -> sb.append("NULL");
+            case LiteralExpression.StringLiteral stringLiteral -> {
+                sb.append('\'');
+                // Escape the single quote to ensure the user input is safe
+                sb.append(StringUtils.escape(stringLiteral.getValue(), sqlDialect.getEscapeCharacter4SingleQuote(), '\''));
+                sb.append('\'');
+            }
+            case LiteralExpression.LongLiteral longLiteral -> sb.append(longLiteral.getValue());
+            case LiteralExpression.DoubleLiteral doubleLiteral -> sb.append(doubleLiteral.getValue());
+            case LiteralExpression.BooleanLiteral booleanLiteral ->
+                // Some old versions of CK do not support true/false literal, we use integer instead
+                sb.append(expression.asBoolean() ? 1 : 0);
+            case LiteralExpression.TimestampLiteral timestampLiteral -> sb.append(sqlDialect.formatDateTime(timestampLiteral));
+            case LiteralExpression.AsteriskLiteral asteriskLiteral -> sb.append('*');
+            case LiteralExpression.ReadableDurationLiteral durationLiteral -> sb.append(durationLiteral.getValue().getDuration().getSeconds());
+            case LiteralExpression.ReadableNumberLiteral numberLiteral -> sb.append(numberLiteral.getValue().longValue());
+            case LiteralExpression.ReadablePercentageLiteral percentageLiteral -> sb.append(percentageLiteral.getValue().getFraction());
+            default -> throw new RuntimeException("Not supported type " + expression.getDataType());
         }
     }
 
@@ -137,4 +132,3 @@ public class Expression2Sql extends ExpressionSerializer {
         }
     }
 }
-

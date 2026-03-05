@@ -24,6 +24,7 @@ import org.bithon.server.datasource.DefaultSchema;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.TimestampSpec;
 import org.bithon.server.datasource.column.ExpressionColumn;
+import org.bithon.server.datasource.column.ObjectColumn;
 import org.bithon.server.datasource.column.StringColumn;
 import org.bithon.server.datasource.column.aggregatable.last.AggregateLongLastColumn;
 import org.bithon.server.datasource.column.aggregatable.sum.AggregateLongSumColumn;
@@ -1905,6 +1906,83 @@ public class SelectStatementBuilderTest {
                                     LIMIT 100
                                     """.trim(),
                                 selectStatement.toSQL(dialect));
+    }
+
+    @Test
+    public void test_NotIsNullOnNonIdentifierExpression() {
+        ISqlDialect dialect = new H2SqlDialect();
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("responseTime", "responseTime", null, null)))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .filterExpression("NOT ((responseTime + 1) is null)")
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schema, queryRequest, null))
+                                                                .sqlDialect(dialect)
+                                                                .buildSelectStatement();
+        String sql = selectStatement.toSQL(dialect);
+
+        Assertions.assertEquals(sql,
+                                """
+                                    SELECT "responseTime"
+                                    FROM "bithon_http_incoming_metrics"
+                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND (NOT (("bithon_http_incoming_metrics"."responseTime" + 1) IS NULL))
+                                    """.trim());
+    }
+
+    @Test
+    public void test_NotIsNullOnMapAccessExpression() {
+        ISqlDialect dialect = new H2SqlDialect();
+        ISchema schemaWithObject = new DefaultSchema("bithon-http-incoming-metrics",
+                                                     "bithon-http-incoming-metrics",
+                                                     new TimestampSpec("timestamp"),
+                                                     Arrays.asList(new StringColumn("appName", "appName"),
+                                                                   new ObjectColumn("obj", "obj")),
+                                                     Arrays.asList(new AggregateLongSumColumn("responseTime", "responseTime")),
+                                                     null,
+                                                     new IDataStoreSpec() {
+                                                         @Override
+                                                         public String getStore() {
+                                                             return "bithon_http_incoming_metrics";
+                                                         }
+
+                                                         @Override
+                                                         public void setSchema(ISchema schema) {
+                                                         }
+
+                                                         @Override
+                                                         public boolean isInternal() {
+                                                             return false;
+                                                         }
+
+                                                         @Override
+                                                         public IDataSourceReader createReader() {
+                                                             return null;
+                                                         }
+                                                     },
+                                                     null,
+                                                     null);
+        QueryRequest queryRequest = QueryRequest.builder()
+                                                .fields(List.of(new QueryField("appName", "appName", null, null)))
+                                                .interval(IntervalRequest.builder()
+                                                                         .startISO8601(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"))
+                                                                         .endISO8601(TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"))
+                                                                         .build())
+                                                .filterExpression("NOT (obj['attr'] is null)")
+                                                .build();
+        SelectStatement selectStatement = SelectStatementBuilder.from(QueryConverter.toQuery(schemaWithObject, queryRequest, null))
+                                                                .sqlDialect(dialect)
+                                                                .buildSelectStatement();
+        String sql = selectStatement.toSQL(dialect);
+
+        Assertions.assertEquals(sql,
+                                """
+                                    SELECT "appName"
+                                    FROM "bithon_http_incoming_metrics"
+                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND (NOT ("obj"['attr'] IS NULL))
+                                    """.trim());
     }
 
     @Test

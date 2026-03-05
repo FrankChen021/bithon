@@ -189,7 +189,9 @@ public class SelectStatementBuilder {
         public IExpression visit(ConditionalExpression expression) {
             IExpression lhs = expression.getLhs();
             if (!(lhs instanceof IdentifierExpression)) {
-                return null;
+                // If it's non identifier, it may be a compound expression
+                // Keep non-identifier expressions in pre-filter to avoid dropping operands under logical NOT.
+                return expression;
             }
             String identifier = ((IdentifierExpression) lhs).getIdentifier();
 
