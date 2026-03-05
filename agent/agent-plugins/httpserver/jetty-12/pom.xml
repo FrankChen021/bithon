@@ -27,7 +27,7 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
-      <version>12.0.17</version>
+      <version>12.0.32</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
