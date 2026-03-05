@@ -68,7 +68,9 @@ public class Expression2Sql extends ExpressionSerializer {
 
     @Override
     public void serialize(LiteralExpression<?> expression) {
-        if (expression instanceof LiteralExpression.StringLiteral stringLiteral) {
+        if (expression instanceof LiteralExpression.NullLiteral) {
+            sb.append("NULL");
+        } else if (expression instanceof LiteralExpression.StringLiteral stringLiteral) {
             sb.append('\'');
             // Escape the single quote to ensure the user input is safe
             sb.append(StringUtils.escape(stringLiteral.getValue(), sqlDialect.getEscapeCharacter4SingleQuote(), '\''));
@@ -80,8 +82,8 @@ public class Expression2Sql extends ExpressionSerializer {
         } else if (expression instanceof LiteralExpression.BooleanLiteral) {
             // Some old versions of CK do not support true/false literal, we use integer instead
             sb.append(expression.asBoolean() ? 1 : 0);
-        } else if (expression instanceof LiteralExpression.TimestampLiteral) {
-            sb.append(sqlDialect.formatDateTime((LiteralExpression.TimestampLiteral) expression));
+        } else if (expression instanceof LiteralExpression.TimestampLiteral timestampLiteral) {
+            sb.append(sqlDialect.formatDateTime(timestampLiteral));
         } else if (expression instanceof LiteralExpression.AsteriskLiteral) {
             sb.append('*');
         } else if (expression instanceof LiteralExpression.ReadableDurationLiteral durationLiteral) {
@@ -137,4 +139,3 @@ public class Expression2Sql extends ExpressionSerializer {
         }
     }
 }
-
