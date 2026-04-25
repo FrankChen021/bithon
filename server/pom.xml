@@ -112,18 +112,18 @@
       <dependency>
         <groupId>org.antlr</groupId>
         <artifactId>antlr4-runtime</artifactId>
-        <version>4.9.3</version>
+        <version>4.13.2</version>
       </dependency>
       <dependency>
         <groupId>org.antlr</groupId>
         <artifactId>antlr4</artifactId> <!-- for grammar interpreter -->
-        <version>4.9.3</version>
+        <version>4.13.2</version>
       </dependency>
 
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>32.0.0-jre</version>
+        <version>33.5.0-jre</version>
       </dependency>
 
       <dependency>
