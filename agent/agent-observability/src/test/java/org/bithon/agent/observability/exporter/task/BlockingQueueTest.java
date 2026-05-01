@@ -24,8 +24,11 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author frank.chen021@outlook.com
@@ -37,6 +40,7 @@ public class BlockingQueueTest {
         private final IThreadSafeQueue queue;
         private long elapsed = 0;
         private Object takenObject;
+        private CountDownLatch takeStarted;
 
         public QueueTestDelegation(int batchSize) {
             this.queue = new BatchMessageQueue(new BlockingQueue(), batchSize);
@@ -49,6 +53,9 @@ public class BlockingQueueTest {
         void take(int timeout) {
             long s = System.currentTimeMillis();
             try {
+                if (takeStarted != null) {
+                    takeStarted.countDown();
+                }
                 takenObject = queue.take(timeout);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -59,6 +66,21 @@ public class BlockingQueueTest {
 
         List<?> takenObjectAsCollection() {
             return (List<?>) takenObject;
+        }
+
+        FutureTask<List<?>> takeAsync(int timeout) throws InterruptedException {
+            CountDownLatch latch = new CountDownLatch(1);
+            FutureTask<List<?>> future = new FutureTask<>(() -> {
+                take(timeout);
+                return takenObjectAsCollection();
+            });
+
+            takeStarted = latch;
+            Thread thread = new Thread(future, "blocking-queue-test-take");
+            thread.start();
+
+            Assertions.assertTrue(latch.await(1, TimeUnit.SECONDS));
+            return future;
         }
     }
 
@@ -155,41 +177,24 @@ public class BlockingQueueTest {
         QueueTestDelegation queue = new QueueTestDelegation(5);
 
         int timeout = 5000;
-        ExecutorService executor = Executors.newFixedThreadPool(2);
 
         // Take the first batch
-        executor.execute(() -> queue.take(timeout));
+        FutureTask<List<?>> firstBatch = queue.takeAsync(timeout);
 
-        // Offer items slowly so that the 'wait' in the 'take' takes effect
-        executor.execute(() -> {
-            queue.offer(Arrays.asList(1, 2, 3));
+        queue.offer(Arrays.asList(1, 2, 3));
+        Assertions.assertFalse(firstBatch.isDone());
+        queue.offer(Arrays.asList(4, 5, 6));
 
-            try {
-                Thread.sleep(1500);
-            } catch (InterruptedException ignored) {
-            }
-            queue.offer(Arrays.asList(4, 5, 6));
+        List<?> firstBatchElements = get(firstBatch);
+        Assertions.assertNotNull(firstBatchElements);
+        Assertions.assertEquals(5, firstBatchElements.size());
+        Assertions.assertEquals(1, firstBatchElements.get(0));
+        Assertions.assertEquals(2, firstBatchElements.get(1));
+        Assertions.assertEquals(3, firstBatchElements.get(2));
+        Assertions.assertEquals(4, firstBatchElements.get(3));
+        Assertions.assertEquals(5, firstBatchElements.get(4));
 
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException ignored) {
-            }
-            queue.offer(Arrays.asList(7, 8, 9, 10, 11));
-        });
-
-
-        // Wait for tasks to complete
-        Thread.sleep(timeout + 1000);
-
-        // It took at least 1500ms to offer 5 elements above
-        Assertions.assertTrue(queue.elapsed >= 1500);
-        Assertions.assertNotNull(queue.takenObject);
-        Assertions.assertEquals(5, queue.takenObjectAsCollection().size());
-        Assertions.assertEquals(1, queue.takenObjectAsCollection().get(0));
-        Assertions.assertEquals(2, queue.takenObjectAsCollection().get(1));
-        Assertions.assertEquals(3, queue.takenObjectAsCollection().get(2));
-        Assertions.assertEquals(4, queue.takenObjectAsCollection().get(3));
-        Assertions.assertEquals(5, queue.takenObjectAsCollection().get(4));
+        queue.offer(Arrays.asList(7, 8, 9, 10, 11));
 
         // Take the 2nd batch
         // Since there are 10 items left, another 'take' call will take all these 5 items
@@ -214,5 +219,13 @@ public class BlockingQueueTest {
         // No elements left to take
         queue.take(100);
         Assertions.assertEquals(0, queue.takenObjectAsCollection().size());
+    }
+
+    private List<?> get(FutureTask<List<?>> future) {
+        try {
+            return future.get(1, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            throw new AssertionError("Timed out waiting for batch", e);
+        }
     }
 }
