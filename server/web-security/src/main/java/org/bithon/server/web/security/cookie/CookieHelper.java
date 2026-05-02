@@ -20,6 +20,7 @@ package org.bithon.server.web.security.cookie;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.ResponseCookie;
 
 /**
  * @author Frank Chen
@@ -29,6 +30,8 @@ public class CookieHelper {
 
     public static class Builder {
         private Cookie cookie;
+        private String sameSite = "Lax";
+        private boolean secure;
 
         public static Builder newCookie(String name, String content) {
             Builder builder = new Builder();
@@ -47,8 +50,29 @@ public class CookieHelper {
             return this;
         }
 
+        public Builder sameSite(String sameSite) {
+            this.sameSite = sameSite;
+            return this;
+        }
+
+        public Builder secure(boolean secure) {
+            this.secure = secure;
+            return this;
+        }
+
         public void addTo(HttpServletResponse response) {
-            response.addCookie(cookie);
+            ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from(cookie.getName(), cookie.getValue())
+                                                                               .httpOnly(cookie.isHttpOnly())
+                                                                               .secure(secure)
+                                                                               .sameSite(sameSite);
+            if (cookie.getPath() != null) {
+                cookieBuilder.path(cookie.getPath());
+            }
+            if (cookie.getMaxAge() >= 0) {
+                cookieBuilder.maxAge(cookie.getMaxAge());
+            }
+
+            response.addHeader("Set-Cookie", cookieBuilder.build().toString());
         }
     }
 
@@ -67,14 +91,22 @@ public class CookieHelper {
     }
 
     public static void delete(HttpServletRequest request, HttpServletResponse response, String cookieName) {
+        delete(request, response, cookieName, false);
+    }
+
+    public static void delete(HttpServletRequest request, HttpServletResponse response, String cookieName, boolean secure) {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if (cookie.getName().equals(cookieName)) {
-                    cookie.setValue("");
-                    cookie.setPath("/");
-                    cookie.setMaxAge(0);
-                    response.addCookie(cookie);
+                    ResponseCookie responseCookie = ResponseCookie.from(cookieName, "")
+                                                                  .httpOnly(true)
+                                                                  .secure(secure)
+                                                                  .path("/")
+                                                                  .maxAge(0)
+                                                                  .sameSite("Lax")
+                                                                  .build();
+                    response.addHeader("Set-Cookie", responseCookie.toString());
                 }
             }
         }

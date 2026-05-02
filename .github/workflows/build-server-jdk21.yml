@@ -15,6 +15,9 @@ on:
       - ".github/workflows/build-agent.yml"
       - ".github/workflows/push-docker-agent-images.yml"
 
+permissions:
+  contents: read
+
 concurrency:
   # https://stackoverflow.com/questions/68418857/how-to-cancel-existing-runs-when-a-new-push-happens-on-github-actions-but-only
   # Documentation suggests ${{ github.head_ref }}, but that's only available on pull_request/pull_request_target triggers, so using ${{ github.ref }}.

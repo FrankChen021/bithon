@@ -19,11 +19,6 @@ package org.bithon.server.storage.jdbc.alerting;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.utils.SqlLikeExpression;
 import org.bithon.server.datasource.query.Order;
@@ -213,22 +208,7 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
         }
     }
 
-    @Getter
-    @Setter
-    @Builder
-    static class HttpNotificationProps {
-        private String url;
-        private String body;
-    }
-
     protected void initialChannel() {
-        try {
-            HttpNotificationProps props = HttpNotificationProps.builder()
-                                                               .url(StringUtils.format("http://localhost:%d/api/alerting/channel/blackhole", serverProperties.getPort()))
-                                                               .body("[{alert.status}] {alert.name}\n{alert.expr}\n{alert.message}\n{alert.url}")
-                                                               .build();
-            this.createChannel("http", "test", new ObjectMapper().writeValueAsString(props));
-        } catch (JsonProcessingException ignored) {
-        }
+        this.createChannel("console", "test", "{}");
     }
 }
