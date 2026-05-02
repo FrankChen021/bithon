@@ -91,7 +91,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (!authenticated && req.getRequestURI().contains("/api/")) {
-            // For API endpoints, returns the 403
+            // For API endpoints, returns the 401
             // For other endpoints, we continue the processing, and a login filter will be triggered to log in
             res.setStatus(HttpStatus.UNAUTHORIZED.value());
             res.setContentType(MediaType.TEXT_PLAIN_VALUE);

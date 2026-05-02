@@ -253,25 +253,69 @@ public class HttpNotificationChannel implements INotificationChannel {
 
         byte[] bytes = address.getAddress();
         if (bytes.length == 4) {
-            int first = bytes[0] & 0xFF;
-            int second = bytes[1] & 0xFF;
-
-            return first == 0
-                   || first == 10
-                   || first == 127
-                   || (first == 100 && second >= 64 && second <= 127)
-                   || (first == 169 && second == 254)
-                   || (first == 172 && second >= 16 && second <= 31)
-                   || (first == 192 && second == 168)
-                   || (first >= 224);
+            return isBlockedIpv4Address(bytes, 0);
         }
 
         if (address instanceof Inet6Address) {
             int first = bytes[0] & 0xFF;
-            return (first & 0xFE) == 0xFC;
+            return (first & 0xFE) == 0xFC
+                   || isBlockedEmbeddedIpv4Address(bytes);
         }
 
         return false;
+    }
+
+    private static boolean isBlockedIpv4Address(byte[] bytes, int offset) {
+        int first = bytes[offset] & 0xFF;
+        int second = bytes[offset + 1] & 0xFF;
+
+        return first == 0
+               || first == 10
+               || first == 127
+               || (first == 100 && second >= 64 && second <= 127)
+               || (first == 169 && second == 254)
+               || (first == 172 && second >= 16 && second <= 31)
+               || (first == 192 && second == 168)
+               || first >= 224;
+    }
+
+    private static boolean isBlockedEmbeddedIpv4Address(byte[] bytes) {
+        // IPv4-compatible IPv6: ::a.b.c.d
+        if (isZero(bytes, 0, 12) && isBlockedIpv4Address(bytes, 12)) {
+            return true;
+        }
+
+        // IPv4-mapped IPv6: ::ffff:a.b.c.d
+        if (isZero(bytes, 0, 10)
+            && (bytes[10] & 0xFF) == 0xFF
+            && (bytes[11] & 0xFF) == 0xFF
+            && isBlockedIpv4Address(bytes, 12)) {
+            return true;
+        }
+
+        // Well-known NAT64 prefixes: 64:ff9b::/96 and 64:ff9b:1::/48
+        if ((bytes[0] & 0xFF) == 0x00
+            && (bytes[1] & 0xFF) == 0x64
+            && (bytes[2] & 0xFF) == 0xFF
+            && (bytes[3] & 0xFF) == 0x9B
+            && ((isZero(bytes, 4, 8) && isBlockedIpv4Address(bytes, 12))
+                || ((bytes[4] & 0xFF) == 0x00 && (bytes[5] & 0xFF) == 0x01 && isBlockedIpv4Address(bytes, 12)))) {
+            return true;
+        }
+
+        // 6to4 addresses: 2002:a.b.c.d::/48
+        return (bytes[0] & 0xFF) == 0x20
+               && (bytes[1] & 0xFF) == 0x02
+               && isBlockedIpv4Address(bytes, 2);
+    }
+
+    private static boolean isZero(byte[] bytes, int offset, int length) {
+        for (int i = offset; i < offset + length; i++) {
+            if (bytes[i] != 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static class RestrictedDnsResolver implements DnsResolver {
