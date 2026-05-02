@@ -411,7 +411,7 @@
       </activation>
     </profile>
 
-    <!-- Profile for JDK below 11 - skip java-net-http tests -->
+    <!-- Profile for JDK below 11 - skip tests for Java 11+ client bytecode -->
     <profile>
       <id>jdk-below-11</id>
       <activation>
@@ -425,6 +425,8 @@
             <configuration>
               <excludes>
                 <exclude>**/JavaNetHttpClientPluginInterceptorTest.java</exclude>
+                <exclude>**/Kafka40PluginInterceptorTest.java</exclude>
+                <exclude>**/Kafka41PluginInterceptorTest.java</exclude>
               </excludes>
             </configuration>
           </plugin>
