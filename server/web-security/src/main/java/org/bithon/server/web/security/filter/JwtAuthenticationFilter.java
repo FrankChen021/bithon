@@ -91,11 +91,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (!authenticated && req.getRequestURI().contains("/api/")) {
-            // For API endpoints, returns the 403
+            // For API endpoints, returns the 401
             // For other endpoints, we continue the processing, and a login filter will be triggered to log in
             res.setStatus(HttpStatus.UNAUTHORIZED.value());
-            res.setContentType(MediaType.TEXT_PLAIN.getType());
-            res.getWriter().println(StringUtils.format("%s not authorized.", req.getRequestURI()));
+            res.setContentType(MediaType.TEXT_PLAIN_VALUE);
+            res.setHeader("X-Content-Type-Options", "nosniff");
+            res.getWriter().println("Unauthorized.");
             return;
         }
 

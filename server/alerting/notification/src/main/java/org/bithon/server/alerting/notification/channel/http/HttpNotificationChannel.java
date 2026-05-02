@@ -33,6 +33,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.DnsResolver;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -46,8 +47,11 @@ import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
 import java.io.IOException;
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collection;
@@ -108,14 +112,8 @@ public class HttpNotificationChannel implements INotificationChannel {
         this.props = Preconditions.checkNotNull(props, "props property can not be null.");
         Preconditions.checkIfTrue(!StringUtils.isBlank(this.props.url), "The url property can not be empty");
 
-        try {
-            URL url = new URL(props.url.trim());
-            Preconditions.checkIfTrue(!StringUtils.isEmpty(url.getHost()), "Invalid URL: %s. Missing host", props.url);
-        } catch (MalformedURLException e) {
-            throw new Preconditions.InvalidValueException("Invalid URL: %s", props.url);
-        }
-
         this.props.url = props.url.trim();
+        validateTargetUrl(this.props.url);
         this.props.headers = props.headers == null ? Collections.emptyMap() : props.headers;
 
         this.notificationProperties = notificationProperties;
@@ -181,7 +179,12 @@ public class HttpNotificationChannel implements INotificationChannel {
                                                    .setSocketTimeout((int) timeout.toMillis())
                                                    .setConnectTimeout(1000)
                                                    .build();
-        try (CloseableHttpClient client = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build()) {
+        validateTargetUrl(this.props.url);
+        try (CloseableHttpClient client = HttpClientBuilder.create()
+                                                           .disableRedirectHandling()
+                                                           .setDnsResolver(new RestrictedDnsResolver())
+                                                           .setDefaultRequestConfig(requestConfig)
+                                                           .build()) {
             HttpPost request = new HttpPost(this.props.url);
 
             // Custom headers
@@ -205,6 +208,128 @@ public class HttpNotificationChannel implements INotificationChannel {
                                                               response.getStatusLine().getStatusCode(),
                                                               IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8)));
             }
+        }
+    }
+
+    private static void validateTargetUrl(String targetUrl) {
+        URL url;
+        try {
+            url = new URL(targetUrl);
+        } catch (MalformedURLException e) {
+            throw new Preconditions.InvalidValueException("Invalid URL: %s", targetUrl);
+        }
+
+        String protocol = url.getProtocol();
+        Preconditions.checkIfTrue("http".equals(protocol) || "https".equals(protocol),
+                                  "Invalid URL: %s. Only http and https schemes are supported",
+                                  targetUrl);
+        Preconditions.checkIfTrue(!StringUtils.isEmpty(url.getHost()), "Invalid URL: %s. Missing host", targetUrl);
+
+        InetAddress[] addresses;
+        try {
+            addresses = InetAddress.getAllByName(url.getHost());
+        } catch (UnknownHostException e) {
+            throw new Preconditions.InvalidValueException("Invalid URL: %s. Unknown host", targetUrl);
+        }
+        validateResolvedAddresses(targetUrl, addresses);
+    }
+
+    private static void validateResolvedAddresses(String targetUrl, InetAddress[] addresses) {
+        for (InetAddress address : addresses) {
+            Preconditions.checkIfTrue(!isBlockedAddress(address),
+                                      "Invalid URL: %s. Host resolves to a restricted address",
+                                      targetUrl);
+        }
+    }
+
+    private static boolean isBlockedAddress(InetAddress address) {
+        if (address.isAnyLocalAddress()
+            || address.isLoopbackAddress()
+            || address.isLinkLocalAddress()
+            || address.isSiteLocalAddress()
+            || address.isMulticastAddress()) {
+            return true;
+        }
+
+        byte[] bytes = address.getAddress();
+        if (bytes.length == 4) {
+            return isBlockedIpv4Address(bytes, 0);
+        }
+
+        if (address instanceof Inet6Address) {
+            int first = bytes[0] & 0xFF;
+            return (first & 0xFE) == 0xFC
+                   || isBlockedEmbeddedIpv4Address(bytes);
+        }
+
+        return false;
+    }
+
+    private static boolean isBlockedIpv4Address(byte[] bytes, int offset) {
+        int first = bytes[offset] & 0xFF;
+        int second = bytes[offset + 1] & 0xFF;
+
+        return first == 0
+               || first == 10
+               || first == 127
+               || (first == 100 && second >= 64 && second <= 127)
+               || (first == 169 && second == 254)
+               || (first == 172 && second >= 16 && second <= 31)
+               || (first == 192 && second == 168)
+               || first >= 224;
+    }
+
+    private static boolean isBlockedEmbeddedIpv4Address(byte[] bytes) {
+        // IPv4-compatible IPv6: ::a.b.c.d
+        if (isZero(bytes, 0, 12) && isBlockedIpv4Address(bytes, 12)) {
+            return true;
+        }
+
+        // IPv4-mapped IPv6: ::ffff:a.b.c.d
+        if (isZero(bytes, 0, 10)
+            && (bytes[10] & 0xFF) == 0xFF
+            && (bytes[11] & 0xFF) == 0xFF
+            && isBlockedIpv4Address(bytes, 12)) {
+            return true;
+        }
+
+        // Well-known NAT64 prefixes: 64:ff9b::/96 and 64:ff9b:1::/48
+        if ((bytes[0] & 0xFF) == 0x00
+            && (bytes[1] & 0xFF) == 0x64
+            && (bytes[2] & 0xFF) == 0xFF
+            && (bytes[3] & 0xFF) == 0x9B
+            && ((isZero(bytes, 4, 8) && isBlockedIpv4Address(bytes, 12))
+                || ((bytes[4] & 0xFF) == 0x00 && (bytes[5] & 0xFF) == 0x01 && isBlockedIpv4Address(bytes, 12)))) {
+            return true;
+        }
+
+        // 6to4 addresses: 2002:a.b.c.d::/48
+        return (bytes[0] & 0xFF) == 0x20
+               && (bytes[1] & 0xFF) == 0x02
+               && isBlockedIpv4Address(bytes, 2);
+    }
+
+    private static boolean isZero(byte[] bytes, int offset, int length) {
+        for (int i = offset; i < offset + length; i++) {
+            if (bytes[i] != 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static class RestrictedDnsResolver implements DnsResolver {
+        @Override
+        public InetAddress[] resolve(String host) throws UnknownHostException {
+            InetAddress[] addresses = InetAddress.getAllByName(host);
+            try {
+                validateResolvedAddresses(host, addresses);
+            } catch (Preconditions.InvalidValueException e) {
+                UnknownHostException unknownHostException = new UnknownHostException(host);
+                unknownHostException.initCause(e);
+                throw unknownHostException;
+            }
+            return addresses;
         }
     }
 
