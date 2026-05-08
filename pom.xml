@@ -18,7 +18,7 @@
          during test discovery on newer JDK builds (for example JDK21 in CI). -->
     <junit.jupiter.version>5.10.2</junit.jupiter.version>
     <junit.platform.version>1.10.2</junit.platform.version>
-    <lombok.version>1.18.38</lombok.version>
+    <lombok.version>1.18.46</lombok.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
@@ -343,7 +343,7 @@
           <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs</artifactId>
-            <version>4.8.3</version>
+            <version>4.9.8</version>
           </dependency>
         </dependencies>
         <configuration>
