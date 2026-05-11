@@ -32,6 +32,8 @@ import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
 import org.bithon.agent.plugin.spring.webflux.config.ResponseConfigs;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
+import org.bithon.agent.plugin.spring.webflux.context.ReactorTraceContextOperatorHook;
+import org.bithon.agent.plugin.spring.webflux.context.TraceContextScopedMono;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.Components;
@@ -68,6 +70,8 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
     private final String xforwardTagName;
 
     public ReactorHttpHandlerAdapter$Apply() {
+        ReactorTraceContextOperatorHook.install();
+
         requestFilter = new HttpIncomingFilter();
 
         traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
@@ -163,6 +167,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
         if (!(injected instanceof HttpServerContext)) {
             return;
         }
+        ITraceContext traceContext = ((HttpServerContext) injected).getTraceContext();
 
         final long start = aopContext.getStartNanoTime();
         BiConsumer<Void, Throwable> onSuccessOrError = (t, throwable) -> {
@@ -177,9 +182,9 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
         };
 
         // replace the returned Mono so that we can do sth when this request completes
-        aopContext.setReturning(mono.doOnSuccess((v) -> onSuccessOrError.accept(null, null))
-                                    .doOnError((error) -> onSuccessOrError.accept(null, error))
-        );
+        Mono<Void> tracedMono = mono.doOnSuccess((v) -> onSuccessOrError.accept(null, null))
+                                   .doOnError((error) -> onSuccessOrError.accept(null, error));
+        aopContext.setReturning(TraceContextScopedMono.wrap(tracedMono, traceContext));
     }
 
     private void update(HttpServerRequest request, HttpServerResponse response, long responseTime) {
