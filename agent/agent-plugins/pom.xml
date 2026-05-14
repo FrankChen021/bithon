@@ -75,6 +75,7 @@
     <module>spring/scheduling</module>
     <module>spring/webflux</module>
     <module>spring/webmvc</module>
+    <module>spring/webmvc-7</module>
     <module>xxl-job</module>
   </modules>
 
