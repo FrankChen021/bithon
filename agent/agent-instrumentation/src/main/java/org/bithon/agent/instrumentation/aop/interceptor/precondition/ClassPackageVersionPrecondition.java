@@ -18,7 +18,10 @@ package org.bithon.agent.instrumentation.aop.interceptor.precondition;
 
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 
+import java.util.Collections;
 import java.util.Locale;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * Checks the implementation version exposed by the package of a class.
@@ -26,8 +29,9 @@ import java.util.Locale;
  * @author frankchen
  */
 public class ClassPackageVersionPrecondition implements IInterceptorPrecondition {
-    private Boolean evaluationResult;
-    private String actual;
+    private final Map<ClassLoader, EvaluationResult> evaluationResult = Collections.synchronizedMap(
+        new WeakHashMap<>()
+    );
     private final String className;
     private final PropertyFileValuePrecondition.PropertyValuePredicate valuePredicate;
 
@@ -39,32 +43,45 @@ public class ClassPackageVersionPrecondition implements IInterceptorPrecondition
 
     @Override
     public boolean matches(ClassLoader classLoader, TypeDescription typeDescription) {
-        if (this.evaluationResult == null) {
-            this.evaluationResult = matches(classLoader);
+        synchronized (this.evaluationResult) {
+            EvaluationResult result = this.evaluationResult.get(classLoader);
+            if (result == null) {
+                result = matches(classLoader);
+                this.evaluationResult.put(classLoader, result);
+            }
+            return result.matched;
         }
-        return this.evaluationResult;
     }
 
-    private boolean matches(ClassLoader classLoader) {
+    private EvaluationResult matches(ClassLoader classLoader) {
         try {
             Class<?> clazz = Class.forName(this.className, false, classLoader);
             Package pkg = clazz.getPackage();
             if (pkg == null) {
-                return false;
+                return EvaluationResult.NOT_MATCHED;
             }
-            this.actual = pkg.getImplementationVersion();
-            return this.actual != null && this.valuePredicate.matches(this.actual);
+            String actual = pkg.getImplementationVersion();
+            return new EvaluationResult(actual != null && this.valuePredicate.matches(actual));
         } catch (Throwable ignored) {
-            return false;
+            return EvaluationResult.NOT_MATCHED;
         }
     }
 
     @Override
     public String toString() {
         return String.format(Locale.ENGLISH,
-                             "'%s'[packageImplementationVersion](val=%s) %s",
+                             "'%s'[packageImplementationVersion] %s",
                              this.className,
-                             this.actual,
                              this.valuePredicate);
+    }
+
+    private static class EvaluationResult {
+        private static final EvaluationResult NOT_MATCHED = new EvaluationResult(false);
+
+        private final boolean matched;
+
+        private EvaluationResult(boolean matched) {
+            this.matched = matched;
+        }
     }
 }

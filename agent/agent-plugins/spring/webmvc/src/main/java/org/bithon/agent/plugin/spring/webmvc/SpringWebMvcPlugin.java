@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.spring.webmvc;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.ClassPackageVersionPrecondition;
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.PropertyFileValuePrecondition;
 
 import java.util.Arrays;
@@ -37,6 +38,7 @@ public class SpringWebMvcPlugin implements IPlugin {
         return Arrays.asList(
 
             forClass("org.springframework.web.client.RestTemplate")
+                .when(springVersionLessThan7())
                 .onMethod("doExecute")
                 .interceptedBy("org.bithon.agent.plugin.spring.webmvc.rs.RestTemplate$Execute")
                 .onMethod("handleResponse")
@@ -44,11 +46,15 @@ public class SpringWebMvcPlugin implements IPlugin {
                 .build(),
 
             forClass("org.springframework.web.method.support.InvocableHandlerMethod")
-                .when(new ClassPackageVersionPrecondition("org.springframework.http.ResponseEntity",
-                                                          PropertyFileValuePrecondition.VersionLT.of("7.0.0")))
+                .when(springVersionLessThan7())
                 .onMethod("doInvoke")
                 .interceptedBy("org.bithon.agent.plugin.spring.webmvc.controller.InvocableHandlerMethod$DoInvoke")
                 .build()
         );
+    }
+
+    private static IInterceptorPrecondition springVersionLessThan7() {
+        return new ClassPackageVersionPrecondition("org.springframework.http.ResponseEntity",
+                                                   PropertyFileValuePrecondition.VersionLT.of("7.0.0"));
     }
 }
