@@ -58,6 +58,8 @@ class TraceJdbcReaderSchemaStoreTest {
         newReader(sqls).getTraceByTraceId("trace-1", null, null, null).close();
 
         assertUsesCustomTraceSpanStore(sqls.get(0));
+        assertTrue(sqls.get(0).contains("?"), sqls.get(0));
+        assertFalse(sqls.get(0).contains("'trace-1'"), sqls.get(0));
     }
 
     @Test
@@ -85,6 +87,18 @@ class TraceJdbcReaderSchemaStoreTest {
         newReader(sqls).getTraceSpanDistribution("trace-1", null, null, null, List.of("appName"));
 
         assertUsesCustomTraceSpanStore(sqls.get(0));
+    }
+
+    @Test
+    void getTraceSpanDistributionResolvesGroupAlias() {
+        List<String> sqls = new ArrayList<>();
+
+        newReader(sqls).getTraceSpanDistribution("trace-1", null, null, null, List.of("url"));
+
+        String sql = sqls.get(0);
+        assertTrue(sql.contains("\"normalizedUrl\" AS \"url\""), sql);
+        assertTrue(sql.contains("GROUP BY \"normalizedUrl\""), sql);
+        assertFalse(sql.contains("GROUP BY \"url\""), sql);
     }
 
     private static TraceJdbcReader newReader(List<String> sqls) {
@@ -133,7 +147,7 @@ class TraceJdbcReaderSchemaStoreTest {
         @Override
         public IColumn getColumnByName(String name) {
             return getColumns().stream()
-                               .filter(column -> column.getName().equals(name))
+                               .filter(column -> column.getName().equals(name) || column.getAlias().equals(name))
                                .findFirst()
                                .orElse(null);
         }
@@ -144,6 +158,7 @@ class TraceJdbcReaderSchemaStoreTest {
                            new StringColumn("appName", "appName"),
                            new StringColumn("instanceName", "instanceName"),
                            new StringColumn("name", "name"),
+                           new StringColumn("normalizedUrl", "url"),
                            new StringColumn("kind", "kind"),
                            new LongColumn("timestamp", "timestamp"),
                            new LongColumn("startTimeUs", "startTimeUs"),

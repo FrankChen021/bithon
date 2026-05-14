@@ -161,9 +161,8 @@ public class TraceJdbcReader implements ITraceReader {
         Select<Record> traceQuery = sql.orderBy(traceSpanField(this.traceSpanSchema.getTimestampSpec().getColumnName()).asc(),
                                                 traceSpanField(Tables.BITHON_TRACE_SPAN.INSTANCENAME.getName()),
                                                 traceSpanField(Tables.BITHON_TRACE_SPAN.STARTTIMEUS.getName()));
-        String traceSql = toSQL(traceQuery);
-        log.info("Get trace by trace id: {}", traceSql);
-        Cursor<Record> cursor = dslContext.fetchLazy(traceSql);
+        log.info("Get trace by trace id: {}", toSQL(traceQuery));
+        Cursor<Record> cursor = dslContext.fetchLazy(toExecutableSQL(traceQuery), traceQuery.getBindValues().toArray());
 
         return CloseableIterator.transform(cursor.iterator(),
                                            (record) -> toTraceSpan(record, TraceSpanRecordAccessor.TABLE_RECORD_ACCESSOR),
@@ -287,9 +286,12 @@ public class TraceJdbcReader implements ITraceReader {
                                            cursor);
     }
 
-    @SuppressWarnings("rawtypes")
-    private String toSQL(Select selectQuery) {
+    private String toSQL(Select<?> selectQuery) {
         return decorateSQL(dslContext.renderInlined(selectQuery));
+    }
+
+    private String toExecutableSQL(Select<?> selectQuery) {
+        return decorateSQL(dslContext.render(selectQuery));
     }
 
     protected String decorateSQL(String sql) {
@@ -356,15 +358,23 @@ public class TraceJdbcReader implements ITraceReader {
         }
 
         SelectStatement selectStatement = new SelectStatement();
+        List<String> groupByFields = new ArrayList<>(groups.size());
         for (String group : groups) {
-            selectStatement.getSelectorList().add(new org.bithon.server.datasource.query.ast.Column(group), IDataType.STRING);
+            IColumn column = getTraceSpanColumn(group);
+            String columnName = column.getName();
+            groupByFields.add(columnName);
+            if (columnName.equals(group)) {
+                selectStatement.getSelectorList().add(new org.bithon.server.datasource.query.ast.Column(columnName), column.getDataType());
+            } else {
+                selectStatement.getSelectorList().add(new org.bithon.server.datasource.query.ast.Column(columnName), group, column.getDataType());
+            }
         }
 
         IExpression countExpression = new FunctionExpression(AggregateFunction.Count.INSTANCE, new LiteralExpression.LongLiteral(1));
         selectStatement.getSelectorList().add(new ExpressionNode(countExpression), "count", IDataType.LONG);
         selectStatement.getFrom().setExpression(new TableIdentifier(this.traceSpanSchema.getDataStoreSpec().getStore()));
         selectStatement.getWhere().and(where);
-        selectStatement.getGroupBy().addFields(groups);
+        selectStatement.getGroupBy().addFields(groupByFields);
         selectStatement.setOrderBy(new OrderByClause("count", Order.desc));
 
         String sql = selectStatement.toSQL(this.sqlDialect);
@@ -430,6 +440,14 @@ public class TraceJdbcReader implements ITraceReader {
     private String getTraceSpanColumnName(String columnName) {
         IColumn column = this.traceSpanSchema.getColumnByName(columnName);
         return column == null ? columnName : column.getName();
+    }
+
+    private IColumn getTraceSpanColumn(String columnName) {
+        IColumn column = this.traceSpanSchema.getColumnByName(columnName);
+        if (column == null) {
+            throw new IllegalArgumentException("Invalid trace span field: " + columnName);
+        }
+        return column;
     }
 
     @Override
