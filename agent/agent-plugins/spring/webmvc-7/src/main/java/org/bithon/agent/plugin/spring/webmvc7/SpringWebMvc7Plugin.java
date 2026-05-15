@@ -22,7 +22,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.precondition.ClassPackag
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.PropertyFileValuePrecondition;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptorBuilder.forClass;
@@ -36,15 +36,7 @@ public class SpringWebMvc7Plugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
-        return Arrays.asList(
-            forClass("org.springframework.web.client.RestTemplate")
-                .when(springVersion7OrHigher())
-                .onMethod("doExecute")
-                .interceptedBy("org.bithon.agent.plugin.spring.webmvc7.rs.RestTemplate$Execute7")
-                .onMethod("handleResponse")
-                .interceptedBy("org.bithon.agent.plugin.spring.webmvc7.rs.RestTemplate$HandleResponse7")
-                .build(),
-
+        return Collections.singletonList(
             forClass("org.springframework.web.method.support.InvocableHandlerMethod")
                 .when(springVersion7OrHigher())
                 .onMethod("doInvoke")

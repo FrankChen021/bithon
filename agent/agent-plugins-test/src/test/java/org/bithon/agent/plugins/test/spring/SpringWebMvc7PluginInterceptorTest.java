@@ -28,6 +28,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
 
+import java.util.List;
+
 /**
  * Test case for Spring WebMVC 7 plugin.
  *
@@ -83,7 +85,12 @@ public class SpringWebMvc7PluginInterceptorTest extends AbstractPluginIntercepto
                                    descriptor.getTargetClass() + " should be skipped for Spring 7");
         }
 
-        for (InterceptorDescriptor descriptor : new SpringWebMvc7Plugin().getInterceptors()) {
+        List<InterceptorDescriptor> spring7Descriptors = new SpringWebMvc7Plugin().getInterceptors();
+        Assertions.assertEquals(1, spring7Descriptors.size());
+        Assertions.assertEquals("org.springframework.web.method.support.InvocableHandlerMethod",
+                                spring7Descriptors.get(0).getTargetClass());
+
+        for (InterceptorDescriptor descriptor : spring7Descriptors) {
             Assertions.assertNotNull(descriptor.getPrecondition());
             Assertions.assertTrue(descriptor.getPrecondition().matches(classLoader, null),
                                   descriptor.getTargetClass() + " should match Spring 7");
