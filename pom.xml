@@ -19,6 +19,9 @@
     <junit.jupiter.version>5.10.5</junit.jupiter.version>
     <junit.platform.version>1.10.5</junit.platform.version>
     <lombok.version>1.18.46</lombok.version>
+    <checkstyle.version>12.3.1</checkstyle.version>
+    <spotbugs.version>4.9.8</spotbugs.version>
+    <spotbugs.maven.plugin.version>4.9.8.1</spotbugs.maven.plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
@@ -52,7 +55,7 @@
       <dependency>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-annotations</artifactId>
-        <version>4.9.8</version> <!-- Use the latest version -->
+        <version>${spotbugs.version}</version> <!-- Use the latest version -->
         <scope>provided</scope>
       </dependency>
 
@@ -187,12 +190,12 @@
         <plugin>
           <groupId>com.github.spotbugs</groupId>
           <artifactId>spotbugs-maven-plugin</artifactId>
-          <version>4.9.8.1</version>
+          <version>${spotbugs.maven.plugin.version}</version>
           <dependencies>
             <dependency>
               <groupId>com.github.spotbugs</groupId>
               <artifactId>spotbugs</artifactId>
-              <version>4.9.8</version>
+              <version>${spotbugs.version}</version>
             </dependency>
           </dependencies>
         </plugin>
@@ -252,7 +255,7 @@
           <dependency>
             <groupId>com.puppycrawl.tools</groupId>
             <artifactId>checkstyle</artifactId>
-            <version>13.4.2</version>
+            <version>${checkstyle.version}</version>
           </dependency>
         </dependencies>
         <executions>
@@ -343,7 +346,7 @@
           <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs</artifactId>
-            <version>4.9.8</version>
+            <version>${spotbugs.version}</version>
           </dependency>
         </dependencies>
         <configuration>
