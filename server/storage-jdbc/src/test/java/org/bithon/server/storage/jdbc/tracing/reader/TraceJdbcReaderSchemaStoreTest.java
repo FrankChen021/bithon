@@ -18,6 +18,7 @@ package org.bithon.server.storage.jdbc.tracing.reader;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.server.commons.time.Period;
@@ -44,7 +45,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TraceJdbcReaderSchemaStoreTest {
@@ -99,6 +102,20 @@ class TraceJdbcReaderSchemaStoreTest {
         assertTrue(sql.contains("\"normalizedUrl\" AS \"url\""), sql);
         assertTrue(sql.contains("GROUP BY \"normalizedUrl\""), sql);
         assertFalse(sql.contains("GROUP BY \"url\""), sql);
+    }
+
+    @Test
+    void getTraceSpanDistributionRejectsInvalidGroup() {
+        TraceJdbcReader reader = newReader(new ArrayList<>());
+
+        HttpMappableException exception = assertThrows(HttpMappableException.class,
+                                                       () -> reader.getTraceSpanDistribution("trace-1",
+                                                                                             null,
+                                                                                             null,
+                                                                                             null,
+                                                                                             List.of("unknown")));
+
+        assertEquals(400, exception.getStatusCode());
     }
 
     private static TraceJdbcReader newReader(List<String> sqls) {

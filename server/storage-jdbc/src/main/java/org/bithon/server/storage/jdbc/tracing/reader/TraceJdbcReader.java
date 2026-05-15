@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
@@ -433,7 +434,7 @@ public class TraceJdbcReader implements ITraceReader {
         return DSL.field(DSL.name(getTraceSpanColumnName(columnName)), String.class);
     }
 
-    private Field<Object> traceSpanField(String columnName) {
+    private Field<?> traceSpanField(String columnName) {
         return DSL.field(DSL.name(getTraceSpanColumnName(columnName)));
     }
 
@@ -445,7 +446,7 @@ public class TraceJdbcReader implements ITraceReader {
     private IColumn getTraceSpanColumn(String columnName) {
         IColumn column = this.traceSpanSchema.getColumnByName(columnName);
         if (column == null) {
-            throw new IllegalArgumentException("Invalid trace span field: " + columnName);
+            throw new HttpMappableException(400, "Invalid trace span field: %s", columnName);
         }
         return column;
     }
