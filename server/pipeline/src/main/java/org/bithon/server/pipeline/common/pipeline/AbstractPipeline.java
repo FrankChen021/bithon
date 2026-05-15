@@ -57,7 +57,7 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
     protected final List<RECEIVER> receivers;
     private List<ITransformer> processors;
     protected final List<EXPORTER> exporters = new ArrayList<>();
-    private boolean isRunning = false;
+    private volatile boolean isRunning = false;
     private final String pipelineConfigPrefix;
 
     protected AbstractPipeline(Class<RECEIVER> receiverClass,
