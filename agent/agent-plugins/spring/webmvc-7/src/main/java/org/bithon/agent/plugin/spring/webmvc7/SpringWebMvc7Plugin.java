@@ -40,7 +40,7 @@ public class SpringWebMvc7Plugin implements IPlugin {
             forClass("org.springframework.web.client.RestTemplate")
                 .when(springVersion7OrHigher())
                 .onMethod("doExecute")
-                .interceptedBy("org.bithon.agent.plugin.spring.webmvc.rs.RestTemplate$Execute")
+                .interceptedBy("org.bithon.agent.plugin.spring.webmvc7.rs.RestTemplate$Execute7")
                 .onMethod("handleResponse")
                 .interceptedBy("org.bithon.agent.plugin.spring.webmvc7.rs.RestTemplate$HandleResponse7")
                 .build(),

@@ -11,9 +11,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-spring-webmvc</artifactId>
-      <version>${project.version}</version>
+      <groupId>${project.parent.groupId}</groupId>
+      <artifactId>agent-observability</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
