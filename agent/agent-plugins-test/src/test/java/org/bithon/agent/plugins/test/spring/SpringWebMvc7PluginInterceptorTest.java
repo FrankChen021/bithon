@@ -25,12 +25,15 @@ import org.bithon.agent.plugins.test.MavenArtifact;
 import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 
 /**
  * Test case for Spring WebMVC 7 plugin.
  *
  * @author frankchen
  */
+@EnabledForJreRange(min = JRE.JAVA_17)
 public class SpringWebMvc7PluginInterceptorTest extends AbstractPluginInterceptorTest {
     @Override
     protected IPlugin[] getPlugins() {
