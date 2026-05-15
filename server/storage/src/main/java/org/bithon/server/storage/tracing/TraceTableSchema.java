@@ -153,6 +153,7 @@ public class TraceTableSchema implements ISchema {
 
     public static TraceTableSchema createTraceSpanTableSchema(ITraceStorage traceStorage) {
         return new TraceTableSchema(TRACE_SPAN_SCHEMA_NAME,
+                                    TRACE_SPAN_SCHEMA_NAME,
                                     traceStorage,
                                     getTraceSpanColumns(),
                                     "timestamp");
