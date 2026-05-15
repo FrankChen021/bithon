@@ -136,7 +136,8 @@ public class TraceJdbcReader implements ITraceReader {
                                                           IExpression filter,
                                                           TimeSpan start,
                                                           TimeSpan end) {
-        SelectConditionStep<Record> sql = dslContext.selectFrom(DSL.name(getTraceSpanStore()))
+        SelectConditionStep<Record> sql = dslContext.select(traceSpanSelectFields())
+                                                    .from(DSL.name(getTraceSpanStore()))
                                                     .where(traceSpanStringField(Tables.BITHON_TRACE_SPAN.TRACEID.getName()).eq(traceId));
         if (start != null) {
             // NOTE: we don't use Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start) because the generated SQL might turn the start into a date time string which might cause time zone issues
@@ -301,7 +302,8 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public List<TraceSpan> getTraceByParentSpanId(String parentSpanId) {
-        return dslContext.selectFrom(DSL.name(getTraceSpanStore()))
+        return dslContext.select(traceSpanSelectFields())
+                         .from(DSL.name(getTraceSpanStore()))
                          .where(traceSpanStringField(Tables.BITHON_TRACE_SPAN.PARENTSPANID.getName()).eq(parentSpanId))
                          // For spans coming from the same application instance, sort them by the start time
                          .orderBy(traceSpanField(this.traceSpanSchema.getTimestampSpec().getColumnName()).asc(),
@@ -365,9 +367,9 @@ public class TraceJdbcReader implements ITraceReader {
             String columnName = column.getName();
             groupByFields.add(columnName);
             if (columnName.equals(group)) {
-                selectStatement.getSelectorList().add(new org.bithon.server.datasource.query.ast.Column(columnName), column.getDataType());
+                selectStatement.getSelectorList().add(new Column(columnName), column.getDataType());
             } else {
-                selectStatement.getSelectorList().add(new org.bithon.server.datasource.query.ast.Column(columnName), group, column.getDataType());
+                selectStatement.getSelectorList().add(new Column(columnName), group, column.getDataType());
             }
         }
 
@@ -436,6 +438,15 @@ public class TraceJdbcReader implements ITraceReader {
 
     private Field<?> traceSpanField(String columnName) {
         return DSL.field(DSL.name(getTraceSpanColumnName(columnName)));
+    }
+
+    private List<Field<?>> traceSpanSelectFields() {
+        Field<?>[] fields = Tables.BITHON_TRACE_SPAN.fields();
+        List<Field<?>> selectFields = new ArrayList<>(fields.length);
+        for (Field<?> field : fields) {
+            selectFields.add(DSL.field(DSL.name(field.getName()), field.getDataType()));
+        }
+        return selectFields;
     }
 
     private String getTraceSpanColumnName(String columnName) {

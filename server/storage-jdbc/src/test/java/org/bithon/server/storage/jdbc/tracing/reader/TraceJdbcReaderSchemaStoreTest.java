@@ -61,6 +61,7 @@ class TraceJdbcReaderSchemaStoreTest {
         newReader(sqls).getTraceByTraceId("trace-1", null, null, null).close();
 
         assertUsesCustomTraceSpanStore(sqls.get(0));
+        assertSelectsTraceSpanFields(sqls.get(0));
         assertTrue(sqls.get(0).contains("?"), sqls.get(0));
         assertFalse(sqls.get(0).contains("'trace-1'"), sqls.get(0));
     }
@@ -81,6 +82,7 @@ class TraceJdbcReaderSchemaStoreTest {
         newReader(sqls).getTraceByParentSpanId("span-1");
 
         assertUsesCustomTraceSpanStore(sqls.get(0));
+        assertSelectsTraceSpanFields(sqls.get(0));
     }
 
     @Test
@@ -139,6 +141,12 @@ class TraceJdbcReaderSchemaStoreTest {
     private static void assertUsesCustomTraceSpanStore(String sql) {
         assertTrue(sql.contains(CUSTOM_TRACE_SPAN_STORE), sql);
         assertFalse(sql.contains("bithon_trace_span"), sql);
+    }
+
+    private static void assertSelectsTraceSpanFields(String sql) {
+        assertTrue(sql.startsWith("select \"timestamp\", \"appName\", \"instanceName\""), sql);
+        assertTrue(sql.contains("\"tags\", \"attributes\""), sql);
+        assertFalse(sql.startsWith("select *"), sql);
     }
 
     private static ISchema schema(String name, String store, String timestampColumn) {
