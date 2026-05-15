@@ -32,7 +32,7 @@ public abstract class AbstractInterceptor {
     private static final ILogger LOG = LoggerFactory.getLogger(AbstractInterceptor.class);
 
     private final LongAdder hitCount = new LongAdder();
-    private long lastHitTime;
+    private volatile long lastHitTime;
 
     // Statistics for exceptions thrown from the interceptor
     private long exceptionCount;
