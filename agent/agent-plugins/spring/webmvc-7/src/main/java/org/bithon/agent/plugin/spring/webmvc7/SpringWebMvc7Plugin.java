@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.spring.webmvc;
+package org.bithon.agent.plugin.spring.webmvc7;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
@@ -22,39 +22,31 @@ import org.bithon.agent.instrumentation.aop.interceptor.precondition.ClassPackag
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.PropertyFileValuePrecondition;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptorBuilder.forClass;
 
 /**
+ * Spring MVC plugin for Spring Framework 7.x.
+ *
  * @author frankchen
  */
-public class SpringWebMvcPlugin implements IPlugin {
+public class SpringWebMvc7Plugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
-
-        return Arrays.asList(
-
-            forClass("org.springframework.web.client.RestTemplate")
-                .when(springVersionLessThan7())
-                .onMethod("doExecute")
-                .interceptedBy("org.bithon.agent.plugin.spring.webmvc.rs.RestTemplate$Execute")
-                .onMethod("handleResponse")
-                .interceptedBy("org.bithon.agent.plugin.spring.webmvc.rs.RestTemplate$HandleResponse")
-                .build(),
-
+        return Collections.singletonList(
             forClass("org.springframework.web.method.support.InvocableHandlerMethod")
-                .when(springVersionLessThan7())
+                .when(springVersion7OrHigher())
                 .onMethod("doInvoke")
-                .interceptedBy("org.bithon.agent.plugin.spring.webmvc.controller.InvocableHandlerMethod$DoInvoke")
+                .interceptedBy("org.bithon.agent.plugin.spring.webmvc7.controller.InvocableHandlerMethod$DoInvoke7")
                 .build()
         );
     }
 
-    private static IInterceptorPrecondition springVersionLessThan7() {
+    private static IInterceptorPrecondition springVersion7OrHigher() {
         return new ClassPackageVersionPrecondition("org.springframework.http.ResponseEntity",
-                                                   PropertyFileValuePrecondition.VersionLT.of("7.0.0"));
+                                                   PropertyFileValuePrecondition.VersionGTE.of("7.0.0"));
     }
 }
