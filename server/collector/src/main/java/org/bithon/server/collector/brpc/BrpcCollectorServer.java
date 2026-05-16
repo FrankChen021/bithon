@@ -84,7 +84,7 @@ public class BrpcCollectorServer {
          */
         private final Map<String, Object> services = new HashMap<>();
         private BrpcServer brpcServer;
-        private int port;
+        private volatile int port;
 
         public void start(Integer port) {
             for (Object implementation : services.values()) {

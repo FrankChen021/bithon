@@ -41,8 +41,8 @@ public class AppInstance {
     private final String qualifiedName;
     private final String env;
     private final List<IAppInstanceChangedListener> listeners = Collections.synchronizedList(new ArrayList<>());
-    private int port;
-    private String instanceName;
+    private volatile int port;
+    private volatile String instanceName;
     private final boolean useExternalInstanceName;
 
     private AppInstance(AppConfig appConfig) {

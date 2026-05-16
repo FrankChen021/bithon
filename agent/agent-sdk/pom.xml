@@ -41,6 +41,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.deploy.skip>false</maven.deploy.skip>
+    <spotbugs.version>4.9.8</spotbugs.version>
+    <spotbugs.maven.plugin.version>4.9.8.1</spotbugs.maven.plugin.version>
   </properties>
 
   <build>
@@ -58,13 +60,13 @@
       <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
-        <version>4.8.3.0</version>
+        <version>${spotbugs.maven.plugin.version}</version>
         <dependencies>
           <!-- overwrite dependency on spotbugs if you want to specify the version of spotbugs -->
           <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs</artifactId>
-            <version>4.8.3</version>
+            <version>${spotbugs.version}</version>
           </dependency>
         </dependencies>
         <configuration>
