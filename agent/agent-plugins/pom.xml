@@ -40,6 +40,7 @@
     <module>jdbc/common</module>
     <module>jdbc/h2</module>
     <module>jdbc/postgresql</module>
+    <module>jdbc/sqlite</module>
     <module>jdbc/mysql5</module>
     <module>jdbc/mysql6</module>
     <module>jdbc/mysql8</module>
