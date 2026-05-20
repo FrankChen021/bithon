@@ -16,11 +16,17 @@
 
 package org.bithon.agent.plugins.test.jdbc.sqlite;
 
+import org.bithon.agent.instrumentation.aop.interceptor.installer.InstallerRecorder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.jdbc.sqlite.SQLitePlugin;
 import org.bithon.agent.plugins.test.AbstractPluginInterceptorTest;
 import org.bithon.agent.plugins.test.MavenArtifact;
 import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Test case for SQLite JDBC plugin.
@@ -40,5 +46,38 @@ public class SQLiteJdbcPluginTest extends AbstractPluginInterceptorTest {
                              "sqlite-jdbc",
                              "3.50.3.0")
         );
+    }
+
+    @Test
+    @Override
+    public void testInterceptorInstallation() {
+        super.testInterceptorInstallation();
+
+        List<InstallerRecorder.InstrumentedMethod> instrumentedMethods = InstallerRecorder.INSTANCE.getInstrumentedMethods();
+        assertInstrumented(instrumentedMethods,
+                           "org.sqlite.jdbc3.JDBC3PreparedStatement",
+                           "executeLargeUpdate",
+                           "org.bithon.agent.plugin.jdbc.sqlite.JDBC3PreparedStatement$Execute");
+        assertInstrumented(instrumentedMethods,
+                           "org.sqlite.core.CorePreparedStatement",
+                           "executeBatch",
+                           "org.bithon.agent.plugin.jdbc.sqlite.CorePreparedStatement$ExecuteBatch");
+        assertInstrumented(instrumentedMethods,
+                           "org.sqlite.core.CorePreparedStatement",
+                           "executeLargeBatch",
+                           "org.bithon.agent.plugin.jdbc.sqlite.CorePreparedStatement$ExecuteBatch");
+    }
+
+    private static void assertInstrumented(List<InstallerRecorder.InstrumentedMethod> instrumentedMethods,
+                                           String type,
+                                           String method,
+                                           String interceptor) {
+        List<InstallerRecorder.InstrumentedMethod> matchingType = instrumentedMethods.stream()
+                                                                                     .filter((m) -> type.equals(m.getType()))
+                                                                                     .collect(Collectors.toList());
+        Assertions.assertTrue(matchingType.stream()
+                                          .anyMatch((m) -> method.equals(m.getMethodName())
+                                                           && interceptor.equals(m.getInterceptorName())),
+                              type + "#" + method + " should be instrumented by " + interceptor);
     }
 }

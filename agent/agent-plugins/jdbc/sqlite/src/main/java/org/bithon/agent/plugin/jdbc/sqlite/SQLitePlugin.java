@@ -53,10 +53,19 @@ public class SQLitePlugin implements IPlugin {
                 .andArgs(1, "java.lang.String")
                 .interceptedBy("org.bithon.agent.plugin.jdbc.sqlite.JDBC3PreparedStatement$Ctor")
 
-                .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate"))
+                .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate", "executeLargeUpdate"))
                 .andVisibility(Visibility.PUBLIC)
                 .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.jdbc.sqlite.JDBC3PreparedStatement$Execute")
+
+                .build(),
+
+            // PreparedStatement batch
+            forClass("org.sqlite.core.CorePreparedStatement")
+                .onMethod(Matchers.names("executeBatch", "executeLargeBatch"))
+                .andVisibility(Visibility.PUBLIC)
+                .andNoArgs()
+                .interceptedBy("org.bithon.agent.plugin.jdbc.sqlite.CorePreparedStatement$ExecuteBatch")
 
                 .build(),
 
