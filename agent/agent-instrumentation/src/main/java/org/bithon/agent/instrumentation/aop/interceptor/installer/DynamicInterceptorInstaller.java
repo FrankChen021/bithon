@@ -54,6 +54,9 @@ public class DynamicInterceptorInstaller {
         return INSTANCE;
     }
 
+    private DynamicInterceptorInstaller() {
+    }
+
     /**
      * Install one interceptor
      */

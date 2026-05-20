@@ -22,8 +22,9 @@ import one.jfr.event.Event;
 /**
  * Represents initial system property event from JFR (jdk.InitialSystemProperty)
  * This event captures system properties that were set when the JVM started.
- * 
- * @see https://bestsolution-at.github.io/jfr-doc/openjdk-17.html#jdk.InitialSystemProperty
+ *
+ * @see <a href="https://bestsolution-at.github.io/jfr-doc/openjdk-17.html#jdk.InitialSystemProperty">JFR Event
+ * Documentation</a>
  * @author frank.chen021@outlook.com
  * @date 2025/1/12
  */

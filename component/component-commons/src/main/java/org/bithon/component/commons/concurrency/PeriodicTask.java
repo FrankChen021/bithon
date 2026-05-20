@@ -33,6 +33,7 @@ public abstract class PeriodicTask {
     private final String name;
 
     private volatile boolean running = false;
+    private boolean wakeup = false;
     private final boolean autoShutdown;
 
     public PeriodicTask(String name,
@@ -89,7 +90,10 @@ public abstract class PeriodicTask {
     private void waitTimeout() {
         synchronized (locker) {
             try {
-                locker.wait(period);
+                if (!wakeup) {
+                    locker.wait(period);
+                }
+                wakeup = false;
             } catch (InterruptedException ignored) {
             }
         }
@@ -100,7 +104,8 @@ public abstract class PeriodicTask {
      */
     public final void runImmediately() {
         synchronized (locker) {
-            locker.notify();
+            wakeup = true;
+            locker.notifyAll();
         }
     }
 

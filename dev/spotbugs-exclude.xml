@@ -113,6 +113,12 @@
     <Bug pattern="DB_DUPLICATE_BRANCHES"/>
   </Match>
 
+  <!-- agent-sentinel -->
+  <Match>
+    <Class name="org.bithon.agent.sentinel.SentinelRuleManager"/>
+    <Bug pattern="SING_SINGLETON_HAS_NONPRIVATE_CONSTRUCTOR"/>
+  </Match>
+
   <!-- component-commons -->
   <Match>
     <Class name="org.bithon.component.commons.logging.LoggerConfiguration"/>
@@ -125,6 +131,10 @@
   <Match>
     <Class name="org.bithon.component.commons.tracing.Tags$Exception"/>
     <Bug pattern="NM_CLASS_NOT_EXCEPTION"/>
+  </Match>
+  <Match>
+    <Class name="org.bithon.component.commons.expression.function.Functions"/>
+    <Bug pattern="SING_SINGLETON_HAS_NONPRIVATE_CONSTRUCTOR"/>
   </Match>
 
   <!-- Agent RPC -->

@@ -34,6 +34,9 @@ public class TypeResolver {
         return INSTANCE;
     }
 
+    private TypeResolver() {
+    }
+
     public boolean isResolved(ClassLoader classLoader, String clazz) {
         if (classLoader == null) {
             classLoader = BootstrapClassLoader.INSTANCE;

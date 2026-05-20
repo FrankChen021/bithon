@@ -33,7 +33,7 @@ public class GrpcClientMetricStorage extends AbstractMetricStorage<GrpcMetrics> 
 
     private static volatile GrpcClientMetricStorage INSTANCE;
 
-    public GrpcClientMetricStorage() {
+    private GrpcClientMetricStorage() {
         super(NAME,
               Arrays.asList("service", "method", "status", "server"),
               GrpcMetrics.class,

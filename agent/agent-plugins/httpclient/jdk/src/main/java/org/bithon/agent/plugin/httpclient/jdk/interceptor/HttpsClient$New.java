@@ -19,15 +19,9 @@ package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
-import sun.net.www.protocol.http.HttpURLConnection;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLSocketFactory;
-import java.net.Proxy;
-import java.net.URL;
 
 /**
- * {@link {@link sun.net.www.protocol.https.HttpsClient#New(SSLSocketFactory sf, URL url, HostnameVerifier hv, Proxy p, boolean useCache, int connectTimeout, HttpURLConnection httpuc)}
+ * Intercepts {@code sun.net.www.protocol.https.HttpsClient#New(...)}.
  *
  * @author frank.chen021@outlook.com
  * @date 2021/3/14 11:13 下午

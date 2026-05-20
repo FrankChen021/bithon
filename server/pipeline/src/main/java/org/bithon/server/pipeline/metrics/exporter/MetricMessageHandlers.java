@@ -34,7 +34,7 @@ public class MetricMessageHandlers {
 
     private final Map<String, MetricMessageHandler> handlers = new ConcurrentHashMap<>();
 
-    public MetricMessageHandlers() {
+    private MetricMessageHandlers() {
     }
 
     public void add(MetricMessageHandler handler) {

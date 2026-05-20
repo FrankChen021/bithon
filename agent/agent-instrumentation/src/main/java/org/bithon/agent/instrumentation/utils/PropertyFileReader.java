@@ -16,8 +16,6 @@
 
 package org.bithon.agent.instrumentation.utils;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -29,7 +27,6 @@ import java.util.Properties;
  * @date 2025/8/10 21:53
  */
 public class PropertyFileReader {
-    @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE")
     public static Properties read(ClassLoader classLoader, String propertyFile) throws IOException {
         try (InputStream inputStream = classLoader.getResourceAsStream(propertyFile)) {
             if (inputStream == null) {

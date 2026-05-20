@@ -44,7 +44,7 @@ import java.util.Locale;
 
 /**
  * 3.2+ {@link okhttp3.RealCall}
- * 4.4+ {@link okhttp3.internal.connection.RealCall()}
+ * 4.4+ {@code okhttp3.internal.connection.RealCall}
  *
  * @author frankchen
  */

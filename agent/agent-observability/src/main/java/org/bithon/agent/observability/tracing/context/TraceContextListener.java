@@ -40,7 +40,7 @@ public class TraceContextListener {
 
     private final IListener spanDebugListener = new SpanEventDebugLogger();
 
-    public TraceContextListener() {
+    private TraceContextListener() {
         ConfigurationManager.getInstance()
                             .addConfigurationChangedListener("tracing.debug", this::addOrRemoveDebugListener);
         addOrRemoveDebugListener();

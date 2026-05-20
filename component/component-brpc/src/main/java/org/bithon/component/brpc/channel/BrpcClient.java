@@ -83,7 +83,7 @@ public class BrpcClient implements IBrpcChannel, Closeable {
      */
     private final Headers headers = new Headers();
 
-    private long connectionTimestamp;
+    private volatile long connectionTimestamp;
 
     private final InvocationManager invocationManager;
 

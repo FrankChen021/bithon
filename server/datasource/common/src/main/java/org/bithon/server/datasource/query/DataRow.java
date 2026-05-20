@@ -35,9 +35,10 @@ public class DataRow {
 
     /**
      * Either:
-     * 1. a Map<String, Object> for {@link DataRowType#PROGRESS} type
-     * 2. List<ColumnMetadata> for {@link DataRowType#META} type
-     * 3. Map<String, Object>/Object[] for {@link DataRowType#DATA} type determined by the given {@link ResultFormat}
+     * 1. a {@code Map<String, Object>} for {@link DataRowType#PROGRESS} type
+     * 2. {@code List<ColumnMetadata>} for {@link DataRowType#META} type
+     * 3. {@code Map<String, Object>}/{@code Object[]} for {@link DataRowType#DATA} type determined by the given
+     * {@link ResultFormat}
      */
     private final Object payload;
 

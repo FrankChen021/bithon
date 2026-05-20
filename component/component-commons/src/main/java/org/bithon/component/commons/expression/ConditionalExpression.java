@@ -24,7 +24,7 @@ import java.util.Set;
 /**
  * IN/NOT IN
  * LIKE/NOT LIKE
- * Comparison: >/>=/</<=/<>/=
+ * Comparison: &gt;/&gt;=/&lt;/&lt;=/&lt;&gt;/=
  *
  * @author Frank Chen
  * @date 20/1/24 10:50 pm
