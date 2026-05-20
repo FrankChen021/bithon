@@ -16,11 +16,21 @@
 
 package org.bithon.agent.plugins.test.apache.druid;
 
+import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
+import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.apache.druid.ApacheDruidPlugin;
 import org.bithon.agent.plugins.test.AbstractPluginInterceptorTest;
 import org.bithon.agent.plugins.test.MavenArtifact;
 import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
+import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -34,20 +44,69 @@ public class DruidPluginInterceptorInterceptorTest extends AbstractPluginInterce
 
     @Override
     protected ClassLoader getCustomClassLoader() {
+        return createDruidClassLoader("24.0.0");
+    }
+
+    @Test
+    public void sqlResourceDoPostPointcutDoesNotMatchJerseyEntrypoint() throws Exception {
+        Class<?> sqlResource = Class.forName("org.apache.druid.sql.http.SqlResource",
+                                             false,
+                                             createDruid34ClassLoader());
+
+        MethodPointCutDescriptor doPostPointcut = getSqlResourceDoPostPointcut();
+        List<Method> matchedMethods = Arrays.stream(sqlResource.getDeclaredMethods())
+                                            .filter((method) -> "doPost".equals(method.getName()))
+                                            .filter((method) -> doPostPointcut.getMethodMatcher()
+                                                                              .matches(new MethodDescription.ForLoadedMethod(method)))
+                                            .collect(Collectors.toList());
+
+        Assertions.assertFalse(matchedMethods.isEmpty());
+        Assertions.assertTrue(matchedMethods.stream().allMatch(this::isSqlQueryDoPost),
+                              matchedMethods.stream()
+                                            .map(this::toSignature)
+                                            .collect(Collectors.joining("\n")));
+    }
+
+    private MethodPointCutDescriptor getSqlResourceDoPostPointcut() {
+        for (InterceptorDescriptor descriptor : new ApacheDruidPlugin().getInterceptors()) {
+            if ("org.apache.druid.sql.http.SqlResource".equals(descriptor.getTargetClass())) {
+                return descriptor.getMethodPointCutDescriptors()[0];
+            }
+        }
+
+        throw new AssertionError("SqlResource#doPost pointcut not found");
+    }
+
+    private boolean isSqlQueryDoPost(Method method) {
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        return parameterTypes.length == 2
+               && "org.apache.druid.sql.http.SqlQuery".equals(parameterTypes[0].getName())
+               && "javax.servlet.http.HttpServletRequest".equals(parameterTypes[1].getName());
+    }
+
+    private String toSignature(Method method) {
+        return method.getName() + "("
+               + Arrays.stream(method.getParameterTypes())
+                       .map(Class::getName)
+                       .collect(Collectors.joining(", "))
+               + ")";
+    }
+
+    private ClassLoader createDruidClassLoader(String druidVersion) {
         return MavenArtifactClassLoader.create(
 
             MavenArtifact.of("org.apache.druid",
                              "druid-core",
-                             "24.0.0"),
+                             druidVersion),
             MavenArtifact.of("org.apache.druid",
                              "druid-processing",
-                             "24.0.0"),
+                             druidVersion),
             MavenArtifact.of("org.apache.druid",
                              "druid-sql",
-                             "24.0.0"),
+                             druidVersion),
             MavenArtifact.of("org.apache.druid",
                              "druid-server",
-                             "24.0.0"),
+                             druidVersion),
 
             MavenArtifact.of("io.netty",
                              "netty",
@@ -63,7 +122,50 @@ public class DruidPluginInterceptorInterceptorTest extends AbstractPluginInterce
                              "1.1.1"),
             MavenArtifact.of("javax.servlet",
                              "javax.servlet-api",
-                             "3.1.0")
+                             "3.1.0"),
+            MavenArtifact.of("com.sun.jersey",
+                             "jersey-core",
+                             "1.19.4"),
+            MavenArtifact.of("com.sun.jersey",
+                             "jersey-server",
+                             "1.19.4")
+        );
+    }
+
+    private ClassLoader createDruid34ClassLoader() {
+        return MavenArtifactClassLoader.create(
+
+            MavenArtifact.of("org.apache.druid",
+                             "druid-processing",
+                             "34.0.0"),
+            MavenArtifact.of("org.apache.druid",
+                             "druid-sql",
+                             "34.0.0"),
+            MavenArtifact.of("org.apache.druid",
+                             "druid-server",
+                             "34.0.0"),
+
+            MavenArtifact.of("io.netty",
+                             "netty",
+                             "3.10.6.Final"),
+            MavenArtifact.of("com.fasterxml.jackson.core",
+                             "jackson-databind",
+                             "2.10.5.1"),
+            MavenArtifact.of("com.fasterxml.jackson.core",
+                             "jackson-core",
+                             "2.10.5"),
+            MavenArtifact.of("javax.ws.rs",
+                             "jsr311-api",
+                             "1.1.1"),
+            MavenArtifact.of("javax.servlet",
+                             "javax.servlet-api",
+                             "3.1.0"),
+            MavenArtifact.of("com.sun.jersey",
+                             "jersey-core",
+                             "1.19.4"),
+            MavenArtifact.of("com.sun.jersey",
+                             "jersey-server",
+                             "1.19.4")
         );
     }
 }

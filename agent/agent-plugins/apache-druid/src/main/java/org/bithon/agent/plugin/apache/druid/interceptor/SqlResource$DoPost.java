@@ -47,7 +47,12 @@ public class SqlResource$DoPost extends BeforeInterceptor {
             return;
         }
 
-        SqlQuery sqlQuery = aopContext.getArgAs(0);
+        Object[] args = aopContext.getArgs();
+        if (args.length == 0 || !(args[0] instanceof SqlQuery)) {
+            return;
+        }
+
+        SqlQuery sqlQuery = (SqlQuery) args[0];
         Object sqlQueryId = sqlQuery.getContext().get("sqlQueryId");
         if (sqlQueryId == null) {
             try {
@@ -62,7 +67,7 @@ public class SqlResource$DoPost extends BeforeInterceptor {
                 sqlQuery = ObjectMapperInstance.fromTree(newQuery, SqlQuery.class);
 
                 // Update the input argument
-                aopContext.getArgs()[0] = sqlQuery;
+                args[0] = sqlQuery;
             } catch (IOException ignored) {
                 // Ignore the exception
                 sqlQueryId = "";
