@@ -25,6 +25,7 @@ import org.bithon.agent.plugins.test.MavenArtifact;
 import org.bithon.agent.plugins.test.MavenArtifactClassLoader;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
@@ -49,9 +50,7 @@ public class DruidPluginInterceptorInterceptorTest extends AbstractPluginInterce
 
     @Test
     public void sqlResourceDoPostPointcutDoesNotMatchJerseyEntrypoint() throws Exception {
-        Class<?> sqlResource = Class.forName("org.apache.druid.sql.http.SqlResource",
-                                             false,
-                                             createDruid34ClassLoader());
+        Class<?> sqlResource = loadDruid34SqlResourceOrSkip();
 
         MethodPointCutDescriptor doPostPointcut = getSqlResourceDoPostPointcut();
         List<Method> matchedMethods = Arrays.stream(sqlResource.getDeclaredMethods())
@@ -65,6 +64,17 @@ public class DruidPluginInterceptorInterceptorTest extends AbstractPluginInterce
                               matchedMethods.stream()
                                             .map(this::toSignature)
                                             .collect(Collectors.joining("\n")));
+    }
+
+    private Class<?> loadDruid34SqlResourceOrSkip() throws ClassNotFoundException {
+        try {
+            return Class.forName("org.apache.druid.sql.http.SqlResource",
+                                 false,
+                                 createDruid34ClassLoader());
+        } catch (UnsupportedClassVersionError ignored) {
+            Assumptions.assumeTrue(false, "Druid 34 requires Java 11+ bytecode support");
+            throw ignored;
+        }
     }
 
     private MethodPointCutDescriptor getSqlResourceDoPostPointcut() {
