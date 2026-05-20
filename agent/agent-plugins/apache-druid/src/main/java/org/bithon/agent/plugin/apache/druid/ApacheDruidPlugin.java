@@ -36,6 +36,7 @@ public class ApacheDruidPlugin implements IPlugin {
         return Arrays.asList(
             forClass("org.apache.druid.sql.http.SqlResource")
                 .onMethod("doPost")
+                .andArgs(0, "org.apache.druid.sql.http.SqlQuery")
                 .interceptedBy("org.bithon.agent.plugin.apache.druid.interceptor.SqlResource$DoPost")
                 .build(),
 
