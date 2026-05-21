@@ -116,7 +116,11 @@ public class Exporter {
 
     public void shutdown() {
         LOG.info("Shutting down exporter task [{}]...", exporterName);
-        messageExporter.prepareShutdown();
+        try {
+            messageExporter.prepareShutdown();
+        } catch (Exception e) {
+            LOG.warn("Failed to prepare message exporter [{}] for shutdown: {}", exporterName, e.getMessage(), e);
+        }
 
         if (task != null) {
             task.stop();

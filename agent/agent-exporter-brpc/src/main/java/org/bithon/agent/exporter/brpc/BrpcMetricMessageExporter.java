@@ -56,7 +56,7 @@ public class BrpcMetricMessageExporter implements IMessageExporter {
     private final ExporterConfig exporterConfig;
 
     private final BrpcClient brpcClient;
-    private IMetricCollector metricCollector;
+    private volatile IMetricCollector metricCollector;
     private BrpcMessageHeader header;
     private volatile boolean shuttingDown;
 
@@ -122,16 +122,9 @@ public class BrpcMetricMessageExporter implements IMessageExporter {
 
     @Override
     public void export(Object message) {
-        if (this.metricCollector == null) {
-            if (shuttingDown) {
-                return;
-            }
-            try {
-                this.metricCollector = brpcClient.getRemoteService(IMetricCollector.class);
-            } catch (ServiceInvocationException e) {
-                LOG.warn("Unable to get remote IMetricCollector service: {}", e.getMessage());
-                return;
-            }
+        IMetricCollector metricCollector = getMetricCollector();
+        if (metricCollector == null) {
+            return;
         }
 
         if (shuttingDown && !brpcClient.isActive()) {
@@ -185,7 +178,31 @@ public class BrpcMetricMessageExporter implements IMessageExporter {
 
     @Override
     public void prepareShutdown() {
-        this.shuttingDown = true;
+        synchronized (this) {
+            this.shuttingDown = true;
+        }
+    }
+
+    private IMetricCollector getMetricCollector() {
+        IMetricCollector metricCollector = this.metricCollector;
+        if (metricCollector != null) {
+            return metricCollector;
+        }
+
+        synchronized (this) {
+            if (this.shuttingDown) {
+                return null;
+            }
+            if (this.metricCollector == null) {
+                try {
+                    this.metricCollector = brpcClient.getRemoteService(IMetricCollector.class);
+                } catch (ServiceInvocationException e) {
+                    LOG.warn("Unable to get remote IMetricCollector service: {}", e.getMessage());
+                    return null;
+                }
+            }
+            return this.metricCollector;
+        }
     }
 
     @Override

@@ -252,7 +252,9 @@ public class BrpcClient implements IBrpcChannel, Closeable {
             return true;
         }
 
+        closeOnLateConnect(connectFuture);
         connectFuture.cancel(true);
+        closeChannel(connectFuture);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Timed out connecting to remote service at [{}:{}] in {} ms",
                       server.getHost(),
@@ -260,6 +262,21 @@ public class BrpcClient implements IBrpcChannel, Closeable {
                       connectionTimeoutMilliseconds);
         }
         return false;
+    }
+
+    private static void closeOnLateConnect(ChannelFuture connectFuture) {
+        connectFuture.addListener(future -> {
+            if (future.isSuccess()) {
+                closeChannel(connectFuture);
+            }
+        });
+    }
+
+    private static void closeChannel(ChannelFuture connectFuture) {
+        try {
+            connectFuture.channel().close();
+        } catch (Exception ignored) {
+        }
     }
 
     public void bindService(Object serviceImpl) {

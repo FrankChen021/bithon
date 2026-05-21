@@ -48,7 +48,7 @@ public class BrpcEventMessageExporter implements IMessageExporter {
 
     private final BrpcClient brpcClient;
     private final ExporterConfig exporterConfig;
-    private IEventCollector eventCollector;
+    private volatile IEventCollector eventCollector;
     private BrpcMessageHeader header;
     private volatile boolean shuttingDown;
 
@@ -86,16 +86,9 @@ public class BrpcEventMessageExporter implements IMessageExporter {
 
     @Override
     public void export(Object message) {
-        if (this.eventCollector == null) {
-            if (shuttingDown) {
-                return;
-            }
-            try {
-                this.eventCollector = brpcClient.getRemoteService(IEventCollector.class);
-            } catch (ServiceInvocationException e) {
-                LOG.warn("Unable to get remote service: {}", e.getMessage());
-                return;
-            }
+        IEventCollector eventCollector = getEventCollector();
+        if (eventCollector == null) {
+            return;
         }
 
         if (shuttingDown && !brpcClient.isActive()) {
@@ -128,7 +121,31 @@ public class BrpcEventMessageExporter implements IMessageExporter {
 
     @Override
     public void prepareShutdown() {
-        this.shuttingDown = true;
+        synchronized (this) {
+            this.shuttingDown = true;
+        }
+    }
+
+    private IEventCollector getEventCollector() {
+        IEventCollector eventCollector = this.eventCollector;
+        if (eventCollector != null) {
+            return eventCollector;
+        }
+
+        synchronized (this) {
+            if (this.shuttingDown) {
+                return null;
+            }
+            if (this.eventCollector == null) {
+                try {
+                    this.eventCollector = brpcClient.getRemoteService(IEventCollector.class);
+                } catch (ServiceInvocationException e) {
+                    LOG.warn("Unable to get remote service: {}", e.getMessage());
+                    return null;
+                }
+            }
+            return this.eventCollector;
+        }
     }
 
     @Override
