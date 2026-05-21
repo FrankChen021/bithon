@@ -26,4 +26,10 @@ public interface IMessageExporter extends AutoCloseable {
      * In the current design, this method is called in one thread only, so it's thread-safe.
      */
     void export(Object message);
+
+    /**
+     * Called before draining queued messages during JVM shutdown.
+     */
+    default void prepareShutdown() {
+    }
 }

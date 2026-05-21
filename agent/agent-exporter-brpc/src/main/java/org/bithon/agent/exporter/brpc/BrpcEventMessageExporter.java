@@ -48,8 +48,9 @@ public class BrpcEventMessageExporter implements IMessageExporter {
 
     private final BrpcClient brpcClient;
     private final ExporterConfig exporterConfig;
-    private IEventCollector eventCollector;
+    private volatile IEventCollector eventCollector;
     private BrpcMessageHeader header;
+    private volatile boolean shuttingDown;
 
     public BrpcEventMessageExporter(ExporterConfig exporterConfig) {
         List<EndPoint> endpoints = Stream.of(exporterConfig.getServers().split(",")).map(hostAndPort -> {
@@ -85,17 +86,17 @@ public class BrpcEventMessageExporter implements IMessageExporter {
 
     @Override
     public void export(Object message) {
-        if (this.eventCollector == null) {
-            try {
-                this.eventCollector = brpcClient.getRemoteService(IEventCollector.class);
-            } catch (ServiceInvocationException e) {
-                LOG.warn("Unable to get remote service: {}", e.getMessage());
-                return;
-            }
+        IEventCollector eventCollector = getEventCollector();
+        if (eventCollector == null) {
+            return;
+        }
+
+        if (shuttingDown && !brpcClient.isActive()) {
+            return;
         }
 
         IBrpcChannel channel = ((IServiceController) eventCollector).getChannel();
-        if (channel.getConnectionLifeTime() > exporterConfig.getClient().getConnectionLifeTime()) {
+        if (!shuttingDown && channel.getConnectionLifeTime() > exporterConfig.getClient().getConnectionLifeTime()) {
             LOG.info("Disconnect for event-channel load balancing...");
             try {
                 channel.disconnect();
@@ -115,6 +116,35 @@ public class BrpcEventMessageExporter implements IMessageExporter {
         } catch (CallerSideException e) {
             //suppress client exception
             LOG.warn("Failed to send event: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public void prepareShutdown() {
+        synchronized (this) {
+            this.shuttingDown = true;
+        }
+    }
+
+    private IEventCollector getEventCollector() {
+        IEventCollector eventCollector = this.eventCollector;
+        if (eventCollector != null) {
+            return eventCollector;
+        }
+
+        synchronized (this) {
+            if (this.shuttingDown) {
+                return null;
+            }
+            if (this.eventCollector == null) {
+                try {
+                    this.eventCollector = brpcClient.getRemoteService(IEventCollector.class);
+                } catch (ServiceInvocationException e) {
+                    LOG.warn("Unable to get remote service: {}", e.getMessage());
+                    return null;
+                }
+            }
+            return this.eventCollector;
         }
     }
 

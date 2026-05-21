@@ -48,8 +48,9 @@ public class BrpcTraceMessageExporter implements IMessageExporter {
 
     private final ExporterConfig exporterConfig;
     private final BrpcClient brpcClient;
-    private ITraceCollector traceCollector;
+    private volatile ITraceCollector traceCollector;
     private BrpcMessageHeader header;
+    private volatile boolean shuttingDown;
 
     public BrpcTraceMessageExporter(ExporterConfig exporterConfig) {
 
@@ -86,13 +87,9 @@ public class BrpcTraceMessageExporter implements IMessageExporter {
 
     @Override
     public void export(Object message) {
-        if (this.traceCollector == null) {
-            try {
-                this.traceCollector = this.brpcClient.getRemoteService(ITraceCollector.class);
-            } catch (ServiceInvocationException e) {
-                LOG.warn("Unable to get remote ITraceCollector service: {}", e.getMessage());
-                return;
-            }
+        ITraceCollector traceCollector = getTraceCollector();
+        if (traceCollector == null) {
+            return;
         }
 
         if (!(message instanceof List)) {
@@ -102,8 +99,12 @@ public class BrpcTraceMessageExporter implements IMessageExporter {
             return;
         }
 
+        if (shuttingDown && !brpcClient.isActive()) {
+            return;
+        }
+
         IBrpcChannel channel = ((IServiceController) traceCollector).getChannel();
-        if (channel.getConnectionLifeTime() > exporterConfig.getClient().getConnectionLifeTime()) {
+        if (!shuttingDown && channel.getConnectionLifeTime() > exporterConfig.getClient().getConnectionLifeTime()) {
             LOG.info("Disconnect trace-channel for client-side load balancing...");
             try {
                 channel.disconnect();
@@ -119,11 +120,40 @@ public class BrpcTraceMessageExporter implements IMessageExporter {
 
         try {
             //noinspection unchecked
-            this.traceCollector.sendTrace(this.header,
-                                          (List<BrpcTraceSpanMessage>) message);
+            traceCollector.sendTrace(this.header,
+                                     (List<BrpcTraceSpanMessage>) message);
         } catch (CallerSideException e) {
             //suppress client exception
             LOG.warn("Failed to send tracing: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public void prepareShutdown() {
+        synchronized (this) {
+            this.shuttingDown = true;
+        }
+    }
+
+    private ITraceCollector getTraceCollector() {
+        ITraceCollector traceCollector = this.traceCollector;
+        if (traceCollector != null) {
+            return traceCollector;
+        }
+
+        synchronized (this) {
+            if (this.shuttingDown) {
+                return null;
+            }
+            if (this.traceCollector == null) {
+                try {
+                    this.traceCollector = this.brpcClient.getRemoteService(ITraceCollector.class);
+                } catch (ServiceInvocationException e) {
+                    LOG.warn("Unable to get remote ITraceCollector service: {}", e.getMessage());
+                    return null;
+                }
+            }
+            return this.traceCollector;
         }
     }
 
