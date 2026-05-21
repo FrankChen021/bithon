@@ -116,6 +116,8 @@ public class Exporter {
 
     public void shutdown() {
         LOG.info("Shutting down exporter task [{}]...", exporterName);
+        messageExporter.prepareShutdown();
+
         if (task != null) {
             task.stop();
         }

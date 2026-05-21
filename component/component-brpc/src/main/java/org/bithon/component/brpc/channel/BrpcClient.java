@@ -70,6 +70,7 @@ public class BrpcClient implements IBrpcChannel, Closeable {
     private final ServiceRegistry serviceRegistry = new ServiceRegistry();
     private NioEventLoopGroup bossGroup;
     private final Duration retryBackoff;
+    private final Duration connectionTimeout;
     private final int maxRetry;
 
     /**
@@ -96,6 +97,7 @@ public class BrpcClient implements IBrpcChannel, Closeable {
         this.server = Preconditions.checkArgumentNotNull("server", builder.server);
         this.maxRetry = Math.max(1, builder.maxRetry);
         this.retryBackoff = builder.retryBackoff;
+        this.connectionTimeout = builder.connectionTimeout;
         this.appName = builder.appName;
         this.clientId = builder.clientId;
 
@@ -218,9 +220,8 @@ public class BrpcClient implements IBrpcChannel, Closeable {
         for (int i = 0; i < maxRetry; i++) {
             server = this.server.getEndpoint();
             try {
-                ChannelFuture connectFuture = bootstrap.connect(server.getHost(), server.getPort())
-                                                       .awaitUninterruptibly();
-                if (connectFuture.isSuccess()) {
+                ChannelFuture connectFuture = bootstrap.connect(server.getHost(), server.getPort());
+                if (awaitConnect(connectFuture, server, connectionTimeout) && connectFuture.isSuccess()) {
                     connectionTimestamp = System.currentTimeMillis();
 
                     // Directly update the ref so that we can use the channel immediately
@@ -243,6 +244,22 @@ public class BrpcClient implements IBrpcChannel, Closeable {
             }
         }
         throw new CallerSideException("Unable to connect to remote service at [%s:%d]", server.getHost(), server.getPort());
+    }
+
+    static boolean awaitConnect(ChannelFuture connectFuture, EndPoint server, Duration connectionTimeout) {
+        long connectionTimeoutMilliseconds = Math.max(1, connectionTimeout.toMillis());
+        if (connectFuture.awaitUninterruptibly(connectionTimeoutMilliseconds, TimeUnit.MILLISECONDS)) {
+            return true;
+        }
+
+        connectFuture.cancel(true);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Timed out connecting to remote service at [{}:{}] in {} ms",
+                      server.getHost(),
+                      server.getPort(),
+                      connectionTimeoutMilliseconds);
+        }
+        return false;
     }
 
     public void bindService(Object serviceImpl) {

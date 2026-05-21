@@ -50,6 +50,7 @@ public class BrpcTraceMessageExporter implements IMessageExporter {
     private final BrpcClient brpcClient;
     private ITraceCollector traceCollector;
     private BrpcMessageHeader header;
+    private volatile boolean shuttingDown;
 
     public BrpcTraceMessageExporter(ExporterConfig exporterConfig) {
 
@@ -87,6 +88,9 @@ public class BrpcTraceMessageExporter implements IMessageExporter {
     @Override
     public void export(Object message) {
         if (this.traceCollector == null) {
+            if (shuttingDown) {
+                return;
+            }
             try {
                 this.traceCollector = this.brpcClient.getRemoteService(ITraceCollector.class);
             } catch (ServiceInvocationException e) {
@@ -102,8 +106,12 @@ public class BrpcTraceMessageExporter implements IMessageExporter {
             return;
         }
 
+        if (shuttingDown && !brpcClient.isActive()) {
+            return;
+        }
+
         IBrpcChannel channel = ((IServiceController) traceCollector).getChannel();
-        if (channel.getConnectionLifeTime() > exporterConfig.getClient().getConnectionLifeTime()) {
+        if (!shuttingDown && channel.getConnectionLifeTime() > exporterConfig.getClient().getConnectionLifeTime()) {
             LOG.info("Disconnect trace-channel for client-side load balancing...");
             try {
                 channel.disconnect();
@@ -125,6 +133,11 @@ public class BrpcTraceMessageExporter implements IMessageExporter {
             //suppress client exception
             LOG.warn("Failed to send tracing: {}", e.getMessage());
         }
+    }
+
+    @Override
+    public void prepareShutdown() {
+        this.shuttingDown = true;
     }
 
     @Override

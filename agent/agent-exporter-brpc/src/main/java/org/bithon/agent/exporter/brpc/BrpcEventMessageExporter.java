@@ -50,6 +50,7 @@ public class BrpcEventMessageExporter implements IMessageExporter {
     private final ExporterConfig exporterConfig;
     private IEventCollector eventCollector;
     private BrpcMessageHeader header;
+    private volatile boolean shuttingDown;
 
     public BrpcEventMessageExporter(ExporterConfig exporterConfig) {
         List<EndPoint> endpoints = Stream.of(exporterConfig.getServers().split(",")).map(hostAndPort -> {
@@ -86,6 +87,9 @@ public class BrpcEventMessageExporter implements IMessageExporter {
     @Override
     public void export(Object message) {
         if (this.eventCollector == null) {
+            if (shuttingDown) {
+                return;
+            }
             try {
                 this.eventCollector = brpcClient.getRemoteService(IEventCollector.class);
             } catch (ServiceInvocationException e) {
@@ -94,8 +98,12 @@ public class BrpcEventMessageExporter implements IMessageExporter {
             }
         }
 
+        if (shuttingDown && !brpcClient.isActive()) {
+            return;
+        }
+
         IBrpcChannel channel = ((IServiceController) eventCollector).getChannel();
-        if (channel.getConnectionLifeTime() > exporterConfig.getClient().getConnectionLifeTime()) {
+        if (!shuttingDown && channel.getConnectionLifeTime() > exporterConfig.getClient().getConnectionLifeTime()) {
             LOG.info("Disconnect for event-channel load balancing...");
             try {
                 channel.disconnect();
@@ -116,6 +124,11 @@ public class BrpcEventMessageExporter implements IMessageExporter {
             //suppress client exception
             LOG.warn("Failed to send event: {}", e.getMessage());
         }
+    }
+
+    @Override
+    public void prepareShutdown() {
+        this.shuttingDown = true;
     }
 
     @Override

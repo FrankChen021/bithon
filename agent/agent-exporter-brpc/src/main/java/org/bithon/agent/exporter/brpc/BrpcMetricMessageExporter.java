@@ -58,6 +58,7 @@ public class BrpcMetricMessageExporter implements IMessageExporter {
     private final BrpcClient brpcClient;
     private IMetricCollector metricCollector;
     private BrpcMessageHeader header;
+    private volatile boolean shuttingDown;
 
     public BrpcMetricMessageExporter(ExporterConfig exporterConfig) {
         Method[] methods = IMetricCollector.class.getDeclaredMethods();
@@ -122,12 +123,19 @@ public class BrpcMetricMessageExporter implements IMessageExporter {
     @Override
     public void export(Object message) {
         if (this.metricCollector == null) {
+            if (shuttingDown) {
+                return;
+            }
             try {
                 this.metricCollector = brpcClient.getRemoteService(IMetricCollector.class);
             } catch (ServiceInvocationException e) {
                 LOG.warn("Unable to get remote IMetricCollector service: {}", e.getMessage());
                 return;
             }
+        }
+
+        if (shuttingDown && !brpcClient.isActive()) {
+            return;
         }
 
         final String messageClass;
@@ -142,7 +150,7 @@ public class BrpcMetricMessageExporter implements IMessageExporter {
         }
 
         IBrpcChannel channel = ((IServiceController) metricCollector).getChannel();
-        if (channel.getConnectionLifeTime() > exporterConfig.getClient().getConnectionLifeTime()) {
+        if (!shuttingDown && channel.getConnectionLifeTime() > exporterConfig.getClient().getConnectionLifeTime()) {
             LOG.info("Disconnect metric-channel for client-side load balancing...");
             try {
                 channel.disconnect();
@@ -173,6 +181,11 @@ public class BrpcMetricMessageExporter implements IMessageExporter {
                 throw new RuntimeException(e.getTargetException());
             }
         }
+    }
+
+    @Override
+    public void prepareShutdown() {
+        this.shuttingDown = true;
     }
 
     @Override
