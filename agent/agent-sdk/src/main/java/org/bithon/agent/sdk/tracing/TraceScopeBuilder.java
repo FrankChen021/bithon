@@ -114,6 +114,29 @@ public class TraceScopeBuilder {
         return NoopTraceScope.INSTANCE;
     }
 
+    /**
+     * Creates a trace scope and attaches it to the current thread, temporarily replacing any existing context.
+     * <p>
+     * If {@link #parent(String, String)} is not configured with a non-empty trace ID and parent span ID, this method
+     * returns a no-op scope.
+     * <p>
+     * If a tracing context already exists on the current thread, it will be suspended while the returned scope is active,
+     * and restored when the returned scope is closed. The suspended context is not finished by this scope.
+     * <p>
+     * This method is intended for asynchronous task frameworks that need to restore the task's own trace context even
+     * when the executor thread already has a context propagated by instrumentation.
+     *
+     * @return an attached ITraceScope ready for use in try-with-resources.
+     * Callers MUST ensure to close the scope to avoid resource leaks and restore the previous context.
+     * @since 1.2.4
+     */
+    public ITraceScope attachOrReplaceCurrent() {
+        if (shouldLog()) {
+            LOGGER.warning("The agent is not loaded.");
+        }
+        return NoopTraceScope.INSTANCE;
+    }
+
     // Public getters for agent interceptors
     public String operationName() {
         return operationName;

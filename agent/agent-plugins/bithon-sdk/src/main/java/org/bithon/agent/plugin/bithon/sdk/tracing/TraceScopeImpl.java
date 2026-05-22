@@ -34,11 +34,17 @@ import org.bithon.agent.sdk.tracing.TracingMode;
  */
 public class TraceScopeImpl implements ITraceScope {
     private final ITraceContext context;
+    private final ITraceContext previousContext;
     private final ISpan rootSpan;
     private final long attachedThreadId;
 
     public TraceScopeImpl(ITraceContext context, ITraceSpan rootSpan) {
+        this(context, rootSpan, null);
+    }
+
+    public TraceScopeImpl(ITraceContext context, ITraceSpan rootSpan, ITraceContext previousContext) {
         this.context = context;
+        this.previousContext = previousContext;
         this.rootSpan = new SpanImpl(rootSpan);
 
         TraceContextHolder.attach(context);
@@ -67,16 +73,22 @@ public class TraceScopeImpl implements ITraceScope {
 
     @Override
     public void close() {
-        rootSpan.finish();
-        if (context != null) {
-            context.finish();
-        }
-
         if (Thread.currentThread().getId() != attachedThreadId) {
             throw new SdkException("TraceScope is created in thread(id=%d), but is being closed from another thread(id=%d).",
                                    attachedThreadId,
                                    Thread.currentThread().getId());
         }
-        TraceContextHolder.detach();
+
+        try {
+            rootSpan.finish();
+            if (context != null) {
+                context.finish();
+            }
+        } finally {
+            TraceContextHolder.detach();
+            if (previousContext != null) {
+                TraceContextHolder.attach(previousContext);
+            }
+        }
     }
 }

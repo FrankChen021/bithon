@@ -64,6 +64,9 @@ public class BithonSdkPlugin implements IPlugin {
                 .onMethod("attach")
                 .replacedBy("org.bithon.agent.plugin.bithon.sdk.tracing.interceptor.TraceScopeBuilder$Attach")
 
+                .onMethod("attachOrReplaceCurrent")
+                .replacedBy("org.bithon.agent.plugin.bithon.sdk.tracing.interceptor.TraceScopeBuilder$AttachOrReplaceCurrent")
+
                 .build(),
 
             forClass("org.bithon.agent.sdk.tracing.SpanScopeBuilder")
