@@ -15,7 +15,7 @@ Following steps guides how to use this SDK
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-sdk</artifactId>
-      <version>1.2.1</version>
+      <version>1.2.4</version>
     </dependency>
    ```
 2. Define metrics in your application
@@ -85,4 +85,3 @@ Following steps guides how to use this SDK
     GatewayMetrics metrics = gatewayMetrics.getPermanent(request.getTargetIp());
     metrics.activeConnections = ()->{ someClass.getActiveConnection(); };
    ```
-   

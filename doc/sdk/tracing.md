@@ -14,13 +14,13 @@ Add the Bithon Tracing API dependency to your project. The dependency is availab
 <dependency>
     <groupId>org.bithon.agent</groupId>
     <artifactId>agent-sdk</artifactId>
-    <version>1.2.3</version>
+    <version>1.2.4</version>
 </dependency>
 ```
 
 > NOTE:
 > 
-> 1.2.3 is the current release version. You can find the latest version in [Maven Central](https://search.maven.org/artifact/org.bithon.agent/agent-sdk).
+> 1.2.4 is the current release version. You can find the latest version in [Maven Central](https://search.maven.org/artifact/org.bithon.agent/agent-sdk).
 
 ### Step.2: Create trace spans
 
@@ -129,6 +129,8 @@ This is useful when you want to control how or when the `traceId` is generated, 
 > 
 >
 
+If the current thread might already have a tracing context propagated by instrumentation, but the task itself carries an authoritative trace context that must be restored, use `attachOrReplaceCurrent()` instead of `attach()`. The existing context is suspended while the returned scope is active and restored when the scope is closed. This API requires a non-empty `traceId` and `parentSpanId`; if either value is missing, it returns a no-op scope.
+
 The following examples demonstrates the usage of this API in two scenarios:
 1. Set up a tracing context on a background task
 2. Propagate the tracing context for asynchronous processing by using of `java.lang.Thread`
@@ -198,6 +200,15 @@ public class BackgroundTaskService {
             }
         }).start();
     }
+
+    // Restore a task-carried context even if the executor thread already has one.
+    private void runTaskWithCarriedTrace(String traceId, String parentSpanId, Runnable task) {
+        try (ITraceScope scope = TraceContext.newTrace("user-task")
+                                             .parent(traceId, parentSpanId)
+                                             .attachOrReplaceCurrent()) {
+            task.run();
+        }
+    }
 }
 ```
 
@@ -226,6 +237,13 @@ public class BackgroundTaskService {
 | `TraceContext.currentTraceId()`                    | Gets the trace ID for the current request. Returns `null` if tracing is not enabled or request is not sampled. |
 | `TraceContext.currentSpanId()`                     | Gets the span ID for the current span. Returns `null` if tracing is not enabled or request is not sampled.     |
 | `TraceContext.currentSpan()`                       | Gets the active span on current running thread. Returns `null` if there's no tracing on running thread.        |
+
+#### TraceScopeBuilder APIs
+
+| API Name                   | Description                                                                                                                       |
+|----------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `attach()`                 | Attaches the new trace scope to the current thread. Throws if a tracing context is already attached.                              |
+| `attachOrReplaceCurrent()` | Attaches the new trace scope and temporarily replaces any existing current context. Requires non-empty parent context IDs; otherwise returns a no-op scope. Restores the previous context on scope close. |
 
 
 ### Understand how the tracing SDK works

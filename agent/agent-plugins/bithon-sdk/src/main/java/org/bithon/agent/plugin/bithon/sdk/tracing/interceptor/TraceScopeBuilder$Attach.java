@@ -48,8 +48,10 @@ public class TraceScopeBuilder$Attach extends ReplaceInterceptor {
                                    span == null ? "" : span.toString());
         }
 
-        TraceScopeBuilder builder = (TraceScopeBuilder) thisObject;
+        return createScope((TraceScopeBuilder) thisObject, null);
+    }
 
+    static TraceScopeImpl createScope(TraceScopeBuilder builder, ITraceContext previousContext) {
         String traceId = builder.traceId();
         String parentSpanId = builder.parentSpanId();
         if (StringUtils.isEmpty(traceId) || StringUtils.isEmpty(parentSpanId)) {
@@ -62,6 +64,6 @@ public class TraceScopeBuilder$Attach extends ReplaceInterceptor {
         ITraceSpan rootSpan = ctx.currentSpan();
         rootSpan.name(builder.operationName()).start();
 
-        return new TraceScopeImpl(ctx, ctx.currentSpan());
+        return new TraceScopeImpl(ctx, ctx.currentSpan(), previousContext);
     }
 }

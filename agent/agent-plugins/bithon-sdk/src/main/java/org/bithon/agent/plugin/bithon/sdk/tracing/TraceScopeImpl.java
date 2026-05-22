@@ -34,11 +34,17 @@ import org.bithon.agent.sdk.tracing.TracingMode;
  */
 public class TraceScopeImpl implements ITraceScope {
     private final ITraceContext context;
+    private final ITraceContext previousContext;
     private final ISpan rootSpan;
     private final long attachedThreadId;
 
     public TraceScopeImpl(ITraceContext context, ITraceSpan rootSpan) {
+        this(context, rootSpan, null);
+    }
+
+    public TraceScopeImpl(ITraceContext context, ITraceSpan rootSpan, ITraceContext previousContext) {
         this.context = context;
+        this.previousContext = previousContext;
         this.rootSpan = new SpanImpl(rootSpan);
 
         TraceContextHolder.attach(context);
@@ -78,5 +84,8 @@ public class TraceScopeImpl implements ITraceScope {
                                    Thread.currentThread().getId());
         }
         TraceContextHolder.detach();
+        if (previousContext != null) {
+            TraceContextHolder.attach(previousContext);
+        }
     }
 }
