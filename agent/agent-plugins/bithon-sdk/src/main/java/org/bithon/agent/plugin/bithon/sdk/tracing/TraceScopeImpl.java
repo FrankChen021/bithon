@@ -73,19 +73,22 @@ public class TraceScopeImpl implements ITraceScope {
 
     @Override
     public void close() {
-        rootSpan.finish();
-        if (context != null) {
-            context.finish();
-        }
-
         if (Thread.currentThread().getId() != attachedThreadId) {
             throw new SdkException("TraceScope is created in thread(id=%d), but is being closed from another thread(id=%d).",
                                    attachedThreadId,
                                    Thread.currentThread().getId());
         }
-        TraceContextHolder.detach();
-        if (previousContext != null) {
-            TraceContextHolder.attach(previousContext);
+
+        try {
+            rootSpan.finish();
+            if (context != null) {
+                context.finish();
+            }
+        } finally {
+            TraceContextHolder.detach();
+            if (previousContext != null) {
+                TraceContextHolder.attach(previousContext);
+            }
         }
     }
 }
