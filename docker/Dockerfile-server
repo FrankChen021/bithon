@@ -42,7 +42,7 @@ RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
 # Build Server
 WORKDIR /src
 RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
-      mvn -ntp -pl server/server-starter -am \
+      mvn -ntp --activate-profiles server,component -pl server/server-starter -am \
       clean package \
       -T 1C \
       -DskipTests \
