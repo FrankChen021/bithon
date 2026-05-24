@@ -46,11 +46,11 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Setup JDK17
+      - name: Setup JDK21
         uses: actions/setup-java@v3
         with:
-          java-version: "17"
-          distribution: "adopt"
+          java-version: "21"
+          distribution: "temurin"
 
       #
       # separate shaded building from other modules because if it's built with other modules,
@@ -63,7 +63,7 @@ jobs:
         run: mvn clean install -T 1C -ntp --activate-profiles agent,component -Dmaven.javadoc.skip=true -DskipTests
 
       - name: Process test resources
-        run: mvn test-compile -T 1C -ntp --activate-profiles agent,component -DskipTests
+        run: mvn test-compile -T 1C -ntp --activate-profiles agent,component -DskipTests -Dcheckstyle.skip=true
 
       - name: Verify test resources are built
         run: |
@@ -269,7 +269,7 @@ jobs:
           
           if [ "$MISSING_RESOURCES" = true ]; then
             echo "=== Rebuilding test resources ==="
-            mvn test-compile -T 1C -ntp --activate-profiles agent,component -DskipTests
+            mvn test-compile -T 1C -ntp --activate-profiles agent,component -DskipTests -Dcheckstyle.skip=true
             
             echo "=== Verifying resources after rebuild ==="
             find agent/ -path "*/target/test-classes/*" -name "init-mysql*.sql" -type f
