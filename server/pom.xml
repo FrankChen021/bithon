@@ -36,8 +36,8 @@
 
     <grpc.version>1.59.1</grpc.version>
 
-    <!-- The version that is used by the current grpc -->
-    <protobuf.version>3.24.0</protobuf.version>
+    <!-- Keep server protobuf runtime on the same compatible Protobuf 3.x line as shaded-protobuf. -->
+    <protobuf.version>3.25.9</protobuf.version>
   </properties>
 
   <modules>
