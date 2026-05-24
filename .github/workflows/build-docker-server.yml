@@ -27,7 +27,7 @@ jobs:
           changed_files=$(git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD)
           printf '%s\n' "$changed_files"
 
-          if printf '%s\n' "$changed_files" | grep -Eq "^(docker/|server/|component/|shaded/|licenses/|dev/|pom\.xml$|\.github/workflows/build-docker-server\.yml$)"; then
+          if printf '%s\n' "$changed_files" | grep -Eq "^(docker/|server/|component/|shaded/|licenses/|dev/|pom\.xml$|\.gitmodules$|\.github/workflows/build-docker-server\.yml$)"; then
             echo "changed=true" >> $GITHUB_OUTPUT
           else
             echo "changed=false" >> $GITHUB_OUTPUT
