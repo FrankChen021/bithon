@@ -327,6 +327,8 @@ jobs:
   release:
     needs: [build, test]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     # Run on master branch AND if both build and test jobs succeeded
     if: (github.ref == 'refs/heads/master') && needs.build.result == 'success' && needs.test.result == 'success'
     concurrency:
@@ -402,50 +404,41 @@ jobs:
           echo "TAR path: $AGENT_TAR_PATH"
           ls -la "$AGENT_ZIP_PATH" "$AGENT_TAR_PATH"
 
-      #
-      # Follow steps are for release, we only enable them for changes on the master branch
-      # Delete both tag and release if we have successfully built and tested the agent
-      #
-      # https://github.com/marketplace/actions/delete-tag-and-release
-      - name: Delete previous agent tag and release
-        uses: dev-drprasad/delete-tag-and-release@v1.1
-        continue-on-error: true
-        with:
-          delete_release: true # This deletes both the release and the tag
-          tag_name: agent-distribution-latest
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Delete previous agent releases and tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: agent-distribution-latest
+        run: |
+          set -euo pipefail
 
-      - name: Wait before recreating release
-        run: sleep 5
+          gh api --paginate "repos/${{ github.repository }}/releases" \
+            --jq ".[] | select(.tag_name == \"${RELEASE_TAG}\" or .name == \"${RELEASE_TAG}\") | .id" |
+          while read -r release_id; do
+            if [ -n "$release_id" ]; then
+              echo "Deleting release $release_id"
+              gh api --method DELETE "repos/${{ github.repository }}/releases/${release_id}"
+            fi
+          done
 
-      - name: Release agent ZIP
-        uses: svenstaro/upload-release-action@v2
-        with:
-          body: "The latest agent built from commit ${{ github.sha }}"
-          overwrite: true
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          release_name: agent-distribution-latest
-          tag: agent-distribution-latest
-          asset_name: agent-distribution.zip
-          file: ${{ steps.find-agent-files.outputs.agent-zip-path }}
+          gh api --method DELETE "repos/${{ github.repository }}/git/refs/tags/${RELEASE_TAG}" || true
 
-      - name: Release agent TAR
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: agent-distribution-latest
-          asset_name: agent-distribution.tar
-          file: ${{ steps.find-agent-files.outputs.agent-tar-path }}
+      - name: Create agent distribution release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: agent-distribution-latest
+        run: |
+          set -euo pipefail
+
+          gh release create "${RELEASE_TAG}" \
+            "${{ steps.find-agent-files.outputs.agent-zip-path }}" \
+            "${{ steps.find-agent-files.outputs.agent-tar-path }}" \
+            --repo "${{ github.repository }}" \
+            --target "${{ github.sha }}" \
+            --title "${RELEASE_TAG}" \
+            --notes "The latest agent built from commit ${{ github.sha }}" \
+            --latest
 
       - name: Verify release created
-        run: |
-          # Wait a moment for the release to be available
-          sleep 10
-          # Check if the release was created successfully
-          RELEASE_URL="https://api.github.com/repos/${{ github.repository }}/releases/tags/agent-distribution-latest"
-          if curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$RELEASE_URL" | grep -q '"tag_name"'; then
-            echo "✅ Release verification successful"
-          else
-            echo "❌ Release verification failed - release may not have been created properly"
-            exit 1
-          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release view agent-distribution-latest --repo "${{ github.repository }}"
