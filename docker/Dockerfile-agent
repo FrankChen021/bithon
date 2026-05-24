@@ -33,7 +33,7 @@ RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
 
 WORKDIR /src
 RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
-      mvn -ntp -P!server clean install -DskipTests -T 1C \
+      mvn -ntp --activate-profiles agent,component clean install -DskipTests -T 1C \
       ; fi
 
 FROM eclipse-temurin:8-jre-alpine
