@@ -46,11 +46,11 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Setup JDK17
+      - name: Setup JDK21
         uses: actions/setup-java@v3
         with:
-          java-version: "17"
-          distribution: "adopt"
+          java-version: "21"
+          distribution: "temurin"
 
       #
       # separate shaded building from other modules because if it's built with other modules,
@@ -127,9 +127,8 @@ jobs:
     strategy:
       matrix:
         include:
+          # Mockito 5 requires Java 11+ at test runtime.
           # LTS versions using temurin
-          - java-version: "8"
-            distribution: "temurin"
           - java-version: "11"
             distribution: "temurin"
           - java-version: "17"
@@ -145,10 +144,6 @@ jobs:
           - java-version: "25"
             distribution: "temurin"
           # Non-LTS versions using zulu (better historical support)
-          - java-version: "9"
-            distribution: "zulu"
-          - java-version: "10"
-            distribution: "zulu"
           - java-version: "12"
             distribution: "zulu"
           - java-version: "13"
@@ -313,8 +308,10 @@ jobs:
       - name: Run tests with JDK ${{ matrix.java-version }}
         run: |
           echo "=== Running tests with TestContainers support ==="
+          BYTE_BUDDY_AGENT="$(find "$HOME/.m2/repository/net/bytebuddy/byte-buddy-agent" -name "byte-buddy-agent-*.jar" | sort -V | tail -n 1)"
+          test -n "$BYTE_BUDDY_AGENT"
           # Ensure test resources are in classpath by running from project root
-          mvn surefire:test --activate-profiles agent -P-server -ntp -Dtest.working.directory=$PWD
+          mvn surefire:test --activate-profiles agent -P-server -ntp -Dtest.working.directory=$PWD -DargLine="-javaagent:${BYTE_BUDDY_AGENT}"
         env:
           # Ensure TestContainers environment variables are available
           TESTCONTAINERS_RYUK_DISABLED: true

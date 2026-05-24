@@ -19,7 +19,7 @@
     <junit.jupiter.version>5.10.5</junit.jupiter.version>
     <junit.platform.version>1.10.5</junit.platform.version>
     <lombok.version>1.18.46</lombok.version>
-    <checkstyle.version>12.3.1</checkstyle.version>
+    <checkstyle.version>13.4.2</checkstyle.version>
     <spotbugs.version>4.9.8</spotbugs.version>
     <spotbugs.maven.plugin.version>4.9.8.3</spotbugs.maven.plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -153,9 +153,8 @@
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-inline</artifactId>
-        <!-- DO NOT UPGRADE -
-        This is the latest version that supports JDK8 only since we're using it in the agent which uses JDK8 only-->
-        <version>4.11.0</version>
+        <!-- Mockito 5 requires Java 11+ at test runtime. Agent production bytecode still targets Java 8. -->
+        <version>5.2.0</version>
         <scope>test</scope>
       </dependency>
 

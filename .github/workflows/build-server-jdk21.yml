@@ -52,4 +52,7 @@ jobs:
 
       # Execute UT excluding component modules
       - name: UT
-        run: mvn test -P-component -P-agent
+        run: |
+          BYTE_BUDDY_AGENT="$(find "$HOME/.m2/repository/net/bytebuddy/byte-buddy-agent" -name "byte-buddy-agent-*.jar" | sort -V | tail -n 1)"
+          test -n "$BYTE_BUDDY_AGENT"
+          mvn test -P-component -P-agent -DargLine="-javaagent:${BYTE_BUDDY_AGENT}"
