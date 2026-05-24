@@ -40,4 +40,4 @@ FROM eclipse-temurin:8-jre-alpine
 
 COPY --from=builder /src/agent/agent-distribution/target/agent-distribution/agent-distribution/ /opt/agent-distribution
 
-CMD [""]
+CMD ["true"]
