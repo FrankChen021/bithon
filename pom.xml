@@ -24,7 +24,7 @@
     <checkstyle.version>13.4.2</checkstyle.version>
     <spotbugs.version>4.9.8</spotbugs.version>
     <spotbugs.maven.plugin.version>4.9.8.3</spotbugs.maven.plugin.version>
-    <maven.surefire.version>3.5.3</maven.surefire.version>
+    <maven.surefire.version>3.5.5</maven.surefire.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
