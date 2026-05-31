@@ -106,7 +106,7 @@
       <dependency>
         <groupId>com.alibaba</groupId>
         <artifactId>druid-spring-boot-starter</artifactId>
-        <version>1.2.27</version>
+        <version>1.2.28</version>
       </dependency>
 
       <dependency>
@@ -388,7 +388,7 @@
       <dependency>
         <groupId>jakarta.xml.bind</groupId>
         <artifactId>jakarta.xml.bind-api</artifactId>
-        <version>4.0.0</version>
+        <version>4.0.5</version>
         <scope>provided</scope>
       </dependency>
 
