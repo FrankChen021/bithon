@@ -99,6 +99,7 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk-17.jdk/Contents/Home
 For the first time to build this project, use the following command to build dependencies first: 
 
 ```bash
+mvn -N install
 mvn -f shaded/pom.xml clean install -T 1C
 mvn -f server/jOOQ/pom.xml clean install -T 1C
 ```

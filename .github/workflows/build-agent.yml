@@ -57,7 +57,9 @@ jobs:
       # there might be library pollution in the agent-distribution
       #
       - name: Install shaded libs
-        run: mvn -f shaded/pom.xml clean install -T 1C -ntp -Dmaven.javadoc.skip=true -DskipTests
+        run: |
+          mvn -N install -T 1C -ntp -Dmaven.javadoc.skip=true -DskipTests
+          mvn -f shaded/pom.xml clean install -T 1C -ntp -Dmaven.javadoc.skip=true -DskipTests
 
       - name: Compilation
         run: |

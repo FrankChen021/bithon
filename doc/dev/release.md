@@ -34,6 +34,7 @@ Upload your key to [opengpg](https://keys.openpgp.org/upload/)
 
 ```bash
 export GPG_TTY=$(tty)
+mvn -N clean deploy -DskipTests -Pdist
 mvn -f component/pom.xml clean deploy -DskipTests -Pdist
 mvn clean deploy -DskipTests -Pdist -pl agent -amd
 ```

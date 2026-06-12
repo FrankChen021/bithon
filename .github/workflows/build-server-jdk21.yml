@@ -42,6 +42,7 @@ jobs:
 
       - name: Compilation
         run: |
+          mvn -N install -T 1C -ntp -Dmaven.javadoc.skip=true -DskipTests
           mvn -f shaded/pom.xml clean install -T 1C -ntp -Dmaven.javadoc.skip=true -DskipTests
           mvn -f server/jOOQ/pom.xml clean install -T 1C -ntp -Dmaven.javadoc.skip=true -DskipTests
           mvn clean install -T 1C -ntp -pl server/server-starter -am -Dmaven.javadoc.skip=true -DskipTests
