@@ -30,11 +30,12 @@ gpg --full-generate-key
 
 Upload your key to [opengpg](https://keys.openpgp.org/upload/)
 
-# Step 3. Build and deploy agent to sonatype
+# Step 3. Build and deploy to sonatype
 
 ```bash
 export GPG_TTY=$(tty)
 mvn -N clean deploy -DskipTests -Pdist
 mvn -f component/pom.xml clean deploy -DskipTests -Pdist
 mvn clean deploy -DskipTests -Pdist -pl agent -amd
+mvn clean deploy -DskipTests -Pdist -pl server -amd
 ```
