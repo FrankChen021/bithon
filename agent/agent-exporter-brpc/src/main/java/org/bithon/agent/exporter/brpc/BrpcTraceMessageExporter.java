@@ -33,6 +33,7 @@ import org.bithon.component.brpc.exception.CallerSideException;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.logging.RateLimitedLogger;
 
 import java.time.Duration;
 import java.util.List;
@@ -45,6 +46,7 @@ import java.util.stream.Stream;
  */
 public class BrpcTraceMessageExporter implements IMessageExporter {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(BrpcTraceMessageExporter.class);
+    private static final RateLimitedLogger RATE_LIMITED_LOG = new RateLimitedLogger(LOG, Duration.ofMinutes(1));
 
     private final ExporterConfig exporterConfig;
     private final BrpcClient brpcClient;
@@ -90,7 +92,9 @@ public class BrpcTraceMessageExporter implements IMessageExporter {
             try {
                 this.traceCollector = this.brpcClient.getRemoteService(ITraceCollector.class);
             } catch (ServiceInvocationException e) {
-                LOG.warn("Unable to get remote ITraceCollector service: {}", e.getMessage());
+                RATE_LIMITED_LOG.warn("trace-collector-init:" + e.getMessage(),
+                                      "Unable to get remote ITraceCollector service: {}",
+                                      e.getMessage());
                 return;
             }
         }
@@ -123,7 +127,9 @@ public class BrpcTraceMessageExporter implements IMessageExporter {
                                           (List<BrpcTraceSpanMessage>) message);
         } catch (CallerSideException e) {
             //suppress client exception
-            LOG.warn("Failed to send tracing: {}", e.getMessage());
+            RATE_LIMITED_LOG.warn("trace-send:" + e.getMessage(),
+                                  "Failed to send tracing: {}",
+                                  e.getMessage());
         }
     }
 
