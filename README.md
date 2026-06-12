@@ -86,12 +86,12 @@ cd bithon && git submodule update --init
 
 ## 2. Configure JDK
 
-JDK 17 and above are required to build this project.
+JDK 21 and above are required to build this project.
 If you have multiple JDKs on your machine, use `export JAVA_HOME={YOUR_JDK_HOME}` command to set correct JDK. 
 For example
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk-17.jdk/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk-21.jdk/Contents/Home
 ```
 
 ## 3. Build the project
