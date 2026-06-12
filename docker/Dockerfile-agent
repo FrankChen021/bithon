@@ -26,6 +26,11 @@ RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
       ; fi
 
 COPY . /src
+WORKDIR /src
+RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
+      mvn -ntp -N install -DskipTests -T 1C \
+      ; fi
+
 WORKDIR /src/shaded
 RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
       mvn -ntp clean install -T 1C \
@@ -33,7 +38,12 @@ RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
 
 WORKDIR /src
 RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
-      mvn -ntp --activate-profiles agent,component clean install -DskipTests -T 1C \
+      mvn -ntp -f component/pom.xml clean install -DskipTests -T 1C \
+      ; fi
+
+WORKDIR /src
+RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
+      mvn -ntp -pl agent -amd clean install -DskipTests -T 1C \
       ; fi
 
 FROM eclipse-temurin:8-jre-alpine

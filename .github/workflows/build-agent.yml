@@ -57,13 +57,17 @@ jobs:
       # there might be library pollution in the agent-distribution
       #
       - name: Install shaded libs
-        run: mvn clean install -T 1C -ntp --activate-profiles shaded -Dmaven.javadoc.skip=true -DskipTests
+        run: |
+          mvn -N install -T 1C -ntp -Dmaven.javadoc.skip=true -DskipTests
+          mvn -f shaded/pom.xml clean install -T 1C -ntp -Dmaven.javadoc.skip=true -DskipTests
 
       - name: Compilation
-        run: mvn clean install -T 1C -ntp --activate-profiles agent,component -Dmaven.javadoc.skip=true -DskipTests
+        run: |
+          mvn -f component/pom.xml clean install -T 1C -ntp -Dmaven.javadoc.skip=true -DskipTests
+          mvn clean install -T 1C -ntp -pl agent -amd -Dmaven.javadoc.skip=true -DskipTests
 
       - name: Process test resources
-        run: mvn test-compile -T 1C -ntp --activate-profiles agent,component -DskipTests -Dcheckstyle.skip=true
+        run: mvn test-compile -T 1C -ntp -pl agent -amd -DskipTests -Dcheckstyle.skip=true
 
       - name: Verify test resources are built
         run: |
@@ -87,7 +91,9 @@ jobs:
           done
 
       - name: Code Check
-        run: mvn --ntp -T 1C -P-server com.github.spotbugs:spotbugs-maven-plugin:check dependency:analyze-only
+        run: |
+          mvn -f component/pom.xml --ntp -T 1C com.github.spotbugs:spotbugs-maven-plugin:check dependency:analyze-only
+          mvn --ntp -T 1C -pl agent -amd com.github.spotbugs:spotbugs-maven-plugin:check dependency:analyze-only
 
       - name: Verify agent distribution was built
         run: |
@@ -269,7 +275,7 @@ jobs:
           
           if [ "$MISSING_RESOURCES" = true ]; then
             echo "=== Rebuilding test resources ==="
-            mvn test-compile -T 1C -ntp --activate-profiles agent,component -DskipTests -Dcheckstyle.skip=true
+            mvn test-compile -T 1C -ntp -pl agent -amd -DskipTests -Dcheckstyle.skip=true
             
             echo "=== Verifying resources after rebuild ==="
             find agent/ -path "*/target/test-classes/*" -name "init-mysql*.sql" -type f
@@ -314,7 +320,7 @@ jobs:
         run: |
           echo "=== Running tests with TestContainers support ==="
           # Ensure test resources are in classpath by running from project root
-          mvn surefire:test --activate-profiles agent -P-server -ntp -Dtest.working.directory=$PWD
+          mvn surefire:test -pl agent -amd -ntp -Dtest.working.directory=$PWD
         env:
           # Ensure TestContainers environment variables are available
           TESTCONTAINERS_RYUK_DISABLED: true

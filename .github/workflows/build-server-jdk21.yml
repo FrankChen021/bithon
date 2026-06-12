@@ -41,15 +41,19 @@ jobs:
           distribution: "adopt"
 
       - name: Compilation
-        run: mvn clean install -T 1C -ntp --activate-profiles shaded,jooq,server,component -Dmaven.javadoc.skip=true -DskipTests
+        run: |
+          mvn -N install -T 1C -ntp -Dmaven.javadoc.skip=true -DskipTests
+          mvn -f shaded/pom.xml clean install -T 1C -ntp -Dmaven.javadoc.skip=true -DskipTests
+          mvn -f server/jOOQ/pom.xml clean install -T 1C -ntp -Dmaven.javadoc.skip=true -DskipTests
+          mvn clean install -T 1C -ntp -pl server/server-starter -am -Dmaven.javadoc.skip=true -DskipTests
 
       - name: Code Check
-        run: mvn --ntp -T 1C -P-agent animal-sniffer:check checkstyle:checkstyle com.github.spotbugs:spotbugs-maven-plugin:check
+        run: mvn --ntp -T 1C -pl server/server-starter -am animal-sniffer:check checkstyle:checkstyle com.github.spotbugs:spotbugs-maven-plugin:check
 
       # No use of -T parameter because it will mess up the output message
       - name: Dependency Check
-        run: mvn -ntp -P-agent dependency:analyze-only
+        run: mvn -ntp -pl server/server-starter -am dependency:analyze-only
 
       # Execute UT excluding component modules
       - name: UT
-        run: mvn test -P-component -P-agent
+        run: mvn test -pl server -amd
