@@ -53,6 +53,12 @@
     </developer>
   </developers>
 
+  <modules>
+    <module>component</module>
+    <module>agent</module>
+    <module>server</module>
+  </modules>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -461,63 +467,6 @@
   </reporting>
 
   <profiles>
-    <profile>
-      <id>jdk21-checkstyle</id>
-      <activation>
-        <jdk>[21,)</jdk>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-checkstyle-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>validate</id>
-                <phase>validate</phase>
-                <goals>
-                  <goal>check</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>component</id>
-      <modules>
-        <module>component</module>
-      </modules>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-    </profile>
-
-    <profile>
-      <id>agent</id>
-      <modules>
-        <module>agent</module>
-      </modules>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-    </profile>
-
-    <profile>
-      <!--
-      Include all server modules by default.
-      Use -P!server to exclude server modules.
-      -->
-      <id>server</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <modules>
-        <module>server</module>
-      </modules>
-    </profile>
     <profile>
       <id>shaded</id>
       <modules>
