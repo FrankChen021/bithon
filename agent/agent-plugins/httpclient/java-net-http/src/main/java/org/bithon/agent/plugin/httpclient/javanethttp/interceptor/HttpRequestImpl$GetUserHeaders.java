@@ -24,18 +24,18 @@ import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.TraceMode;
 
 import java.net.http.HttpHeaders;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * {@link jdk.internal.net.http.HttpRequestImpl#headers()}
- * {@link jdk.internal.net.http.ImmutableHttpRequest#headers()}
+ * {@link jdk.internal.net.http.HttpRequestImpl#getUserHeaders()}
  *
  * @author frank.chen021@outlook.com
  * @date 11/9/25 6:22 pm
  */
-public class HttpRequest$Headers extends AfterInterceptor {
+public class HttpRequestImpl$GetUserHeaders extends AfterInterceptor {
+
     @Override
     public void after(AopContext aopContext) {
         if (aopContext.hasException()) {
@@ -47,7 +47,7 @@ public class HttpRequest$Headers extends AfterInterceptor {
         }
         HttpHeaders headers = aopContext.getReturningAs();
 
-        final Map<String, List<String>> headerMap = new HashMap<>(headers.map());
+        final Map<String, List<String>> headerMap = new LinkedHashMap<>(headers.map());
         ctx.propagate(headerMap, (carrier, key, value) -> carrier.put(key, List.of(value)));
 
         aopContext.setReturning(HttpHeaders.of(headerMap, (a, b) -> true));

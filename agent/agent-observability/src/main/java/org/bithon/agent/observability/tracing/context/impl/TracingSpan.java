@@ -179,6 +179,24 @@ class TracingSpan implements ITraceSpan {
     }
 
     @Override
+    public ITraceSpan detach() {
+        tracingContext.detach(this);
+        TracingContext detachedContext = (TracingContext) tracingContext.copy();
+        TracingSpan detachedSpan = (TracingSpan) detachedContext.newSpan(parentSpanId, spanId);
+
+        detachedSpan.startTime = this.startTime;
+        detachedSpan.endTime = this.endTime;
+        detachedSpan.kind = this.kind;
+        detachedSpan.component = this.component;
+        detachedSpan.parentApplication = this.parentApplication;
+        detachedSpan.clazz = this.clazz;
+        detachedSpan.method = this.method;
+        detachedSpan.tags.putAll(this.tags);
+
+        return detachedSpan;
+    }
+
+    @Override
     public void finish() {
         if (this.endTime != 0) {
             // This span has already been closed, this is a bug

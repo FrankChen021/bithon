@@ -147,6 +147,14 @@ public interface ITraceSpan {
     ITraceSpan start();
 
     /**
+     * Detach this span from its current trace context and return a span with the same identity
+     * in a copied context so it can be finished asynchronously.
+     */
+    default ITraceSpan detach() {
+        return this;
+    }
+
+    /**
      * Finish a span.
      * The implementation should guarantee that multiple calls on this method are safe.
      */
