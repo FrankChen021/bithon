@@ -29,6 +29,7 @@ import org.bithon.agent.observability.tracing.id.ISpanIdGenerator;
 import org.bithon.agent.observability.tracing.id.impl.DefaultSpanIdGenerator;
 import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
 import org.bithon.agent.observability.tracing.reporter.ReporterConfig;
+import org.bithon.agent.plugin.bithon.sdk.tracing.interceptor.TraceScopeBuilder$Attach;
 import org.bithon.agent.plugin.bithon.sdk.tracing.interceptor.TraceScopeBuilder$AttachOrReplaceCurrent;
 import org.bithon.agent.sdk.tracing.ITraceScope;
 import org.bithon.agent.sdk.tracing.TraceContext;
@@ -171,6 +172,23 @@ public class TraceScopeImplTest {
         Assertions.assertSame(previous, TraceContextHolder.current());
         Assertions.assertFalse(previous.finished);
         Assertions.assertFalse(previous.span.finished);
+    }
+
+    @Test
+    public void testAttachAppliesRootSpanKind() {
+        TraceScopeBuilder$Attach interceptor = new TraceScopeBuilder$Attach();
+        ITraceScope scope = (ITraceScope) interceptor.execute(TraceContext.newTrace("current")
+                                                                          .kind(org.bithon.agent.sdk.tracing.SpanKind.SERVER),
+                                                              null,
+                                                              null);
+
+        ITraceContext current = TraceContextHolder.current();
+        Assertions.assertEquals("current", current.currentSpan().name());
+        Assertions.assertEquals(SpanKind.SERVER, current.currentSpan().kind());
+
+        scope.close();
+
+        Assertions.assertNull(TraceContextHolder.current());
     }
 
     private static Tracer setTracer(Tracer tracer) throws Exception {
