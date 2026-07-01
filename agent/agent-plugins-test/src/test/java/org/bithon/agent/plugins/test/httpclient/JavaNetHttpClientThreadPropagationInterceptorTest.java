@@ -35,6 +35,8 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 
 import java.io.Closeable;
 import java.net.InetAddress;
@@ -53,6 +55,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@EnabledForJreRange(min = JRE.JAVA_11)
 public class JavaNetHttpClientThreadPropagationInterceptorTest extends AbstractPluginInterceptorTest {
 
     private static final Object INTERCEPTOR_INSTALL_LOCK = new Object();
