@@ -39,6 +39,7 @@ import org.junit.jupiter.api.condition.EnabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -90,15 +91,7 @@ public class JavaNetHttpClientThreadPropagationInterceptorTest extends AbstractP
         installInterceptor();
 
         AtomicReference<String> traceParent = new AtomicReference<>();
-        HttpServer server = HttpServer.create(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 0);
-        server.createContext("/trace", exchange -> {
-            traceParent.set(exchange.getRequestHeaders().getFirst(W3CTraceContextHeader.TRACE_HEADER_PARENT));
-            byte[] response = "OK".getBytes(StandardCharsets.UTF_8);
-            exchange.sendResponseHeaders(200, response.length);
-            exchange.getResponseBody().write(response);
-            exchange.close();
-        });
-        server.start();
+        HttpServer server = newTraceServer(traceParent);
 
         ITraceContext ctx = TraceContextFactory.newContext(SamplingMode.FULL);
         ctx.currentSpan().name("ROOT");
@@ -147,6 +140,62 @@ public class JavaNetHttpClientThreadPropagationInterceptorTest extends AbstractP
         Assertions.assertNotEquals(httpClientSpan.spanId(), propagatedParentSpanId);
     }
 
+    @Test
+    public void testSendAsyncFallsBackToClientSpanContextWithoutWorkerTraceContext() throws Exception {
+        installInterceptor();
+
+        AtomicReference<String> traceParent = new AtomicReference<>();
+        HttpServer server = newTraceServer(traceParent);
+
+        ITraceContext ctx = TraceContextFactory.newContext(SamplingMode.FULL);
+        ctx.currentSpan().name("ROOT");
+        String rootSpanId = ctx.currentSpan().spanId();
+
+        try (PlainExecutor executor = new PlainExecutor()) {
+            try (Closeable ignored = TraceContextHolder::detach) {
+                TraceContextHolder.attach(ctx);
+
+                HttpRequest request = HttpRequest.newBuilder()
+                                                 .uri(URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/trace"))
+                                                 .GET()
+                                                 .build();
+
+                CompletableFuture<HttpResponse<String>> responseFuture = HttpClient.newBuilder()
+                                                                                   .executor(executor)
+                                                                                   .build()
+                                                                                   .sendAsync(request, HttpResponse.BodyHandlers.ofString());
+
+                Assertions.assertEquals(rootSpanId, TraceContextHolder.current().currentSpan().spanId());
+
+                HttpResponse<String> response = responseFuture.get();
+
+                Assertions.assertEquals(200, response.statusCode());
+            }
+            ctx.currentSpan().finish();
+            ctx.finish();
+        } finally {
+            server.stop(0);
+        }
+
+        Assertions.assertNotNull(traceParent.get());
+        ITraceSpan httpClientSpan = awaitSpan(span -> "http-client".equals(span.name()) && "sendAsync".equals(span.method()));
+
+        Assertions.assertEquals(httpClientSpan.spanId(), parentSpanId(traceParent.get()));
+    }
+
+    private static HttpServer newTraceServer(AtomicReference<String> traceParent) throws IOException {
+        HttpServer server = HttpServer.create(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 0);
+        server.createContext("/trace", exchange -> {
+            traceParent.set(exchange.getRequestHeaders().getFirst(W3CTraceContextHeader.TRACE_HEADER_PARENT));
+            byte[] response = "OK".getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(200, response.length);
+            exchange.getResponseBody().write(response);
+            exchange.close();
+        });
+        server.start();
+        return server;
+    }
+
     private static ITraceSpan awaitSpan(Predicate<ITraceSpan> predicate) throws InterruptedException {
         long deadline = System.currentTimeMillis() + 5_000;
         while (System.currentTimeMillis() < deadline) {
@@ -166,6 +215,20 @@ public class JavaNetHttpClientThreadPropagationInterceptorTest extends AbstractP
 
     private static String parentSpanId(String traceParent) {
         return traceParent.split("-")[2];
+    }
+
+    private static class PlainExecutor implements Executor, Closeable {
+        private final ExecutorService delegate = Executors.newFixedThreadPool(1, runnable -> new Thread(runnable, "HttpClient-plain-Worker"));
+
+        @Override
+        public void execute(Runnable command) {
+            delegate.execute(command);
+        }
+
+        @Override
+        public void close() {
+            delegate.shutdownNow();
+        }
     }
 
     private static class TracingExecutor implements Executor, Closeable {

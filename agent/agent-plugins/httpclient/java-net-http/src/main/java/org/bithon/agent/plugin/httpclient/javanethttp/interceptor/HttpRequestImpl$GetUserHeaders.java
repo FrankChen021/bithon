@@ -41,8 +41,8 @@ public class HttpRequestImpl$GetUserHeaders extends AfterInterceptor {
         if (aopContext.hasException()) {
             return;
         }
-        ITraceContext ctx = TraceContextHolder.current();
-        if (ctx == null || ctx.traceMode() == TraceMode.LOGGING) {
+        ITraceContext ctx = getPropagationContext(aopContext);
+        if (ctx == null) {
             return;
         }
         HttpHeaders headers = aopContext.getReturningAs();
@@ -51,5 +51,19 @@ public class HttpRequestImpl$GetUserHeaders extends AfterInterceptor {
         ctx.propagate(headerMap, (carrier, key, value) -> carrier.put(key, List.of(value)));
 
         aopContext.setReturning(HttpHeaders.of(headerMap, (a, b) -> true));
+    }
+
+    private static ITraceContext getPropagationContext(AopContext aopContext) {
+        ITraceContext ctx = TraceContextHolder.current();
+        if (isPropagatable(ctx)) {
+            return ctx;
+        }
+
+        ctx = HttpRequestPropagationContext.get(aopContext.getTarget());
+        return isPropagatable(ctx) ? ctx : null;
+    }
+
+    private static boolean isPropagatable(ITraceContext ctx) {
+        return ctx != null && ctx.traceMode() != TraceMode.LOGGING && ctx.currentSpan() != null;
     }
 }

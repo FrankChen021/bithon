@@ -60,11 +60,10 @@ public class TraceSpanDetachTest {
     }
 
     @Test
-    public void testDetachReturnsCopiedContextEvenWhenSpanIsNotStackTop() {
+    public void testDetachReturnsCopiedContextForCurrentSpan() {
         ITraceContext context = TraceContextFactory.newContext(SamplingMode.FULL);
         ITraceSpan rootSpan = context.currentSpan().name("root");
         ITraceSpan childSpan = rootSpan.newChildSpan("child");
-        ITraceSpan grandchildSpan = childSpan.newChildSpan("grandchild");
 
         ITraceSpan detachedSpan = childSpan.detach();
 
@@ -78,8 +77,6 @@ public class TraceSpanDetachTest {
         detachedSpan.finish();
         detachedSpan.context().finish();
 
-        grandchildSpan.finish();
-        childSpan.finish();
         rootSpan.finish();
         context.finish();
     }

@@ -159,9 +159,11 @@ public class TracingContext implements ITraceContext {
             return true;
         }
 
-        LoggerFactory.getLogger(TracingContext.class).warn("Try to detach a span which is not in the stack. This IS a bug.\n"
-                                                           + "Current span: \n{}, Unfinished Spans:\n{}",
+        ITraceSpan currentSpan = spanStack.isEmpty() ? null : spanStack.peek();
+        LoggerFactory.getLogger(TracingContext.class).warn("Try to detach a span which is not the current stack top. This IS a bug.\n"
+                                                           + "Span to detach: \n{}, Current stack top: \n{}, Unfinished Spans:\n{}",
                                                            span,
+                                                           currentSpan,
                                                            spanStack);
         return false;
     }

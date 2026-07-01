@@ -149,6 +149,10 @@ public interface ITraceSpan {
     /**
      * Detach this span from its current trace context and return a span with the same identity
      * in a copied context so it can be finished asynchronously.
+     * <p>
+     * This should be called only when this span is the current span of its context. After
+     * detaching, callers should finish the returned span and leave the original span reference
+     * unfinished.
      */
     default ITraceSpan detach() {
         return this;

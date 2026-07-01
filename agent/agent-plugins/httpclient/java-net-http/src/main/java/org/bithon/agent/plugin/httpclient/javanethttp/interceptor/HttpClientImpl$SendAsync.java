@@ -23,6 +23,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.httpclient.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
+import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.plugin.httpclient.javanethttp.utils.HttpClientUtils;
@@ -73,6 +74,7 @@ public class HttpClientImpl$SendAsync extends AroundInterceptor {
                 });
 
             aopContext.setUserContext(span.start());
+            savePropagationContext(request, span);
         }
 
         return InterceptionDecision.CONTINUE;
@@ -100,10 +102,12 @@ public class HttpClientImpl$SendAsync extends AroundInterceptor {
             if (span != null) {
                 span.finish();
             }
+            clearPropagationContext(request);
             return;
         }
 
         final ITraceSpan httpClientSpan = span == null ? null : span.detach();
+        clearPropagationContext(request);
 
         // For async operations, we need to hook into the returned CompletableFuture
         CompletableFuture<HttpResponse<?>> returnFuture = aopContext.getReturningAs();
@@ -153,5 +157,15 @@ public class HttpClientImpl$SendAsync extends AroundInterceptor {
 
         // Replace the original future with our wrapped one
         aopContext.setReturning(wrappedFuture);
+    }
+
+    private static void savePropagationContext(HttpRequest request, ITraceSpan span) {
+        ITraceContext context = span.context().copy();
+        context.newSpan(span.parentSpanId(), span.spanId());
+        HttpRequestPropagationContext.set(request, context);
+    }
+
+    private static void clearPropagationContext(HttpRequest request) {
+        HttpRequestPropagationContext.remove(request);
     }
 }
