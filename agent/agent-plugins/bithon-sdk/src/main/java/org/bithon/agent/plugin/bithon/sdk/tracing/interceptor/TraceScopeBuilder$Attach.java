@@ -62,8 +62,25 @@ public class TraceScopeBuilder$Attach extends ReplaceInterceptor {
         SamplingMode samplingMode = builder.tracingMode() == TracingMode.TRACING ? SamplingMode.FULL : SamplingMode.NONE;
         ITraceContext ctx = TraceContextFactory.newContext(samplingMode, traceId, parentSpanId);
         ITraceSpan rootSpan = ctx.currentSpan();
-        rootSpan.name(builder.operationName()).start();
+        rootSpan.name(builder.operationName())
+                .kind(toKind(builder.kind()))
+                .start();
 
         return new TraceScopeImpl(ctx, ctx.currentSpan(), previousContext);
+    }
+
+    private static org.bithon.component.commons.tracing.SpanKind toKind(org.bithon.agent.sdk.tracing.SpanKind kind) {
+        if (kind == org.bithon.agent.sdk.tracing.SpanKind.CLIENT) {
+            return org.bithon.component.commons.tracing.SpanKind.CLIENT;
+        } else if (kind == org.bithon.agent.sdk.tracing.SpanKind.SERVER) {
+            return org.bithon.component.commons.tracing.SpanKind.SERVER;
+        } else if (kind == org.bithon.agent.sdk.tracing.SpanKind.PRODUCER) {
+            return org.bithon.component.commons.tracing.SpanKind.PRODUCER;
+        } else if (kind == org.bithon.agent.sdk.tracing.SpanKind.CONSUMER) {
+            return org.bithon.component.commons.tracing.SpanKind.CONSUMER;
+        } else if (kind == org.bithon.agent.sdk.tracing.SpanKind.INTERNAL) {
+            return org.bithon.component.commons.tracing.SpanKind.INTERNAL;
+        }
+        return org.bithon.component.commons.tracing.SpanKind.INTERNAL;
     }
 }
