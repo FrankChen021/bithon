@@ -153,6 +153,21 @@ public class TracingContext implements ITraceContext {
         TraceContextListener.getInstance().onSpanStarted(span);
     }
 
+    boolean detach(TracingSpan span) {
+        if (!spanStack.isEmpty() && spanStack.peek().equals(span)) {
+            spanStack.pop();
+            return true;
+        }
+
+        ITraceSpan currentSpan = spanStack.isEmpty() ? null : spanStack.peek();
+        LoggerFactory.getLogger(TracingContext.class).warn("Try to detach a span which is not the current stack top. This IS a bug.\n"
+                                                           + "Span to detach: \n{}, Current stack top: \n{}, Unfinished Spans:\n{}",
+                                                           span,
+                                                           currentSpan,
+                                                           spanStack);
+        return false;
+    }
+
     void onSpanFinished(TracingSpan span) {
         try {
             TraceContextListener.getInstance().onSpanFinished(span);

@@ -35,10 +35,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 /**
- * {@link jdk.internal.net.http.HttpClientImpl#sendAsync(HttpRequest, HttpResponse.BodyHandler, HttpResponse.PushPromiseHandler, Executor)}
+ * {@link jdk.internal.net.http.HttpClientImpl#sendAsync(HttpRequest, HttpResponse.BodyHandler, HttpResponse.PushPromiseHandler, java.util.concurrent.Executor)}
  *
  * @author frank.chen021@outlook.com
  * @date 2024/12/19
@@ -60,7 +59,7 @@ public class HttpClientImpl$SendAsync extends AroundInterceptor {
         HttpRequest request = aopContext.getArgAs(0);
 
         // Start tracing span
-        ITraceSpan span = TraceContextFactory.newAsyncSpan("http-client");
+        ITraceSpan span = TraceContextFactory.newSpan("http-client");
         if (span != null) {
             span.method(aopContext.getTargetClass(), aopContext.getMethod())
                 .kind(SpanKind.CLIENT)
@@ -85,7 +84,8 @@ public class HttpClientImpl$SendAsync extends AroundInterceptor {
         final String url = request.uri().toString();
         final String httpMethod = request.method();
 
-        final ITraceSpan span = aopContext.getUserContext();
+        ITraceSpan span = aopContext.getUserContext();
+
         if (span != null) {
             span.tag(Tags.Http.URL, url)
                 .tag(Tags.Http.METHOD, httpMethod);
@@ -99,10 +99,11 @@ public class HttpClientImpl$SendAsync extends AroundInterceptor {
             // Finish span with exception
             if (span != null) {
                 span.finish();
-                span.context().finish();
             }
             return;
         }
+
+        final ITraceSpan httpClientSpan = span == null ? null : span.detach();
 
         // For async operations, we need to hook into the returned CompletableFuture
         CompletableFuture<HttpResponse<?>> returnFuture = aopContext.getReturningAs();
@@ -126,23 +127,23 @@ public class HttpClientImpl$SendAsync extends AroundInterceptor {
                                   .updateIOMetrics(HttpClientUtils.getRequestSize(request), HttpClientUtils.getResponseSize(response));
 
                     // Add response headers to trace
-                    if (span != null) {
+                    if (httpClientSpan != null) {
                         if (traceConfig.getHeaders() != null) {
                             for (String headerName : traceConfig.getHeaders().getResponse()) {
                                 Optional<String> headerValue = response.headers().firstValue(headerName);
-                                headerValue.ifPresent(s -> span.tag(Tags.Http.RESPONSE_HEADER_PREFIX + headerName, s));
+                                headerValue.ifPresent(s -> httpClientSpan.tag(Tags.Http.RESPONSE_HEADER_PREFIX + headerName, s));
                             }
                         }
 
-                        span.tag(Tags.Http.STATUS, Integer.toString(statusCode));
+                        httpClientSpan.tag(Tags.Http.STATUS, Integer.toString(statusCode));
                     }
                 }
 
                 // Finish span
-                if (span != null) {
-                    span.tag(throwable)
-                        .finish();
-                    span.context().finish();
+                if (httpClientSpan != null) {
+                    httpClientSpan.tag(throwable)
+                                  .finish();
+                    httpClientSpan.context().finish();
                 }
             } catch (Throwable t) {
                 // Catch all to prevent any exception from thrown from agent to user code
