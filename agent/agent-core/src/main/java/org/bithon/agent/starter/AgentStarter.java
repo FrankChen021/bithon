@@ -27,6 +27,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.installer.InterceptorIns
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.PluginResolver;
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
+import org.bithon.agent.instrumentation.utils.JdkUtils;
 import org.bithon.agent.java.adaptor.JavaAdaptorFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -83,6 +84,10 @@ public class AgentStarter {
         // Open modules/packages for agent if running on JDK 9+
         Map<String, Class<?>> packagesToOpen = new HashMap<>();
         packagesToOpen.put("java.net", JavaAdaptorFactory.class);
+        if (JdkUtils.CURRENT_JAVA_VERSION >= 19) {
+            // java.lang.ThreadBuilders$BaseThreadFactory was introduced in JDK 19.
+            packagesToOpen.put("java.lang", JavaAdaptorFactory.class); // java.lang.ThreadBuilders$BaseThreadFactory.name
+        }
         packagesToOpen.put("jdk.internal.misc", JavaAdaptorFactory.class);
         JavaAdaptorFactory.create(inst).openPackages(inst, Object.class, packagesToOpen);
 
