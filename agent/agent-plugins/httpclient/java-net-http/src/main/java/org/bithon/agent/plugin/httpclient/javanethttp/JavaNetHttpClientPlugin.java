@@ -59,10 +59,6 @@ public class JavaNetHttpClientPlugin implements IPlugin {
 
             // Intercept the JDK's send-time user headers access to propagate tracing headers
             forClass("jdk.internal.net.http.HttpRequestImpl")
-                .onConstructor()
-                .andRawArgs("java.net.http.HttpRequest", "java.net.ProxySelector")
-                .interceptedBy("org.bithon.agent.plugin.httpclient.javanethttp.interceptor.HttpRequestImpl$Ctor")
-
                 .onMethod("getUserHeaders")
                 .andArgsSize(0)
                 .interceptedBy("org.bithon.agent.plugin.httpclient.javanethttp.interceptor.HttpRequestImpl$GetUserHeaders")
