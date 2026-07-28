@@ -20,6 +20,7 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.ExtensionRegistryLite;
 import com.google.protobuf.util.JsonFormat;
+import io.opentelemetry.proto.common.v1.AnyValue;
 import io.opentelemetry.proto.common.v1.KeyValue;
 import io.opentelemetry.proto.trace.v1.ResourceSpans;
 import io.opentelemetry.proto.trace.v1.ScopeSpans;
@@ -38,6 +39,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -141,6 +143,7 @@ public class OtlpSpanConverter {
         internalSpan.name = span.getName();
 
         internalSpan.setTags(toAttributeMap(span.getAttributesList()));
+        normalizeHttpStatus(internalSpan);
         internalSpan.setStartTime(span.getStartTimeUnixNano() / 1000);
         internalSpan.setEndTime(span.getEndTimeUnixNano() / 1000);
         internalSpan.setCostTime(internalSpan.endTime - internalSpan.startTime);
@@ -169,8 +172,40 @@ public class OtlpSpanConverter {
             return Collections.emptyMap();
         }
         Map<String, String> maps = new TreeMap<>();
-        attributes.forEach((kv) -> maps.put(kv.getKey(), kv.getValue().getStringValue()));
+        attributes.forEach((kv) -> maps.put(kv.getKey(), toAttributeValue(kv.getValue())));
         return maps;
+    }
+
+    private String toAttributeValue(AnyValue value) {
+        return switch (value.getValueCase()) {
+            case STRING_VALUE -> value.getStringValue();
+            case BOOL_VALUE -> Boolean.toString(value.getBoolValue());
+            case INT_VALUE -> Long.toString(value.getIntValue());
+            case DOUBLE_VALUE -> Double.toString(value.getDoubleValue());
+            case BYTES_VALUE -> Base64.getEncoder().encodeToString(value.getBytesValue().toByteArray());
+            case ARRAY_VALUE, KVLIST_VALUE -> toJson(value);
+            case VALUE_NOT_SET -> "";
+        };
+    }
+
+    private String toJson(AnyValue value) {
+        try {
+            return JsonFormat.printer().omittingInsignificantWhitespace().print(value);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Cannot serialize OTLP attribute", e);
+        }
+    }
+
+    private void normalizeHttpStatus(TraceSpan span) {
+        Map<String, String> tags = span.getTags();
+        String legacyStatus = tags.remove("http.status_code");
+        String responseStatus = tags.remove("http.response.status_code");
+        if (!StringUtils.hasText(tags.get(Tags.Http.STATUS))) {
+            String status = StringUtils.hasText(responseStatus) ? responseStatus : legacyStatus;
+            if (StringUtils.hasText(status)) {
+                tags.put(Tags.Http.STATUS, status);
+            }
+        }
     }
 
     private SpanKind toSpanKind(Span.SpanKind kind) {
