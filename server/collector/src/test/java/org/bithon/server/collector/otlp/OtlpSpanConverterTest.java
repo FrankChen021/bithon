@@ -23,6 +23,8 @@ import io.opentelemetry.proto.resource.v1.Resource;
 import io.opentelemetry.proto.trace.v1.ResourceSpans;
 import io.opentelemetry.proto.trace.v1.ScopeSpans;
 import io.opentelemetry.proto.trace.v1.Span;
+import io.opentelemetry.proto.trace.v1.Status;
+import org.bithon.component.commons.tracing.Tags;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.junit.jupiter.api.Test;
 
@@ -76,6 +78,23 @@ class OtlpSpanConverterTest {
             .get(0);
 
         assertEquals("201", converted.getTags().get("http.status"));
+    }
+
+    @Test
+    void convertsSpanWithoutAttributes() {
+        Span span = Span.newBuilder()
+                        .setTraceId(ByteString.copyFromUtf8("trace-id-12345678"))
+                        .setSpanId(ByteString.copyFromUtf8("span-id-"))
+                        .setStatus(Status.newBuilder().setMessage("failed"))
+                        .build();
+
+        TraceSpan converted = new OtlpSpanConverter(List.of(ResourceSpans.newBuilder()
+                                                                          .addScopeSpans(ScopeSpans.newBuilder().addSpans(span))
+                                                                          .build()))
+            .toSpanList()
+            .get(0);
+
+        assertEquals("failed", converted.getTags().get(Tags.Exception.MESSAGE));
     }
 
     private KeyValue attribute(String key, AnyValue value) {
