@@ -60,10 +60,25 @@ public class Jetty12Plugin implements IPlugin {
                 .interceptedBy("org.bithon.agent.plugin.httpserver.jetty12.interceptor.HttpChannelState$OnRequest")
                 .build(),
 
+            forClass("org.eclipse.jetty.server.internal.HttpChannelState")
+                .when(new PropertyFileValuePrecondition("META-INF/maven/org.eclipse.jetty/jetty-server/pom.properties",
+                                                        "version",
+                                                        PropertyFileValuePrecondition.VersionGTE.of("12.0.30")))
+                // Jetty 12.0.30 moved completeStream from HandlerInvoker to HttpChannelState.
+                .onMethod(Matchers.name("completeStream").and(Matchers.takesArgument(1, "java.lang.Throwable")))
+                .interceptedBy("org.bithon.agent.plugin.httpserver.jetty12.interceptor.HttpChannelState$CompleteStream")
+                .build(),
+
             forClass("org.eclipse.jetty.server.internal.HttpChannelState$HandlerInvoker")
                 .onMethod(Matchers.name("run").and(Matchers.argumentSize(0)))
                 .interceptedBy("org.bithon.agent.plugin.httpserver.jetty12.interceptor.HandlerInvoker$Run")
+                .build(),
 
+            forClass("org.eclipse.jetty.server.internal.HttpChannelState$HandlerInvoker")
+                .when(new PropertyFileValuePrecondition("META-INF/maven/org.eclipse.jetty/jetty-server/pom.properties",
+                                                        "version",
+                                                        PropertyFileValuePrecondition.VersionLT.of("12.0.30")))
+                // Jetty versions before 12.0.30 define completeStream on HandlerInvoker.
                 .onMethod(Matchers.name("completeStream").and(Matchers.takesArgument(1, "java.lang.Throwable")))
                 .interceptedBy("org.bithon.agent.plugin.httpserver.jetty12.interceptor.HandlerInvoker$CompleteStream")
                 .build()

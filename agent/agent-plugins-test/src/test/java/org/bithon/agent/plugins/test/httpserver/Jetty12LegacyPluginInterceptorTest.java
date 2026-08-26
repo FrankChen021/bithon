@@ -14,15 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.httpserver.jetty12.interceptor;
+package org.bithon.agent.plugins.test.httpserver;
 
-import org.eclipse.jetty.server.HttpStream;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 
 /**
- * {@link org.eclipse.jetty.server.internal.HttpChannelState.HandlerInvoker#completeStream(HttpStream, Throwable)}
+ * Verifies the legacy Jetty 12 HandlerInvoker completion hook.
  *
- * @author frank.chen021@outlook.com
- * @date 16/3/25 11:52 pm
+ * @author frankchen
  */
-public class HandlerInvoker$CompleteStream extends CompleteStreamBeforeHandler {
+@EnabledForJreRange(min = JRE.JAVA_17)
+public class Jetty12LegacyPluginInterceptorTest extends Jetty12PluginInterceptorTest {
+    @Override
+    protected String getJettyVersion() {
+        return "12.0.25";
+    }
 }
