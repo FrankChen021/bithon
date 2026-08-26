@@ -50,8 +50,10 @@ import org.bithon.shaded.net.bytebuddy.utility.JavaModule;
 
 import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -100,10 +102,28 @@ public class InterceptorInstaller {
                 }
 
                 //
+                // Run checkers first to see if an interceptor can be installed
+                //
+                List<Descriptors.MethodPointCuts> pointCuts = new ArrayList<>();
+                for (Descriptors.MethodPointCuts mp : descriptor.getMethodPointCuts()) {
+                    if (mp.getPrecondition() != null && !mp.getPrecondition().matches(classLoader, typeDescription)) {
+                        LOG.info("[{}] Interceptor for class [{}] not installed because precondition [{}] not satisfied",
+                                 mp.getPlugin(),
+                                 typeDescription.getName(),
+                                 mp.getPrecondition().toString());
+                        continue;
+                    }
+
+                    pointCuts.add(mp);
+                }
+
+                //
                 // Transform target class to a type of IBithonObject
                 //
                 if (typeDescription.isInterface()) {
-                    LOG.warn("Attempt to install interceptors on interface [{}]. This is not supported.", typeDescription.getName());
+                    if (!pointCuts.isEmpty()) {
+                        LOG.warn("Attempt to install interceptors on interface [{}]. This is not supported.", typeDescription.getName());
+                    }
                     return builder;
                 } else if (!typeDescription.isAssignableTo(IBithonObject.class)) {
                     // define an object field on this class to hold objects across interceptors for state sharing
@@ -115,16 +135,7 @@ public class InterceptorInstaller {
                 //
                 // install interceptors for the current matched type
                 //
-                for (Descriptors.MethodPointCuts mp : descriptor.getMethodPointCuts()) {
-                    // Run checkers first to see if an interceptor can be installed
-                    if (mp.getPrecondition() != null && !mp.getPrecondition().matches(classLoader, typeDescription)) {
-                        LOG.info("[{}] Interceptor for class [{}] not installed because precondition [{}] not satisfied",
-                                 mp.getPlugin(),
-                                 typeDescription.getName(),
-                                 mp.getPrecondition().toString());
-                        continue;
-                    }
-
+                for (Descriptors.MethodPointCuts mp : pointCuts) {
                     builder = new Installer(builder,
                                             typeDescription,
                                             classLoader,

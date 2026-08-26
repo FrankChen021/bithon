@@ -479,10 +479,12 @@
 # interceptor.class.name=INTERCEPTOR_TYPE
 #
                   </header>
-                  <!-- Merge all individual properties files -->
-                  <fileset dir="${project.build.directory}/temp-extract" erroronmissingdir="false">
-                    <include name="META-INF/bithon/*.meta"/>
-                  </fileset>
+                  <!-- Merge all individual properties files in plugin-name order -->
+                  <sort>
+                    <fileset dir="${project.build.directory}/temp-extract" erroronmissingdir="false">
+                      <include name="META-INF/bithon/*.meta"/>
+                    </fileset>
+                  </sort>
                 </concat>
 
                 <!-- Display the content of the generated plugins.meta file -->

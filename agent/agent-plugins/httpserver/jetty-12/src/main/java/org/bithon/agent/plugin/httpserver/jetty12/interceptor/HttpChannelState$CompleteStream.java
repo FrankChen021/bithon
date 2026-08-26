@@ -19,10 +19,9 @@ package org.bithon.agent.plugin.httpserver.jetty12.interceptor;
 import org.eclipse.jetty.server.HttpStream;
 
 /**
- * {@link org.eclipse.jetty.server.internal.HttpChannelState.HandlerInvoker#completeStream(HttpStream, Throwable)}
+ * {@link org.eclipse.jetty.server.internal.HttpChannelState#completeStream(HttpStream, Throwable)}
  *
- * @author frank.chen021@outlook.com
- * @date 16/3/25 11:52 pm
+ * @author frankchen
  */
-public class HandlerInvoker$CompleteStream extends CompleteStreamBeforeHandler {
+public class HttpChannelState$CompleteStream extends CompleteStreamBeforeHandler {
 }

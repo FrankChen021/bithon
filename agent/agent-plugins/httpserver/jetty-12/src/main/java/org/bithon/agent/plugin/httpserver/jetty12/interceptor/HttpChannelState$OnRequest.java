@@ -29,6 +29,7 @@ import org.bithon.agent.plugin.httpserver.jetty12.context.RequestContext;
 import org.bithon.component.commons.tracing.Components;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
+import org.bithon.component.commons.utils.StringUtils;
 import org.eclipse.jetty.http.MetaData;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.internal.HttpChannelState;
@@ -80,9 +81,22 @@ public class HttpChannelState$OnRequest extends AfterInterceptor {
                                                            .forEach((header) -> span.tag(Tags.Http.REQUEST_HEADER_PREFIX + header.toLowerCase(Locale.ENGLISH), request.getHeaders().get(header))))
                         .kind(SpanKind.SERVER)
                         .start();
+
+            // Put the trace id in the header so that applications have a chance to know whether this request is being sampled.
+            request.setAttribute("X-Bithon-TraceId", traceContext.traceId());
+            request.setAttribute("X-Bithon-TraceMode", traceContext.traceMode());
+
+            String traceIdHeader = traceConfig.getTraceIdResponseHeader();
+            if (StringUtils.hasText(traceIdHeader)) {
+                HttpChannelState.ChannelResponse response = (HttpChannelState.ChannelResponse) channelState.getResponse();
+                response.getHeaders().add(traceIdHeader, traceContext.traceId());
+                response.getHeaders().add(traceConfig.getTraceModeResponseHeader(), traceContext.traceMode().text());
+            }
         }
-        ((IBithonObject) handlerInvoker).setInjectedObject(new RequestContext((HttpChannelState.ChannelRequest) channelState.getRequest(),
-                                                                              (HttpChannelState.ChannelResponse) channelState.getResponse(),
-                                                                              traceContext));
+        RequestContext requestContext = new RequestContext((HttpChannelState.ChannelRequest) channelState.getRequest(),
+                                                           (HttpChannelState.ChannelResponse) channelState.getResponse(),
+                                                           traceContext);
+        ((IBithonObject) handlerInvoker).setInjectedObject(requestContext);
+        ((IBithonObject) channelState).setInjectedObject(requestContext);
     }
 }

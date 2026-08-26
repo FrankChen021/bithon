@@ -184,6 +184,7 @@ And in theory, this matrix works both for Windows and Linux.
 | JDK 22.0.2    | &check;   |
 | JDK 23.0.2    | &check;   |
 | JDK 24        | &check;   |
+| JDK 25.0.3    | &check;   |
 
 > NOTE:
 > For applications running on JDK 24, the agent may not work properly to handle tracing across threads.
