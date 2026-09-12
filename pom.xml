@@ -18,7 +18,7 @@
          during test discovery on newer JDK builds (for example JDK21 in CI). -->
     <junit.jupiter.version>5.10.5</junit.jupiter.version>
     <junit.platform.version>1.10.5</junit.platform.version>
-    <lombok.version>1.18.46</lombok.version>
+    <lombok.version>1.18.48</lombok.version>
     <!-- Checkstyle 13.x requires the Maven/Checkstyle runtime to be JDK21+,
          but it can still validate agent modules that target Java 8 bytecode. -->
     <checkstyle.version>13.4.2</checkstyle.version>
