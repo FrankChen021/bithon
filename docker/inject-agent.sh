@@ -4,6 +4,11 @@
 # It's mainly for the deployment in a standalone server or docker deployment of the target application.
 # For K8S deployment, can refer to the doc/deployment/agent-deployment.md
 
+if ! command -v bsdtar > /dev/null 2>&1; then
+  echo "bsdtar is required to extract the agent. Injection skipped."
+  return 0
+fi
+
 # Set default AGENT_URI if not defined
 if [ -z "$AGENT_URI" ] ; then
   AGENT_URI=https://github.com/FrankChen021/bithon/releases/download/agent-distribution-latest/agent-distribution.tar
@@ -30,7 +35,7 @@ if [ ! -f agent.tar ] ; then
 fi
 
 # Extract the agent
-tar -xf agent.tar
+bsdtar -xf agent.tar
 
 # Check if the agent jar file exists after extraction
 AGENT_LOCATION="$TEMP_DIR"/agent-distribution/agent-main.jar
