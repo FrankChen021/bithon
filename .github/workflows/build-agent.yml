@@ -331,8 +331,6 @@ jobs:
           TESTCONTAINERS_HOST_OVERRIDE: localhost
           TESTCONTAINERS_DEBUG: true
           DOCKER_HOST: unix:///var/run/docker.sock
-          # Ensure Maven can find test resources
-          MAVEN_OPTS: "-Djava.class.path=$PWD"
 
   release:
     needs: [build, test]
