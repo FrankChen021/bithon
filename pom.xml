@@ -211,7 +211,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
-          <version>3.7.0</version>
+          <version>3.10.0</version>
         </plugin>
 
         <plugin>
@@ -363,7 +363,7 @@
       <plugin>
         <groupId>de.thetaphi</groupId>
         <artifactId>forbiddenapis</artifactId>
-        <version>3.6</version>
+        <version>3.10</version>
         <configuration>
           <ignoreSignaturesOfMissingClasses>true</ignoreSignaturesOfMissingClasses>
           <!--
@@ -493,7 +493,7 @@
     <profile>
       <id>server</id>
       <activation>
-        <jdk>[21,)</jdk>
+        <jdk>[25,)</jdk>
       </activation>
       <modules>
         <module>server</module>

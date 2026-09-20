@@ -153,8 +153,7 @@ jobs:
           # Non-LTS versions using zulu (better historical support)
           - java-version: "9"
             distribution: "zulu"
-          - java-version: "10"
-            distribution: "zulu"
+          # JDK 10 is excluded because Maven cannot start reliably on the EOL Zulu 10 runtime.
           - java-version: "12"
             distribution: "zulu"
           - java-version: "13"
@@ -183,6 +182,10 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
           distribution: ${{ matrix.distribution }}
+
+      - name: Enable compact object headers for JDK 25
+        if: matrix.java-version == '25'
+        run: echo "JAVA_TOOL_OPTIONS=-XX:+UseCompactObjectHeaders" >> "$GITHUB_ENV"
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -327,8 +330,6 @@ jobs:
           TESTCONTAINERS_HOST_OVERRIDE: localhost
           TESTCONTAINERS_DEBUG: true
           DOCKER_HOST: unix:///var/run/docker.sock
-          # Ensure Maven can find test resources
-          MAVEN_OPTS: "-Djava.class.path=$PWD"
 
   release:
     needs: [build, test]

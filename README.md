@@ -86,12 +86,12 @@ cd bithon && git submodule update --init
 
 ## 2. Configure JDK
 
-JDK 21 and above are required to build this project.
+JDK 25 and above are required to build this project.
 If you have multiple JDKs on your machine, use `export JAVA_HOME={YOUR_JDK_HOME}` command to set correct JDK. 
 For example
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk-21.jdk/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home
 ```
 
 ## 3. Build the project
@@ -164,7 +164,7 @@ Make sure to re-build the project after changing the configuration file above.
 
 # JDKs Compatibility
 
-Even the project is built by JDK 17 and above, the agent is compatible with JDK 1.8+.
+Even though the project is built by JDK 25 and above, the agent is compatible with JDK 1.8+.
 The following matrix lists the JDKs that are compatible with the agent on macOS. 
 And in theory, this matrix works both for Windows and Linux.
 
