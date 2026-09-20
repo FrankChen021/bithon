@@ -493,7 +493,7 @@
     <profile>
       <id>server</id>
       <activation>
-        <jdk>[21,)</jdk>
+        <jdk>[25,)</jdk>
       </activation>
       <modules>
         <module>server</module>
