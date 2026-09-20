@@ -153,8 +153,7 @@ jobs:
           # Non-LTS versions using zulu (better historical support)
           - java-version: "9"
             distribution: "zulu"
-          - java-version: "10"
-            distribution: "zulu"
+          # JDK 10 is excluded because Maven cannot start reliably on the EOL Zulu 10 runtime.
           - java-version: "12"
             distribution: "zulu"
           - java-version: "13"
