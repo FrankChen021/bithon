@@ -48,8 +48,8 @@ RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
       -DskipTests \
     ; fi
 
-# Pin to jdk 21 for runtime
-FROM eclipse-temurin:21
+# Pin to JDK 25 for runtime
+FROM eclipse-temurin:25
 
 RUN apt-get -qq update \
     && apt-get -qq -y install libarchive-tools \

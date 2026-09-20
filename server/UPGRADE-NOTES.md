@@ -135,7 +135,7 @@ Migrating from Jackson 2 to Jackson 3 is a significant effort due to breaking AP
 | **Jackson 3 support** | Introduced in **jOOQ 3.21** (Dev, TBA as of Feb 2026) |
 | **Jackson 3 converters** | `org.jooq.jackson3.extensions.converters.JSONtoJacksonConverter`, `JSONBtoJacksonConverter` |
 | **Latest stable jOOQ** | 3.20.11 (Jan 2026) — still Jackson 2 only |
-| **jOOQ 3.20 JDK baseline** | Open Source Edition requires JDK 21; Bithon uses Java 17 |
+| **jOOQ 3.20 JDK baseline** | Open Source Edition requires JDK 21; Bithon uses Java 25 |
 
 **Migration path**: Upgrade the vendored jOOQ fork to 3.21+ when released, then switch to Jackson 3 converters. Alternatively, migrate to official `jooq-jackson-extensions` from Maven Central and wait for 3.21.
 
