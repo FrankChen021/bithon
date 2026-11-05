@@ -49,6 +49,11 @@ public class BithonSdkInterceptorTest extends AbstractPluginInterceptorTest {
     protected ClassLoader getCustomClassLoader() {
         return MavenArtifactClassLoader.create(
             // Keep this on a published SDK artifact. New SDK APIs are covered in agent-plugin-bithon-sdk tests.
+            //
+            // The SDK is also on the test class path. Since the class loader is child-first,
+            // testInterceptorInstallation verifies the classes defined from this artifact,
+            // while the other test cases below call the SDK on the test class path,
+            // which is instrumented when it's loaded after the interceptors are installed.
             MavenArtifact.of("org.bithon.agent", "agent-sdk", "1.2.4")
         );
     }

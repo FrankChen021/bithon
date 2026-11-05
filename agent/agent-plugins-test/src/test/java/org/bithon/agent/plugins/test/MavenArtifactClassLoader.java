@@ -37,10 +37,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -150,11 +152,19 @@ public class MavenArtifactClassLoader {
      * which loads classes like {@code org.apache.http.impl.client.InternalHttpClient}.
      * With parent-first delegation, such already-loaded classes would be returned without being instrumented.
      * Defining the classes in this class loader guarantees they're loaded after the interceptors are installed.
+     * <p>
+     * Classes and resources of the JDK (and the boot class path) are still loaded from the platform class loader first,
+     * so that artifacts bundling JDK packages like {@code javax.xml} do not shadow them.
      */
     static class ChildFirstClassLoader extends URLClassLoader {
         static {
             ClassLoader.registerAsParallelCapable();
         }
+
+        /**
+         * The extension class loader on JDK 8, or the platform class loader on JDK 9+
+         */
+        private final ClassLoader platformClassLoader = ClassLoader.getSystemClassLoader().getParent();
 
         ChildFirstClassLoader(URL[] urls, ClassLoader parent) {
             super(urls, parent);
@@ -164,7 +174,14 @@ public class MavenArtifactClassLoader {
         protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
             synchronized (getClassLoadingLock(name)) {
                 Class<?> clazz = findLoadedClass(name);
-                if (clazz == null && !name.startsWith("java.")) {
+                if (clazz == null) {
+                    try {
+                        clazz = platformClassLoader.loadClass(name);
+                    } catch (ClassNotFoundException ignored) {
+                        // Not a JDK class
+                    }
+                }
+                if (clazz == null) {
                     try {
                         clazz = findClass(name);
                     } catch (ClassNotFoundException ignored) {
@@ -183,8 +200,19 @@ public class MavenArtifactClassLoader {
 
         @Override
         public URL getResource(String name) {
-            URL url = findResource(name);
-            return url != null ? url : super.getResource(name);
+            URL url = platformClassLoader.getResource(name);
+            if (url == null) {
+                url = findResource(name);
+            }
+            return url != null ? url : getParent().getResource(name);
+        }
+
+        @Override
+        public Enumeration<URL> getResources(String name) throws IOException {
+            // Resources of the artifacts come first, followed by those of the parent (which includes the platform ones)
+            List<URL> urls = Collections.list(findResources(name));
+            urls.addAll(Collections.list(getParent().getResources(name)));
+            return Collections.enumeration(urls);
         }
     }
 

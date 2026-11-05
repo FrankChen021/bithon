@@ -107,6 +107,22 @@
       <version>3.9.16</version>
       <scope>test</scope>
     </dependency>
+    <!--
+      HttpComponents4PreloadedPluginInterceptorTest loads classes of these artifacts from the test class path.
+      They're also used by maven-resolver-transport-http above, keep the versions aligned with it.
+    -->
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.5.14</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpcore</artifactId>
+      <version>4.4.16</version>
+      <scope>test</scope>
+    </dependency>
 
     <!-- Logging dependencies -->
     <dependency>
