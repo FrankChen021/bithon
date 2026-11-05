@@ -37,8 +37,15 @@ public class ExportTask {
     private final Consumer<Object> underlyingSender;
     private final IThreadSafeQueue queue;
     private final ExporterConfig.QueueFullStrategy queueFullStrategy;
+    private final Thread sendThread;
     private volatile boolean isRunning = true;
-    private volatile boolean isTaskEnded = false;
+
+    /**
+     * Guards {@link #isRunning} and {@link #isWaiting} so that {@link #stop()} interrupts the send thread
+     * only when it's waiting for messages, but not when it's sending messages.
+     */
+    private final Object waitLock = new Object();
+    private boolean isWaiting = false;
 
     /**
      * in millisecond
@@ -58,19 +65,18 @@ public class ExportTask {
         this.underlyingSender = underlyingSender;
         this.queue = config.getBatchSize() > 0 ? new BatchMessageQueue(queue, config.getBatchSize()) : queue;
         this.queueFullStrategy = config.getQueueFullStrategy();
-        Thread sendThread = new Thread(() -> {
+        this.sendThread = new Thread(() -> {
             while (isRunning) {
                 export(true);
             }
-            isTaskEnded = true;
         }, exporterName + "-sender");
-        sendThread.setDaemon(true);
-        sendThread.start();
+        this.sendThread.setDaemon(true);
+        this.sendThread.start();
     }
 
     private void export(boolean waitIfEmpty) {
         try {
-            Object message = queue.take(waitIfEmpty ? this.flushTime : 0);
+            Object message = waitIfEmpty ? waitAndTake() : queue.take(0);
             if (message == null) {
                 return;
             }
@@ -92,6 +98,32 @@ public class ExportTask {
             this.underlyingSender.accept(message);
         } catch (Exception e) {
             LOG.warn(StringUtils.format("Failed to send message: %s", e.getMessage()), e);
+        }
+    }
+
+    /**
+     * Wait for at most {@link #flushTime} to take messages.
+     * The wait is interrupted by {@link #stop()} so that the shutdown does not need to wait for the flush time.
+     */
+    private Object waitAndTake() {
+        long timeout;
+        synchronized (waitLock) {
+            // If the task has been stopped, don't wait
+            timeout = isRunning ? this.flushTime : 0;
+            isWaiting = true;
+        }
+        try {
+            return queue.take(timeout);
+        } catch (InterruptedException ignored) {
+            return null;
+        } finally {
+            synchronized (waitLock) {
+                isWaiting = false;
+
+                // Clear the interrupt status that might be set by 'stop'
+                // so that it does not affect the sending of the messages taken above
+                Thread.interrupted();
+            }
         }
     }
 
@@ -140,12 +172,19 @@ public class ExportTask {
 
     public void stop() {
         // stop receiving new messages and stop the task
-        isRunning = false;
+        synchronized (waitLock) {
+            isRunning = false;
+
+            // Wake up the send thread if it's waiting for messages
+            if (isWaiting) {
+                sendThread.interrupt();
+            }
+        }
 
         // Wait for the send task to complete
-        while (!isTaskEnded) {
+        while (sendThread.isAlive()) {
             try {
-                Thread.sleep(50);
+                sendThread.join();
             } catch (InterruptedException ignored) {
             }
         }

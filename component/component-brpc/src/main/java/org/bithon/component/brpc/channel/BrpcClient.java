@@ -186,7 +186,11 @@ public class BrpcClient implements IBrpcChannel, Closeable {
 
     @Override
     public void close() {
-        close(2, 15, TimeUnit.SECONDS);
+        // No quiet period: a client is closed only after its callers are done with it,
+        // and a non-zero quiet period makes every close() block for at least that long,
+        // which adds up when the agent closes several clients during JVM shutdown.
+        // Tasks already submitted to the event loop are still executed before termination.
+        close(0, 15, TimeUnit.SECONDS);
     }
 
     /**
