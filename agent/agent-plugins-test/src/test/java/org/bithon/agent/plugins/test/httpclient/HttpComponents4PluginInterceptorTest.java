@@ -38,7 +38,11 @@ public class HttpComponents4PluginInterceptorTest extends AbstractPluginIntercep
         return MavenArtifactClassLoader.create(
             MavenArtifact.of("org.apache.httpcomponents",
                              "httpclient",
-                             "4.5.14")
+                             "4.5.14"),
+            // Some intercepted classes like HttpRequestExecutor are in httpcore
+            MavenArtifact.of("org.apache.httpcomponents",
+                             "httpcore",
+                             "4.4.16")
         );
     }
 }
