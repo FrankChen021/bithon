@@ -204,6 +204,10 @@ public class ExportTaskTest {
         task.accept(1);
         Assertions.assertTrue(sender.sending.await(5, TimeUnit.SECONDS));
 
+        // These messages stay in the queue while the first one is being sent
+        task.accept(2);
+        task.accept(3);
+
         Thread stopThread = stopInBackground(task);
 
         // stop() must not interrupt the send but wait for it
@@ -214,7 +218,8 @@ public class ExportTaskTest {
         stopThread.join(5000);
         Assertions.assertFalse(stopThread.isAlive());
 
-        Assertions.assertEquals(Collections.singletonList(1), sender.getSortedExported());
+        // The remaining messages are flushed by stop()
+        Assertions.assertEquals(Arrays.asList(1, 2, 3), sender.getSortedExported());
         sender.assertNeverInterrupted();
     }
 
