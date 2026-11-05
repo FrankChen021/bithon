@@ -188,7 +188,8 @@ public class BrpcClient implements IBrpcChannel, Closeable {
     public void close() {
         // No quiet period: it makes every close() block for at least that long,
         // which adds up when the agent closes several clients during JVM shutdown.
-        // It does not protect in-flight writes anyway, because the event loop closes channels before running remaining tasks.
+        // It does not protect in-flight writes anyway, because the event loop closes all channels
+        // on its first iteration after the shutdown starts, regardless of the quiet period.
         close(0, 15, TimeUnit.SECONDS);
     }
 

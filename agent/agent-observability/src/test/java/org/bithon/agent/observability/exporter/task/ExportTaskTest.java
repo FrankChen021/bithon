@@ -169,22 +169,33 @@ public class ExportTaskTest {
     }
 
     /**
-     * Blocks the first send until released
+     * Blocks the first send until released, and delays the following sends by given milliseconds
      */
     static class BlockingSender extends RecordingSender {
         private final CountDownLatch sending = new CountDownLatch(1);
         private final CountDownLatch release = new CountDownLatch(1);
+        private final long delayMs;
+
+        BlockingSender() {
+            this(0);
+        }
+
+        BlockingSender(long delayMs) {
+            this.delayMs = delayMs;
+        }
 
         @Override
         public void accept(Object message) {
-            if (sending.getCount() > 0) {
-                sending.countDown();
-                try {
+            try {
+                if (sending.getCount() > 0) {
+                    sending.countDown();
                     release.await();
-                } catch (InterruptedException e) {
-                    // Keep the status so that the test can find that the send is interrupted
-                    Thread.currentThread().interrupt();
+                } else if (delayMs > 0) {
+                    Thread.sleep(delayMs);
                 }
+            } catch (InterruptedException e) {
+                // Keep the status so that the test can find that the send is interrupted
+                Thread.currentThread().interrupt();
             }
             super.accept(message);
         }
@@ -194,6 +205,14 @@ public class ExportTaskTest {
         Thread stopThread = new Thread(task::stop, "stop");
         stopThread.start();
         return stopThread;
+    }
+
+    private void awaitStopped(ExportTask task) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + 5000;
+        while (task.canAccept() && System.currentTimeMillis() < deadline) {
+            Thread.sleep(10);
+        }
+        Assertions.assertFalse(task.canAccept());
     }
 
     @Test
@@ -234,16 +253,62 @@ public class ExportTaskTest {
 
         // Stop when the first batch is being sent, so that the leftover is flushed by stop()
         Thread stopThread = stopInBackground(task);
-        long deadline = System.currentTimeMillis() + 5000;
-        while (task.canAccept() && System.currentTimeMillis() < deadline) {
-            Thread.sleep(10);
-        }
-        Assertions.assertFalse(task.canAccept());
+        awaitStopped(task);
         sender.release.countDown();
         stopThread.join(5000);
         Assertions.assertFalse(stopThread.isAlive());
 
         Assertions.assertEquals(Arrays.asList(1, 2, 3, 4, 5), sender.getSortedExported());
+        sender.assertNeverInterrupted();
+    }
+
+    @Test
+    public void testStopTimesOutOnBlockedSend() throws InterruptedException {
+        BlockingSender sender = new BlockingSender();
+        ExportTask task = new ExportTask("test", new BlockingQueue(), createConfig(0), sender, 300);
+
+        task.accept(1);
+        Assertions.assertTrue(sender.sending.await(5, TimeUnit.SECONDS));
+        task.accept(2);
+
+        // stop() gives up waiting for the blocked send, and does not flush the queue
+        long elapsed = stopAndMeasure(task);
+        Assertions.assertTrue(elapsed >= 250 && elapsed < FLUSH_TIME / 2, "stop() took " + elapsed + "ms");
+        Assertions.assertTrue(sender.getSortedExported().isEmpty());
+
+        // The blocked send completes after release, and the send thread exits without taking the remaining message
+        sender.release.countDown();
+        long deadline = System.currentTimeMillis() + 5000;
+        while (sender.getSortedExported().isEmpty() && System.currentTimeMillis() < deadline) {
+            Thread.sleep(10);
+        }
+        Thread.sleep(100);
+        Assertions.assertEquals(Collections.singletonList(1), sender.getSortedExported());
+        sender.assertNeverInterrupted();
+    }
+
+    @Test
+    public void testFlushStopsAtDeadline() throws InterruptedException {
+        // Each send after the first one takes 200ms, so flushing all messages would take about 4 seconds
+        BlockingSender sender = new BlockingSender(200);
+        ExportTask task = new ExportTask("test", new BlockingQueue(), createConfig(0), sender, 500);
+
+        task.accept(1);
+        Assertions.assertTrue(sender.sending.await(5, TimeUnit.SECONDS));
+        for (int i = 2; i <= 20; i++) {
+            task.accept(i);
+        }
+
+        Thread stopThread = stopInBackground(task);
+        awaitStopped(task);
+        sender.release.countDown();
+
+        // The flush stops at the deadline
+        stopThread.join(2000);
+        Assertions.assertFalse(stopThread.isAlive());
+
+        int exported = sender.getSortedExported().size();
+        Assertions.assertTrue(exported >= 1 && exported < 20, "exported " + exported + " messages");
         sender.assertNeverInterrupted();
     }
 }

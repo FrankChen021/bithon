@@ -66,11 +66,15 @@ public class BatchMessageQueue implements IThreadSafeQueue {
         return delegate.offer(object, wait);
     }
 
+    /**
+     * The number of lists in the underlying queue, plus one if there are items left from the previous 'take'.
+     * Since it reads the leftover of 'take', it should only be called by the thread that takes elements,
+     * or after that thread has terminated.
+     */
     @Override
     public long size() {
         // Include the items left from the previous 'take' so that they're not lost in the final flush
-        List<Object> leftover = this.toBeTaken;
-        return delegate.size() + (leftover == null ? 0 : leftover.size());
+        return delegate.size() + (toBeTaken == null ? 0 : 1);
     }
 
     @Override

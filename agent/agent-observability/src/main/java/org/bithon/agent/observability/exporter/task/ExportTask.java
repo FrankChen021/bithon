@@ -34,15 +34,18 @@ public class ExportTask {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(ExportTask.class);
 
     /**
-     * Max time that {@link #stop()} waits for an in-progress send to complete
+     * Max time that {@link #stop()} spends on waiting for the in-progress send to complete and flushing remaining messages.
+     * Messages that are not sent before this deadline are discarded.
+     * It's longer than the default RPC timeout so that a slow send, like the first one that connects to the server, can still complete.
      */
-    private static final long STOP_TIMEOUT_MS = 5000;
+    private static final long DEFAULT_STOP_TIMEOUT_MS = 10_000;
 
     private final String exporterName;
     private final Consumer<Object> underlyingSender;
     private final IThreadSafeQueue queue;
     private final ExporterConfig.QueueFullStrategy queueFullStrategy;
     private final Thread sendThread;
+    private final long stopTimeoutMs;
     private volatile boolean isRunning = true;
 
     /**
@@ -65,7 +68,16 @@ public class ExportTask {
                       IThreadSafeQueue queue,
                       ExporterConfig config,
                       Consumer<Object> underlyingSender) {
+        this(exporterName, queue, config, underlyingSender, DEFAULT_STOP_TIMEOUT_MS);
+    }
+
+    ExportTask(String exporterName,
+               IThreadSafeQueue queue,
+               ExporterConfig config,
+               Consumer<Object> underlyingSender,
+               long stopTimeoutMs) {
         this.exporterName = exporterName;
+        this.stopTimeoutMs = stopTimeoutMs;
         this.flushTime = Math.max(10, config.getFlushTime());
         this.underlyingSender = underlyingSender;
         this.queue = config.getBatchSize() > 0 ? new BatchMessageQueue(queue, config.getBatchSize()) : queue;
@@ -186,11 +198,16 @@ public class ExportTask {
             }
         }
 
+        // Both the wait for the send task and the flush below share this deadline
+        long deadline = System.currentTimeMillis() + stopTimeoutMs;
+
         // Wait for the send task to complete
         boolean interrupted = false;
-        long deadline = System.currentTimeMillis() + STOP_TIMEOUT_MS;
-        long remaining;
-        while (sendThread.isAlive() && (remaining = deadline - System.currentTimeMillis()) > 0) {
+        while (sendThread.isAlive()) {
+            long remaining = deadline - System.currentTimeMillis();
+            if (remaining <= 0) {
+                break;
+            }
             try {
                 sendThread.join(remaining);
             } catch (InterruptedException e) {
@@ -202,10 +219,17 @@ public class ExportTask {
             // The queue does not support concurrent take, so we don't flush if the send thread is still running
             LOG.warn("The send thread of exporter [{}] does not complete in {} ms. Remaining messages are discarded.",
                      exporterName,
-                     STOP_TIMEOUT_MS);
+                     stopTimeoutMs);
         } else {
             // flush all messages
             while (queue.size() > 0) {
+                if (System.currentTimeMillis() >= deadline) {
+                    LOG.warn("Failed to flush exporter [{}] in {} ms. About {} entries in the queue are discarded.",
+                             exporterName,
+                             stopTimeoutMs,
+                             queue.size());
+                    break;
+                }
                 export(false);
             }
         }
