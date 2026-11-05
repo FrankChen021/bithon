@@ -68,7 +68,9 @@ public class BatchMessageQueue implements IThreadSafeQueue {
 
     @Override
     public long size() {
-        return delegate.size();
+        // Include the items left from the previous 'take' so that they're not lost in the final flush
+        List<Object> leftover = this.toBeTaken;
+        return delegate.size() + (leftover == null ? 0 : leftover.size());
     }
 
     @Override

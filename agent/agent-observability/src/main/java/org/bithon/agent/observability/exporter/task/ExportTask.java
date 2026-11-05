@@ -33,6 +33,11 @@ public class ExportTask {
 
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(ExportTask.class);
 
+    /**
+     * Max time that {@link #stop()} waits for an in-progress send to complete
+     */
+    private static final long STOP_TIMEOUT_MS = 5000;
+
     private final String exporterName;
     private final Consumer<Object> underlyingSender;
     private final IThreadSafeQueue queue;
@@ -182,16 +187,31 @@ public class ExportTask {
         }
 
         // Wait for the send task to complete
-        while (sendThread.isAlive()) {
+        boolean interrupted = false;
+        long deadline = System.currentTimeMillis() + STOP_TIMEOUT_MS;
+        long remaining;
+        while (sendThread.isAlive() && (remaining = deadline - System.currentTimeMillis()) > 0) {
             try {
-                sendThread.join();
-            } catch (InterruptedException ignored) {
+                sendThread.join(remaining);
+            } catch (InterruptedException e) {
+                interrupted = true;
             }
         }
 
-        // flush all messages
-        while (queue.size() > 0) {
-            export(false);
+        if (sendThread.isAlive()) {
+            // The queue does not support concurrent take, so we don't flush if the send thread is still running
+            LOG.warn("The send thread of exporter [{}] does not complete in {} ms. Remaining messages are discarded.",
+                     exporterName,
+                     STOP_TIMEOUT_MS);
+        } else {
+            // flush all messages
+            while (queue.size() > 0) {
+                export(false);
+            }
+        }
+
+        if (interrupted) {
+            Thread.currentThread().interrupt();
         }
     }
 

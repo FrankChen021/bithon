@@ -186,10 +186,9 @@ public class BrpcClient implements IBrpcChannel, Closeable {
 
     @Override
     public void close() {
-        // No quiet period: a client is closed only after its callers are done with it,
-        // and a non-zero quiet period makes every close() block for at least that long,
+        // No quiet period: it makes every close() block for at least that long,
         // which adds up when the agent closes several clients during JVM shutdown.
-        // Tasks already submitted to the event loop are still executed before termination.
+        // It does not protect in-flight writes anyway, because the event loop closes channels before running remaining tasks.
         close(0, 15, TimeUnit.SECONDS);
     }
 
@@ -216,7 +215,7 @@ public class BrpcClient implements IBrpcChannel, Closeable {
      * Fast shutdown for tests - uses minimal timeouts
      */
     public void fastClose() {
-        close(100, 500, TimeUnit.MILLISECONDS);
+        close(0, 500, TimeUnit.MILLISECONDS);
     }
 
     private void doConnect(int maxRetry) {
