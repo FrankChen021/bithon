@@ -121,7 +121,7 @@ public class MavenArtifactClassLoader {
 
             // Create URLClassLoader with the resolved artifacts
             URL[] urlArray = artifactUrls.toArray(new URL[0]);
-            return new URLClassLoader(urlArray, MavenArtifactClassLoader.class.getClassLoader());
+            return new ChildFirstClassLoader(urlArray, MavenArtifactClassLoader.class.getClassLoader());
         } catch (ArtifactResolutionException e) {
             throw new RuntimeException("Failed to load classes from Maven artifacts:" + e.getMessage());
         } catch (Exception e) {
@@ -140,6 +140,52 @@ public class MavenArtifactClassLoader {
      */
     public static URLClassLoader create(String groupId, String artifactId, String version) {
         return create(MavenArtifact.of(groupId, artifactId, version));
+    }
+
+    /**
+     * Loads classes from the resolved artifacts before delegating to the parent.
+     * <p>
+     * The parent (the test class path) may contain the same classes, and they may already be loaded before
+     * the interceptors are installed. For example, the Maven Resolver above uses Apache HttpClient 4 to verify or download artifacts,
+     * which loads classes like {@code org.apache.http.impl.client.InternalHttpClient}.
+     * With parent-first delegation, such already-loaded classes would be returned without being instrumented.
+     * Defining the classes in this class loader guarantees they're loaded after the interceptors are installed.
+     */
+    static class ChildFirstClassLoader extends URLClassLoader {
+        static {
+            ClassLoader.registerAsParallelCapable();
+        }
+
+        ChildFirstClassLoader(URL[] urls, ClassLoader parent) {
+            super(urls, parent);
+        }
+
+        @Override
+        protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+            synchronized (getClassLoadingLock(name)) {
+                Class<?> clazz = findLoadedClass(name);
+                if (clazz == null && !name.startsWith("java.")) {
+                    try {
+                        clazz = findClass(name);
+                    } catch (ClassNotFoundException ignored) {
+                        // Not in the artifacts, delegate to the parent
+                    }
+                }
+                if (clazz == null) {
+                    clazz = getParent().loadClass(name);
+                }
+                if (resolve) {
+                    resolveClass(clazz);
+                }
+                return clazz;
+            }
+        }
+
+        @Override
+        public URL getResource(String name) {
+            URL url = findResource(name);
+            return url != null ? url : super.getResource(name);
+        }
     }
 
     /**
