@@ -311,4 +311,48 @@ public class ExportTaskTest {
         Assertions.assertTrue(exported >= 1 && exported < 20, "exported " + exported + " messages");
         sender.assertNeverInterrupted();
     }
+
+    @Test
+    public void testStopDoesNotWaitForBlockedFlush() throws InterruptedException {
+        CountDownLatch firstSending = new CountDownLatch(1);
+        CountDownLatch releaseFirst = new CountDownLatch(1);
+        CountDownLatch secondSending = new CountDownLatch(1);
+        CountDownLatch releaseSecond = new CountDownLatch(1);
+
+        // The first send blocks before stop(), the second one blocks when it's flushed
+        RecordingSender sender = new RecordingSender() {
+            @Override
+            public void accept(Object message) {
+                try {
+                    if (Integer.valueOf(1).equals(message)) {
+                        firstSending.countDown();
+                        releaseFirst.await();
+                    } else if (Integer.valueOf(2).equals(message)) {
+                        secondSending.countDown();
+                        releaseSecond.await();
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                super.accept(message);
+            }
+        };
+        ExportTask task = new ExportTask("test", new BlockingQueue(), createConfig(0), sender, 500);
+
+        task.accept(1);
+        Assertions.assertTrue(firstSending.await(5, TimeUnit.SECONDS));
+        task.accept(2);
+
+        Thread stopThread = stopInBackground(task);
+        awaitStopped(task);
+        releaseFirst.countDown();
+
+        // stop() returns at the deadline although the flush of the second message is blocked
+        Assertions.assertTrue(secondSending.await(5, TimeUnit.SECONDS));
+        stopThread.join(2000);
+        Assertions.assertFalse(stopThread.isAlive());
+
+        releaseSecond.countDown();
+        sender.assertNeverInterrupted();
+    }
 }

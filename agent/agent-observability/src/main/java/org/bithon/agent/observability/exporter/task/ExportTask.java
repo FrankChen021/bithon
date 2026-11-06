@@ -34,7 +34,7 @@ public class ExportTask {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(ExportTask.class);
 
     /**
-     * Max time that {@link #stop()} spends on waiting for the in-progress send to complete and flushing remaining messages.
+     * Max time that {@link #stop()} waits for the send thread to complete the in-progress send and flush remaining messages.
      * Messages that are not sent before this deadline are discarded.
      * It's longer than the default RPC timeout so that a slow send, like the first one that connects to the server, can still complete.
      */
@@ -47,6 +47,12 @@ public class ExportTask {
     private final Thread sendThread;
     private final long stopTimeoutMs;
     private volatile boolean isRunning = true;
+
+    /**
+     * Set by {@link #stop()} before {@link #isRunning} is set to false.
+     * The send thread stops flushing remaining messages after this time.
+     */
+    private volatile long stopDeadline = Long.MAX_VALUE;
 
     /**
      * Guards {@link #isRunning} and {@link #isWaiting} so that {@link #stop()} interrupts the send thread
@@ -86,6 +92,10 @@ public class ExportTask {
             while (isRunning) {
                 export(true);
             }
+
+            // Flush in this thread so that the queue is only consumed by this thread,
+            // and stop() does not block on a send that exceeds the deadline
+            flush();
         }, exporterName + "-sender");
         this.sendThread.setDaemon(true);
         this.sendThread.start();
@@ -144,6 +154,19 @@ public class ExportTask {
         }
     }
 
+    private void flush() {
+        while (queue.size() > 0) {
+            if (System.currentTimeMillis() >= stopDeadline) {
+                LOG.warn("Failed to flush exporter [{}] in {} ms. About {} entries in the queue are discarded.",
+                         exporterName,
+                         stopTimeoutMs,
+                         queue.size());
+                return;
+            }
+            export(false);
+        }
+    }
+
     /**
      * User code might call this public method in multiple threads, thread-safe must be guaranteed.
      */
@@ -188,8 +211,12 @@ public class ExportTask {
     }
 
     public void stop() {
+        // Both the wait for the in-progress send and the flush in the send thread share this deadline
+        long deadline = System.currentTimeMillis() + stopTimeoutMs;
+
         // stop receiving new messages and stop the task
         synchronized (waitLock) {
+            stopDeadline = deadline;
             isRunning = false;
 
             // Wake up the send thread if it's waiting for messages
@@ -198,10 +225,7 @@ public class ExportTask {
             }
         }
 
-        // Both the wait for the send task and the flush below share this deadline
-        long deadline = System.currentTimeMillis() + stopTimeoutMs;
-
-        // Wait for the send task to complete
+        // Wait for the send task to complete sending and flushing
         boolean interrupted = false;
         while (sendThread.isAlive()) {
             long remaining = deadline - System.currentTimeMillis();
@@ -216,22 +240,10 @@ public class ExportTask {
         }
 
         if (sendThread.isAlive()) {
-            // The queue does not support concurrent take, so we don't flush if the send thread is still running
+            // The send thread is a daemon thread, it does not block the JVM from exiting
             LOG.warn("The send thread of exporter [{}] does not complete in {} ms. Remaining messages are discarded.",
                      exporterName,
                      stopTimeoutMs);
-        } else {
-            // flush all messages
-            while (queue.size() > 0) {
-                if (System.currentTimeMillis() >= deadline) {
-                    LOG.warn("Failed to flush exporter [{}] in {} ms. About {} entries in the queue are discarded.",
-                             exporterName,
-                             stopTimeoutMs,
-                             queue.size());
-                    break;
-                }
-                export(false);
-            }
         }
 
         if (interrupted) {
