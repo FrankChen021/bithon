@@ -66,9 +66,15 @@ public class BatchMessageQueue implements IThreadSafeQueue {
         return delegate.offer(object, wait);
     }
 
+    /**
+     * The number of lists in the underlying queue, plus one if there are items left from the previous 'take'.
+     * Since it reads the leftover of 'take', it should only be called by the thread that takes elements,
+     * or after that thread has terminated.
+     */
     @Override
     public long size() {
-        return delegate.size();
+        // Include the items left from the previous 'take' so that they're not lost in the final flush
+        return delegate.size() + (toBeTaken == null ? 0 : 1);
     }
 
     @Override
@@ -79,6 +85,7 @@ public class BatchMessageQueue implements IThreadSafeQueue {
     /**
      * Wait for at most given milliseconds to take a batch of elements from the current queue.
      * If the queue does not have enough elements, it will wait until the timeout is reached.
+     * If the calling thread is interrupted, it returns the elements taken so far with the interrupt status kept.
      */
     @Override
     public Object take(long timeout) {
@@ -88,7 +95,7 @@ public class BatchMessageQueue implements IThreadSafeQueue {
             long start = System.currentTimeMillis();
             takeElements(returning, timeout);
             timeout -= System.currentTimeMillis() - start;
-        } while (returning.size() < maxBatchSize && timeout > 0);
+        } while (returning.size() < maxBatchSize && timeout > 0 && !Thread.currentThread().isInterrupted());
 
         return returning;
     }
@@ -108,6 +115,8 @@ public class BatchMessageQueue implements IThreadSafeQueue {
             try {
                 toBeTaken = (List<Object>) delegate.take(timeout);
             } catch (InterruptedException ignored) {
+                // Keep the interrupt status so that the caller stops waiting
+                Thread.currentThread().interrupt();
             }
         }
 
