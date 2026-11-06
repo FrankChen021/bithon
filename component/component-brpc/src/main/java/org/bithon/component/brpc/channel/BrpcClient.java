@@ -206,6 +206,8 @@ public class BrpcClient implements IBrpcChannel, Closeable {
             try {
                 this.bossGroup.shutdownGracefully(quietPeriod, timeout, unit).sync();
             } catch (InterruptedException ignored) {
+                // Keep the interrupt status for the caller
+                Thread.currentThread().interrupt();
             }
         }
         this.bossGroup = null;

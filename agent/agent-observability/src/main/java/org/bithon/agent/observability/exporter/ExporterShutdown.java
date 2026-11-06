@@ -16,7 +16,10 @@
 
 package org.bithon.agent.observability.exporter;
 
+import org.bithon.agent.observability.exporter.task.ExportTask;
 import org.bithon.agent.starter.IAgentShutdownListener;
+
+import java.util.Collection;
 
 /**
  * @author frank.chen021@outlook.com
@@ -31,8 +34,16 @@ public class ExporterShutdown implements IAgentShutdownListener {
 
     @Override
     public void shutdown() {
-        for (Exporter exporter : Exporters.getAllDispatcher()) {
+        // All exporters share one deadline and flush in parallel,
+        // so that the shutdown takes at most one timeout even if the server is unreachable
+        long deadline = System.currentTimeMillis() + ExportTask.DEFAULT_STOP_TIMEOUT_MS;
+
+        Collection<Exporter> exporters = Exporters.getAllDispatcher();
+        for (Exporter exporter : exporters) {
             exporter.shutdown();
+        }
+        for (Exporter exporter : exporters) {
+            exporter.awaitTermination(deadline);
         }
     }
 }

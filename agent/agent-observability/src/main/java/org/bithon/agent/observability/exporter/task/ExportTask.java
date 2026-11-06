@@ -34,10 +34,11 @@ public class ExportTask {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(ExportTask.class);
 
     /**
-     * Max time that {@link #stop()} waits for the send thread to complete the in-progress send and flush remaining messages.
-     * It's longer than the default RPC timeout so that a slow send, like the first one that connects to the server, can still complete.
+     * Max time to wait for the send thread to complete the in-progress send and flush remaining messages,
+     * used by {@link #stop()}, and as the shared deadline of all exporters when the agent shuts down.
+     * It's longer than the default RPC timeout so that a slow in-progress send can still complete.
      */
-    private static final long DEFAULT_STOP_TIMEOUT_MS = 10_000;
+    public static final long DEFAULT_STOP_TIMEOUT_MS = 10_000;
 
     private final String exporterName;
     private final Consumer<Object> underlyingSender;
@@ -45,20 +46,20 @@ public class ExportTask {
     private final ExporterConfig.QueueFullStrategy queueFullStrategy;
     private final Thread sendThread;
     private final long stopTimeoutMs;
-    private volatile boolean isRunning = true;
+    private final StopSignal stopSignal = new StopSignal();
 
     /**
-     * Whether the send thread is waiting for messages. Guarded by 'this'.
-     * {@link #stop()} interrupts the send thread only when it's waiting, so that an in-progress send is not interrupted.
+     * Set when the stop times out, so that the send thread discards the remaining messages instead of sending them.
+     * Otherwise, the send thread keeps sending them after the underlying exporter is closed, and logs an error for each of them.
      */
-    private boolean isWaiting = false;
+    private volatile boolean isDiscarding = false;
 
     /**
      * in millisecond
      */
     private final long flushTime;
 
-    // A counter that will be reset if it's accessed after 5 seconds.
+    // A counter that will be reset if it's accessed after 1 minute.
     // We use this to rate-limit the logging of discarded messages.
     private final TimeWindowBasedCounter discardedMessages = new TimeWindowBasedCounter(Duration.ofMinutes(1));
 
@@ -80,26 +81,29 @@ public class ExportTask {
         this.underlyingSender = underlyingSender;
         this.queue = config.getBatchSize() > 0 ? new BatchMessageQueue(queue, config.getBatchSize()) : queue;
         this.queueFullStrategy = config.getQueueFullStrategy();
-        this.sendThread = new Thread(this::run, exporterName + "-sender");
+        this.sendThread = new Thread(
+            () -> {
+                while (!stopSignal.isStopped()) {
+                    send(true);
+                }
+
+                // Flush in this thread so that the queue is only consumed by this thread,
+                // and stop() does not block on a slow send
+                while (!isDiscarding && this.queue.size() > 0) {
+                    send(false);
+                }
+            }, exporterName + "-sender");
         this.sendThread.setDaemon(true);
         this.sendThread.start();
     }
 
-    private void run() {
-        while (isRunning) {
-            export(true);
-        }
-
-        // Flush in this thread so that the queue is only consumed by this thread,
-        // and stop() does not block on a slow send
-        while (queue.size() > 0) {
-            export(false);
-        }
+    public boolean canExport() {
+        return !stopSignal.isStopped();
     }
 
-    private void export(boolean waitIfEmpty) {
+    private void send(boolean waitIfEmpty) {
         try {
-            Object message = waitIfEmpty ? waitAndTake() : queue.take(0);
+            Object message = waitIfEmpty ? stopSignal.waitUnlessStopped(() -> queue.take(this.flushTime)) : queue.take(0);
             if (message == null) {
                 return;
             }
@@ -125,42 +129,15 @@ public class ExportTask {
     }
 
     /**
-     * Wait for at most {@link #flushTime} to take messages.
-     * The wait is interrupted by {@link #stop()} so that the shutdown does not need to wait for the flush time.
-     */
-    private Object waitAndTake() {
-        synchronized (this) {
-            if (!isRunning) {
-                // The remaining messages are flushed after the loop
-                return null;
-            }
-            isWaiting = true;
-        }
-        try {
-            return queue.take(this.flushTime);
-        } catch (InterruptedException ignored) {
-            return null;
-        } finally {
-            synchronized (this) {
-                isWaiting = false;
-
-                // Clear the interrupt status that might be set by 'stop'
-                // so that it does not affect the sending of the messages taken above
-                Thread.interrupted();
-            }
-        }
-    }
-
-    /**
      * User code might call this public method in multiple threads, thread-safe must be guaranteed.
      */
-    public void accept(Object message) {
-        if (!isRunning) {
+    public void export(Object message) {
+        if (stopSignal.isStopped()) {
             return;
         }
 
-        // Since this 'accept' method is not atomic, when the code goes here and below 'stop' is called and runs to complete,
-        // the message will be still added to the queue.
+        // Since this 'export' method is not atomic, when the code goes here and below 'stop' is called and runs to complete,
+        // the message will be still added to the queue, and it might not be flushed.
         //
         // To solve the problem, it requires some lock mechanism between this method and below 'stop' method,
         // but because the underlying queue is already a concurrency-supported structure,
@@ -195,32 +172,53 @@ public class ExportTask {
     }
 
     public void stop() {
-        // stop receiving new messages and stop the task
-        synchronized (this) {
-            isRunning = false;
+        long deadline = System.currentTimeMillis() + stopTimeoutMs;
+        signalStop();
+        awaitTermination(deadline);
+    }
 
-            // Wake up the send thread if it's waiting for messages
-            if (isWaiting) {
-                sendThread.interrupt();
-            }
+    /**
+     * Stop receiving new messages, and wake up the send thread if it's waiting for messages.
+     * The send thread then sends the remaining messages and exits.
+     * <p>
+     * Call it on all tasks before calling {@link #awaitTermination(long)} so that they flush in parallel.
+     */
+    public void signalStop() {
+        stopSignal.stop();
+    }
+
+    /**
+     * Wait for the send thread to send the remaining messages until the given deadline.
+     * If the send thread does not complete before the deadline, the remaining messages are discarded.
+     *
+     * @param deadline in milliseconds since epoch
+     */
+    public void awaitTermination(long deadline) {
+        if (Thread.currentThread() == sendThread) {
+            // Joining itself would block until the deadline
+            return;
         }
 
-        // Wait for the send thread to complete sending and flushing
-        try {
-            sendThread.join(stopTimeoutMs);
-        } catch (InterruptedException e) {
+        // If the caller is interrupted, keep waiting until the deadline, and restore the interrupt status after the wait
+        boolean interrupted = false;
+        long remaining;
+        while (sendThread.isAlive() && (remaining = deadline - System.currentTimeMillis()) > 0) {
+            try {
+                sendThread.join(remaining);
+            } catch (InterruptedException e) {
+                interrupted = true;
+            }
+        }
+        if (interrupted) {
             Thread.currentThread().interrupt();
         }
 
         if (sendThread.isAlive()) {
-            // The send thread is a daemon thread, it does not block the JVM from exiting
-            LOG.warn("The send thread of exporter [{}] does not complete in {} ms. Remaining messages might be discarded.",
-                     exporterName,
-                     stopTimeoutMs);
-        }
-    }
+            isDiscarding = true;
 
-    public boolean canAccept() {
-        return isRunning;
+            // The send thread is a daemon thread, it does not block the JVM from exiting
+            LOG.warn("The send thread of exporter [{}] does not complete before the deadline. Remaining messages are discarded.",
+                     exporterName);
+        }
     }
 }
