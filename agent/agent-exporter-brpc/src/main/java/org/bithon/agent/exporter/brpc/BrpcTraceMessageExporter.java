@@ -130,9 +130,10 @@ public class BrpcTraceMessageExporter implements IMessageExporter {
 
     @Override
     public void prepareShutdown() {
-        synchronized (this) {
-            this.shuttingDown = true;
-        }
+        // Don't take the lock, which is held when the collector is being created, including connecting to the server.
+        // Otherwise, this call blocks the shutdown of all exporters until the connection completes or fails.
+        // The collector being created is still used, and no new collector is created after the flag is set.
+        this.shuttingDown = true;
     }
 
     private ITraceCollector getTraceCollector() {

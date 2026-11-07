@@ -27,6 +27,8 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class BrpcMetricMessageExporterTest {
 
@@ -48,6 +50,41 @@ public class BrpcMetricMessageExporterTest {
             metricCollector.setAccessible(true);
             Assertions.assertNull(metricCollector.get(exporter));
         } finally {
+            exporter.close();
+        }
+    }
+
+    @Test
+    public void testPrepareShutdownDoesNotWaitForCollectorCreation() throws Exception {
+        Path agentConfig = tempDir.resolve("agent.yml");
+        Files.write(agentConfig, "application:\n  name: test\n  env: local\n".getBytes(StandardCharsets.UTF_8));
+        ConfigurationManager.createForTesting(agentConfig.toFile());
+
+        BrpcMetricMessageExporter exporter = new BrpcMetricMessageExporter(createExporterConfig());
+        CountDownLatch locked = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+
+        // Hold the lock of the exporter like the collector creation that is connecting to the server
+        Thread creating = new Thread(() -> {
+            synchronized (exporter) {
+                locked.countDown();
+                try {
+                    release.await();
+                } catch (InterruptedException ignored) {
+                }
+            }
+        });
+        creating.start();
+        try {
+            Assertions.assertTrue(locked.await(5, TimeUnit.SECONDS));
+
+            Thread preparing = new Thread(exporter::prepareShutdown);
+            preparing.start();
+            preparing.join(5000);
+            Assertions.assertFalse(preparing.isAlive(), "prepareShutdown() waits for the collector creation");
+        } finally {
+            release.countDown();
+            creating.join(5000);
             exporter.close();
         }
     }
