@@ -34,7 +34,7 @@
     <!-- Maven release: https://mvnrepository.com/artifact/com.alibaba.cloud/spring-cloud-alibaba-dependencies -->
     <alibaba-cloud.version>2025.1.0.0</alibaba-cloud.version>
 
-    <grpc.version>1.59.1</grpc.version>
+    <grpc.version>1.76.3</grpc.version>
 
     <!-- Keep server protobuf runtime on the same compatible Protobuf 3.x line as shaded-protobuf. -->
     <protobuf.version>3.25.9</protobuf.version>
