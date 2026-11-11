@@ -41,6 +41,12 @@ public class Exporter {
     private int appPort;
     private ExportTask task;
 
+    /**
+     * Guarded by 'this'. Once set, no new task is started, so that the task stopped by {@link #shutdown()}
+     * is the same one waited by {@link #awaitTermination(long)}
+     */
+    private boolean isShutdown = false;
+
     Exporter(String exporterName,
              AppInstance appInstance,
              ExporterConfig exporterConfig) throws Exception {
@@ -63,7 +69,7 @@ public class Exporter {
     }
 
     public boolean isReady() {
-        return task != null && task.canAccept();
+        return task != null && task.canExport();
     }
 
     public void onReady(Consumer<Exporter> listener) {
@@ -76,7 +82,7 @@ public class Exporter {
 
     public void export(Object message) {
         if (task != null && message != null) {
-            task.accept(message);
+            task.export(message);
         }
     }
 
@@ -95,7 +101,7 @@ public class Exporter {
     }
 
     private synchronized void startTask(int port) {
-        if (appPort != 0 || port == 0) {
+        if (isShutdown || appPort != 0 || port == 0) {
             return;
         }
         this.appPort = port;
@@ -114,7 +120,11 @@ public class Exporter {
         return new BlockingQueue(config.getQueueSize());
     }
 
-    public void shutdown() {
+    /**
+     * The first step of shutdown: stop receiving new messages and start flushing remaining messages.
+     * Call it on all exporters before {@link #awaitTermination(long)} so that they flush in parallel.
+     */
+    void shutdown() {
         LOG.info("Shutting down exporter task [{}]...", exporterName);
         try {
             messageExporter.prepareShutdown();
@@ -122,8 +132,27 @@ public class Exporter {
             LOG.warn("Failed to prepare message exporter [{}] for shutdown: {}", exporterName, e.getMessage(), e);
         }
 
-        if (task != null) {
-            task.stop();
+        ExportTask stoppingTask;
+        synchronized (this) {
+            isShutdown = true;
+            stoppingTask = this.task;
+        }
+        if (stoppingTask != null) {
+            stoppingTask.signalStop();
+        }
+    }
+
+    /**
+     * The second step of shutdown: wait for the flush until the deadline, and close the underlying exporter.
+     *
+     * @param deadline in milliseconds since epoch
+     */
+    void awaitTermination(long deadline) {
+        // No new task is started after shutdown(), so this is the task stopped there.
+        // It's visible to this thread because shutdown() reads it under the lock
+        ExportTask stoppingTask = this.task;
+        if (stoppingTask != null) {
+            stoppingTask.awaitTermination(deadline);
         }
 
         // stop underlying message exporter

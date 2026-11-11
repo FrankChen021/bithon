@@ -61,6 +61,22 @@ public class BrpcRpcTest {
         brpcServer.fastClose();
     }
 
+    /**
+     * Closing a client does not wait for the server to remove the session, so wait for it here
+     */
+    private void awaitSessions(int expected) {
+        long deadline = System.currentTimeMillis() + 5000;
+        while (brpcServer.getSessions().size() != expected && System.currentTimeMillis() < deadline) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        Assertions.assertEquals(expected, brpcServer.getSessions().size());
+    }
+
     @Test
     public void testBasicCases() {
         try (FastShutdownBrpcClient ch = new FastShutdownBrpcClient("127.0.0.1", 8070)) {
@@ -371,7 +387,7 @@ public class BrpcRpcTest {
             // close the channel actively
             //
             ch1.close();
-            Assertions.assertEquals(1, brpcServer.getSessions().size());
+            awaitSessions(1);
             List<IExampleService> client2Services = brpcServer.getRemoteServices("client1",
                                                                                  IExampleService.class);
             Assertions.assertEquals(1, client2Services.size());
@@ -379,7 +395,7 @@ public class BrpcRpcTest {
 
             //
             ch2.close();
-            Assertions.assertEquals(0, brpcServer.getSessions().size());
+            awaitSessions(0);
             List<IExampleService> client3Services = brpcServer.getRemoteServices("client1",
                                                                                  IExampleService.class);
             Assertions.assertEquals(0, client3Services.size());
