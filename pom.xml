@@ -7,12 +7,18 @@
   <groupId>org.bithon</groupId>
   <artifactId>bithon</artifactId>
   <packaging>pom</packaging>
-  <version>1.0-SNAPSHOT</version>
+  <version>${revision}</version>
   <name>Bithon</name>
   <description>Bithon - An observability platform</description>
   <url>https://bithon.org</url>
 
   <properties>
+    <!-- CI-friendly version (https://maven.apache.org/maven-ci-friendly.html).
+         This is the single place to change the project version; every module refers to ${revision}.
+         It can also be overridden on the command line: mvn -Drevision=1.2.0-RELEASE ...
+         The flatten-maven-plugin below resolves the property in the installed/deployed POMs. -->
+    <revision>1.0-SNAPSHOT</revision>
+
     <!-- Agent modules still build/test on JDK8/9, so keep JUnit on the last compatible line.
          JUnit Jupiter 5.10.x must be paired with JUnit Platform 1.10.x to avoid runtime NoSuchMethodError
          during test discovery on newer JDK builds (for example JDK21 in CI). -->
@@ -223,6 +229,34 @@
     </pluginManagement>
 
     <plugins>
+      <!-- Resolves ${revision} in the POMs that get installed/deployed so that consumers
+           outside this reactor don't need the property. Runs in every module. -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <version>1.7.3</version>
+        <configuration>
+          <updatePomFile>true</updatePomFile>
+          <flattenMode>resolveCiFriendliesOnly</flattenMode>
+        </configuration>
+        <executions>
+          <execution>
+            <id>flatten</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>flatten</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>flatten-clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>clean</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
       <!--default to 1.8 target, submodule change override it-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
