@@ -21,6 +21,8 @@ import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
+import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.plugin.httpserver.jetty12.context.RequestContext;
 
@@ -39,10 +41,19 @@ public class HandlerInvoker$Run extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        requestContext.getTraceContext()
-                      .currentSpan()
-                      .method(aopContext.getTargetClass(), aopContext.getMethod());
-        TraceContextHolder.attach(requestContext.getTraceContext());
+        ITraceContext traceContext = requestContext.getTraceContext();
+        if (traceContext == null) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
+
+        ITraceSpan span = traceContext.currentSpan();
+        if (span == null) {
+            // The span has already been finished
+            return InterceptionDecision.SKIP_LEAVE;
+        }
+
+        span.method(aopContext.getTargetClass(), aopContext.getMethod());
+        TraceContextHolder.attach(traceContext);
         return super.before(aopContext);
     }
 
