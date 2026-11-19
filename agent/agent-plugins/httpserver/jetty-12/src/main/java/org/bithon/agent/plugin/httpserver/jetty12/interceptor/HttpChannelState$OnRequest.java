@@ -48,6 +48,13 @@ public class HttpChannelState$OnRequest extends AfterInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
+        HttpChannelState channelState = aopContext.getTargetAs();
+
+        // HttpChannelState and its HandlerInvoker are reused across requests on the same connection.
+        // Clear any context left by a previous request so that a request that is not tracked below
+        // does not pick up a stale (already finished) context.
+        ((IBithonObject) channelState).setInjectedObject(null);
+
         Runnable handlerInvoker = aopContext.getReturningAs();
         if (handlerInvoker == null) {
             return;
@@ -57,8 +64,8 @@ public class HttpChannelState$OnRequest extends AfterInterceptor {
             // Should be HandlerInvoker
             return;
         }
+        ((IBithonObject) handlerInvoker).setInjectedObject(null);
 
-        HttpChannelState channelState = aopContext.getTargetAs();
         Request request = channelState.getRequest();
         boolean filtered = this.requestFilter.shouldBeExcluded(request.getHttpURI().getPath(),
                                                                request.getHeaders().get("User-Agent"));

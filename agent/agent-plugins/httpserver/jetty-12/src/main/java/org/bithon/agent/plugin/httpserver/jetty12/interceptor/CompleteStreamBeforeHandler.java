@@ -22,6 +22,7 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.observability.metric.domain.httpserver.HttpIncomingMetricsRegistry;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
+import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
 import org.bithon.agent.plugin.httpserver.jetty12.context.RequestContext;
@@ -45,10 +46,12 @@ public abstract class CompleteStreamBeforeHandler extends BeforeInterceptor {
         if (requestContext == null) {
             return;
         }
+        // The target object is reused across requests, detach the context so that it is processed only once
+        bithonObject.setInjectedObject(null);
 
-        ITraceSpan span = null;
-        if (requestContext.getTraceContext() != null) {
-            span = requestContext.getTraceContext().currentSpan();
+        ITraceContext traceContext = requestContext.getTraceContext();
+        ITraceSpan span = traceContext == null ? null : traceContext.currentSpan();
+        if (span != null) {
             span.tag(Tags.Http.STATUS, Integer.toString(requestContext.getChannelResponse().getStatus()))
                 .tag((Throwable) aopContext.getArgAs(1))
                 .configIfTrue(!traceConfig.getHeaders().getResponse().isEmpty(),
@@ -60,7 +63,7 @@ public abstract class CompleteStreamBeforeHandler extends BeforeInterceptor {
                                                         s.tag(Tags.Http.RESPONSE_HEADER_PREFIX + header.toLowerCase(Locale.ENGLISH), value);
                                                     }
                                                 }))
-                .tag(Tags.Http.RESPONSE_CONTENT_LENGTH, requestContext.getChannelRequest().getContentBytesRead())
+                .tag(Tags.Http.REQUEST_CONTENT_LENGTH, requestContext.getChannelRequest().getContentBytesRead())
                 .tag(Tags.Http.RESPONSE_CONTENT_LENGTH, requestContext.getChannelResponse().getContentBytesWritten())
                 .finish();
             span.context().finish();
